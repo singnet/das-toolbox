@@ -1,45 +1,57 @@
 import click
 from services.container import ContainerService
-
-container_service = ContainerService()
+from services.config import ConfigService
 
 
 @click.group()
 def server():
-    pass
+    global container_service
+    global config
+
+    container_service = ContainerService()
+    config = ConfigService()
+    config.load()
 
 
 @server.command()
-@click.option(
-    "--redis-port",
-    help="Specify the port for the Redis server. Default is 6379.",
-    required=False,
-    default=6379,
-    type=int,
-)
-@click.option(
-    "--mongodb-port",
-    help="Specify the port for the MongoDB server. Default is 27017.",
-    required=False,
-    default=27017,
-    type=int,
-)
-@click.option(
-    "--mongodb-username",
-    help="Specify the username for MongoDB authentication.",
-    required=True,
-)
-@click.option(
-    "--mongodb-password",
-    help="Specify the password for MongoDB authentication.",
-    required=True,
-)
-def start(redis_port, mongodb_port, mongodb_username, mongodb_password):
-    container_service.setup_redis(redis_port)
+def configure():
+    redis_port = click.prompt(
+        "Enter Redis port",
+        default=config.get("redis.port", 6379),
+        type=int,
+    )
+    config.set("redis.port", redis_port)
+
+    mongodb_port = click.prompt(
+        "Enter MongoDB port",
+        default=config.get("mongodb.port", 27017),
+        type=int,
+    )
+    mongodb_username = click.prompt(
+        "Enter MongoDB username",
+    )
+    mongodb_password = click.prompt(
+        "Enter MongoDB password",
+        hide_input=True,
+    )
+
+    config.set("mongodb.port", mongodb_port)
+    config.set("mongodb.username", mongodb_username)
+    config.set("mongodb.password", mongodb_password)
+
+    config.save()
+    click.echo(f"Configuration saved to {config.config_path}")
+
+
+@server.command()
+def start():
+    container_service.setup_redis(
+        redis_port=config.get("redis.port"),
+    )
     container_service.setup_mongodb(
-        mongodb_port,
-        mongodb_username,
-        mongodb_password,
+        mongodb_port=config.get("mongodb.port"),
+        mongodb_username=config.get("mongodb.username"),
+        mongodb_password=config.get("mongodb.password"),
     )
 
 
@@ -58,7 +70,14 @@ def start(redis_port, mongodb_port, mongodb_username, mongodb_password):
     default=False,
 )
 def load(metta_path, canonical):
-    container_service.setup_canonical_load(metta_path, canonical)
+    container_service.setup_canonical_load(
+        metta_path,
+        canonical,
+        mongodb_port=config.get("mongodb.port"),
+        mongodb_username=config.get("mongodb.username"),
+        mongodb_password=config.get("mongodb.password"),
+        redis_port=config.get("redis.port"),
+    )
 
 
 @server.command()
