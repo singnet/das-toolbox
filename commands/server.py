@@ -45,6 +45,12 @@ def configure():
 
 @server.command()
 def start():
+    if container_service.is_redis_running() or container_service.is_mongodb_running():
+        click.echo("Redis and MongoDB are already running. No further action needed.")
+        return
+
+    click.echo("Loading...")
+
     container_service.setup_redis(
         redis_port=config.get("redis.port"),
     )
@@ -53,6 +59,8 @@ def start():
         mongodb_username=config.get("mongodb.username"),
         mongodb_password=config.get("mongodb.password"),
     )
+
+    click.echo("Done.")
 
 
 @server.command()
@@ -70,6 +78,17 @@ def start():
     default=False,
 )
 def load(metta_path, canonical):
+    if (
+        not container_service.is_redis_running()
+        or not container_service.is_mongodb_running()
+    ):
+        click.echo(
+            "Redis or MongoDB is not running. Please use 'server start' to start the required services before running 'server load'."
+        )
+        return
+
+    click.echo("Loading...")
+
     container_service.setup_canonical_load(
         metta_path,
         canonical,
@@ -78,6 +97,8 @@ def load(metta_path, canonical):
         mongodb_password=config.get("mongodb.password"),
         redis_port=config.get("redis.port"),
     )
+
+    click.echo("Done.")
 
 
 @server.command()
