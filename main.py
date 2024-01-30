@@ -1,5 +1,5 @@
 import click
-from server import server
+from commands.server import server
 
 
 @click.group()
