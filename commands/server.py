@@ -44,5 +44,23 @@ def start(redis_port, mongodb_port, mongodb_username, mongodb_password):
 
 
 @server.command()
+@click.option(
+    "--metta-path",
+    help="",
+    required=True,
+    type=str,
+)
+@click.option(
+    "--canonical",
+    help="",
+    required=False,
+    is_flag=True,
+    default=False,
+)
+def load(metta_path, canonical):
+    container_service.setup_canonical_load(metta_path, canonical)
+
+
+@server.command()
 def stop():
     container_service.prune()
