@@ -9,6 +9,18 @@ class ContainerService:
         self.mongodb_image_name = "mongo:6.0.13-jammy"
         self.canonical_load = "levisingnet/canonical-load:latest"
 
+    def is_redis_running(self):
+        containers = self.docker_client.containers.list(
+            filters={"ancestor": self.redis_image_name}
+        )
+        return len(containers) > 0
+
+    def is_mongodb_running(self):
+        containers = self.docker_client.containers.list(
+            filters={"ancestor": self.mongodb_image_name}
+        )
+        return len(containers) > 0
+
     def setup_redis(self, redis_port: int) -> None:
         redis_container = self.docker_client.containers.run(
             self.redis_image_name,
