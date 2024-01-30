@@ -48,7 +48,15 @@ class ContainerService:
 
         print(mongodb_container.id)
 
-    def setup_canonical_load(self, metta_path, canonical_flag) -> None:
+    def setup_canonical_load(
+        self,
+        metta_path,
+        canonical_flag,
+        mongodb_port,
+        mongodb_username,
+        mongodb_password,
+        redis_port,
+    ) -> None:
         canonical = "--canonical" if canonical_flag else ""
         command = (
             f"python3 scripts/load_das.py {canonical} --knowledge-base {metta_path}"
@@ -75,13 +83,13 @@ class ContainerService:
                 "MaximumRetryCount": 5,
             },
             environment={
-                "DAS_MONGODB_NAME": "das",
+                "DAS_MONGODB_PORT": mongodb_port,
+                "DAS_REDIS_PORT": redis_port,
+                "DAS_DATABASE_USERNAME": mongodb_username,
+                "DAS_DATABASE_PASSWORD": mongodb_password,
                 "DAS_MONGODB_HOSTNAME": "localhost",
-                "DAS_MONGODB_PORT": 27017,
                 "DAS_REDIS_HOSTNAME": "localhost",
-                "DAS_REDIS_PORT": 6379,
-                "DAS_DATABASE_USERNAME": "dbadmin",
-                "DAS_DATABASE_PASSWORD": "dassecret",
+                "DAS_MONGODB_NAME": "das",
                 "PYTHONPATH": "/app",
                 "DAS_KNOWLEDGE_BASE": metta_path,
             },
