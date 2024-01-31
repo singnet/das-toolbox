@@ -1,66 +1,53 @@
 import click
 from services.container import ContainerService
 from services.config import ConfigService
+from exceptions import ContainerNotRunningException, ContainerAlreadyRunningException
 
 
 @click.group()
 def server():
     global container_service
-    global config
+    global config_service
 
     container_service = ContainerService()
-    config = ConfigService()
-    config.load()
+    config_service = ConfigService()
+    config_service.load()
 
-
-@server.command()
-def configure():
-    redis_port = click.prompt(
-        "Enter Redis port",
-        default=config.get("redis.port", 6379),
-        type=int,
-    )
-    config.set("redis.port", redis_port)
-
-    mongodb_port = click.prompt(
-        "Enter MongoDB port",
-        default=config.get("mongodb.port", 27017),
-        type=int,
-    )
-    mongodb_username = click.prompt(
-        "Enter MongoDB username",
-    )
-    mongodb_password = click.prompt(
-        "Enter MongoDB password",
-        hide_input=True,
-    )
-
-    config.set("mongodb.port", mongodb_port)
-    config.set("mongodb.username", mongodb_username)
-    config.set("mongodb.password", mongodb_password)
-
-    config.save()
-    click.echo(f"Configuration saved to {config.config_path}")
+    if not config_service.is_config_ready():
+        click.echo(
+            "Configuration is not ready. Please initialize the configuration first."
+        )
+        exit(1)
 
 
 @server.command()
 def start():
-    if container_service.is_redis_running() or container_service.is_mongodb_running():
-        click.echo("Redis and MongoDB are already running. No further action needed.")
-        return
+    try:
+        click.echo("Starting Redis and MongoDB...")
 
-    click.echo("Loading...")
+        redis_port = config_service.get("redis.port")
+        mongodb_port = config_service.get("mongodb.port")
+        mongodb_username = config_service.get("mongodb.username")
+        mongodb_password = config_service.get("mongodb.password")
 
-    container_service.setup_redis(
-        redis_port=config.get("redis.port"),
-    )
-    container_service.setup_mongodb(
-        mongodb_port=config.get("mongodb.port"),
-        mongodb_username=config.get("mongodb.username"),
-        mongodb_password=config.get("mongodb.password"),
-    )
+        container_service.setup_redis(
+            redis_port,
+        )
 
-    click.echo("Done.")
+        click.echo(f"Redis server running on port {redis_port}")
+
+        container_service.setup_mongodb(
+            mongodb_port,
+            mongodb_username,
+            mongodb_password,
+        )
+
+        click.echo(f"MongoDB server running on port {mongodb_port}")
+
+        click.echo("Done.")
+    except ContainerAlreadyRunningException:
+        click.echo("Redis or MongoDB are already running. No further action needed.")
+        exit(1)
 
 
 @server.command()
@@ -78,27 +65,25 @@ def start():
     default=False,
 )
 def load(metta_path, canonical):
-    if (
-        not container_service.is_redis_running()
-        or not container_service.is_mongodb_running()
-    ):
+    try:
+        click.echo("Loading metta file(s)...")
+        container_service.setup_canonical_load(
+            metta_path,
+            canonical,
+            mongodb_port=config_service.get("mongodb.port"),
+            mongodb_username=config_service.get("mongodb.username"),
+            mongodb_password=config_service.get("mongodb.password"),
+            redis_port=config_service.get("redis.port"),
+        )
+        click.echo("Done.")
+    except ContainerNotRunningException:
         click.echo(
             "Redis or MongoDB is not running. Please use 'server start' to start the required services before running 'server load'."
         )
-        return
-
-    click.echo("Loading...")
-
-    container_service.setup_canonical_load(
-        metta_path,
-        canonical,
-        mongodb_port=config.get("mongodb.port"),
-        mongodb_username=config.get("mongodb.username"),
-        mongodb_password=config.get("mongodb.password"),
-        redis_port=config.get("redis.port"),
-    )
-
-    click.echo("Done.")
+        exit(1)
+    except FileNotFoundError:
+        click.echo(f"The specified path '{metta_path}' does not exist.")
+        exit(1)
 
 
 @server.command()
