@@ -3,6 +3,7 @@ from config import Config
 from enum import Enum
 from services.container import OpenFaaSContainerService
 from exceptions import ContainerAlreadyRunningException
+from sys import exit
 
 
 class FunctionEnum(Enum):

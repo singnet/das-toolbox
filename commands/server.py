@@ -5,6 +5,7 @@ from services.container import (
     CanonicalLoadContainerService,
     OpenFaaSContainerService,
 )
+from sys import exit
 from config import Config
 
 
