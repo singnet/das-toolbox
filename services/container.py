@@ -113,5 +113,5 @@ class ContainerService:
         containers = self.docker_client.containers.list()
 
         for container in containers:
-            print(f"Parando container: {container.id}")
+            print(f"Removing containers: {container.id}")
             container.stop()

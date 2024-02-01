@@ -45,22 +45,50 @@ def configure():
 
 @server.command()
 def start():
-    if container_service.is_redis_running() or container_service.is_mongodb_running():
-        click.echo("Redis and MongoDB are already running. No further action needed.")
-        return
+    click.echo("Starting Redis and MongoDB...")
 
-    click.echo("Loading...")
+    if container_service.is_redis_running():
+        click.echo(
+            f"Redis is already running. It's listening on port {config.get('redis.port')}"
+        )
+    else:
+        try:
+            container_service.setup_redis(
+                redis_port=config.get("redis.port"),
+            )
+            click.echo(f"Redis started on port {config.get('redis.port')}")
+        except Exception as e:
+            click.echo(
+                f"Error occurred while trying to start Redis on port {config.get('redis.port')}"
+            )
+            click.echo(f"Error Details: {str(e)}")
+            click.echo(
+                f"For more information, check the logs using the command 'docker logs das-redis' in your terminal."
+            )
+            return
 
-    container_service.setup_redis(
-        redis_port=config.get("redis.port"),
-    )
-    container_service.setup_mongodb(
-        mongodb_port=config.get("mongodb.port"),
-        mongodb_username=config.get("mongodb.username"),
-        mongodb_password=config.get("mongodb.password"),
-    )
+    if container_service.is_mongodb_running():
+        click.echo(
+            f"MongoDB is already running. It's listening on port {config.get('mongodb.port')}"
+        )
+    else:
+        try:
+            container_service.setup_mongodb(
+                mongodb_port=config.get("mongodb.port"),
+                mongodb_username=config.get("mongodb.username"),
+                mongodb_password=config.get("mongodb.password"),
+            )
+        except Exception as e:
+            click.echo(
+                f"Error occurred while trying to start MongoDB on port {config.get('mongodb.port')}"
+            )
+            click.echo(f"Error Details: {str(e)}")
+            click.echo(
+                f"For more information, check the logs using the command 'docker logs das-mongodb' in your terminal."
+            )
+            return
 
-    click.echo("Done.")
+        click.echo(f"MongoDB started on port {config.get('mongodb.port')}")
 
 
 @server.command()
@@ -78,12 +106,23 @@ def start():
     default=False,
 )
 def load(metta_path, canonical):
-    if (
-        not container_service.is_redis_running()
-        or not container_service.is_mongodb_running()
-    ):
+    services_not_running = False
+
+    if not container_service.is_redis_running():
+        click.echo("Redis is not running")
+        services_not_running = True
+    else:
+        click.echo(f"Redis is running on port {config.get('redis.port')}")
+
+    if not container_service.is_mongodb_running():
+        click.echo("MongoDB is not running")
+        services_not_running = True
+    else:
+        click.echo(f"MongoDB is running on port {config.get('mongodb.port')}")
+
+    if services_not_running:
         click.echo(
-            "Redis or MongoDB is not running. Please use 'server start' to start the required services before running 'server load'."
+            "\nPlease use 'server start' to start required services before running 'server load'."
         )
         return
 
