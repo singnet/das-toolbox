@@ -26,10 +26,12 @@ def set():
     )
     mongodb_username = click.prompt(
         "Enter MongoDB username",
+        default=config_service.get("mongodb.username", "admin"),
     )
     mongodb_password = click.prompt(
         "Enter MongoDB password",
         hide_input=True,
+        default=config_service.get("mongodb.password", "admin"),
     )
 
     config_service.set("mongodb.port", mongodb_port)

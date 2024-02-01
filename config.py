@@ -7,7 +7,7 @@ class JsonHandler:
     def __init__(self, file_path):
         self._content = {}
         self._file_path = file_path
-        self._load()
+        self.rewind()
 
     def get_content(self) -> dict:
         return self._content
@@ -18,12 +18,14 @@ class JsonHandler:
     def is_ready(self) -> bool:
         return len(self.get_content().items()) > 0
 
-    def _load(self):
+    def rewind(self):
         try:
             with open(self._file_path, "r") as config_file:
                 self._content = json.load(config_file)
         except (FileNotFoundError, json.JSONDecodeError):
             self._content = {}
+
+        return self
 
     def save(self):
         config_dir = os.path.dirname(self._file_path)

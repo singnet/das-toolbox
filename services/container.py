@@ -209,12 +209,6 @@ class CanonicalLoadContainerService(ContainerService):
             f"python3 scripts/load_das.py {canonical} --knowledge-base {metta_path}"
         )
 
-        if (
-            not self.redis_container.container_running()
-            or not self.mongodb_container.container_running()
-        ):
-            raise ContainerNotRunningException()
-
         if not os.path.exists(metta_path):
             raise FileNotFoundError()
 
@@ -272,12 +266,6 @@ class OpenFaaSContainerService(ContainerService):
 
         self.get_container().set_image(repository)
         self.get_container().set_image_version(function_version)
-
-        if (
-            not self.redis_container.container_running()
-            or not self.mongodb_container.container_running()
-        ):
-            raise ContainerNotRunningException()
 
         container_id = self._start_container(
             detach=True,

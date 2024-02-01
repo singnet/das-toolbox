@@ -2,7 +2,7 @@ import click
 from config import Config
 from enum import Enum
 from services.container import OpenFaaSContainerService
-from exceptions import ContainerAlreadyRunningException, ContainerNotRunningException
+from exceptions import ContainerAlreadyRunningException
 
 
 class FunctionEnum(Enum):
@@ -12,11 +12,9 @@ class FunctionEnum(Enum):
 
 @click.group()
 def faas():
-    global container_service
     global config
 
     config = Config()
-    container_service = OpenFaaSContainerService()
 
     if not config.is_ready():
         click.echo(
@@ -45,6 +43,27 @@ def start(function, version):
     mongodb_password = config.get("mongodb.password")
     external_port = 8080
     repository = "trueagi/das"
+    services_not_running = False
+
+    container_service = OpenFaaSContainerService()
+
+    if not container_service.redis_container.container_running():
+        click.echo("Redis is not running")
+        services_not_running = True
+    else:
+        click.echo(f"Redis is running on port {config.get('redis.port')}")
+
+    if not container_service.mongodb_container.container_running():
+        click.echo("MongoDB is not running")
+        services_not_running = True
+    else:
+        click.echo(f"MongoDB is running on port {config.get('mongodb.port')}")
+
+    if services_not_running:
+        click.echo(
+            "\nPlease use 'server start' to start required services before running 'faas start'."
+        )
+        exit(1)
 
     try:
         click.echo("Starting FaaS...")
@@ -62,17 +81,25 @@ def start(function, version):
 
         click.echo(f"FaaS running on port {external_port}")
     except ContainerAlreadyRunningException:
-        click.echo("The FaaS container is already running")
+        click.echo("FaaS Service is already running")
         exit(1)
-    except ContainerNotRunningException:
+    except Exception as e:
         click.echo(
-            "Redis or MongoDB is not running. Please use 'server start' to start the required services before running 'faas start'."
+            f"Error occurred while trying to start FaaS service on port {external_port}"
+        )
+        click.echo(f"Error Details: {str(e)}")
+        click.echo(
+            f"For more information, check the logs using the command 'docker logs das-openfaas' in your terminal."
         )
         exit(1)
 
 
 @faas.command()
 def stop():
-    click.echo(f"Stopping/Removing OpenFaaS Service")
-    OpenFaaSContainerService().stop()
-    click.echo(f"Done.")
+    try:
+        click.echo(f"Stopping/Removing OpenFaaS Service")
+        OpenFaaSContainerService().stop()
+        click.echo(f"Done.")
+    except Exception as e:
+        click.echo(f"Error Details: {str(e)}")
+        exit(1)
