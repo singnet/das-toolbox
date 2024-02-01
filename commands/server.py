@@ -72,10 +72,10 @@ def start():
 )
 def load(metta_path, canonical):
     try:
-        canonical_load_service = CanonicalLoadContainerService()
+        CanonicalLoadContainerService().stop()
 
         click.echo("Loading metta file(s)...")
-        canonical_load_service.start_container(
+        CanonicalLoadContainerService().start_container(
             metta_path,
             canonical,
             mongodb_port=config.get("mongodb.port"),

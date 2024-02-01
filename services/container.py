@@ -8,7 +8,12 @@ from docker.errors import NotFound
 
 
 class Container:
-    def __init__(self, name, image=None, image_version="latest") -> None:
+    def __init__(
+        self,
+        name,
+        image=None,
+        image_version: str = "latest",
+    ) -> None:
         self._container_config = ContainerConfig()
         self._name = name
 
@@ -23,12 +28,13 @@ class Container:
             self._running = True
             self._id = container["id"]
 
-            image_version = container.get("image_version") if image is None else image_version
+            image_version = (
+                container.get("image_version") if image is None else image_version
+            )
             image = container["image"] if image is None else image
 
             self._image = image
             self._image_version = image_version
-
 
     def to_json(self) -> dict:
         return {
@@ -180,7 +186,10 @@ class MongoContainerService(ContainerService):
 
 class CanonicalLoadContainerService(ContainerService):
     def __init__(self) -> None:
-        container = Container("das-canonical-load", "levisingnet/canonical-load")
+        container = Container(
+            "das-canonical-load",
+            "levisingnet/canonical-load",
+        )
         super().__init__(container)
 
         self.redis_container = Container("das-redis")
