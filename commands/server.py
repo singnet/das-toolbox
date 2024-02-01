@@ -1,19 +1,21 @@
 import click
-from services.container import ContainerService
+from services.container import (
+    RedisContainerService,
+    MongoContainerService,
+    CanonicalLoadContainerService,
+    OpenFaaSContainerService,
+)
 from config import Config
 from exceptions import ContainerNotRunningException, ContainerAlreadyRunningException
 
 
 @click.group()
 def server():
-    global container_service
-    global config_service
+    global config
 
-    container_service = ContainerService()
-    config_service = Config()
-    config_service.load()
+    config = Config()
 
-    if not config_service.is_ready():
+    if not config.is_ready():
         click.echo(
             "Configuration is not ready. Please initialize the configuration first."
         )
@@ -25,18 +27,22 @@ def start():
     try:
         click.echo("Starting Redis and MongoDB...")
 
-        redis_port = config_service.get("redis.port")
-        mongodb_port = config_service.get("mongodb.port")
-        mongodb_username = config_service.get("mongodb.username")
-        mongodb_password = config_service.get("mongodb.password")
+        redis_service = RedisContainerService()
 
-        container_service.setup_redis(
+        redis_port = config.get("redis.port")
+        mongodb_port = config.get("mongodb.port")
+        mongodb_username = config.get("mongodb.username")
+        mongodb_password = config.get("mongodb.password")
+
+        redis_service.start_container(
             redis_port,
         )
 
         click.echo(f"Redis server running on port {redis_port}")
 
-        container_service.setup_mongodb(
+        mongodb_service = MongoContainerService()
+
+        mongodb_service.start_container(
             mongodb_port,
             mongodb_username,
             mongodb_password,
@@ -66,14 +72,16 @@ def start():
 )
 def load(metta_path, canonical):
     try:
+        canonical_load_service = CanonicalLoadContainerService()
+
         click.echo("Loading metta file(s)...")
-        container_service.setup_canonical_load(
+        canonical_load_service.start_container(
             metta_path,
             canonical,
-            mongodb_port=config_service.get("mongodb.port"),
-            mongodb_username=config_service.get("mongodb.username"),
-            mongodb_password=config_service.get("mongodb.password"),
-            redis_port=config_service.get("redis.port"),
+            mongodb_port=config.get("mongodb.port"),
+            mongodb_username=config.get("mongodb.username"),
+            mongodb_password=config.get("mongodb.password"),
+            redis_port=config.get("redis.port"),
         )
         click.echo("Done.")
     except ContainerNotRunningException:
@@ -88,4 +96,9 @@ def load(metta_path, canonical):
 
 @server.command()
 def stop():
-    container_service.prune()
+    click.echo(f"Stopping/Removing Currently Running Services")
+    OpenFaaSContainerService().stop()
+    CanonicalLoadContainerService().stop()
+    MongoContainerService().stop()
+    RedisContainerService().stop()
+    click.echo(f"Done.")

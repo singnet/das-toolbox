@@ -7,6 +7,7 @@ class JsonHandler:
     def __init__(self, file_path):
         self._content = {}
         self._file_path = file_path
+        self._load()
 
     def get_content(self) -> dict:
         return self._content
@@ -17,7 +18,7 @@ class JsonHandler:
     def is_ready(self) -> bool:
         return len(self.get_content().items()) > 0
 
-    def load(self):
+    def _load(self):
         try:
             with open(self._file_path, "r") as config_file:
                 self._content = json.load(config_file)
@@ -49,13 +50,18 @@ class JsonHandler:
 
         current_dict[keys[-1]] = value
 
+        return self
+
     def append_to_array(self, key: str, value: Any):
         array = self.get(key, [])
         if not isinstance(array, list):
             raise ValueError(f"The key '{key}' does not correspond to an array.")
 
         array.append(value)
+
         self.set(key, array)
+
+        return self
 
     def remove_from_array(self, key: str, value: Any):
         array = self.get(key, [])
@@ -67,6 +73,8 @@ class JsonHandler:
             self.set(key, array)
         except ValueError:
             pass
+
+        return self
 
 
 class Config(JsonHandler):

@@ -1,8 +1,8 @@
 import click
-from services.container import ContainerService
 from config import Config
-from exceptions import ContainerAlreadyRunningException, ContainerNotRunningException
 from enum import Enum
+from services.container import OpenFaaSContainerService
+from exceptions import ContainerAlreadyRunningException, ContainerNotRunningException
 
 
 class FunctionEnum(Enum):
@@ -13,13 +13,12 @@ class FunctionEnum(Enum):
 @click.group()
 def faas():
     global container_service
-    global config_service
+    global config
 
-    config_service = Config()
-    container_service = ContainerService()
+    config = Config()
+    container_service = OpenFaaSContainerService()
 
-    config_service.load()
-    if not config_service.is_config_ready():
+    if not config.is_ready():
         click.echo(
             "Configuration is not ready. Please initialize the configuration first."
         )
@@ -40,17 +39,17 @@ def faas():
     type=str,
 )
 def start(function, version):
-    redis_port = config_service.get("redis.port")
-    mongodb_port = config_service.get("mongodb.port")
-    mongodb_username = config_service.get("mongodb.username")
-    mongodb_password = config_service.get("mongodb.password")
+    redis_port = config.get("redis.port")
+    mongodb_port = config.get("mongodb.port")
+    mongodb_username = config.get("mongodb.username")
+    mongodb_password = config.get("mongodb.password")
     external_port = 8080
     repository = "trueagi/das"
 
     try:
         click.echo("Starting FaaS...")
 
-        container_service.setup_openfaas(
+        container_service.start_container(
             repository,
             function,
             version,
@@ -74,4 +73,6 @@ def start(function, version):
 
 @faas.command()
 def stop():
-    container_service.prune()
+    click.echo(f"Stopping/Removing OpenFaaS Service")
+    OpenFaaSContainerService().stop()
+    click.echo(f"Done.")

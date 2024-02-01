@@ -8,7 +8,6 @@ def config():
     global config_service
 
     config_service = Config()
-    config_service.load()
 
 
 @config.command()
