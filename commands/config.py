@@ -1,5 +1,5 @@
 import click
-from services.config import ConfigService
+from config import Config
 from utils import format_as_table
 
 
@@ -7,7 +7,7 @@ from utils import format_as_table
 def config():
     global config_service
 
-    config_service = ConfigService()
+    config_service = Config()
     config_service.load()
 
 
@@ -38,16 +38,16 @@ def set():
     config_service.set("mongodb.password", mongodb_password)
 
     config_service.save()
-    click.echo(f"Configuration saved to {config_service.get_config_path()}")
+    click.echo(f"Configuration saved to {config_service.get_path()}")
 
 
 @config.command()
 def list():
-    config_dict = config_service.get_config()
+    config_dict = config_service.get_content()
 
     if len(config_dict.keys()) < 1:
         click.echo(
-            f"Config not found in {config_service.get_config_path()}. You can run the command `config set` to create a configuration file."
+            f"Config not found in {config_service.get_path()}. You can run the command `config set` to create a configuration file."
         )
         return
 

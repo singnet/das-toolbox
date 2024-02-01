@@ -1,6 +1,6 @@
 import click
 from services.container import ContainerService
-from services.config import ConfigService
+from config import Config
 from exceptions import ContainerAlreadyRunningException, ContainerNotRunningException
 from enum import Enum
 
@@ -15,7 +15,7 @@ def faas():
     global container_service
     global config_service
 
-    config_service = ConfigService()
+    config_service = Config()
     container_service = ContainerService()
 
     config_service.load()

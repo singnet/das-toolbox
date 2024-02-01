@@ -1,6 +1,6 @@
 import click
 from services.container import ContainerService
-from services.config import ConfigService
+from config import Config
 from exceptions import ContainerNotRunningException, ContainerAlreadyRunningException
 
 
@@ -10,10 +10,10 @@ def server():
     global config_service
 
     container_service = ContainerService()
-    config_service = ConfigService()
+    config_service = Config()
     config_service.load()
 
-    if not config_service.is_config_ready():
+    if not config_service.is_ready():
         click.echo(
             "Configuration is not ready. Please initialize the configuration first."
         )
