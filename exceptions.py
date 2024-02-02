@@ -4,3 +4,7 @@ class ContainerAlreadyRunningException(Exception):
 
 class ContainerNotRunningException(Exception):
     pass
+
+
+class ValidateFailed(Exception):
+    pass
