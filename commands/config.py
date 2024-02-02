@@ -39,7 +39,7 @@ def set():
     config_service.set("mongodb.password", mongodb_password)
 
     config_service.save()
-    click.echo(f"Configuration saved to {config_service.get_path()}")
+    click.echo(f"Configuration file saved to {config_service.get_path()}")
 
 
 @config.command()
@@ -48,7 +48,7 @@ def list():
 
     if len(config_dict.keys()) < 1:
         click.echo(
-            f"Config not found in {config_service.get_path()}. You can run the command `config set` to create a configuration file."
+            f"Configuration file not found in {config_service.get_path()}. You can run the command `config set` to create a configuration file."
         )
         return
 

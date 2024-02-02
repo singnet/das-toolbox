@@ -15,7 +15,7 @@ class JsonHandler:
     def get_path(self) -> str:
         return self._file_path
 
-    def is_ready(self) -> bool:
+    def exists(self) -> bool:
         return len(self.get_content().items()) > 0
 
     def rewind(self):

@@ -15,9 +15,9 @@ def server():
 
     config = Config()
 
-    if not config.is_ready():
+    if not config.exists():
         click.echo(
-            "Configuration is not ready. Please initialize the configuration first."
+            "The configuration file does not exist. Please initialize the configuration file first by running the command config set."
         )
         exit(1)
 

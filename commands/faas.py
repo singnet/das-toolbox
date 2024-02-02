@@ -17,9 +17,9 @@ def faas():
 
     config = Config()
 
-    if not config.is_ready():
+    if not config.exists():
         click.echo(
-            "Configuration is not ready. Please initialize the configuration first."
+            "The configuration file does not exist. Please initialize the configuration file first by running the command config set."
         )
         exit(1)
 
@@ -67,7 +67,7 @@ def start(function, version):
         exit(1)
 
     try:
-        click.echo("Starting FaaS...")
+        click.echo("Starting OpenFaaS...")
 
         container_service.start_container(
             repository,
@@ -80,13 +80,13 @@ def start(function, version):
             mongodb_password,
         )
 
-        click.echo(f"FaaS running on port {external_port}")
+        click.echo(f"OpenFaaS running on port {external_port}")
     except ContainerAlreadyRunningException:
-        click.echo("FaaS Service is already running")
+        click.echo("OpenFaaS service is already running")
         exit(1)
     except Exception as e:
         click.echo(
-            f"Error occurred while trying to start FaaS service on port {external_port}"
+            f"Error occurred while trying to start OpenFaaS service on port {external_port}"
         )
         click.echo(f"Error Details: {str(e)}")
         click.echo(
