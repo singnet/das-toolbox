@@ -1,94 +1,80 @@
 import click
-from services.container import ContainerService
-from services.config import ConfigService
+from services.container import (
+    RedisContainerService,
+    MongoContainerService,
+    CanonicalLoadContainerService,
+    OpenFaaSContainerService,
+)
+from sys import exit
+from config import Config
 
 
 @click.group()
 def server():
-    global container_service
     global config
 
-    container_service = ContainerService()
-    config = ConfigService()
-    config.load()
+    config = Config()
 
-
-@server.command()
-def configure():
-    redis_port = click.prompt(
-        "Enter Redis port",
-        default=config.get("redis.port", 6379),
-        type=int,
-    )
-    config.set("redis.port", redis_port)
-
-    mongodb_port = click.prompt(
-        "Enter MongoDB port",
-        default=config.get("mongodb.port", 27017),
-        type=int,
-    )
-    mongodb_username = click.prompt(
-        "Enter MongoDB username",
-    )
-    mongodb_password = click.prompt(
-        "Enter MongoDB password",
-        hide_input=True,
-    )
-
-    config.set("mongodb.port", mongodb_port)
-    config.set("mongodb.username", mongodb_username)
-    config.set("mongodb.password", mongodb_password)
-
-    config.save()
-    click.echo(f"Configuration saved to {config.config_path}")
+    if not config.exists():
+        click.echo(
+            "The configuration file does not exist. Please initialize the configuration file first by running the command config set."
+        )
+        exit(1)
 
 
 @server.command()
 def start():
     click.echo("Starting Redis and MongoDB...")
 
-    if container_service.is_redis_running():
-        click.echo(
-            f"Redis is already running. It's listening on port {config.get('redis.port')}"
-        )
+    redis_service = RedisContainerService()
+
+    redis_port = config.get("redis.port")
+    mongodb_port = config.get("mongodb.port")
+    mongodb_username = config.get("mongodb.username")
+    mongodb_password = config.get("mongodb.password")
+
+    if redis_service.get_container().container_running():
+        click.echo(f"Redis is already running. It's listening on port {redis_port}")
     else:
         try:
-            container_service.setup_redis(
-                redis_port=config.get("redis.port"),
+            redis_service.start_container(
+                redis_port,
             )
-            click.echo(f"Redis started on port {config.get('redis.port')}")
+            click.echo(f"Redis started on port {redis_port}")
         except Exception as e:
             click.echo(
-                f"Error occurred while trying to start Redis on port {config.get('redis.port')}"
+                f"Error occurred while trying to start Redis on port {redis_port}"
             )
             click.echo(f"Error Details: {str(e)}")
             click.echo(
                 f"For more information, check the logs using the command 'docker logs das-redis' in your terminal."
             )
-            return
+            exit(1)
 
-    if container_service.is_mongodb_running():
-        click.echo(
-            f"MongoDB is already running. It's listening on port {config.get('mongodb.port')}"
-        )
+    mongodb_service = MongoContainerService()
+
+    if mongodb_service.get_container().container_running():
+        click.echo(f"MongoDB is already running. It's listening on port {mongodb_port}")
     else:
         try:
-            container_service.setup_mongodb(
-                mongodb_port=config.get("mongodb.port"),
-                mongodb_username=config.get("mongodb.username"),
-                mongodb_password=config.get("mongodb.password"),
+            mongodb_service.start_container(
+                mongodb_port,
+                mongodb_username,
+                mongodb_password,
             )
+
+            click.echo(f"MongoDB started on port {mongodb_port}")
         except Exception as e:
             click.echo(
-                f"Error occurred while trying to start MongoDB on port {config.get('mongodb.port')}"
+                f"Error occurred while trying to start MongoDB on port {mongodb_port}"
             )
             click.echo(f"Error Details: {str(e)}")
             click.echo(
                 f"For more information, check the logs using the command 'docker logs das-mongodb' in your terminal."
             )
-            return
+            exit(1)
 
-        click.echo(f"MongoDB started on port {config.get('mongodb.port')}")
+    click.echo("Done.")
 
 
 @server.command()
@@ -106,40 +92,50 @@ def start():
     default=False,
 )
 def load(metta_path, canonical):
-    services_not_running = False
+    try:
+        CanonicalLoadContainerService().stop()
 
-    if not container_service.is_redis_running():
-        click.echo("Redis is not running")
-        services_not_running = True
-    else:
-        click.echo(f"Redis is running on port {config.get('redis.port')}")
+        services_not_running = False
+        canonical_load_service = CanonicalLoadContainerService()
 
-    if not container_service.is_mongodb_running():
-        click.echo("MongoDB is not running")
-        services_not_running = True
-    else:
-        click.echo(f"MongoDB is running on port {config.get('mongodb.port')}")
+        if not canonical_load_service.redis_container.container_running():
+            click.echo("Redis is not running")
+            services_not_running = True
+        else:
+            click.echo(f"Redis is running on port {config.get('redis.port')}")
 
-    if services_not_running:
-        click.echo(
-            "\nPlease use 'server start' to start required services before running 'server load'."
+        if not canonical_load_service.mongodb_container.container_running():
+            click.echo("MongoDB is not running")
+            services_not_running = True
+        else:
+            click.echo(f"MongoDB is running on port {config.get('mongodb.port')}")
+
+        if services_not_running:
+            click.echo(
+                "\nPlease use 'server start' to start required services before running 'server load'."
+            )
+            exit(1)
+
+        click.echo("Loading metta file(s)...")
+        canonical_load_service.start_container(
+            metta_path,
+            canonical,
+            mongodb_port=config.get("mongodb.port"),
+            mongodb_username=config.get("mongodb.username"),
+            mongodb_password=config.get("mongodb.password"),
+            redis_port=config.get("redis.port"),
         )
-        return
-
-    click.echo("Loading...")
-
-    container_service.setup_canonical_load(
-        metta_path,
-        canonical,
-        mongodb_port=config.get("mongodb.port"),
-        mongodb_username=config.get("mongodb.username"),
-        mongodb_password=config.get("mongodb.password"),
-        redis_port=config.get("redis.port"),
-    )
-
-    click.echo("Done.")
+        click.echo("Done.")
+    except FileNotFoundError:
+        click.echo(f"The specified path '{metta_path}' does not exist.")
+        exit(1)
 
 
 @server.command()
 def stop():
-    container_service.prune()
+    click.echo(f"Stopping/Removing Currently Running Services")
+    OpenFaaSContainerService().stop()
+    CanonicalLoadContainerService().stop()
+    MongoContainerService().stop()
+    RedisContainerService().stop()
+    click.echo(f"Done.")
