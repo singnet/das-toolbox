@@ -90,6 +90,9 @@ def validate(filepath: str):
         metta_parser_service.start_container(filepath)
 
         click.echo("The Metta file is valid.")
+    except FileNotFoundError:
+        click.echo(f"The specified file path '{filepath}' does not exist.")
+        exit(1)
     except ValidateFailed:
         click.echo(f"The file '{filepath}' is not a valid Metta file.")
         exit(1)
