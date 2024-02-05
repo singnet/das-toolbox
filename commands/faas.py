@@ -11,8 +11,12 @@ class FunctionEnum(Enum):
     ATOM_DB = "atomdb"
 
 
-@click.group()
+@click.group(help="Manage OpenFaaS services.")
 def faas():
+    """
+    This command group allows you to manage OpenFaaS services.
+    """
+
     global config
 
     config = Config()
@@ -24,20 +28,24 @@ def faas():
         exit(1)
 
 
-@faas.command()
+@faas.command(help="Start an OpenFaaS service.")
 @click.option(
     "--function",
-    help="",
+    help="Specify the OpenFaaS function to start.",
     required=True,
     type=click.Choice([e.value for e in FunctionEnum]),
 )
 @click.option(
     "--version",
-    help="",
+    help="Specify the version of the OpenFaaS function.",
     required=True,
     type=str,
 )
 def start(function, version):
+    """
+    Start an OpenFaaS service.
+    """
+
     redis_port = config.get("redis.port")
     mongodb_port = config.get("mongodb.port")
     mongodb_username = config.get("mongodb.username")
@@ -95,8 +103,12 @@ def start(function, version):
         exit(1)
 
 
-@faas.command()
+@faas.command(help="Stop the running OpenFaaS service.")
 def stop():
+    """
+    Stop the running OpenFaaS service.
+    """
+
     try:
         click.echo(f"Stopping/Removing OpenFaaS Service")
         OpenFaaSContainerService().stop()
