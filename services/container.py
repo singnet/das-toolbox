@@ -2,9 +2,10 @@ import docker
 import os
 from typing import Any
 from abc import ABC, abstractclassmethod
-from exceptions import ContainerAlreadyRunningException, ContainerNotRunningException
+from exceptions import ContainerAlreadyRunningException, ValidateFailed
 from config import ContainerConfig
 from docker.errors import NotFound
+import subprocess
 
 
 class Container:
@@ -286,3 +287,33 @@ class OpenFaaSContainerService(ContainerService):
         )
 
         return container_id
+
+
+class MettaParserContainerService(ContainerService):
+    def __init__(self) -> None:
+        container = Container(
+            "das-metta-parser", "levisingnet/das-metta-parser", "latest"
+        )
+
+        super().__init__(container)
+
+    def start_container(self, filepath):
+        if not os.path.exists(filepath):
+            raise FileNotFoundError()
+
+        if not os.path.isfile(filepath):
+            raise IsADirectoryError()
+
+        docker_command = f"docker run --rm --name {self.get_container().get_name()} -i {self.get_container().get_image()} < {filepath}"
+        exit_code = subprocess.call(
+            docker_command,
+            shell=True,
+            text=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+        if exit_code > 0:
+            raise ValidateFailed()
+
+        return None
