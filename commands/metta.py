@@ -1,11 +1,9 @@
 import click
-from services.container import (
-    CanonicalLoadContainerService,
-    MettaParserContainerService,
-)
+import os
+from services.container import CanonicalLoadContainerService
+from services.metta import MettaService
 from config import Config
 from sys import exit
-from exceptions import ValidateFailed
 
 
 @click.group()
@@ -83,16 +81,10 @@ def load(path, canonical):
     type=str,
 )
 def validate(filepath: str):
-    metta_parser_service = MettaParserContainerService()
+    metta_service = MettaService()
+    click.echo("Checking syntax...")
 
-    try:
-        click.echo("Checking if the Metta file is valid...")
-        metta_parser_service.start_container(filepath)
-
-        click.echo("The Metta file is valid.")
-    except FileNotFoundError:
-        click.echo(f"The specified file path '{filepath}' does not exist.")
-        exit(1)
-    except ValidateFailed:
-        click.echo(f"The file '{filepath}' is not a valid Metta file.")
-        exit(1)
+    if os.path.isdir(filepath):
+        metta_service.validate_directory(filepath)
+    else:
+        metta_service.validate_file(filepath)

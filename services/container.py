@@ -302,7 +302,7 @@ class MettaParserContainerService(ContainerService):
             raise FileNotFoundError()
 
         if not os.path.isfile(filepath):
-            raise FileNotFoundError()
+            raise IsADirectoryError()
 
         docker_command = f"docker run --rm --name {self.get_container().get_name()} -i {self.get_container().get_image()} < {filepath}"
         exit_code = subprocess.call(
