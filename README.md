@@ -76,6 +76,8 @@ Regarding performance, the remote DAS is expected to outperform for larger queri
 python3 main.py <command> <subcommand> [options]
 ```
 
+- `example local`: Echo commands for local setup.
+- `example faas`: Echo commands for OpenFaaS setup.
 - `config list`: Display the current configuration settings.
 - `config set` : Set Redis and MongoDB configuration settings.
 - `server start`: Start Redis and MongoDB containers.
