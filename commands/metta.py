@@ -6,8 +6,12 @@ from config import Config
 from sys import exit
 
 
-@click.group()
+@click.group(help="Manage Metta operations.")
 def metta():
+    """
+    This command group allows you to manage Metta operations.
+    """
+
     global config
 
     config = Config()
@@ -19,21 +23,25 @@ def metta():
         exit(1)
 
 
-@metta.command()
+@metta.command(help="Load Metta file(s) into the Canonical Load service.")
 @click.option(
     "--path",
-    help="",
+    help="Specify the path to the Metta file(s) for loading.",
     required=True,
     type=str,
 )
 @click.option(
     "--canonical",
-    help="",
+    help="Load the Metta file(s) as Canonical (default is False).",
     required=False,
     is_flag=True,
     default=False,
 )
 def load(path, canonical):
+    """
+    Load Metta file(s) into the Canonical Load service.
+    """
+
     try:
         CanonicalLoadContainerService().stop()
 
@@ -73,14 +81,18 @@ def load(path, canonical):
         exit(1)
 
 
-@metta.command()
+@metta.command(help="Validate the syntax of a Metta file or directory.")
 @click.option(
     "--filepath",
-    help="",
+    help="Specify the path to the Metta file or directory for validation.",
     required=True,
     type=str,
 )
 def validate(filepath: str):
+    """
+    Validate the syntax of a Metta file or directory.
+    """
+
     metta_service = MettaService()
     click.echo("Checking syntax...")
 

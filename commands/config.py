@@ -3,15 +3,23 @@ from config import Config
 from utils import format_as_table
 
 
-@click.group()
+@click.group(help="Manage configuration settings.")
 def config():
+    """
+    This command group allows you to manage configuration settings.
+    """
+
     global config_service
 
     config_service = Config()
 
 
-@config.command()
+@config.command(help="Set Redis and MongoDB configuration settings.")
 def set():
+    """
+    Set Redis and MongoDB configuration settings.
+    """
+
     redis_port = click.prompt(
         "Enter Redis port",
         default=config_service.get("redis.port", 6379),
@@ -42,8 +50,12 @@ def set():
     click.echo(f"Configuration file saved to {config_service.get_path()}")
 
 
-@config.command()
+@config.command(help="Display the current configuration settings.")
 def list():
+    """
+    Display the current configuration settings.
+    """
+
     config_dict = config_service.get_content()
 
     if len(config_dict.keys()) < 1:

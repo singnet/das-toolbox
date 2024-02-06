@@ -9,8 +9,12 @@ from sys import exit
 from config import Config
 
 
-@click.group()
+@click.group(help="Manage server-related operations.")
 def server():
+    """
+    This command group allows you to manage server-related operations.
+    """
+
     global config
 
     config = Config()
@@ -22,8 +26,12 @@ def server():
         exit(1)
 
 
-@server.command()
+@server.command(help="Start Redis and MongoDB containers.")
 def start():
+    """
+    Start Redis and MongoDB containers.
+    """
+
     click.echo("Starting Redis and MongoDB...")
 
     redis_service = RedisContainerService()
@@ -77,9 +85,12 @@ def start():
     click.echo("Done.")
 
 
-
-@server.command()
+@server.command(help="Stop and remove all currently running services.")
 def stop():
+    """
+    Stop and remove all currently running services.
+    """
+
     click.echo(f"Stopping/Removing Currently Running Services")
     OpenFaaSContainerService().stop()
     CanonicalLoadContainerService().stop()
