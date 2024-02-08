@@ -73,7 +73,7 @@ Regarding performance, the remote DAS is expected to outperform for larger queri
 ## Usage
 
 ```bash
-python3 main.py <command> <subcommand> [options]
+python3 das-cli.py <command> <subcommand> [options]
 ```
 
 - `example local`: Echo commands for local setup.
