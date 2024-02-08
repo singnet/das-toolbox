@@ -114,6 +114,12 @@ class ContainerService(ABC):
 
         return container_json["id"]
 
+    def logs(self, container_id: str) -> None:
+        container = self.get_docker_client().containers.get(container_id)
+        
+        for line in container.logs(stream=True):
+            print(line)
+
     @abstractclassmethod
     def start_container(self, **config):
         pass
@@ -239,6 +245,8 @@ class CanonicalLoadContainerService(ContainerService):
                 "DAS_KNOWLEDGE_BASE": metta_path,
             },
         )
+
+        self.logs(container_id)
 
         return container_id
 
