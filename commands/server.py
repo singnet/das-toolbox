@@ -34,12 +34,14 @@ def start():
 
     click.echo("Starting Redis and MongoDB...")
 
-    redis_service = RedisContainerService()
-
+    redis_container_name = config.get("redis.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
     redis_port = config.get("redis.port")
     mongodb_port = config.get("mongodb.port")
     mongodb_username = config.get("mongodb.username")
     mongodb_password = config.get("mongodb.password")
+
+    redis_service = RedisContainerService(redis_container_name)
 
     if redis_service.get_container().container_running():
         click.echo(f"Redis is already running. It's listening on port {redis_port}")
@@ -55,11 +57,11 @@ def start():
             )
             click.echo(f"Error Details: {str(e)}")
             click.echo(
-                f"For more information, check the logs using the command 'docker logs das-redis' in your terminal."
+                f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal."
             )
             exit(1)
 
-    mongodb_service = MongoContainerService()
+    mongodb_service = MongoContainerService(mongodb_container_name)
 
     if mongodb_service.get_container().container_running():
         click.echo(f"MongoDB is already running. It's listening on port {mongodb_port}")
@@ -78,7 +80,7 @@ def start():
             )
             click.echo(f"Error Details: {str(e)}")
             click.echo(
-                f"For more information, check the logs using the command 'docker logs das-mongodb' in your terminal."
+                f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal."
             )
             exit(1)
 
@@ -91,9 +93,22 @@ def stop():
     Stop and remove all currently running services.
     """
 
+    redis_container_name = config.get("redis.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
+    openfaas_container_name = config.get("openfaas.container_name")
+    canonical_load_container_name = config.get("canonical_load.container_name")
+
     click.echo(f"Stopping/Removing Currently Running Services")
-    OpenFaaSContainerService().stop()
-    CanonicalLoadContainerService().stop()
-    MongoContainerService().stop()
-    RedisContainerService().stop()
+    OpenFaaSContainerService(
+        openfaas_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    ).stop()
+    CanonicalLoadContainerService(
+        canonical_load_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    ).stop()
+    MongoContainerService(mongodb_container_name).stop()
+    RedisContainerService(redis_container_name).stop()
     click.echo(f"Done.")

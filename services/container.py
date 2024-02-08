@@ -116,7 +116,7 @@ class ContainerService(ABC):
 
     def logs(self, container_id: str) -> None:
         container = self.get_docker_client().containers.get(container_id)
-        
+
         for line in container.logs(stream=True):
             print(line)
 
@@ -127,17 +127,15 @@ class ContainerService(ABC):
     def stop(self):
         container_json = self.get_container().to_json()
 
-        if not self.get_container().container_running():
-            return None
+        docker_command = f"docker rm -f {self.get_container().get_name()}"
 
-        try:
-            container = self.get_docker_client().containers.get(
-                container_id=container_json["id"]
-            )
-
-            container.remove(force=True)
-        except NotFound:
-            pass
+        subprocess.call(
+            docker_command,
+            shell=True,
+            text=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
         self.get_container().get_container_config().remove_from_array(
             "running",
@@ -146,8 +144,8 @@ class ContainerService(ABC):
 
 
 class RedisContainerService(ContainerService):
-    def __init__(self) -> None:
-        container = Container("das-redis", "redis", "7.2.3-alpine")
+    def __init__(self, redis_container_name) -> None:
+        container = Container(redis_container_name, "redis", "7.2.3-alpine")
 
         super().__init__(container)
 
@@ -167,8 +165,8 @@ class RedisContainerService(ContainerService):
 
 
 class MongoContainerService(ContainerService):
-    def __init__(self) -> None:
-        container = Container("das-mongodb", "mongo", "6.0.13-jammy")
+    def __init__(self, mongodb_container_name) -> None:
+        container = Container(mongodb_container_name, "mongo", "6.0.13-jammy")
 
         super().__init__(container)
 
@@ -192,15 +190,20 @@ class MongoContainerService(ContainerService):
 
 
 class CanonicalLoadContainerService(ContainerService):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        canonical_load_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    ) -> None:
         container = Container(
-            "das-canonical-load",
+            canonical_load_container_name,
             "levisingnet/canonical-load",
         )
         super().__init__(container)
 
-        self.redis_container = Container("das-redis")
-        self.mongodb_container = Container("das-mongodb")
+        self.redis_container = Container(redis_container_name)
+        self.mongodb_container = Container(mongodb_container_name)
 
     def start_container(
         self,
@@ -252,12 +255,17 @@ class CanonicalLoadContainerService(ContainerService):
 
 
 class OpenFaaSContainerService(ContainerService):
-    def __init__(self) -> None:
-        container = Container("das-openfaas")
+    def __init__(
+        self,
+        openfaas_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    ) -> None:
+        container = Container(openfaas_container_name)
         super().__init__(container)
 
-        self.redis_container = Container("das-redis")
-        self.mongodb_container = Container("das-mongodb")
+        self.redis_container = Container(redis_container_name)
+        self.mongodb_container = Container(mongodb_container_name)
 
     def start_container(
         self,

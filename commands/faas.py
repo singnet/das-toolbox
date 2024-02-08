@@ -45,6 +45,9 @@ def start(function, version):
     """
     Start an OpenFaaS service.
     """
+    openfaas_container_name = config.get("openfaas.container_name")
+    redis_container_name = config.get("redis.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
 
     redis_port = config.get("redis.port")
     mongodb_port = config.get("mongodb.port")
@@ -54,7 +57,11 @@ def start(function, version):
     repository = "trueagi/das"
     services_not_running = False
 
-    container_service = OpenFaaSContainerService()
+    container_service = OpenFaaSContainerService(
+        openfaas_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    )
 
     if not container_service.redis_container.container_running():
         click.echo("Redis is not running")
@@ -108,10 +115,17 @@ def stop():
     """
     Stop the running OpenFaaS service.
     """
+    openfaas_container_name = config.get("openfaas.container_name")
+    redis_container_name = config.get("redis.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
 
     try:
         click.echo(f"Stopping/Removing OpenFaaS Service")
-        OpenFaaSContainerService().stop()
+        OpenFaaSContainerService(
+            openfaas_container_name,
+            redis_container_name,
+            mongodb_container_name,
+        ).stop()
         click.echo(f"Done.")
     except Exception as e:
         click.echo(f"Error Details: {str(e)}")

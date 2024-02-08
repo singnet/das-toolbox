@@ -42,11 +42,23 @@ def load(path, canonical):
     Load Metta file(s) into the Canonical Load service.
     """
 
+    canonical_load_container_name = config.get("canonical_load.container_name")
+    redis_container_name = config.get("redis.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
+
     try:
-        CanonicalLoadContainerService().stop()
+        CanonicalLoadContainerService(
+            canonical_load_container_name,
+            redis_container_name,
+            mongodb_container_name,
+        ).stop()
 
         services_not_running = False
-        canonical_load_service = CanonicalLoadContainerService()
+        canonical_load_service = CanonicalLoadContainerService(
+            canonical_load_container_name,
+            redis_container_name,
+            mongodb_container_name,
+        )
 
         if not canonical_load_service.redis_container.container_running():
             click.echo("Redis is not running")
