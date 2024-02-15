@@ -86,9 +86,9 @@ python3 das-cli.py <command> <subcommand> [options]
 - `faas stop`: Stop the running OpenFaaS service.
 - `metta load`: Load Metta file(s) into the Canonical Load service.
 - `metta validate`: Validate the syntax of a Metta file or directory.
-- `logs redis`: Display logs for Redis.
-- `logs mongodb`: Display logs for MongoDB.
-- `logs faas`: Display logs for OpenFaaS services.
+- `logs redis`: Display Docker container log for Redis
+- `logs mongodb`: Display Docker container log for MongoDB.
+- `logs faas`: Display Docker container log for OpenFaas.
 
 ## Local Distributed Atom Space
 
