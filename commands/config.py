@@ -1,5 +1,5 @@
 import click
-from config import SecretConfig
+from config import Secret
 from utils import table_parser
 
 
@@ -11,7 +11,7 @@ def config():
 
     global config_service
 
-    config_service = SecretConfig()
+    config_service = Secret()
 
 
 @config.command(help="Set Redis and MongoDB configuration settings.")

@@ -1,13 +1,16 @@
 import os
 import subprocess
-from services.container_service import Container, ContainerService
 from exceptions import ValidateFailed
+from services.container_service import Container, ContainerService
+from config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaParserContainerService(ContainerService):
     def __init__(self) -> None:
         container = Container(
-            "das-metta-parser", "levisingnet/das-metta-parser", "latest"
+            "das-metta-parser",
+            METTA_PARSER_IMAGE_NAME,
+            METTA_PARSER_IMAGE_VERSION,
         )
 
         super().__init__(container)

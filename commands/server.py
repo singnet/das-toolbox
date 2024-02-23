@@ -6,7 +6,7 @@ from services import (
     OpenFaaSContainerService,
 )
 from sys import exit
-from config import SecretConfig
+from config import Secret
 
 
 @click.group(help="Manage server-related operations.")
@@ -17,7 +17,7 @@ def server():
 
     global config
 
-    config = SecretConfig()
+    config = Secret()
 
     if not config.exists():
         click.echo(

@@ -1,17 +1,18 @@
-import os
-from utils import JsonHandler
-from constants import ACTIVE_SERVICES_PATH, SECRETS_PATH
+# PATHS
 
+SECRETS_PATH = "~/.das/config.json"
+ACTIVE_SERVICES_PATH = "~/.das/containers.json"
 
-class SecretConfig(JsonHandler):
-    _default_config_path = os.path.expanduser(SECRETS_PATH)
+# SERVICES
 
-    def __init__(self):
-        super().__init__(self._default_config_path)
+REDIS_IMAGE_NAME = "redis"
+REDIS_IMAGE_VERSION = "7.2.3-alpine"
 
+MONGODB_IMAGE_NAME = "mongo"
+MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 
-class ActiveServicesConfig(JsonHandler):
-    _default_container_path = os.path.expanduser(ACTIVE_SERVICES_PATH)
+CANONICAL_LOAD_IMAGE_NAME = "levisingnet/canonical-load"
+CANONICAL_LOAD_IMAGE_VERSION = "latest"
 
-    def __init__(self):
-        super().__init__(self._default_container_path)
+METTA_PARSER_IMAGE_NAME = "levisingnet/das-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "latest"

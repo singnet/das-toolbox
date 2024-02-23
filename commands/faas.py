@@ -1,5 +1,5 @@
 import click
-from config import SecretConfig
+from config import Secret
 from enum import Enum
 from services import OpenFaaSContainerService
 from exceptions import ContainerAlreadyRunningException
@@ -19,7 +19,7 @@ def faas():
 
     global config
 
-    config = SecretConfig()
+    config = Secret()
 
     if not config.exists():
         click.echo(

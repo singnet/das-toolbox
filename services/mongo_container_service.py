@@ -1,9 +1,14 @@
 from services.container_service import Container, ContainerService
+from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
 
 
 class MongoContainerService(ContainerService):
     def __init__(self, mongodb_container_name) -> None:
-        container = Container(mongodb_container_name, "mongo", "6.0.13-jammy")
+        container = Container(
+            mongodb_container_name,
+            MONGODB_IMAGE_NAME,
+            MONGODB_IMAGE_VERSION,
+        )
 
         super().__init__(container)
 

@@ -1,5 +1,6 @@
 import os
 from services.container_service import Container, ContainerService
+from config import CANONICAL_LOAD_IMAGE_NAME, CANONICAL_LOAD_IMAGE_VERSION
 
 
 class CanonicalLoadContainerService(ContainerService):
@@ -11,7 +12,8 @@ class CanonicalLoadContainerService(ContainerService):
     ) -> None:
         container = Container(
             canonical_load_container_name,
-            "levisingnet/canonical-load",
+            CANONICAL_LOAD_IMAGE_NAME,
+            CANONICAL_LOAD_IMAGE_VERSION,
         )
         super().__init__(container)
 

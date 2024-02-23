@@ -1,6 +1,6 @@
 import click
 from docker.errors import NullResource
-from config import SecretConfig
+from config import Secret
 from services import RedisContainerService, MongoContainerService
 from services import OpenFaaSContainerService
 
@@ -9,7 +9,7 @@ from services import OpenFaaSContainerService
 def logs():
     global config
 
-    config = SecretConfig()
+    config = Secret()
 
     if not config.exists():
         click.echo(

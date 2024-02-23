@@ -1,9 +1,14 @@
 from services.container_service import Container, ContainerService
+from config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 
 
 class RedisContainerService(ContainerService):
     def __init__(self, redis_container_name) -> None:
-        container = Container(redis_container_name, "redis", "7.2.3-alpine")
+        container = Container(
+            redis_container_name,
+            REDIS_IMAGE_NAME,
+            REDIS_IMAGE_VERSION,
+        )
 
         super().__init__(container)
 

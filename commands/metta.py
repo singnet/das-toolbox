@@ -2,7 +2,7 @@ import click
 import os
 from services import CanonicalLoadContainerService
 from services import MettaSyntaxValidatorService
-from config import SecretConfig
+from config import Secret
 from sys import exit
 
 
@@ -14,7 +14,7 @@ def metta():
 
     global config
 
-    config = SecretConfig()
+    config = Secret()
 
     if not config.exists():
         click.echo(

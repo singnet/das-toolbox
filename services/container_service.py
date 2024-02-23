@@ -2,7 +2,7 @@ import docker
 from typing import Any
 from abc import ABC, abstractclassmethod
 from exceptions import ContainerAlreadyRunningException
-from config import ActiveServicesConfig
+from config import ActiveServices
 import subprocess
 
 
@@ -13,7 +13,7 @@ class Container:
         image=None,
         image_version: str = "latest",
     ) -> None:
-        self._container_config = ActiveServicesConfig()
+        self._container_config = ActiveServices()
         self._name = name
 
         container = self._check_running_container()
@@ -42,7 +42,7 @@ class Container:
             "image": self.get_image(),
         }
 
-    def get_container_config(self) -> ActiveServicesConfig:
+    def get_container_config(self) -> ActiveServices:
         return self._container_config
 
     def _check_running_container(self) -> list:
