@@ -1,6 +1,6 @@
 import click
-from config import Config
-from utils import format_as_table
+from config import SecretConfig
+from utils import table_parser
 
 
 @click.group(help="Manage configuration settings.")
@@ -11,7 +11,7 @@ def config():
 
     global config_service
 
-    config_service = Config()
+    config_service = SecretConfig()
 
 
 @config.command(help="Set Redis and MongoDB configuration settings.")
@@ -93,6 +93,6 @@ def list():
         )
         return
 
-    config_table = format_as_table(config_dict)
+    config_table = table_parser(config_dict)
 
     click.echo(config_table)

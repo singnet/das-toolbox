@@ -1,10 +1,10 @@
-import click
 import glob
+import click
 from exceptions import ValidateFailed
-from services.container import MettaParserContainerService
+from services.metta_parser_container_service import MettaParserContainerService
 
 
-class MettaService:
+class MettaSyntaxValidatorService:
     def check_syntax(self, file_path):
         metta_parser_service = MettaParserContainerService()
 

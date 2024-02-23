@@ -1,12 +1,12 @@
 import click
-from services.container import (
+from services import (
     RedisContainerService,
     MongoContainerService,
     CanonicalLoadContainerService,
     OpenFaaSContainerService,
 )
 from sys import exit
-from config import Config
+from config import SecretConfig
 
 
 @click.group(help="Manage server-related operations.")
@@ -17,7 +17,7 @@ def server():
 
     global config
 
-    config = Config()
+    config = SecretConfig()
 
     if not config.exists():
         click.echo(

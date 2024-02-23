@@ -1,8 +1,8 @@
 import click
 import os
-from services.container import CanonicalLoadContainerService
-from services.metta import MettaService
-from config import Config
+from services import CanonicalLoadContainerService
+from services import MettaSyntaxValidatorService
+from config import SecretConfig
 from sys import exit
 
 
@@ -14,7 +14,7 @@ def metta():
 
     global config
 
-    config = Config()
+    config = SecretConfig()
 
     if not config.exists():
         click.echo(
@@ -105,7 +105,7 @@ def validate(filepath: str):
     Validate the syntax of a Metta file or directory.
     """
 
-    metta_service = MettaService()
+    metta_service = MettaSyntaxValidatorService()
     click.echo("Checking syntax...")
 
     if os.path.isdir(filepath):
