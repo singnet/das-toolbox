@@ -1,4 +1,4 @@
-from .canonical_load_container_service import CanonicalLoadContainerService
+from .canonical_load_container_service import CanonicalLoadContainerService, CanonicalLoadBetaContainerService
 from .container_service import Container, ContainerService
 from .metta_parser_container_service import MettaParserContainerService
 from .metta_syntax_validator_service import MettaSyntaxValidatorService

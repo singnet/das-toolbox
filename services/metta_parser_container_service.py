@@ -22,7 +22,7 @@ class MettaParserContainerService(ContainerService):
         if not os.path.isfile(filepath):
             raise IsADirectoryError()
 
-        docker_command = f"docker run --rm --name {self.get_container().get_name()} -i {self.get_container().get_image()} < {filepath}"
+        docker_command = f"docker run --rm --name {self.get_container().get_name()} -i -v {os.path.dirname(filepath)}:/tmp {self.get_container().get_image()} syntax_check {os.path.basename(filepath)}"
         exit_code = subprocess.call(
             docker_command,
             shell=True,

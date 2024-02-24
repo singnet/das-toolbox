@@ -1,6 +1,6 @@
 import click
 import os
-from services import CanonicalLoadContainerService
+from services import CanonicalLoadContainerService, CanonicalLoadBetaContainerService
 from services import MettaSyntaxValidatorService
 from config import Secret
 from sys import exit
@@ -37,7 +37,13 @@ def metta():
     is_flag=True,
     default=False,
 )
-def load(path, canonical):
+@click.option(
+    "--beta",
+    required=False,
+    is_flag=True,
+    default=False,
+)
+def load(path, canonical, beta):
     """
     Load Metta file(s) into the Canonical Load service.
     """
@@ -79,14 +85,25 @@ def load(path, canonical):
             exit(1)
 
         click.echo("Loading metta file(s)...")
-        canonical_load_service.start_container(
-            path,
-            canonical,
-            mongodb_port=config.get("mongodb.port"),
-            mongodb_username=config.get("mongodb.username"),
-            mongodb_password=config.get("mongodb.password"),
-            redis_port=config.get("redis.port"),
-        )
+        if beta:
+            canonical_load_beta_service = CanonicalLoadBetaContainerService()
+
+            canonical_load_beta_service.start_container(
+                path,
+                mongodb_port=config.get("mongodb.port"),
+                mongodb_username=config.get("mongodb.username"),
+                mongodb_password=config.get("mongodb.password"),
+                redis_port=config.get("redis.port"),
+            )
+        else:
+            canonical_load_service.start_container(
+                path,
+                canonical,
+                mongodb_port=config.get("mongodb.port"),
+                mongodb_username=config.get("mongodb.username"),
+                mongodb_password=config.get("mongodb.password"),
+                redis_port=config.get("redis.port"),
+            )
         click.echo("Done.")
     except FileNotFoundError:
         click.echo(f"The specified path '{path}' does not exist.")
