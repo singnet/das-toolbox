@@ -3,24 +3,24 @@ import subprocess
 from exceptions import ValidateFailed
 from services.container_service import Container, ContainerService
 from config import (
-    CANONICAL_LOAD_IMAGE_NAME,
-    CANONICAL_LOAD_IMAGE_VERSION,
-    CANONICAL_LOAD_BETA_IMAGE_NAME,
-    CANONICAL_LOAD_BETA_IMAGE_VERSION,
+    METTA_LOADER_IMAGE_NAME,
+    METTA_LOADER_IMAGE_VERSION,
+    POC_LOADER_IMAGE_IMAGE_NAME,
+    POC_LOADER_IMAGE_IMAGE_VERSION,
 )
 
 
-class CanonicalLoadContainerService(ContainerService):
+class PocLoaderContainerService(ContainerService):
     def __init__(
         self,
-        canonical_load_container_name,
+        loader_container_name,
         redis_container_name,
         mongodb_container_name,
     ) -> None:
         container = Container(
-            canonical_load_container_name,
-            CANONICAL_LOAD_IMAGE_NAME,
-            CANONICAL_LOAD_IMAGE_VERSION,
+            loader_container_name,
+            POC_LOADER_IMAGE_IMAGE_NAME,
+            POC_LOADER_IMAGE_IMAGE_VERSION,
         )
         super().__init__(container)
 
@@ -76,13 +76,20 @@ class CanonicalLoadContainerService(ContainerService):
         return container_id
 
 
-class CanonicalLoadBetaContainerService(ContainerService):
-    def __init__(self) -> None:
+class MettaLoaderContainerService(ContainerService):
+    def __init__(
+        self,
+        loader_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    ) -> None:
         container = Container(
-            "das-metta-parser-beta",
-            CANONICAL_LOAD_BETA_IMAGE_NAME,
-            CANONICAL_LOAD_BETA_IMAGE_VERSION,
+            loader_container_name,
+            METTA_LOADER_IMAGE_NAME,
+            METTA_LOADER_IMAGE_VERSION,
         )
+        self.redis_container = Container(redis_container_name)
+        self.mongodb_container = Container(mongodb_container_name)
 
         super().__init__(container)
 

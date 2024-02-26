@@ -1,7 +1,7 @@
 import docker
 from typing import Any
 from abc import ABC, abstractclassmethod
-from exceptions import ContainerAlreadyRunningException
+from exceptions import ContainerAlreadyRunningException, ValidateFailed
 from config import ActiveServices
 import subprocess
 
@@ -127,13 +127,16 @@ class ContainerService(ABC):
 
         docker_command = f"docker rm -f {self.get_container().get_name()}"
 
-        subprocess.call(
+        exit_code = subprocess.call(
             docker_command,
             shell=True,
             text=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+        if exit_code > 0:
+            raise ValidateFailed()
 
         self.get_container().get_container_config().remove_from_array(
             "running",
