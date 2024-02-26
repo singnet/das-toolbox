@@ -20,6 +20,7 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 
 - Docker
 - Python 3.x
+- Python 3.x venv
 - Pip (Python package installer)
 
 ## Installation
