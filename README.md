@@ -63,13 +63,27 @@ To ensure a clean and isolated environment for running the DAS Toolbox, it is re
 
 ## Deployment Options
 
-Before delving into usage, it's crucial to comprehend the two distinct deployment options available with DAS: LOCAL AND REMOTE (OPENFAAS).
+Before delving into usage, it's crucial to comprehend the two distinct deployment options available: LOCAL and REMOTE.
 
-The concept of a local DAS is tailored for users to execute queries, add atoms, and perform various actions within their local environment. In contrast, the remote DAS comes into play when accessing a remote machine running OpenFaaS.
+__LOCAL__ deployment will setup the database backend required to to use a redis_mongo DAS locally, i.e. a DAS instantiated like this:
 
-It's imperative to highlight that a simultaneous connection to a RedisMongo and remote access is not supported. In other words, if a user's DAS is configured to use a RedisMongo-type atomDb, this DAS cannot establish remote connections.
+```
+das = DistributedAtomSpace(query_engine='local', atomdb='redis_mongo', ... )
+```
 
-Regarding performance, the remote DAS is expected to outperform for larger queries since processing occurs on a dedicated machine with substantial computing power. In contrast, the local DAS's performance relies on the user's machine. In the case of OpenFaaS, which is executed here through the CLI, it runs on your local machine. Therefore, response time is also contingent on your machine's capability. However, with functions running locally, there's no need to install Hyperon on your machine or update Python if using an unsupported version. Additionally, you can easily switch between different function versions.
+Both databases (Redis and MongoDB) will be set up in docker containers with (configurable) exposed ports. This deployment is supposed to be used by one single client locally, i.e. there's no concurrency management other than the ones provided by each DBMS and no DAS cache optimization will take place. 
+
+LOCAL deployment is meant for Python applications which uses DAS running in the same machine with a knowledge base which is large enough to not fit entirely in RAM but small enough to fit in one single machine. Once deployed, the user can either load a knowledge base (see instructions below) or use DAS api to populate it.
+
+If you want to access a DAS from a remote machine, you need to deploy the REMOTE version of DAS.
+
+__REMOTE__ deployment will setup an OpenFaaS server to answer connection requests as well as the database backend. A REMOTE deployment can be connected using a DAS instantiated like this:
+
+```
+das = DistributedAtomSpace(query_engine='remote', host=<host>, port=<port>, ...)
+```
+
+REMOTE deployment is meant for creation of a DAS knowledge base which is supposed to be used concurrently by several clients in different remote machines. 
 
 ## Usage
 
