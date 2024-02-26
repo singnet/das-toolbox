@@ -122,12 +122,12 @@ def load(path, canonical, use_poc_loader):
 
 @metta.command(help="Validate the syntax of a Metta file or directory.")
 @click.option(
-    "--filepath",
+    "--path",
     help="Specify the path to the Metta file or directory for validation.",
     required=True,
     type=str,
 )
-def validate(filepath: str):
+def validate(path: str):
     """
     Validate the syntax of a Metta file or directory.
     """
@@ -135,7 +135,7 @@ def validate(filepath: str):
     metta_service = MettaSyntaxValidatorService()
     click.echo("Checking syntax...")
 
-    if os.path.isdir(filepath):
-        metta_service.validate_directory(filepath)
+    if os.path.isdir(path):
+        metta_service.validate_directory(path)
     else:
-        metta_service.validate_file(filepath)
+        metta_service.validate_file(path)
