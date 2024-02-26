@@ -77,17 +77,3 @@ class JsonHandler:
             pass
 
         return self
-
-
-class Config(JsonHandler):
-    _default_config_path = os.path.expanduser("~/.das/config.json")
-
-    def __init__(self):
-        super().__init__(self._default_config_path)
-
-
-class ContainerConfig(JsonHandler):
-    _default_container_path = os.path.expanduser("~/.das/containers.json")
-
-    def __init__(self):
-        super().__init__(self._default_container_path)

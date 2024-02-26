@@ -1,15 +1,15 @@
 import click
 from docker.errors import NullResource
-from config import Config
-from services.container import RedisContainerService, MongoContainerService
-from services.container import OpenFaaSContainerService
+from config import Secret
+from services import RedisContainerService, MongoContainerService
+from services import OpenFaaSContainerService
 
 
 @click.group(help="Manage container logs.")
 def logs():
     global config
 
-    config = Config()
+    config = Secret()
 
     if not config.exists():
         click.echo(

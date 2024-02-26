@@ -1,4 +1,4 @@
-def format_as_table(obj: dict) -> str:
+def table_parser(obj: dict) -> str:
     table_lines = [
         "| {:<10} | {:<15} | {:<10} |".format("Service", "Name", "Value"),
         "|{:-<12}|{:-<17}|{:-<12}|".format("", "", ""),

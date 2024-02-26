@@ -1,8 +1,8 @@
 import click
 import os
-from services.container import CanonicalLoadContainerService
-from services.metta import MettaService
-from config import Config
+from services import PocLoaderContainerService, MettaLoaderContainerService
+from services import MettaSyntaxValidatorService
+from config import Secret
 from sys import exit
 
 
@@ -14,7 +14,7 @@ def metta():
 
     global config
 
-    config = Config()
+    config = Secret()
 
     if not config.exists():
         click.echo(
@@ -37,36 +37,53 @@ def metta():
     is_flag=True,
     default=False,
 )
-def load(path, canonical):
+@click.option(
+    "--use-poc-loader",
+    required=False,
+    is_flag=True,
+    default=False,
+)
+def load(path, canonical, use_poc_loader):
     """
-    Load Metta file(s) into the Canonical Load service.
+    Load Metta file(s) into the Metta Loader service.
     """
 
-    canonical_load_container_name = config.get("canonical_load.container_name")
+    loader_container_name = config.get("loader.container_name")
     redis_container_name = config.get("redis.container_name")
     mongodb_container_name = config.get("mongodb.container_name")
+    services_not_running = False
 
     try:
-        CanonicalLoadContainerService(
-            canonical_load_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        ).stop()
+        if use_poc_loader:
+            PocLoaderContainerService(
+                loader_container_name,
+                redis_container_name,
+                mongodb_container_name,
+            ).stop()
+            loader_service = PocLoaderContainerService(
+                loader_container_name,
+                redis_container_name,
+                mongodb_container_name,
+            )
+        else:
+            MettaLoaderContainerService(
+                loader_container_name,
+                redis_container_name,
+                mongodb_container_name,
+            ).stop()
+            loader_service = MettaLoaderContainerService(
+                loader_container_name,
+                redis_container_name,
+                mongodb_container_name,
+            )
 
-        services_not_running = False
-        canonical_load_service = CanonicalLoadContainerService(
-            canonical_load_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        )
-
-        if not canonical_load_service.redis_container.container_running():
+        if not loader_service.redis_container.container_running():
             click.echo("Redis is not running")
             services_not_running = True
         else:
             click.echo(f"Redis is running on port {config.get('redis.port')}")
 
-        if not canonical_load_service.mongodb_container.container_running():
+        if not loader_service.mongodb_container.container_running():
             click.echo("MongoDB is not running")
             services_not_running = True
         else:
@@ -79,14 +96,24 @@ def load(path, canonical):
             exit(1)
 
         click.echo("Loading metta file(s)...")
-        canonical_load_service.start_container(
-            path,
-            canonical,
-            mongodb_port=config.get("mongodb.port"),
-            mongodb_username=config.get("mongodb.username"),
-            mongodb_password=config.get("mongodb.password"),
-            redis_port=config.get("redis.port"),
-        )
+
+        if use_poc_loader:
+            loader_service.start_container(
+                path,
+                canonical,
+                mongodb_port=config.get("mongodb.port"),
+                mongodb_username=config.get("mongodb.username"),
+                mongodb_password=config.get("mongodb.password"),
+                redis_port=config.get("redis.port"),
+            )
+        else:
+            loader_service.start_container(
+                path,
+                mongodb_port=config.get("mongodb.port"),
+                mongodb_username=config.get("mongodb.username"),
+                mongodb_password=config.get("mongodb.password"),
+                redis_port=config.get("redis.port"),
+            )
         click.echo("Done.")
     except FileNotFoundError:
         click.echo(f"The specified path '{path}' does not exist.")
@@ -105,7 +132,7 @@ def validate(filepath: str):
     Validate the syntax of a Metta file or directory.
     """
 
-    metta_service = MettaService()
+    metta_service = MettaSyntaxValidatorService()
     click.echo("Checking syntax...")
 
     if os.path.isdir(filepath):

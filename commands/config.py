@@ -1,6 +1,6 @@
 import click
-from config import Config
-from utils import format_as_table
+from config import Secret
+from utils import table_parser
 
 
 @click.group(help="Manage configuration settings.")
@@ -11,7 +11,7 @@ def config():
 
     global config_service
 
-    config_service = Config()
+    config_service = Secret()
 
 
 @config.command(help="Set Redis and MongoDB configuration settings.")
@@ -59,14 +59,12 @@ def set():
     )
     config_service.set("mongodb.password", mongodb_password)
 
-    canonical_load_container_name = click.prompt(
-        "Enter a name for the Canonical Load container",
-        default=config_service.get(
-            "canonical_load.container_name", "das-cli-canonical-load"
-        ),
+    loader_container_name = click.prompt(
+        "Enter a name for the Loader container",
+        default=config_service.get("loader.container_name", "das-cli-loader"),
         type=str,
     )
-    config_service.set("canonical_load.container_name", canonical_load_container_name)
+    config_service.set("loader.container_name", loader_container_name)
 
     openfaas_container_name = click.prompt(
         "Enter a name for the OpenFaaS container",
@@ -93,6 +91,6 @@ def list():
         )
         return
 
-    config_table = format_as_table(config_dict)
+    config_table = table_parser(config_dict)
 
     click.echo(config_table)

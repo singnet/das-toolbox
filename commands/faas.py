@@ -1,7 +1,7 @@
 import click
-from config import Config
+from config import Secret
 from enum import Enum
-from services.container import OpenFaaSContainerService
+from services import OpenFaaSContainerService
 from exceptions import ContainerAlreadyRunningException
 from sys import exit
 
@@ -19,7 +19,7 @@ def faas():
 
     global config
 
-    config = Config()
+    config = Secret()
 
     if not config.exists():
         click.echo(

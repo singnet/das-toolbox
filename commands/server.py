@@ -1,12 +1,13 @@
 import click
-from services.container import (
+from services import (
     RedisContainerService,
     MongoContainerService,
-    CanonicalLoadContainerService,
+    MettaLoaderContainerService,
     OpenFaaSContainerService,
+    PocLoaderContainerService,
 )
 from sys import exit
-from config import Config
+from config import Secret
 
 
 @click.group(help="Manage server-related operations.")
@@ -17,7 +18,7 @@ def server():
 
     global config
 
-    config = Config()
+    config = Secret()
 
     if not config.exists():
         click.echo(
@@ -96,7 +97,7 @@ def stop():
     redis_container_name = config.get("redis.container_name")
     mongodb_container_name = config.get("mongodb.container_name")
     openfaas_container_name = config.get("openfaas.container_name")
-    canonical_load_container_name = config.get("canonical_load.container_name")
+    loader_container_name = config.get("loader.container_name")
 
     click.echo(f"Stopping/Removing Currently Running Services")
     OpenFaaSContainerService(
@@ -104,8 +105,13 @@ def stop():
         redis_container_name,
         mongodb_container_name,
     ).stop()
-    CanonicalLoadContainerService(
-        canonical_load_container_name,
+    PocLoaderContainerService(
+        loader_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    ).stop()
+    MettaLoaderContainerService(
+        loader_container_name,
         redis_container_name,
         mongodb_container_name,
     ).stop()
