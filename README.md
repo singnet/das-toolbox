@@ -77,13 +77,13 @@ LOCAL deployment is meant for Python applications which uses DAS running in the 
 
 If you want to access a DAS from a remote machine, you need to deploy the REMOTE version of DAS.
 
-__REMOTE__ deployment will setup an OpenFaaS server to answer connection requests as well as the database backend. A REMOTE deployment can be connected using a DAS instantiated like this:
+__FAAS__ deployment will setup an OpenFaaS server to answer connection requests as well as the database backend. A REMOTE deployment can be connected using a DAS instantiated like this:
 
 ```
 das = DistributedAtomSpace(query_engine='remote', host=<host>, port=<port>, ...)
 ```
 
-REMOTE deployment is meant for creation of a DAS knowledge base which is supposed to be used concurrently by several clients in different remote machines. 
+FAAS deployment is meant for creation of a DAS knowledge base which is supposed to be used concurrently by several clients in different remote machines. 
 
 ## Usage
 
