@@ -1,4 +1,4 @@
-[#24] Change --filepath to --path in "metta validate"
+[#24] Change filepath to path in "metta validate"
 [#21] Review required user input
 [#19] Develop a command to utilize the new loader as an alternative option to the canonical load (PoC)
 [#15] Configure das cli containers name in config file
