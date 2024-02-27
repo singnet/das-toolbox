@@ -20,7 +20,7 @@ python3 das-cli.py config set
 python3 das-cli.py server start
 
 # Validate a Metta file or directory
-python3 das-cli.py metta validate --filepath $PWD/examples/data/
+python3 das-cli.py metta validate --path $PWD/examples/data/
 
 # Load Metta files
 python3 das-cli.py metta load --path $PWD/examples/data/animals.metta
@@ -44,7 +44,7 @@ python3 das-cli.py config set
 python3 das-cli.py server start
 
 # Validate a Metta file or directory
-python3 das-cli.py metta validate --filepath $PWD/examples/data/
+python3 das-cli.py metta validate --path $PWD/examples/data/
 
 # Load Metta files
 python3 das-cli.py metta load --path $PWD/examples/data/animals.metta
