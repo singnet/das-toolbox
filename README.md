@@ -87,6 +87,8 @@ FAAS deployment is meant for creation of a DAS knowledge base which is supposed 
 
 ## Usage
 
+**All commands below should be executed within the "src" directory.**
+
 ```bash
 python3 das-cli.py <command> <subcommand> [options]
 ```

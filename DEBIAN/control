@@ -1,0 +1,5 @@
+Package: das-cli
+Version: 0.1.4
+Architecture: amd64
+Maintainer: rafael.levi@singularitynet.io
+Description: This CLI provides a set of commands to manage containerized services, OpenFaaS functions, and Metta operations. It includes functionalities to start and stop server services, manage OpenFaaS functions, load Metta files, and validate Metta file syntax.
