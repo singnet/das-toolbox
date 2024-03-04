@@ -23,16 +23,16 @@ def metta():
         exit(1)
 
 
-@metta.command(help="Load Metta file(s) into the Canonical Load service.")
+@metta.command(help="Load a MeTTa file into the databases")
 @click.option(
     "--path",
-    help="Specify the path to the Metta file(s) for loading.",
+    help="Specify the path to the Metta file for loading.",
     required=True,
     type=str,
 )
 @click.option(
     "--canonical",
-    help="Load the Metta file(s) as Canonical (default is False).",
+    help="Load the Metta file as Canonical (default is False, only works when combined with --use-poc-loader).",
     required=False,
     is_flag=True,
     default=False,
