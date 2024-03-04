@@ -1,10 +1,1 @@
-[#24] Change filepath to path in metta validate
-[#21] Review required user input
-[#19] Develop a command to utilize the new loader as an alternative option to the canonical load (PoC)
-[#15] Configure das cli containers name in config file
-[#13] Wait for canonical load container to load files
-[#9] Build das-cli binary
-[#7] Documentation of command line tools
-[#4] Pre-check of MeTTa knowledge base files syntax
-[#3] Setup of a openfaas deployment in localhost
-[#1] Setup of a custom DAS server in localhost
+[#27] When you type 'server stop,' only shut down the server
