@@ -99,7 +99,7 @@ python3 das-cli.py <command> <subcommand> [options]
 - `server stop`: Stop and remove all currently running services.
 - `faas start`: Start an OpenFaaS service.
 - `faas stop`: Stop the running OpenFaaS service.
-- `metta load`: Load Metta file(s) into the Canonical Load service.
+- `metta load`: Load a MeTTa file into the databases
 - `metta validate`: Validate the syntax of a Metta file or directory.
 - `logs redis`: Display Docker container log for Redis
 - `logs mongodb`: Display Docker container log for MongoDB.

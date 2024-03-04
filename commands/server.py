@@ -96,25 +96,8 @@ def stop():
 
     redis_container_name = config.get("redis.container_name")
     mongodb_container_name = config.get("mongodb.container_name")
-    openfaas_container_name = config.get("openfaas.container_name")
-    loader_container_name = config.get("loader.container_name")
 
     click.echo(f"Stopping/Removing Currently Running Services")
-    OpenFaaSContainerService(
-        openfaas_container_name,
-        redis_container_name,
-        mongodb_container_name,
-    ).stop()
-    PocLoaderContainerService(
-        loader_container_name,
-        redis_container_name,
-        mongodb_container_name,
-    ).stop()
-    MettaLoaderContainerService(
-        loader_container_name,
-        redis_container_name,
-        mongodb_container_name,
-    ).stop()
     MongoContainerService(mongodb_container_name).stop()
     RedisContainerService(redis_container_name).stop()
     click.echo(f"Done.")
