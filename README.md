@@ -99,15 +99,17 @@ python3 das-cli.py <command> <subcommand> [options]
 - `config list`: Display the current configuration settings.
 - `config set` : Set Redis and MongoDB configuration settings.
 - `server start`: Start Redis and MongoDB containers.
-- `server stop`: Stop and remove all currently running services.
-- `faas start`: Start an OpenFaaS service.
-- `faas stop`: Stop the running OpenFaaS service.
+- `server stop`: Stop and remove Redis and MongoDB containers.
+- `faas start`: Start an OpenFaaS service inside a docker container.
+- `faas stop`: Stop and remove the OpenFaaS container.
 - `metta load`: Load a MeTTa file into the databases
 - `metta validate`: Validate the syntax of a Metta file or directory.
 - `logs redis`: Display Docker container log for Redis
 - `logs mongodb`: Display Docker container log for MongoDB.
 - `logs faas`: Display Docker container log for OpenFaas.
 
+NB `server start` and `faas start` store information about containers in `~/.das/` so you should avoid remove containers by calling `docker` directly. You're supposed to use `server stop` and `faas stop`.
+ 
 ## Local Distributed Atom Space
 
 These steps provide a detailed guide on how to run the Distributed Atom Space, ensuring a smooth deployment process for local use.
