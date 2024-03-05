@@ -22,5 +22,8 @@ COPY ./DEBIAN/ ./package/DEBIAN/
 
 COPY --from=builder-binary /app/dist/das-cli ./package/usr/local/bin/
 
+RUN chmod -R 775 ./package/usr/local/bin/ && \
+    chmod -R 775 ./package/DEBIAN/
+
 ENTRYPOINT [ "dpkg-deb" ]
 CMD [ "-b", "./package", "./dist"]
