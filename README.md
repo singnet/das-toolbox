@@ -30,6 +30,7 @@ To ensure a clean and isolated environment for running the DAS Toolbox, it is re
 1. **Create a Virtual Environment:**
 
    ```bash
+   cd src
    python3 -m venv env
    ```
 
