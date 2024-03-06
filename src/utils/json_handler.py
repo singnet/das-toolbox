@@ -15,6 +15,9 @@ class JsonHandler:
     def get_path(self) -> str:
         return self._file_path
 
+    def get_dir_path(self) -> str:
+        return os.path.dirname(self._file_path)
+
     def exists(self) -> bool:
         return len(self.get_content().items()) > 0
 
