@@ -39,6 +39,12 @@ class OpenFaaSContainerService(ContainerService):
                 "MaximumRetryCount": 5,
             },
             environment={
+                "exec_timeout": "30m",
+                "service_timeout": "30m",
+                "ack_wait": "30m",
+                "read_timeout": "30m",
+                "write_timeout": "30m",
+                "exec_timeout": "30m",
                 "DAS_MONGODB_HOSTNAME": "localhost",
                 "DAS_REDIS_HOSTNAME": "localhost",
                 "DAS_MONGODB_NAME": "das",
