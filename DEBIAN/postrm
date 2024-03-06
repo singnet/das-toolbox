@@ -1,0 +1,11 @@
+#!/bin/bash
+
+remove_permissions() {
+    USER_NAME="das"
+    GROUP_NAME="das"
+
+    groupdel $GROUP_NAME
+    userdel $USER_NAME
+}
+
+remove_permissions
