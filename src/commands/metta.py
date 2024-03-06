@@ -52,13 +52,13 @@ def load(path):
             mongodb_container_name,
         )
 
-        if not loader_service.redis_container.container_running():
+        if not loader_service.redis_container.is_running():
             click.echo("Redis is not running")
             services_not_running = True
         else:
             click.echo(f"Redis is running on port {config.get('redis.port')}")
 
-        if not loader_service.mongodb_container.container_running():
+        if not loader_service.mongodb_container.is_running():
             click.echo("MongoDB is not running")
             services_not_running = True
         else:

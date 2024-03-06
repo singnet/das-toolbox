@@ -1,10 +1,16 @@
 import click
+from sys import exit
 from services import (
     RedisContainerService,
     MongoContainerService,
 )
-from sys import exit
-from config import Secret
+from config import Secret, SECRETS_PATH, USER_DAS_PATH
+from exceptions import (
+    ContainerAlreadyRunningException,
+    DockerException,
+    NotFound,
+    DockerDaemonException,
+)
 
 
 @click.group(help="Manage server-related operations.")
@@ -13,13 +19,14 @@ def server():
     This command group allows you to manage server-related operations.
     """
 
-    global config
+    global config_service
 
-    config = Secret()
-
-    if not config.exists():
-        click.echo(
-            "The configuration file does not exist. Please initialize the configuration file first by running the command config set."
+    try:
+        config_service = Secret()
+    except PermissionError:
+        click.secho(
+            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            fg="red",
         )
         exit(1)
 
@@ -32,55 +39,62 @@ def start():
 
     click.echo("Starting Redis and MongoDB...")
 
-    redis_container_name = config.get("redis.container_name")
-    mongodb_container_name = config.get("mongodb.container_name")
-    redis_port = config.get("redis.port")
-    mongodb_port = config.get("mongodb.port")
-    mongodb_username = config.get("mongodb.username")
-    mongodb_password = config.get("mongodb.password")
+    redis_container_name = config_service.get("redis.container_name")
+    redis_port = config_service.get("redis.port")
 
     redis_service = RedisContainerService(redis_container_name)
 
-    if redis_service.get_container().container_running():
-        click.echo(f"Redis is already running. It's listening on port {redis_port}")
-    else:
-        try:
-            redis_service.start_container(
-                redis_port,
-            )
-            click.echo(f"Redis started on port {redis_port}")
-        except Exception as e:
-            click.echo(
-                f"Error occurred while trying to start Redis on port {redis_port}"
-            )
-            click.echo(f"Error Details: {str(e)}")
-            click.echo(
-                f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal."
-            )
-            exit(1)
+    try:
+        redis_service.start_container(
+            redis_port,
+        )
+        click.secho(f"Redis started on port {redis_port}", fg="green")
+    except ContainerAlreadyRunningException:
+        click.secho(
+            f"Redis is already running. It's listening on port {redis_port}",
+            fg="yellow",
+        )
+    except DockerException as e:
+        click.secho(
+            f"\nError occurred while trying to start Redis on port {redis_port}\n",
+            fg="red",
+        )
+        click.secho(f"{str(e)}\n", fg="red")
+        click.echo(
+            f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal.",
+        )
+        exit(1)
+
+    mongodb_container_name = config_service.get("mongodb.container_name")
+    mongodb_port = config_service.get("mongodb.port")
+    mongodb_username = config_service.get("mongodb.username")
+    mongodb_password = config_service.get("mongodb.password")
 
     mongodb_service = MongoContainerService(mongodb_container_name)
 
-    if mongodb_service.get_container().container_running():
-        click.echo(f"MongoDB is already running. It's listening on port {mongodb_port}")
-    else:
-        try:
-            mongodb_service.start_container(
-                mongodb_port,
-                mongodb_username,
-                mongodb_password,
-            )
+    try:
+        mongodb_service.start_container(
+            mongodb_port,
+            mongodb_username,
+            mongodb_password,
+        )
+        click.secho(f"MongoDB started on port {mongodb_port}", fg="green")
 
-            click.echo(f"MongoDB started on port {mongodb_port}")
-        except Exception as e:
-            click.echo(
-                f"Error occurred while trying to start MongoDB on port {mongodb_port}"
-            )
-            click.echo(f"Error Details: {str(e)}")
-            click.echo(
-                f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal."
-            )
-            exit(1)
+    except ContainerAlreadyRunningException:
+        click.secho(
+            f"MongoDB is already running. It's listening on port {mongodb_port}",
+            fg="yellow",
+        )
+    except DockerException as e:
+        click.secho(
+            f"\nError occurred while trying to start MongoDB on port {mongodb_port}\n",
+            fg="red",
+        )
+        click.secho(f"{str(e)}\n", fg="red")
+        click.echo(
+            f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal.",
+        )
+        exit(1)
 
     click.echo("Done.")
 
@@ -91,10 +105,46 @@ def stop():
     Stop and remove all currently running services.
     """
 
-    redis_container_name = config.get("redis.container_name")
-    mongodb_container_name = config.get("mongodb.container_name")
+    click.echo(f"Stopping redis service...")
 
-    click.echo(f"Stopping/Removing Currently Running Services")
-    MongoContainerService(mongodb_container_name).stop()
-    RedisContainerService(redis_container_name).stop()
+    redis_container_name = config_service.get("redis.container_name")
+
+    try:
+        RedisContainerService(redis_container_name).stop()
+        click.secho("Redis service stopped", fg="green")
+    except NotFound:
+        click.secho(
+            f"The Redis service named {redis_container_name} is already stopped.",
+            fg="yellow",
+        )
+    except DockerException as e:
+        click.secho(
+            f"\nError occurred while trying to stop Redis\n",
+            fg="red",
+        )
+        click.secho(f"{str(e)}\n", fg="red")
+    except DockerDaemonException as e:
+        click.secho(f"{str(e)}\n", fg="red")
+        exit(1)
+
+    mongodb_container_name = config_service.get("mongodb.container_name")
+
+    try:
+        MongoContainerService(mongodb_container_name).stop()
+        click.secho("MongoDB service stopped", fg="green")
+    except NotFound:
+        click.secho(
+            f"The MongoDB service named {mongodb_container_name} is already stopped.",
+            fg="yellow",
+        )
+    except DockerException as e:
+        click.secho(
+            f"\nError occurred while trying to stop MongoDB\n",
+            fg="red",
+        )
+        click.secho(f"{str(e)}\n", fg="red")
+    except DockerDaemonException as e:
+        click.secho(f"{str(e)}\n", fg="red")
+        exit(1)
+
     click.echo(f"Done.")

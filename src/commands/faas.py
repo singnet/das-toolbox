@@ -63,13 +63,13 @@ def start(function, version):
         mongodb_container_name,
     )
 
-    if not container_service.redis_container.container_running():
+    if not container_service.redis_container.is_running():
         click.echo("Redis is not running")
         services_not_running = True
     else:
         click.echo(f"Redis is running on port {config.get('redis.port')}")
 
-    if not container_service.mongodb_container.container_running():
+    if not container_service.mongodb_container.is_running():
         click.echo("MongoDB is not running")
         services_not_running = True
     else:
