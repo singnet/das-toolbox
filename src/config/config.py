@@ -16,6 +16,3 @@ METTA_LOADER_IMAGE_VERSION = "v0.2.0-toolbox"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "v0.2.0-toolbox"
-
-POC_LOADER_IMAGE_IMAGE_NAME = "levisingnet/canonical-load"
-POC_LOADER_IMAGE_IMAGE_VERSION = "latest"
