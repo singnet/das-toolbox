@@ -1,10 +1,15 @@
 import re
 import click
 from sys import exit
-from config import Secret
 from enum import Enum
 from services import OpenFaaSContainerService
-from exceptions import ContainerAlreadyRunningException, ContainerNotRunningException, DockerException, DockerDaemonException, NotFound
+from exceptions import (
+    ContainerNotRunningException,
+    DockerException,
+    DockerDaemonException,
+    NotFound,
+)
+
 
 class FunctionEnum(Enum):
     QUERY_ENGINE = "queryengine"
@@ -12,21 +17,15 @@ class FunctionEnum(Enum):
 
 
 @click.group(help="Manage OpenFaaS services.")
-def faas():
+@click.pass_context
+def faas(ctx):
     """
     This command group allows you to manage OpenFaaS services.
     """
 
-    global config
+    global config_service
 
-    try:
-        config = Secret()
-    except PermissionError:
-        click.secho(
-            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
-            fg="red",
-        )
-        exit(1)
+    config_service = ctx.obj["config"]
 
 
 @faas.command(help="Start an OpenFaaS service.")
@@ -46,7 +45,7 @@ def start(function, version):
     """
     Start an OpenFaaS service.
     """
-    if not re.match(r'\d+\.\d+\.\d+', version):
+    if not re.match(r"\d+\.\d+\.\d+", version):
         click.secho("The version must follow the format x.x.x (e.g 1.10.9)", fg="red")
         exit(1)
 

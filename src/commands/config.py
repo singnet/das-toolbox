@@ -1,24 +1,19 @@
-import os
 import click
-from config import Secret, SECRETS_PATH, USER_DAS_PATH
+from config import SECRETS_PATH, USER_DAS_PATH
 from utils import table_parser
+from sys import exit
 
 
 @click.group(help="Manage configuration settings.")
-def config():
+@click.pass_context
+def config(ctx):
     """
     This command group allows you to manage configuration settings.
     """
+
     global config_service
 
-    try:
-        config_service = Secret()
-    except PermissionError:
-        click.secho(
-            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
-            fg="red",
-        )
-        exit(1)
+    config_service = ctx.obj["config"]
 
 
 @config.command(help="Set Redis and MongoDB configuration settings.")
@@ -74,7 +69,7 @@ def set():
         )
     except PermissionError:
         click.secho(
-            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            f"\nIt seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
             fg="red",
         )
         exit(1)
@@ -97,7 +92,7 @@ def list():
         click.echo(config_table)
     except PermissionError:
         click.secho(
-            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            f"\nIt seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
             fg="red",
         )
         exit(1)

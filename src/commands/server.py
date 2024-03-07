@@ -4,7 +4,6 @@ from services import (
     RedisContainerService,
     MongoContainerService,
 )
-from config import Secret, SECRETS_PATH, USER_DAS_PATH
 from exceptions import (
     ContainerAlreadyRunningException,
     DockerException,
@@ -14,21 +13,15 @@ from exceptions import (
 
 
 @click.group(help="Manage server-related operations.")
-def server():
+@click.pass_context
+def server(ctx):
     """
     This command group allows you to manage server-related operations.
     """
 
     global config_service
 
-    try:
-        config_service = Secret()
-    except PermissionError:
-        click.secho(
-            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
-            fg="red",
-        )
-        exit(1)
+    config_service = ctx.obj["config"]
 
 
 @server.command(help="Start Redis and MongoDB containers.")
@@ -41,7 +34,6 @@ def start():
 
     redis_container_name = config_service.get("redis.container_name")
     redis_port = config_service.get("redis.port")
-
 
     try:
         redis_service = RedisContainerService(redis_container_name)
@@ -68,10 +60,9 @@ def start():
     mongodb_username = config_service.get("mongodb.username")
     mongodb_password = config_service.get("mongodb.password")
 
-
     try:
         mongodb_service = MongoContainerService(mongodb_container_name)
-    
+
         mongodb_service.start_container(
             mongodb_port,
             mongodb_username,

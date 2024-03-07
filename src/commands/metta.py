@@ -3,26 +3,23 @@ import click
 from sys import exit
 from services import MettaLoaderContainerService
 from services import MettaSyntaxValidatorService
-from config import Secret, SECRETS_PATH, USER_DAS_PATH
-from exceptions import DockerException, ContainerNotRunningException, DockerDaemonException
+from exceptions import (
+    DockerException,
+    ContainerNotRunningException,
+    DockerDaemonException,
+)
 
 
 @click.group(help="Manage Metta operations.")
-def metta():
+@click.pass_context
+def metta(ctx):
     """
     This command group allows you to manage Metta operations.
     """
 
-    global config
+    global config_service
 
-    try:
-        config = Secret()
-    except PermissionError:
-        click.secho(
-            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
-            fg="red",
-        )
-        exit(1)
+    config_service = ctx.obj["config"]
 
 
 @metta.command(help="Load a MeTTa file into the databases")
