@@ -1,17 +1,13 @@
 #!/bin/bash
 
-setup_docker() {
-    if ! command -v docker &>/dev/null; then
-        apt -y install uidmap curl
+if ! command -v docker &>/dev/null; then
+    apt -y install uidmap curl
 
-        curl https://get.docker.com | bash
+    curl https://get.docker.com | bash
 
-        dockerd-rootless-setuptool.sh install
+    dockerd-rootless-setuptool.sh install
 
-        docker run --rm hello-world
+    docker run --rm hello-world
 
-        docker rmi hello-world
-    fi
-}
-
-setup_docker
+    docker rmi hello-world
+fi
