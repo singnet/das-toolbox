@@ -22,7 +22,7 @@ class Container:
         self._image = image
         self._image_version = image_version
 
-    def is_running(self) -> bool:
+    def discovery(self):
         output = None
 
         docker_command = (
@@ -40,13 +40,15 @@ class Container:
             raise DockerException()
 
         try:
-            container = json.loads(output)
+            return json.loads(output)
+        except:
+            return {}
 
-            if container["Names"] == self.get_name():
-                return True
+    def is_running(self) -> bool:
+        container = self.discovery()
 
-        except Exception:
-            pass
+        if container.get("Names") == self.get_name():
+            return True
 
         return False
 
@@ -89,15 +91,18 @@ class ContainerService(ABC):
             **kwargs,
             image=self.get_container().get_image(),
             name=self.get_container().get_name(),
+            detach=True,
         )
 
-        return response.id
+        return response
 
-    def logs(self, container_id: str) -> None:
-        container = self.get_docker_client().containers.get(container_id)
-
-        for line in container.logs(stream=True):
-            print(line)
+    def logs(self, container) -> None:
+        logs = ""
+        for log in container.logs(stdout=True, stderr=True, stream=True):
+            logs += log.decode("utf-8")
+            if "\n" in logs:
+                print(logs.strip())
+                logs = ""
 
     @abstractclassmethod
     def start_container(self, **config):

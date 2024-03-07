@@ -23,7 +23,6 @@ class RedisContainerService(ContainerService):
 
         try:
             container_id = self._start_container(
-                detach=True,
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,

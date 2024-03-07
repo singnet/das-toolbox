@@ -1,9 +1,10 @@
-import click
 import os
+import click
+from sys import exit
 from services import MettaLoaderContainerService
 from services import MettaSyntaxValidatorService
-from config import Secret
-from sys import exit
+from config import Secret, SECRETS_PATH, USER_DAS_PATH
+from exceptions import DockerException, ContainerNotRunningException
 
 
 @click.group(help="Manage Metta operations.")
@@ -14,11 +15,12 @@ def metta():
 
     global config
 
-    config = Secret()
-
-    if not config.exists():
-        click.echo(
-            "The configuration file does not exist. Please initialize the configuration file first by running the command config set."
+    try:
+        config = Secret()
+    except PermissionError:
+        click.secho(
+            f"\nWe apologize for the inconvenience, but it seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            fg="red",
         )
         exit(1)
 
@@ -40,35 +42,35 @@ def load(path):
     mongodb_container_name = config.get("mongodb.container_name")
     services_not_running = False
 
-    try:
-        MettaLoaderContainerService(
-            loader_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        ).stop()
-        loader_service = MettaLoaderContainerService(
-            loader_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        )
+    loader_service = MettaLoaderContainerService(
+        loader_container_name,
+        redis_container_name,
+        mongodb_container_name,
+    )
 
+    try:
         if not loader_service.redis_container.is_running():
-            click.echo("Redis is not running")
+            click.secho("Redis is not running", fg="red")
             services_not_running = True
         else:
-            click.echo(f"Redis is running on port {config.get('redis.port')}")
+            click.secho(
+                f"Redis is running on port {config.get('redis.port')}",
+                fg="yellow",
+            )
 
         if not loader_service.mongodb_container.is_running():
-            click.echo("MongoDB is not running")
+            click.secho("MongoDB is not running", fg="red")
             services_not_running = True
         else:
-            click.echo(f"MongoDB is running on port {config.get('mongodb.port')}")
+            click.secho(
+                f"MongoDB is running on port {config.get('mongodb.port')}",
+                fg="yellow",
+            )
 
         if services_not_running:
-            click.echo(
-                "\nPlease use 'server start' to start required services before running 'server load'."
+            raise ContainerNotRunningException(
+                "\nPlease use 'server start' to start required services before running 'metta load'."
             )
-            exit(1)
 
         click.echo("Loading metta file(s)...")
 
@@ -80,8 +82,13 @@ def load(path):
             redis_port=config.get("redis.port"),
         )
         click.echo("Done.")
-    except FileNotFoundError:
-        click.echo(f"The specified path '{path}' does not exist.")
+    except (
+        DockerException,
+        ContainerNotRunningException,
+        FileNotFoundError,
+        IsADirectoryError,
+    ) as e:
+        click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
 
@@ -98,9 +105,14 @@ def validate(path: str):
     """
 
     metta_service = MettaSyntaxValidatorService()
-    click.echo("Checking syntax...")
 
-    if os.path.isdir(path):
-        metta_service.validate_directory(path)
-    else:
-        metta_service.validate_file(path)
+    try:
+        if os.path.isdir(path):
+            metta_service.validate_directory(
+                path,
+            )
+        else:
+            metta_service.validate_file(path)
+    except Exception as e:
+        click.secho(f"{str(e)}\n", fg="red")
+        exit(1)

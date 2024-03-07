@@ -14,6 +14,10 @@ class ValidateFailed(Exception):
     pass
 
 
+class MettaSyntaxException(Exception):
+    pass
+
+
 class DockerException(Exception):
     pass
 

@@ -1,6 +1,6 @@
 import os
-import subprocess
-from exceptions import ValidateFailed
+import docker
+from exceptions import NotFound, DockerException
 from services.container_service import Container, ContainerService
 from config import (
     METTA_LOADER_IMAGE_NAME,
@@ -27,28 +27,46 @@ class MettaLoaderContainerService(ContainerService):
 
     def start_container(
         self,
-        filepath,
+        path,
         mongodb_port,
         mongodb_username,
         mongodb_password,
         redis_port,
     ):
-        if not os.path.exists(filepath):
-            raise FileNotFoundError()
 
-        if not os.path.isfile(filepath):
-            raise IsADirectoryError()
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"The specified file path '{path}' does not exist.")
 
-        docker_command = f"docker run --rm --net host --name {self.get_container().get_name()} -e DAS_REDIS_HOSTNAME=localhost -e DAS_REDIS_PORT={redis_port} -e DAS_MONGODB_HOSTNAME=localhost -e DAS_MONGODB_PORT={mongodb_port} -e DAS_MONGODB_USERNAME={mongodb_username} -e DAS_MONGODB_PASSWORD={mongodb_password} -i -v {os.path.dirname(filepath)}:/tmp {self.get_container().get_image()} db_loader {os.path.basename(filepath)}"
-        exit_code = subprocess.call(
-            docker_command,
-            shell=True,
-            text=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        if not os.path.isfile(path):
+            raise IsADirectoryError(f"The specified path '{path}' is a directory.")
 
-        if exit_code > 0:
-            raise ValidateFailed()
+        try:
+            self.stop()
+        except (NotFound, DockerException):
+            pass
 
-        return None
+        try:
+            container = self._start_container(
+                network_mode="host",
+                environment={
+                    "DAS_REDIS_HOSTNAME": "localhost",
+                    "DAS_REDIS_PORT": str(redis_port),
+                    "DAS_MONGODB_HOSTNAME": "localhost",
+                    "DAS_MONGODB_PORT": str(mongodb_port),
+                    "DAS_MONGODB_USERNAME": mongodb_username,
+                    "DAS_MONGODB_PASSWORD": mongodb_password,
+                },
+                command=f"db_loader {os.path.basename(path)}",
+                volumes={os.path.dirname(path): {"bind": "/tmp", "mode": "rw"}},
+                remove=True,
+                stdin_open=True,
+                tty=True,
+            )
+
+            self.logs(container)
+
+            return None
+        except docker.errors.APIError as e:
+            # print(e.explanation) # TODO: ADD TO LOGGING FILE
+
+            raise DockerException(e.explanation)

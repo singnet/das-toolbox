@@ -32,7 +32,6 @@ class OpenFaaSContainerService(ContainerService):
         self.get_container().set_image_version(function_version)
 
         container_id = self._start_container(
-            detach=True,
             network_mode="host",
             restart_policy={
                 "Name": "on-failure",
