@@ -1,8 +1,8 @@
 import os
-import subprocess
-from exceptions import ValidateFailed
+import docker
 from services.container_service import Container, ContainerService
 from config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
+from exceptions import NotFound, DockerException, MettaSyntaxException
 
 
 class MettaParserContainerService(ContainerService):
@@ -12,7 +12,6 @@ class MettaParserContainerService(ContainerService):
             METTA_PARSER_IMAGE_NAME,
             METTA_PARSER_IMAGE_VERSION,
         )
-
         super().__init__(container)
 
     def start_container(self, filepath):
@@ -22,16 +21,26 @@ class MettaParserContainerService(ContainerService):
         if not os.path.isfile(filepath):
             raise IsADirectoryError()
 
-        docker_command = f"docker run --rm --name {self.get_container().get_name()} -i -v {os.path.dirname(filepath)}:/tmp {self.get_container().get_image()} syntax_check {os.path.basename(filepath)}"
-        exit_code = subprocess.call(
-            docker_command,
-            shell=True,
-            text=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        try:
+            self.stop()
+        except (NotFound, DockerException):
+            pass
 
-        if exit_code > 0:
-            raise ValidateFailed()
+        try:
+            self._start_container(
+                command=f"syntax_check {os.path.basename(filepath)}",
+                volumes={os.path.dirname(filepath): {"bind": "/tmp", "mode": "rw"}},
+                remove=True,
+                stdin_open=True,
+                tty=True,
+            )
+        except docker.errors.APIError as e:
+            # print(e.explanation) # TODO: ADD TO LOGGING FILE
+
+            raise DockerException(e.explanation)
+        except docker.errors.ContainerError as e:
+            # print(e.explanation) # TODO: ADD TO LOGGING FILE
+
+            raise MettaSyntaxException()
 
         return None

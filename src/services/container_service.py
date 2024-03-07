@@ -1,9 +1,14 @@
 import docker
 from typing import Any
 from abc import ABC, abstractclassmethod
-from exceptions import ContainerAlreadyRunningException, ValidateFailed
-from config import ActiveServices
+from exceptions import (
+    ContainerAlreadyRunningException,
+    NotFound,
+    DockerException,
+    DockerDaemonException,
+)
 import subprocess
+import json
 
 
 class Container:
@@ -13,65 +18,45 @@ class Container:
         image=None,
         image_version: str = "latest",
     ) -> None:
-        self._container_config = ActiveServices()
         self._name = name
+        self._image = image
+        self._image_version = image_version
 
-        container = self._check_running_container()
+    def discovery(self):
+        output = None
 
-        if container is None:
-            self._running = False
-            self._id = None
-            self._image = image
-            self._image_version = image_version
-        else:
-            self._running = True
-            self._id = container["id"]
+        docker_command = (
+            f'docker ps --filter "name={self.get_name()}" --format "{{{{json . }}}}"'
+        )
 
-            image_version = (
-                container.get("image_version") if image is None else image_version
-            )
-            image = container["image"] if image is None else image
+        try:
+            output = subprocess.check_output(
+                docker_command,
+                shell=True,
+                text=True,
+                stderr=subprocess.DEVNULL,
+            ).strip()
+        except subprocess.CalledProcessError:
+            raise DockerException()
 
-            self._image = image
-            self._image_version = image_version
+        try:
+            return json.loads(output)
+        except:
+            return {}
 
-    def to_json(self) -> dict:
-        return {
-            "id": self.get_id(),
-            "name": self.get_name(),
-            "image": self.get_image(),
-        }
+    def is_running(self) -> bool:
+        container = self.discovery()
 
-    def get_container_config(self) -> ActiveServices:
-        return self._container_config
+        if container.get("Names") == self.get_name():
+            return True
 
-    def _check_running_container(self) -> list:
-        containers = self.get_container_config().get_content().get("running", [])
-
-        for container in containers:
-            if container["name"] == self.get_name():
-                image, version = container["image"].split(":")
-                return {
-                    **container,
-                    "image": image,
-                    "image_version": version,
-                }
-        return None
-
-    def container_running(self) -> bool:
-        return self._running
-
-    def get_id(self) -> str:
-        return self._id
+        return False
 
     def get_name(self) -> str:
         return self._name
 
     def get_image(self) -> str:
         return f"{self._image}:{self._image_version}"
-
-    def set_id(self, id: str) -> None:
-        self._id = id
 
     def set_image(self, image: str) -> None:
         self._image = image
@@ -83,7 +68,13 @@ class Container:
 class ContainerService(ABC):
     def __init__(self, container: Container) -> None:
         super().__init__()
-        self._docker_client = docker.from_env()
+        try:
+            self._docker_client = docker.from_env()
+        except docker.errors.DockerException:
+            raise DockerDaemonException(
+                "Your Docker service appears to be either malfunctioning or not running."
+            )
+
         self._container = container
 
     def get_docker_client(self) -> docker.DockerClient:
@@ -93,52 +84,51 @@ class ContainerService(ABC):
         return self._container
 
     def _start_container(self, **kwargs) -> Any:
-        if self.get_container().container_running():
+        if self.get_container().is_running():
             raise ContainerAlreadyRunningException()
 
         response = self.get_docker_client().containers.run(
             **kwargs,
             image=self.get_container().get_image(),
             name=self.get_container().get_name(),
+            detach=True,
         )
 
-        self.get_container().set_id(response.id)
-        container_json = self.get_container().to_json()
+        return response
 
-        self.get_container().get_container_config().append_to_array(
-            "running",
-            container_json,
-        ).save()
-
-        return container_json["id"]
-
-    def logs(self, container_id: str) -> None:
-        container = self.get_docker_client().containers.get(container_id)
-
-        for line in container.logs(stream=True):
-            print(line)
+    def logs(self) -> None:
+        try:
+            container = self.get_docker_client().containers.get(self.get_container().get_name())
+        except docker.errors.NotFound:
+            raise DockerException(f"Service {self.get_container().get_name()} is not running")
+        
+        logs = ""
+        for log in container.logs(stdout=True, stderr=True, stream=True):
+            logs += log.decode("utf-8")
+            if "\n" in logs:
+                print(logs.strip())
+                logs = ""
 
     @abstractclassmethod
     def start_container(self, **config):
         pass
 
     def stop(self):
-        container_json = self.get_container().to_json()
+        container_name = self.get_container().get_name()
+        container = None
 
-        docker_command = f"docker rm -f {self.get_container().get_name()}"
+        try:
+            container = self.get_docker_client().containers.get(container_name)
+        except docker.errors.APIError:
+            raise NotFound()
 
-        exit_code = subprocess.call(
-            docker_command,
-            shell=True,
-            text=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        try:
+            container.kill()
+        except:
+            pass
 
-        if exit_code > 0:
-            raise ValidateFailed()
-
-        self.get_container().get_container_config().remove_from_array(
-            "running",
-            container_json,
-        ).save()
+        try:
+            container.remove()
+        except docker.errors.APIError as e:
+            # print(e.explanation) # TODO: ADD TO LOGGING FILE
+            raise DockerException(e.explanation)

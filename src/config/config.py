@@ -1,7 +1,8 @@
 # PATHS
 
-SECRETS_PATH = "~/.das/config.json"
-ACTIVE_SERVICES_PATH = "~/.das/containers.json"
+USER_DAS_PATH = "~/.das"
+
+SECRETS_PATH = f"{USER_DAS_PATH}/config.json"
 
 # SERVICES
 
@@ -16,3 +17,10 @@ METTA_LOADER_IMAGE_VERSION = "v0.2.0-toolbox"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "v0.2.0-toolbox"
+
+OPENFAAS_IMAGE_NAME = "trueagi/das"
+
+# OTHERS
+
+CLI_GROUP_NAME = "das"
+CLI_USER_NAME = "das"

@@ -1,26 +1,25 @@
-import click
 import os
+import click
+from sys import exit
 from services import MettaLoaderContainerService
 from services import MettaSyntaxValidatorService
-from config import Secret
-from sys import exit
+from exceptions import (
+    DockerException,
+    ContainerNotRunningException,
+    DockerDaemonException,
+)
 
 
 @click.group(help="Manage Metta operations.")
-def metta():
+@click.pass_context
+def metta(ctx):
     """
     This command group allows you to manage Metta operations.
     """
 
     global config
 
-    config = Secret()
-
-    if not config.exists():
-        click.echo(
-            "The configuration file does not exist. Please initialize the configuration file first by running the command config set."
-        )
-        exit(1)
+    config = ctx.obj["config"]
 
 
 @metta.command(help="Load a MeTTa file into the databases")
@@ -41,34 +40,34 @@ def load(path):
     services_not_running = False
 
     try:
-        MettaLoaderContainerService(
-            loader_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        ).stop()
         loader_service = MettaLoaderContainerService(
             loader_container_name,
             redis_container_name,
             mongodb_container_name,
         )
 
-        if not loader_service.redis_container.container_running():
-            click.echo("Redis is not running")
+        if not loader_service.redis_container.is_running():
+            click.secho("Redis is not running", fg="red")
             services_not_running = True
         else:
-            click.echo(f"Redis is running on port {config.get('redis.port')}")
+            click.secho(
+                f"Redis is running on port {config.get('redis.port')}",
+                fg="yellow",
+            )
 
-        if not loader_service.mongodb_container.container_running():
-            click.echo("MongoDB is not running")
+        if not loader_service.mongodb_container.is_running():
+            click.secho("MongoDB is not running", fg="red")
             services_not_running = True
         else:
-            click.echo(f"MongoDB is running on port {config.get('mongodb.port')}")
+            click.secho(
+                f"MongoDB is running on port {config.get('mongodb.port')}",
+                fg="yellow",
+            )
 
         if services_not_running:
-            click.echo(
-                "\nPlease use 'server start' to start required services before running 'server load'."
+            raise ContainerNotRunningException(
+                "\nPlease use 'server start' to start required services before running 'metta load'."
             )
-            exit(1)
 
         click.echo("Loading metta file(s)...")
 
@@ -80,8 +79,14 @@ def load(path):
             redis_port=config.get("redis.port"),
         )
         click.echo("Done.")
-    except FileNotFoundError:
-        click.echo(f"The specified path '{path}' does not exist.")
+    except (
+        DockerDaemonException,
+        DockerException,
+        ContainerNotRunningException,
+        FileNotFoundError,
+        IsADirectoryError,
+    ) as e:
+        click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
 
@@ -97,10 +102,15 @@ def validate(path: str):
     Validate the syntax of a Metta file or directory.
     """
 
-    metta_service = MettaSyntaxValidatorService()
-    click.echo("Checking syntax...")
+    try:
+        metta_service = MettaSyntaxValidatorService()
 
-    if os.path.isdir(path):
-        metta_service.validate_directory(path)
-    else:
-        metta_service.validate_file(path)
+        if os.path.isdir(path):
+            metta_service.validate_directory(
+                path,
+            )
+        else:
+            metta_service.validate_file(path)
+    except Exception as e:
+        click.secho(f"{str(e)}\n", fg="red")
+        exit(1)

@@ -1,7 +1,7 @@
 import glob
 import click
-from exceptions import ValidateFailed
 from services.metta_parser_container_service import MettaParserContainerService
+from exceptions import MettaSyntaxException
 
 
 class MettaSyntaxValidatorService:
@@ -16,12 +16,12 @@ class MettaSyntaxValidatorService:
         try:
             self.check_syntax(file_path)
         except IsADirectoryError:
-            click.secho(f"The specified path '{file_path}' is a directory.", fg="red")
+            raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
         except FileNotFoundError:
-            click.secho(
-                f"The specified file path '{file_path}' does not exist.", fg="red"
+            raise FileNotFoundError(
+                f"The specified file path '{file_path}' does not exist."
             )
-        except ValidateFailed:
+        except MettaSyntaxException:
             click.secho("Checking syntax... FAILED", fg="red")
 
     def validate_directory(self, directory_path):
