@@ -63,7 +63,7 @@ class MettaLoaderContainerService(ContainerService):
                 tty=True,
             )
 
-            self.logs(container)
+            self.logs()
 
             return None
         except docker.errors.APIError as e:

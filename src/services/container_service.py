@@ -96,7 +96,12 @@ class ContainerService(ABC):
 
         return response
 
-    def logs(self, container) -> None:
+    def logs(self) -> None:
+        try:
+            container = self.get_docker_client().containers.get(self.get_container().get_name())
+        except docker.errors.NotFound:
+            raise DockerException(f"Service {self.get_container().get_name()} is not running")
+        
         logs = ""
         for log in container.logs(stdout=True, stderr=True, stream=True):
             logs += log.decode("utf-8")

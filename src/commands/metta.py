@@ -4,7 +4,7 @@ from sys import exit
 from services import MettaLoaderContainerService
 from services import MettaSyntaxValidatorService
 from config import Secret, SECRETS_PATH, USER_DAS_PATH
-from exceptions import DockerException, ContainerNotRunningException
+from exceptions import DockerException, ContainerNotRunningException, DockerDaemonException
 
 
 @click.group(help="Manage Metta operations.")
@@ -42,13 +42,13 @@ def load(path):
     mongodb_container_name = config.get("mongodb.container_name")
     services_not_running = False
 
-    loader_service = MettaLoaderContainerService(
-        loader_container_name,
-        redis_container_name,
-        mongodb_container_name,
-    )
-
     try:
+        loader_service = MettaLoaderContainerService(
+            loader_container_name,
+            redis_container_name,
+            mongodb_container_name,
+        )
+
         if not loader_service.redis_container.is_running():
             click.secho("Redis is not running", fg="red")
             services_not_running = True
@@ -83,6 +83,7 @@ def load(path):
         )
         click.echo("Done.")
     except (
+        DockerDaemonException,
         DockerException,
         ContainerNotRunningException,
         FileNotFoundError,
@@ -104,9 +105,9 @@ def validate(path: str):
     Validate the syntax of a Metta file or directory.
     """
 
-    metta_service = MettaSyntaxValidatorService()
-
     try:
+        metta_service = MettaSyntaxValidatorService()
+
         if os.path.isdir(path):
             metta_service.validate_directory(
                 path,

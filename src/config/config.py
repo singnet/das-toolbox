@@ -3,7 +3,6 @@
 USER_DAS_PATH = "~/.das"
 
 SECRETS_PATH = f"{USER_DAS_PATH}/config.json"
-ACTIVE_SERVICES_PATH = f"{USER_DAS_PATH}/containers.json"
 
 # SERVICES
 
@@ -18,6 +17,8 @@ METTA_LOADER_IMAGE_VERSION = "v0.2.0-toolbox"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "v0.2.0-toolbox"
+
+OPENFAAS_IMAGE_NAME = "trueagi/das"
 
 # OTHERS
 

@@ -42,9 +42,10 @@ def start():
     redis_container_name = config_service.get("redis.container_name")
     redis_port = config_service.get("redis.port")
 
-    redis_service = RedisContainerService(redis_container_name)
 
     try:
+        redis_service = RedisContainerService(redis_container_name)
+
         redis_service.start_container(
             redis_port,
         )
@@ -54,15 +55,12 @@ def start():
             f"Redis is already running. It's listening on port {redis_port}",
             fg="yellow",
         )
-    except DockerException as e:
+    except (DockerException, DockerDaemonException) as e:
         click.secho(
             f"\nError occurred while trying to start Redis on port {redis_port}\n",
             fg="red",
         )
         click.secho(f"{str(e)}\n", fg="red")
-        click.echo(
-            f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal.",
-        )
         exit(1)
 
     mongodb_container_name = config_service.get("mongodb.container_name")
@@ -70,9 +68,10 @@ def start():
     mongodb_username = config_service.get("mongodb.username")
     mongodb_password = config_service.get("mongodb.password")
 
-    mongodb_service = MongoContainerService(mongodb_container_name)
 
     try:
+        mongodb_service = MongoContainerService(mongodb_container_name)
+    
         mongodb_service.start_container(
             mongodb_port,
             mongodb_username,
@@ -85,15 +84,12 @@ def start():
             f"MongoDB is already running. It's listening on port {mongodb_port}",
             fg="yellow",
         )
-    except DockerException as e:
+    except (DockerException, DockerDaemonException) as e:
         click.secho(
             f"\nError occurred while trying to start MongoDB on port {mongodb_port}\n",
             fg="red",
         )
         click.secho(f"{str(e)}\n", fg="red")
-        click.echo(
-            f"For more information, check the logs using the command 'docker logs <REDIS_CONTAINER_NAME>' in your terminal.",
-        )
         exit(1)
 
     click.echo("Done.")
