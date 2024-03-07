@@ -17,9 +17,9 @@ def metta(ctx):
     This command group allows you to manage Metta operations.
     """
 
-    global config_service
+    global config
 
-    config_service = ctx.obj["config"]
+    config = ctx.obj["config"]
 
 
 @metta.command(help="Load a MeTTa file into the databases")

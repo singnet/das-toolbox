@@ -8,16 +8,16 @@ from exceptions import DockerDaemonException, DockerException
 @click.group(help="Manage container logs.")
 @click.pass_context
 def logs(ctx):
-    global config_service
+    global config
 
-    config_service = ctx.obj["config"]
+    config = ctx.obj["config"]
 
 
 @logs.command(help="Display logs for OpenFaaS services.")
 def faas():
-    openfaas_container_name = config_service.get("openfaas.container_name")
-    mongodb_container_name = config_service.get("mongodb.container_name")
-    redis_container_name = config_service.get("redis.container_name")
+    openfaas_container_name = config.get("openfaas.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
+    redis_container_name = config.get("redis.container_name")
 
     try:
         openfaas_service = OpenFaaSContainerService(
@@ -38,7 +38,7 @@ def faas():
 
 @logs.command(help="Display logs for MongoDB.")
 def mongodb():
-    mongodb_container_name = config_service.get("mongodb.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
 
     try:
         mongodb_service = MongoContainerService(mongodb_container_name)
@@ -55,7 +55,7 @@ def mongodb():
 
 @logs.command(help="Display logs for Redis.")
 def redis():
-    redis_container_name = config_service.get("redis.container_name")
+    redis_container_name = config.get("redis.container_name")
 
     try:
         redis_service = RedisContainerService(redis_container_name)

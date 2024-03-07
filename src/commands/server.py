@@ -19,9 +19,9 @@ def server(ctx):
     This command group allows you to manage server-related operations.
     """
 
-    global config_service
+    global config
 
-    config_service = ctx.obj["config"]
+    config = ctx.obj["config"]
 
 
 @server.command(help="Start Redis and MongoDB containers.")
@@ -32,8 +32,8 @@ def start():
 
     click.echo("Starting Redis and MongoDB...")
 
-    redis_container_name = config_service.get("redis.container_name")
-    redis_port = config_service.get("redis.port")
+    redis_container_name = config.get("redis.container_name")
+    redis_port = config.get("redis.port")
 
     try:
         redis_service = RedisContainerService(redis_container_name)
@@ -55,10 +55,10 @@ def start():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
-    mongodb_container_name = config_service.get("mongodb.container_name")
-    mongodb_port = config_service.get("mongodb.port")
-    mongodb_username = config_service.get("mongodb.username")
-    mongodb_password = config_service.get("mongodb.password")
+    mongodb_container_name = config.get("mongodb.container_name")
+    mongodb_port = config.get("mongodb.port")
+    mongodb_username = config.get("mongodb.username")
+    mongodb_password = config.get("mongodb.password")
 
     try:
         mongodb_service = MongoContainerService(mongodb_container_name)
@@ -94,7 +94,7 @@ def stop():
 
     click.echo(f"Stopping redis service...")
 
-    redis_container_name = config_service.get("redis.container_name")
+    redis_container_name = config.get("redis.container_name")
 
     try:
         RedisContainerService(redis_container_name).stop()
@@ -114,7 +114,7 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
-    mongodb_container_name = config_service.get("mongodb.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
 
     try:
         MongoContainerService(mongodb_container_name).stop()

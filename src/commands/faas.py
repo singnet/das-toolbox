@@ -23,9 +23,9 @@ def faas(ctx):
     This command group allows you to manage OpenFaaS services.
     """
 
-    global config_service
+    global config
 
-    config_service = ctx.obj["config"]
+    config = ctx.obj["config"]
 
 
 @faas.command(help="Start an OpenFaaS service.")
