@@ -2,9 +2,6 @@ import click
 from services import (
     RedisContainerService,
     MongoContainerService,
-    MettaLoaderContainerService,
-    OpenFaaSContainerService,
-    PocLoaderContainerService,
 )
 from sys import exit
 from config import Secret

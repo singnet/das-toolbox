@@ -1,5 +1,4 @@
 from .loader_container_service import (
-    PocLoaderContainerService,
     MettaLoaderContainerService,
 )
 from .container_service import Container, ContainerService
