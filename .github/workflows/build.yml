@@ -41,3 +41,27 @@ jobs:
       version-tag-regex-pattern: /^v\d+\.\d+\.\d+$/
       version-require-confirmation: "true"
     secrets: inherit
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    needs: build
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Download das-cli artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: das-cli
+          path: packages
+
+      - name: Copy files to server
+        run: |
+          scp -r packages/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ vars.SERVER_DEB_PACKAGES_PATH }}
+
+        
