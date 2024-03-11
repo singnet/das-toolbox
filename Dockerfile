@@ -1,29 +1,14 @@
-FROM ubuntu:20.04 AS builder-binary
+FROM ubuntu:20.04 AS builder
 
-WORKDIR /app
+ENV TZ=America/Sao_Paulo \
+    DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y build-essential zlib1g-dev python3-pip && \
-    pip3 install pyinstaller==6.3.0
+    apt-get install -y build-essential debhelper zlib1g-dev python3-pip python3
 
-COPY ./src/requirements.txt ./
+WORKDIR /app/das
 
-RUN pip3 install -r requirements.txt
+COPY . .
 
-COPY ./src ./
+CMD ["make", "build"]
 
-RUN pyinstaller das-cli.py -y -F -n das-cli
-
-FROM ubuntu:20.04 AS builder-deb-package
-
-WORKDIR /tmp/das-cli
-
-COPY ./DEBIAN/ ./package/DEBIAN/
-
-COPY --from=builder-binary /app/dist/das-cli ./package/usr/local/bin/
-
-RUN chmod -R 775 ./package/usr/local/bin/ && \
-    chmod -R 775 ./package/DEBIAN/
-
-ENTRYPOINT [ "dpkg-deb" ]
-CMD [ "-b", "./package", "./dist"]
