@@ -20,7 +20,7 @@ jobs:
         run: docker build -t das-cli:latest .
 
       - name: Build das-cli binary
-        run: docker run --rm -v "$(pwd)/dist/":/tmp/das-cli/dist das-cli:latest
+        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{ github.event.inputs.version }} das-cli:latest
 
       - name: Upload das-cli artifact
         uses: actions/upload-artifact@v4
