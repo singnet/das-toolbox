@@ -6,10 +6,11 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 
 ## Table of Contents
 
-- [Download DAS CLI Package](#download-das-cli-package)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Deployment Options](#deployment-options)
+- [Download DAS CLI Debian Package](#download-das-cli-debian-package)
+- [Optional Installation From Source](#optional-installation-from-source)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [DAS Deployment Options](#das-deployment-options)
 - [Usage](#usage)
 - [Local Distributed Atom Space](#local-distributed-atom-space)
 - [Distributed Atom Space with OpenFaaS](#distributed-atom-space-with-openfaas)
@@ -17,8 +18,7 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 - [Troubleshooting](#troubleshooting)
   - [Docker Permission Denied](#docker-permission-denied)
 
-
-## Download DAS CLI package
+## Download DAS CLI Debian Package
 
 If this is your first time installing the DAS Toolbox on your computer, you'll need to set up our repository by executing the following command:
 
@@ -38,14 +38,18 @@ This will install the DAS CLI package, allowing you to start using the DAS Toolb
 das-cli --help
 ```
 
-## Prerequisites
+## Optional Installation From Source
+
+Optionally you can install the DAS Tolbox using the source available in this repository.
+
+### Prerequisites
 
 - Docker
 - Python 3.8.x
 - Python 3.8.x venv
 - Pip (Python package installer)
 
-## Installation
+### Installation
 
 To ensure a clean and isolated environment for running the DAS Toolbox, it is recommended to use a virtual environment. Follow these steps to set up the required prerequisites using a virtual environment:
 
@@ -84,7 +88,7 @@ To ensure a clean and isolated environment for running the DAS Toolbox, it is re
 
    Your shell prompt will return to its normal state.
 
-## Deployment Options
+## DAS Deployment Options
 
 Before delving into usage, it's crucial to comprehend the two distinct deployment options available: LOCAL and REMOTE.
 
