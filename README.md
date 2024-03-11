@@ -6,6 +6,7 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 
 ## Table of Contents
 
+- [Download DAS CLI Package](#download-das-cli-package)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Deployment Options](#deployment-options)
@@ -15,6 +16,27 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 - [Getting Help](#getting-help)
 - [Troubleshooting](#troubleshooting)
   - [Docker Permission Denied](#docker-permission-denied)
+
+
+## Download DAS CLI package
+
+If this is your first time installing the DAS Toolbox on your computer, you'll need to set up our repository by executing the following command:
+
+```
+wget -O - http://45.77.4.33/apt-repo/setup.sh | sudo bash
+```
+
+Once you've completed that step, you can proceed to install the das-cli package:
+
+```
+sudo apt install das-cli
+```
+
+This will install the DAS CLI package, allowing you to start using the DAS Toolbox's command-line interface.
+
+```
+das-cli --help
+```
 
 ## Prerequisites
 
