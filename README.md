@@ -23,7 +23,7 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 If this is your first time installing the DAS Toolbox on your computer, you'll need to set up our repository by executing the following command:
 
 ```
-wget -O - http://45.77.4.33/apt-repo/setup.sh | sudo bash
+sudo bash -c "wget -O - http://45.77.4.33/apt-repo/setup.sh | bash"
 ```
 
 Once you've completed that step, you can proceed to install the das-cli package:
