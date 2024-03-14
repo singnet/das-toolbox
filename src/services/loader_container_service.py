@@ -28,9 +28,11 @@ class MettaLoaderContainerService(ContainerService):
     def start_container(
         self,
         path,
+        mongodb_host,
         mongodb_port,
         mongodb_username,
         mongodb_password,
+        redis_host,
         redis_port,
     ):
 
@@ -46,12 +48,12 @@ class MettaLoaderContainerService(ContainerService):
             pass
 
         try:
-            container = self._start_container(
+            self._start_container(
                 network_mode="host",
                 environment={
-                    "DAS_REDIS_HOSTNAME": "localhost",
+                    "DAS_REDIS_HOSTNAME": redis_host,
                     "DAS_REDIS_PORT": str(redis_port),
-                    "DAS_MONGODB_HOSTNAME": "localhost",
+                    "DAS_MONGODB_HOSTNAME": mongodb_host,
                     "DAS_MONGODB_PORT": str(mongodb_port),
                     "DAS_MONGODB_USERNAME": mongodb_username,
                     "DAS_MONGODB_PASSWORD": mongodb_password,

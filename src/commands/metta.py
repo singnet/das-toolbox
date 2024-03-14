@@ -73,9 +73,11 @@ def load(path):
 
         loader_service.start_container(
             path,
+            mongodb_host=config.get("mongodb.host"),
             mongodb_port=config.get("mongodb.port"),
             mongodb_username=config.get("mongodb.username"),
             mongodb_password=config.get("mongodb.password"),
+            redis_host=config.get("redis.host"),
             redis_port=config.get("redis.port"),
         )
         click.echo("Done.")

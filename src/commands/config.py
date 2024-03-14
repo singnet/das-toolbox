@@ -23,6 +23,9 @@ def set():
     """
 
     try:
+        redis_host = config_service.get("redis.host", "localhost")
+        config_service.set("redis.host", redis_host)
+
         redis_port = click.prompt(
             "Enter Redis port",
             default=config_service.get("redis.port", 6379),
@@ -32,6 +35,9 @@ def set():
 
         redis_container_name = f"das-cli-redis-{redis_port}"
         config_service.set("redis.container_name", redis_container_name)
+
+        mongodb_host = config_service.get("mongodb.host", "localhost")
+        config_service.set("mongodb.host", mongodb_host)
 
         mongodb_port = click.prompt(
             "Enter MongoDB port",
