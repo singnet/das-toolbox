@@ -11,7 +11,7 @@ from config import Secret, SECRETS_PATH, USER_DAS_PATH
 
 @click.group()
 @click.pass_context
-def hyperon_das(ctx):
+def das_cli(ctx):
     ctx.ensure_object(dict)
 
     try:
@@ -24,12 +24,12 @@ def hyperon_das(ctx):
         exit(1)
 
 
-hyperon_das.add_command(config)
-hyperon_das.add_command(server)
-hyperon_das.add_command(faas)
-hyperon_das.add_command(metta)
-hyperon_das.add_command(example)
-hyperon_das.add_command(logs)
+das_cli.add_command(config)
+das_cli.add_command(server)
+das_cli.add_command(faas)
+das_cli.add_command(metta)
+das_cli.add_command(example)
+das_cli.add_command(logs)
 
 if __name__ == "__main__":
-    hyperon_das()
+    das_cli()

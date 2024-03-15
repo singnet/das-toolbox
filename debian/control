@@ -2,7 +2,7 @@ Source: das-cli
 Description: This CLI provides a set of commands to manage containerized services, OpenFaaS functions, and Metta operations. It includes functionalities to start and stop server services, manage OpenFaaS functions, load Metta files, and validate Metta file syntax.
 Priority: standard
 Maintainer: rafael.levi@singularitynet.io
-Build-Depends: build-essential, zlib1g-dev, python3-pip, python3 (>=3.8.0), debhelper (>=12.10ubuntu1)
+Build-Depends: build-essential, zlib1g-dev, python3-pip, python3 (>=3.8.0), debhelper (>=12.10ubuntu1), pandoc, gzip
 
 Package: das-cli
 Description: This CLI provides a set of commands to manage containerized services, OpenFaaS functions, and Metta operations. It includes functionalities to start and stop server services, manage OpenFaaS functions, load Metta files, and validate Metta file syntax.
