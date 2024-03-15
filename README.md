@@ -77,10 +77,10 @@ cd das-toolbox/src
 pip3 install -r requirements.txt
 ```
 
-6. Run the `das-cli.py` file directly:
+6. Run the `das_cli.py` file directly:
 
 ```bash
-python3 das-cli.py --help
+python3 das_cli.py --help
 ```
 
 7. When you've finished using the DAS Toolbox, you can deactivate the virtual environment, and your shell prompt will revert to its usual state. To activate the virtual environment again, simply execute the command from the third step.
@@ -143,10 +143,10 @@ FAAS deployment is meant for creation of a DAS knowledge base which is supposed 
 
 ### Synopsis
 
-The commands outlined below should be executed within the "src" directory if you're running the code directly from its source using Python. Alternatively, if you're utilizing the package available from apt, you can simply run `das-cli` instead of python3 `das-cli.py`.
+The commands outlined below should be executed within the "src" directory if you're running the code directly from its source using Python. Alternatively, if you're utilizing the package available from apt, you can simply run `das-cli` instead of python3 `das_cli.py`.
 
 ```bash
-python3 das-cli.py <command> <subcommand> [options]
+python3 das_cli.py <command> <subcommand> [options]
 ```
 
 - `example local`: Echo commands for local setup.
@@ -178,16 +178,16 @@ Follow these steps to deploy DAS locally:
 pip3 install hyperon-das
 
 # Set the configuration file
-python3 das-cli.py config set
+python3 das_cli.py config set
 
 # Start server services
-python3 das-cli.py server start
+python3 das_cli.py server start
 
 # Validate a Metta file or directory
-python3 das-cli.py metta validate --path $PWD/examples/data/
+python3 das_cli.py metta validate --path $PWD/examples/data/
 
 # Load Metta files
-python3 das-cli.py metta load --path $PWD/examples/data/animals.metta
+python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
 
 # Modify the examples/distributed_atom_space_remote.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
 python3 examples/distributed_atom_space_local.py
@@ -201,19 +201,19 @@ Follow these steps to deploy DAS with OpenFaaS:
 
 ```bash
 # Set the configuration file
-python3 das-cli.py config set
+python3 das_cli.py config set
 
 # Start server services
-python3 das-cli.py server start
+python3 das_cli.py server start
 
 # Validate a Metta file or directory
-python3 das-cli.py metta validate --path $PWD/examples/data/
+python3 das_cli.py metta validate --path $PWD/examples/data/
 
 # Load Metta files
-python3 das-cli.py metta load --path $PWD/examples/data/animals.metta
+python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
-python3 das-cli.py faas start --function queryengine --version 1.9.2
+python3 das_cli.py faas start --function queryengine --version 1.9.2
 
 # Modify the examples/distributed_atom_space_remote.py file with the port openFaaS is running (default 8080).
 python3 examples/distributed_atom_space_remote.py
@@ -225,16 +225,16 @@ To view help information for any command or subcommand, you can use the `--help`
 
 ```bash
 # View help for the main script
-python3 das-cli.py --help
+python3 das_cli.py --help
 
 # View help for a specific command (e.g., server)
-python3 das-cli.py server --help
+python3 das_cli.py server --help
 
 # View help for a specific subcommand (e.g., start within the server command)
-python3 das-cli.py server start --help
+python3 das_cli.py server start --help
 
 # View help for the OpenFaaS start command
-python3 das-cli.py faas start --help
+python3 das_cli.py faas start --help
 ```
 
 The `--help` option is a powerful tool to understand how to use each command effectively. Use it at any level in the command hierarchy to access relevant documentation and ensure correct command execution.

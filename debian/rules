@@ -3,6 +3,8 @@
 ARTIFACTS_DIR := $(CURDIR)/dist
 DEB_SOURCE := das-cli
 USR_BIN_DIR := $(CURDIR)/debian/$(DEB_SOURCE)/usr/bin
+TEMP_DIR := $(shell mktemp -d)
+
 ifeq ($(DAS_CLI_VERSION),)
 $(error The DAS_CLI_VERSION environment variable is not defined. Please define it before continuing.)
 endif
@@ -10,13 +12,19 @@ endif
 %:
 	dh $@
 
-override_dh_builddeb:
+override_dh_builddeb: build_man_pages
 	dh_builddeb
 	cp ../*.deb $(ARTIFACTS_DIR)
 
 override_dh_auto_install:
 	pip3 install pyinstaller==6.3.0
 	pip3 install -r $(CURDIR)/src/requirements.txt
-	pyinstaller $(CURDIR)/src/das-cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR)
+	pyinstaller $(CURDIR)/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR)
 	mkdir -p $(USR_BIN_DIR)
 	cp -r $(ARTIFACTS_DIR)/das-cli $(USR_BIN_DIR)
+
+build_man_pages:
+	pandoc README.md -s -t man > $(TEMP_DIR)/das-cli.1
+	gzip $(TEMP_DIR)/das-cli.1
+	install -D $(TEMP_DIR)/das-cli.1.gz $(CURDIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/das-cli.1.gz
+
