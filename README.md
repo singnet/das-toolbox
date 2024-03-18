@@ -183,10 +183,10 @@ python3 das_cli.py config set
 # Start server services
 python3 das_cli.py server start
 
-# Validate a Metta file or directory
-python3 das_cli.py metta validate --path $PWD/examples/data/
+# Validate a Metta file (absolute path to a single file)
+python3 das_cli.py metta validate --path $PWD/examples/data/`das-cli metta load` and `das-cli metta
 
-# Load Metta files
+# Load a Metta file (absolute path to a single file)
 python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
 
 # Modify the examples/distributed_atom_space_remote.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
@@ -206,10 +206,10 @@ python3 das_cli.py config set
 # Start server services
 python3 das_cli.py server start
 
-# Validate a Metta file or directory
-python3 das_cli.py metta validate --path $PWD/examples/data/
+# Validate a Metta file (absolute path to a single file)
+python3 das_cli.py metta validate --path $PWD/examples/data/`das-cli metta load` and `das-cli metta
 
-# Load Metta files
+# Load a Metta file (absolute path to a single file)
 python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
