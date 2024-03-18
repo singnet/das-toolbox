@@ -1,3 +1,4 @@
+[#45] Fix DAS-CLI metta loader container 
 [#41] Developing a DAS CLI Manual Using the 'man' Command
 [#30] Publish debian package to a package manager
 [#32] Optimizing user feedback and experience for scripts
