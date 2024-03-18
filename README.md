@@ -184,7 +184,7 @@ python3 das_cli.py config set
 python3 das_cli.py server start
 
 # Validate a Metta file (absolute path to a single file)
-python3 das_cli.py metta validate --path $PWD/examples/data/`das-cli metta load` and `das-cli metta
+python3 das_cli.py metta validate --path $PWD/examples/data/animals.metta
 
 # Load a Metta file (absolute path to a single file)
 python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
@@ -207,7 +207,7 @@ python3 das_cli.py config set
 python3 das_cli.py server start
 
 # Validate a Metta file (absolute path to a single file)
-python3 das_cli.py metta validate --path $PWD/examples/data/`das-cli metta load` and `das-cli metta
+python3 das_cli.py metta validate --path $PWD/examples/data/animals.metta
 
 # Load a Metta file (absolute path to a single file)
 python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
