@@ -46,7 +46,7 @@ class MettaLoaderContainerService(ContainerService):
             pass
 
         try:
-            container = self._start_container(
+            self._start_container(
                 network_mode="host",
                 environment={
                     "DAS_REDIS_HOSTNAME": "localhost",
@@ -58,7 +58,6 @@ class MettaLoaderContainerService(ContainerService):
                 },
                 command=f"db_loader {os.path.basename(path)}",
                 volumes={os.path.dirname(path): {"bind": "/tmp", "mode": "rw"}},
-                remove=True,
                 stdin_open=True,
                 tty=True,
             )
