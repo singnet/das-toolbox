@@ -98,13 +98,13 @@ def start(function, version):
                 "\nPlease use 'server start' to start required services before running 'faas start'."
             )
 
-        click.echo("Retrieving service images...")
+        click.echo("Starting OpenFaaS...")
+
         ImageService.get_instance().pull(
             repository=OPENFAAS_IMAGE_NAME,
             image_tag=function_tag,
         )
 
-        click.echo("Starting OpenFaaS...")
         container_service.start_container(
             function,
             version,
@@ -114,6 +114,7 @@ def start(function, version):
             mongodb_password,
         )
 
+        click.secho(f"You are running the version '{version}' of the function.", fg="green")
         click.secho(f"OpenFaaS running on port 8080", fg="green")
     except (
         DockerException,
