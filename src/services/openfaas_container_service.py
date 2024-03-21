@@ -30,7 +30,7 @@ class OpenFaaSContainerService(ContainerService):
         mongodb_username: str,
         mongodb_password: str,
     ):
-        function_version = f"v{version}-{function}"
+        function_version = f"{version}-{function}"
 
         self.get_container().set_image_version(function_version)
 
