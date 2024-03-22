@@ -48,7 +48,7 @@ def start(function, version):
     """
     Start an OpenFaaS service.
     """
-    if version != "latest" and not re.match(r"\d+\.\d+\.\d+", version):
+    if version != "latest" and not re.match(r"v?\d+\.\d+\.\d+", version):
         click.secho("The version must follow the format x.x.x (e.g 1.10.9)", fg="red")
         exit(1)
 
