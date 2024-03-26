@@ -3,8 +3,8 @@ import docker
 from exceptions import NotFound, DockerException
 from services.container_service import Container, ContainerService
 from config import (
-    METTA_LOADER_IMAGE_NAME,
-    METTA_LOADER_IMAGE_VERSION,
+    METTA_PARSER_IMAGE_NAME,
+    METTA_PARSER_IMAGE_VERSION,
 )
 
 
@@ -17,8 +17,8 @@ class MettaLoaderContainerService(ContainerService):
     ) -> None:
         container = Container(
             loader_container_name,
-            METTA_LOADER_IMAGE_NAME,
-            METTA_LOADER_IMAGE_VERSION,
+            METTA_PARSER_IMAGE_NAME,
+            METTA_PARSER_IMAGE_VERSION,
         )
         self.redis_container = Container(redis_container_name)
         self.mongodb_container = Container(mongodb_container_name)
