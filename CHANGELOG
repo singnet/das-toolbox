@@ -7,3 +7,4 @@
 [#28] Generate Debian package
 [#27] When you type 'server stop,' only shut down the server
 [das-metta-parser/#36] Add support for comments and escaped characters in literals and symbol names
+Change MeTTa parser version to 0.2.4
