@@ -29,6 +29,13 @@ def faas(ctx):
     config = ctx.obj["config"]
 
 
+@faas.command(help="Restart OpenFaaS service.")
+def restart():
+    ctx = click.Context(faas)
+    ctx.invoke(stop)
+    ctx.invoke(start)
+
+
 @faas.command(help="Start an OpenFaaS service.")
 @click.option(
     "--function",
@@ -114,7 +121,9 @@ def start(function, version):
             mongodb_password,
         )
 
-        click.secho(f"You are running the version '{version}' of the function.", fg="green")
+        click.secho(
+            f"You are running the version '{version}' of the function.", fg="green"
+        )
         click.secho(f"OpenFaaS running on port 8080", fg="green")
     except (
         DockerException,

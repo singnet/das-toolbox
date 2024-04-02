@@ -24,6 +24,13 @@ def db(ctx):
     config = ctx.obj["config"]
 
 
+@db.command(help="Restart Redis and MongoDB containers.")
+def restart():
+    ctx = click.Context(restart)
+    ctx.invoke(stop)
+    ctx.invoke(start)
+
+
 @db.command(help="Start Redis and MongoDB containers.")
 def start():
     """
