@@ -1,6 +1,6 @@
 import click
 from sys import exit
-from commands.server import server
+from commands.db import db
 from commands.faas import faas
 from commands.config import config
 from commands.metta import metta
@@ -25,7 +25,7 @@ def das_cli(ctx):
 
 
 das_cli.add_command(config)
-das_cli.add_command(server)
+das_cli.add_command(db)
 das_cli.add_command(faas)
 das_cli.add_command(metta)
 das_cli.add_command(example)
