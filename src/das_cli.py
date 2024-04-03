@@ -1,11 +1,6 @@
 import click
 from sys import exit
-from commands.db import db
-from commands.faas import faas
-from commands.config import config
-from commands.metta import metta
-from commands.example import example
-from commands.logs import logs
+from commands import config, db, faas, metta, example, logs, jupyter_notebook
 from config import Secret, SECRETS_PATH, USER_DAS_PATH
 
 
@@ -30,6 +25,7 @@ das_cli.add_command(faas)
 das_cli.add_command(metta)
 das_cli.add_command(example)
 das_cli.add_command(logs)
+das_cli.add_command(jupyter_notebook)
 
 if __name__ == "__main__":
     das_cli()
