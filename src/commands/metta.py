@@ -25,7 +25,7 @@ def metta(ctx):
 @metta.command(help="Load a MeTTa file into the databases")
 @click.argument(
     "path",
-    type=str,
+    type=click.Path(exists=True),
 )
 def load(path):
     """
@@ -91,7 +91,7 @@ def load(path):
 @metta.command(help="Check the syntax of a Metta file or directory.")
 @click.argument(
     "path",
-    type=str,
+    type=click.Path(exists=True),
 )
 def check(path: str):
     """

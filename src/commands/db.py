@@ -1,4 +1,5 @@
 import click
+from time import sleep
 from sys import exit
 from services import (
     RedisContainerService,
@@ -141,4 +142,5 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
+    sleep(10)
     click.echo(f"Done.")
