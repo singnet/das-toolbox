@@ -24,7 +24,7 @@ pip3 install hyperon-das
 {script_name} config set
 
 # Start server services
-{script_name} server start
+{script_name} db start
 
 # Validate a Metta file or directory
 {script_name} metta validate --path $PWD/examples/data/
@@ -48,7 +48,7 @@ def faas():
 {script_name} config set
 
 # Start server services
-{script_name} server start
+{script_name} db start
 
 # Validate a Metta file or directory
 {script_name} metta validate --path $PWD/examples/data/

@@ -153,8 +153,8 @@ python3 das_cli.py <command> <subcommand> [options]
 - `example faas`: Echo commands for OpenFaaS setup.
 - `config list`: Display the current configuration settings.
 - `config set` : Set Redis and MongoDB configuration settings.
-- `server start`: Start Redis and MongoDB containers.
-- `server stop`: Stop and remove Redis and MongoDB containers.
+- `db start`: Start Redis and MongoDB containers.
+- `db stop`: Stop and remove Redis and MongoDB containers.
 - `faas start`: Start an OpenFaaS service inside a docker container.
 - `faas stop`: Stop and remove the OpenFaaS container.
 - `metta load`: Load a MeTTa file into the databases
@@ -163,7 +163,7 @@ python3 das_cli.py <command> <subcommand> [options]
 - `logs mongodb`: Display Docker container log for MongoDB.
 - `logs faas`: Display Docker container log for OpenFaas.
 
-NB `server start` and `faas start` store information about containers in `~/.das/` so you should avoid remove containers by calling `docker` directly. You're supposed to use `server stop` and `faas stop`.
+NB `db start` and `faas start` store information about containers in `~/.das/` so you should avoid remove containers by calling `docker` directly. You're supposed to use `db stop` and `faas stop`.
 
 ## Examples
 
@@ -181,7 +181,7 @@ pip3 install hyperon-das
 python3 das_cli.py config set
 
 # Start server services
-python3 das_cli.py server start
+python3 das_cli.py db start
 
 # Validate a Metta file (absolute path to a single file)
 python3 das_cli.py metta validate --path $PWD/examples/data/animals.metta
@@ -204,7 +204,7 @@ Follow these steps to deploy DAS with OpenFaaS:
 python3 das_cli.py config set
 
 # Start server services
-python3 das_cli.py server start
+python3 das_cli.py db start
 
 # Validate a Metta file (absolute path to a single file)
 python3 das_cli.py metta validate --path $PWD/examples/data/animals.metta
@@ -231,7 +231,7 @@ python3 das_cli.py --help
 python3 das_cli.py server --help
 
 # View help for a specific subcommand (e.g., start within the server command)
-python3 das_cli.py server start --help
+python3 das_cli.py db start --help
 
 # View help for the OpenFaaS start command
 python3 das_cli.py faas start --help

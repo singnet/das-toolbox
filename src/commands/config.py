@@ -72,7 +72,7 @@ def set():
         config_service.set("jupyter_notebook.port", jupyter_notebook_port)
 
         jupyter_notebook_container_name = (
-            f"das-jupyter-notebook-{jupyter_notebook_port}"
+            f"das-cli-jupyter-notebook-{jupyter_notebook_port}"
         )
         config_service.set(
             "jupyter_notebook.container_name",

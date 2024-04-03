@@ -64,7 +64,7 @@ def load(path):
 
         if services_not_running:
             raise ContainerNotRunningException(
-                "\nPlease use 'server start' to start required services before running 'metta load'."
+                "\nPlease use 'db start' to start required services before running 'metta load'."
             )
 
         click.echo("Loading metta file(s)...")

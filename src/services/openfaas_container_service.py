@@ -4,6 +4,7 @@ from config import OPENFAAS_IMAGE_NAME
 from exceptions import NotFound, DockerException
 import socket
 
+
 class OpenFaaSContainerService(ContainerService):
     def __init__(
         self,
@@ -19,7 +20,7 @@ class OpenFaaSContainerService(ContainerService):
 
     def is_port_in_use(self, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(('localhost', port)) == 0
+            return s.connect_ex(("localhost", port)) == 0
 
     def start_container(
         self,
@@ -39,8 +40,12 @@ class OpenFaaSContainerService(ContainerService):
         except (NotFound, DockerException):
             pass
 
-        if self.is_port_in_use(8080): # TODO: This check is only required for host network mode (remove it when change it)
-            raise DockerException("Port 8080 is already in use. Please stop the service that is currently using this port.")
+        if self.is_port_in_use(
+            8080
+        ):  # TODO: This check is only required for host network mode (remove it when change it)
+            raise DockerException(
+                "Port 8080 is already in use. Please stop the service that is currently using this port."
+            )
 
         try:
             container_id = self._start_container(
@@ -70,6 +75,8 @@ class OpenFaaSContainerService(ContainerService):
         except docker.errors.APIError as e:
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
             if e.response.reason == "Not Found":
-                raise NotFound(f"The image {self.get_container().get_image()} for the function was not found in the Docker Hub repository.")
+                raise NotFound(
+                    f"The image {self.get_container().get_image()} for the function was not found in the Docker Hub repository."
+                )
 
             raise DockerException(e.explanation)
