@@ -1,6 +1,7 @@
 import docker
 from exceptions import DockerDaemonException
 from exceptions import NotFound, DockerException
+from typing import Union
 
 
 class ImageService:
@@ -25,8 +26,27 @@ class ImageService:
         try:
             self._docker_client.images.pull(repository, image_tag)
         except docker.errors.APIError as e:
-        # print(e.explanation) # TODO: ADD TO LOGGING FILE
+            # print(e.explanation) # TODO: ADD TO LOGGING FILE
             if e.response.reason == "Not Found":
-                raise NotFound(f"The image {repository}:{image_tag} for the function was not found in the Docker Hub repository.")
+                raise NotFound(
+                    f"The image {repository}:{image_tag} for the function could not be located in the Docker Hub repository. Please verify the existence of the version or ensure the correct function name is used."
+                )
 
             raise DockerException(e.explanation)
+
+    def get_label(self, repository, tag, label) -> Union[dict, None]:
+        container = None
+
+        image = f"{repository}:{tag}"
+
+        try:
+            container = self._docker_client.api.inspect_image(image)
+
+            labels = container["Config"]["Labels"]
+
+            return labels.get(
+                label,
+                None,
+            )
+        except docker.errors.APIError:
+            raise NotFound()

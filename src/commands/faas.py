@@ -81,14 +81,28 @@ def faas(ctx):
     config = ctx.obj["config"]
 
 
-@faas.command(help="Restart OpenFaaS service.")
-def restart():
-    ctx = click.Context(faas)
-    ctx.invoke(stop)
-    ctx.invoke(start)
+@faas.command(help="Update an OpenFaaS service to a newer version.")
+def version():
+    version = config.get("openfaas.version", "latest")
+    function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
+
+    function_tag = f"{version}-{function}"
+
+    try:
+        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
+
+        label = ImageService.get_instance().get_label(
+            OPENFAAS_IMAGE_NAME,
+            function_tag,
+            "fn.version",
+        )
+
+        click.secho(f"{function} {label}", fg="green")
+    except Exception as e:
+        _handle_exception(str(e))
 
 
-@faas.command(help="Start an OpenFaaS service.")
+@faas.command(help="Update an OpenFaaS service to a newer version.")
 @click.option(
     "--function",
     help="Specify the OpenFaaS function to start.",
@@ -101,14 +115,30 @@ def restart():
     help="Specify the version of the OpenFaaS function (format: x.x.x).",
     required=False,
     type=str,
+    default="latest",
 )
-def start(function, version):
+def update_version(function, version):
+    _validate_version(version)
+
+    config.set("openfaas.version", version)
+    config.set("openfaas.function", function)
+    config.save()
+
+
+@faas.command(help="Restart OpenFaaS service.")
+def restart():
+    ctx = click.Context(faas)
+    ctx.invoke(stop)
+    ctx.invoke(start)
+
+
+@faas.command(help="Start an OpenFaaS service.")
+def start():
     """
     Start an OpenFaaS service.
     """
-    version = version or config.get("openfaas.version", "latest")
-
-    _validate_version(version)
+    version = config.get("openfaas.version", "latest")
+    function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
 
     openfaas_container_name = config.get("openfaas.container_name")
     redis_container_name = config.get("redis.container_name")

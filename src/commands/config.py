@@ -64,6 +64,9 @@ def set():
         openfaas_version = f"latest"
         config_service.set("openfaas.version", openfaas_version)
 
+        openfaas_function = f"queryengine"
+        config_service.set("openfaas.function", openfaas_function)
+
         jupyter_notebook_port = click.prompt(
             "Enter Jupyter Notebook port",
             hide_input=True,

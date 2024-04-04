@@ -76,7 +76,7 @@ class OpenFaaSContainerService(ContainerService):
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
             if e.response.reason == "Not Found":
                 raise NotFound(
-                    f"The image {self.get_container().get_image()} for the function was not found in the Docker Hub repository."
+                    f"The image {self.get_container().get_image()} for the function was not found in the Docker Hub repository. Please verify the existence of the version or ensure the correct function name is used."
                 )
 
             raise DockerException(e.explanation)
