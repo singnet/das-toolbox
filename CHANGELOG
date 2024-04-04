@@ -1,11 +1,11 @@
 [#47] Add support to ":" in symbol names
 [#51] Add minor features to das-cli and update documentation
-    Change message showing default version of the running function to show the actual version number. Something like "You are running the version 'latest' (1.21.12) of the function."
+    Change message showing default version of the running function to show the actual version number.
     Add a das-cli logs das to follow the DAS log das.log
     Add das-cli jupyter-notebook start start a jupyter-notebook server running with all required dependencies to use hyperon-das.
     Adjust runtime messages for das-cli example local and das-cli example faas. Both show python commands
     das-cli db restart
     das-cli faas restart
-    Remove parameter --path in das-cli metta load and das-cli metta validate and get the input file as a required parameter. The full command line should look like "das-cli metta load /opt/das/data/animals.metta`
+    Remove parameter --path in das-cli metta load and das-cli metta validate and get the input file as a required parameter.
     Rename das-cli metta validate to das-cli metta check.
     Rename das-cli server to das-cli db
