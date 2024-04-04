@@ -27,10 +27,10 @@ pip3 install hyperon-das
 {script_name} db start
 
 # Validate a Metta file or directory
-{script_name} metta validate --path $PWD/examples/data/
+{script_name} metta validate $PWD/examples/data/
 
 # Load Metta files
-{script_name} metta load --path $PWD/examples/data/animals.metta
+{script_name} metta load $PWD/examples/data/animals.metta
 
 sleep 5
 
@@ -51,10 +51,10 @@ def faas():
 {script_name} db start
 
 # Validate a Metta file or directory
-{script_name} metta validate --path $PWD/examples/data/
+{script_name} metta validate $PWD/examples/data/
 
 # Load Metta files
-{script_name} metta load --path $PWD/examples/data/animals.metta
+{script_name} metta load $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
 {script_name} faas start --function queryengine --version 1.9.2

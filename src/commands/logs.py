@@ -3,6 +3,7 @@ from sys import exit
 from services import RedisContainerService, MongoContainerService
 from services import OpenFaaSContainerService
 from exceptions import DockerDaemonException, DockerException
+from time import sleep
 
 
 @click.group(help="Manage container logs.")
@@ -11,6 +12,22 @@ def logs(ctx):
     global config
 
     config = ctx.obj["config"]
+
+
+@logs.command(help="Display logs for das.")
+def das():
+    try:
+        with open("/tmp/das.log", "r") as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    sleep(0.1)
+                    continue
+                click.echo(line, nl=False)
+    except KeyboardInterrupt:
+        click.secho("Interrupted. Exiting...", fg="red")
+    except FileNotFoundError:
+        click.secho("No logs to show up here", fg="yellow")
 
 
 @logs.command(help="Display logs for OpenFaaS services.")
@@ -29,7 +46,7 @@ def faas():
         openfaas_service.logs()
     except DockerException as e:
         click.secho(str(e), fg="red")
-        click.secho("You need to run the server with command 'server start'", fg="red")
+        click.secho("You need to run the server with command 'db start'", fg="red")
         exit(1)
     except DockerDaemonException as e:
         click.secho(f"{str(e)}\n", fg="red")
@@ -46,7 +63,7 @@ def mongodb():
         mongodb_service.logs()
     except DockerException as e:
         click.secho(str(e), fg="red")
-        click.secho("You need to run the server with command 'server start'", fg="red")
+        click.secho("You need to run the server with command 'db start'", fg="red")
         exit(1)
     except DockerDaemonException as e:
         click.secho(f"{str(e)}\n", fg="red")
@@ -63,7 +80,7 @@ def redis():
         redis_service.logs()
     except DockerException as e:
         click.secho(str(e), fg="red")
-        click.secho("You need to run the server with command 'server start'", fg="red")
+        click.secho("You need to run the server with command 'db start'", fg="red")
         exit(1)
     except DockerDaemonException as e:
         click.secho(f"{str(e)}\n", fg="red")

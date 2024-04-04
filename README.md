@@ -143,7 +143,7 @@ FAAS deployment is meant for creation of a DAS knowledge base which is supposed 
 
 ### Synopsis
 
-The commands outlined below should be executed within the "src" directory if you're running the code directly from its source using Python. Alternatively, if you're utilizing the package available from apt, you can simply run `das-cli` instead of python3 `das_cli.py`.
+The commands outlined below should be executed within the "src" directory if you're running the code directly from its source using Python. Alternatively, if you're utilizing the package available from apt, you can simply run `das-cli` instead of `python3 das_cli.py`.
 
 ```bash
 python3 das_cli.py <command> <subcommand> [options]
@@ -155,15 +155,19 @@ python3 das_cli.py <command> <subcommand> [options]
 - `config set` : Set Redis and MongoDB configuration settings.
 - `db start`: Start Redis and MongoDB containers.
 - `db stop`: Stop and remove Redis and MongoDB containers.
+- `db restart`: Restart Redis and MongoDB containers.
 - `faas start`: Start an OpenFaaS service inside a docker container.
 - `faas stop`: Stop and remove the OpenFaaS container.
+- `faas restart`: Restart OpenFaaS container.
 - `metta load`: Load a MeTTa file into the databases
-- `metta validate`: Validate the syntax of a Metta file or directory.
+- `metta check`: Check the syntax of a Metta file or directory.
 - `logs redis`: Display Docker container log for Redis
 - `logs mongodb`: Display Docker container log for MongoDB.
 - `logs faas`: Display Docker container log for OpenFaas.
-
-NB `db start` and `faas start` store information about containers in `~/.das/` so you should avoid remove containers by calling `docker` directly. You're supposed to use `db stop` and `faas stop`.
+- `logs das`: Display logs for das.
+- `jupyter-notebook start`: Start a Jupyter Notebook.
+- `jupyter-notebook restart`: Restart Jupyter Notebook.
+- `jupyter-notebook stop`: Stop a Jupyter Notebook.
 
 ## Examples
 
@@ -183,11 +187,11 @@ python3 das_cli.py config set
 # Start server services
 python3 das_cli.py db start
 
-# Validate a Metta file (absolute path to a single file)
-python3 das_cli.py metta validate --path $PWD/examples/data/animals.metta
+# Check a Metta file (absolute path to a single file)
+python3 das_cli.py metta check $PWD/examples/data/animals.metta
 
 # Load a Metta file (absolute path to a single file)
-python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
+python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
 # Modify the examples/distributed_atom_space_remote.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
 python3 examples/distributed_atom_space_local.py
@@ -206,11 +210,11 @@ python3 das_cli.py config set
 # Start server services
 python3 das_cli.py db start
 
-# Validate a Metta file (absolute path to a single file)
-python3 das_cli.py metta validate --path $PWD/examples/data/animals.metta
+# Check a Metta file (absolute path to a single file)
+python3 das_cli.py metta check $PWD/examples/data/animals.metta
 
 # Load a Metta file (absolute path to a single file)
-python3 das_cli.py metta load --path $PWD/examples/data/animals.metta
+python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
 python3 das_cli.py faas start --function queryengine --version 1.9.2
