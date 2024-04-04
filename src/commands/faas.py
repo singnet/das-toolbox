@@ -17,59 +17,14 @@ class FunctionEnum(Enum):
     ATOM_DB = "atomdb"
 
 
-@click.group(help="Manage OpenFaaS services.")
-@click.pass_context
-def faas(ctx):
-    """
-    This command group allows you to manage OpenFaaS services.
-    """
-
-    global config
-
-    config = ctx.obj["config"]
-
-
-@faas.command(help="Start an OpenFaaS service.")
-@click.option(
-    "--function",
-    help="Specify the OpenFaaS function to start.",
-    required=False,
-    type=click.Choice([e.value for e in FunctionEnum]),
-    default=FunctionEnum.QUERY_ENGINE.value,
-)
-@click.option(
-    "--version",
-    help="Specify the version of the OpenFaaS function (format: x.x.x).",
-    required=False,
-    type=str,
-    default="latest",
-)
-def start(function, version):
-    """
-    Start an OpenFaaS service.
-    """
+def _validate_version(version):
     if version != "latest" and not re.match(r"v?\d+\.\d+\.\d+", version):
         click.secho("The version must follow the format x.x.x (e.g 1.10.9)", fg="red")
         exit(1)
 
-    openfaas_container_name = config.get("openfaas.container_name")
-    redis_container_name = config.get("redis.container_name")
-    mongodb_container_name = config.get("mongodb.container_name")
+
+def _check_service_running(container_service, redis_port, mongodb_port):
     services_not_running = False
-    function_tag = f"{version}-{function}"
-
-    redis_port = config.get("redis.port")
-    mongodb_port = config.get("mongodb.port")
-
-    try:
-        container_service = OpenFaaSContainerService(
-            openfaas_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        )
-    except DockerDaemonException as e:
-        click.secho(f"{str(e)}\n", fg="red")
-        exit(1)
 
     if not container_service.redis_container.is_running():
         click.secho("Redis is not running", fg="red")
@@ -89,21 +44,98 @@ def start(function, version):
             fg="yellow",
         )
 
+    if services_not_running:
+        raise ContainerNotRunningException(
+            "\nPlease use 'db start' to start required services before running 'faas start'."
+        )
+
+
+def _pull_image(repository, image_tag):
+    ImageService.get_instance().pull(
+        repository=repository,
+        image_tag=image_tag,
+    )
+
+
+def _handle_exception(message):
+    click.secho(f"{message}\n", fg="red")
+    exit(1)
+
+
+def _handle_not_found(container_name):
+    click.secho(
+        f"The OpenFaaS service named {container_name} is already stopped.",
+        fg="yellow",
+    )
+
+
+@click.group(help="Manage OpenFaaS services.")
+@click.pass_context
+def faas(ctx):
+    """
+    This command group allows you to manage OpenFaaS services.
+    """
+
+    global config
+
+    config = ctx.obj["config"]
+
+
+@faas.command(help="Restart OpenFaaS service.")
+def restart():
+    ctx = click.Context(faas)
+    ctx.invoke(stop)
+    ctx.invoke(start)
+
+
+@faas.command(help="Start an OpenFaaS service.")
+@click.option(
+    "--function",
+    help="Specify the OpenFaaS function to start.",
+    required=False,
+    type=click.Choice([e.value for e in FunctionEnum]),
+    default=FunctionEnum.QUERY_ENGINE.value,
+)
+@click.option(
+    "--version",
+    help="Specify the version of the OpenFaaS function (format: x.x.x).",
+    required=False,
+    type=str,
+)
+def start(function, version):
+    """
+    Start an OpenFaaS service.
+    """
+    version = version or config.get("openfaas.version", "latest")
+
+    _validate_version(version)
+
+    openfaas_container_name = config.get("openfaas.container_name")
+    redis_container_name = config.get("redis.container_name")
+    mongodb_container_name = config.get("mongodb.container_name")
+
+    redis_port = config.get("redis.port")
+    mongodb_port = config.get("mongodb.port")
+
+    try:
+        container_service = OpenFaaSContainerService(
+            openfaas_container_name,
+            redis_container_name,
+            mongodb_container_name,
+        )
+    except DockerDaemonException as e:
+        _handle_exception(str(e))
+
+    _check_service_running(container_service, redis_port, mongodb_port)
+
     mongodb_username = config.get("mongodb.username")
     mongodb_password = config.get("mongodb.password")
 
     try:
-        if services_not_running:
-            raise ContainerNotRunningException(
-                "\nPlease use 'server start' to start required services before running 'faas start'."
-            )
-
         click.echo("Starting OpenFaaS...")
 
-        ImageService.get_instance().pull(
-            repository=OPENFAAS_IMAGE_NAME,
-            image_tag=function_tag,
-        )
+        function_tag = f"{version}-{function}"
+        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
 
         container_service.start_container(
             function,
@@ -114,16 +146,16 @@ def start(function, version):
             mongodb_password,
         )
 
-        click.secho(f"You are running the version '{version}' of the function.", fg="green")
+        label = container_service.get_label("fn.version") or version
+        version_str = f"latest ({label})" if version == "latest" else label
+
+        click.secho(
+            f"You are running the version '{version_str}' of the function.",
+            fg="green",
+        )
         click.secho(f"OpenFaaS running on port 8080", fg="green")
-    except (
-        DockerException,
-        ContainerNotRunningException,
-        DockerDaemonException,
-        NotFound,
-    ) as e:
-        click.secho(f"{str(e)}\n", fg="red")
-        exit(1)
+    except Exception as e:
+        _handle_exception(str(e))
 
 
 @faas.command(help="Stop the running OpenFaaS service.")
@@ -137,21 +169,14 @@ def stop():
 
     try:
         click.echo(f"Stopping OpenFaaS service...")
-        OpenFaaSContainerService(
+        container_service = OpenFaaSContainerService(
             openfaas_container_name,
             redis_container_name,
             mongodb_container_name,
-        ).stop()
+        )
+        container_service.stop()
         click.secho("OpenFaaS service stopped", fg="green")
     except NotFound:
-        click.secho(
-            f"The OpenFaaS service named {openfaas_container_name} is already stopped.",
-            fg="yellow",
-        )
+        _handle_not_found(openfaas_container_name)
     except (DockerException, DockerDaemonException) as e:
-        click.secho(
-            f"\nError occurred while trying to stop OpenFaaS\n",
-            fg="red",
-        )
-        click.secho(f"{str(e)}\n", fg="red")
-        exit(1)
+        _handle_exception(e)

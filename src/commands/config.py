@@ -61,6 +61,24 @@ def set():
         openfaas_container_name = f"das-cli-openfaas-8080"
         config_service.set("openfaas.container_name", openfaas_container_name)
 
+        openfaas_version = f"latest"
+        config_service.set("openfaas.version", openfaas_version)
+
+        jupyter_notebook_port = click.prompt(
+            "Enter Jupyter Notebook port",
+            hide_input=True,
+            default=config_service.get("jupyter.port", 8888),
+        )
+        config_service.set("jupyter_notebook.port", jupyter_notebook_port)
+
+        jupyter_notebook_container_name = (
+            f"das-cli-jupyter-notebook-{jupyter_notebook_port}"
+        )
+        config_service.set(
+            "jupyter_notebook.container_name",
+            jupyter_notebook_container_name,
+        )
+
         config_service.save()
 
         click.secho(

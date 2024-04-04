@@ -17,6 +17,9 @@ METTA_PARSER_IMAGE_VERSION = "0.3.2-metta-parser"
 
 OPENFAAS_IMAGE_NAME = "trueagi/das"
 
+JUPYTER_NOTEBOOK_IMAGE_NAME = "trueagi/das"
+JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
+
 # OTHERS
 
 CLI_GROUP_NAME = "das"

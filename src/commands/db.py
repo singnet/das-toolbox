@@ -1,4 +1,5 @@
 import click
+from time import sleep
 from sys import exit
 from services import (
     RedisContainerService,
@@ -12,11 +13,11 @@ from exceptions import (
 )
 
 
-@click.group(help="Manage server-related operations.")
+@click.group(help="Manage db-related operations.")
 @click.pass_context
-def server(ctx):
+def db(ctx):
     """
-    This command group allows you to manage server-related operations.
+    This command group allows you to manage db-related operations.
     """
 
     global config
@@ -24,7 +25,14 @@ def server(ctx):
     config = ctx.obj["config"]
 
 
-@server.command(help="Start Redis and MongoDB containers.")
+@db.command(help="Restart Redis and MongoDB containers.")
+def restart():
+    ctx = click.Context(restart)
+    ctx.invoke(stop)
+    ctx.invoke(start)
+
+
+@db.command(help="Start Redis and MongoDB containers.")
 def start():
     """
     Start Redis and MongoDB containers.
@@ -86,7 +94,7 @@ def start():
     click.echo("Done.")
 
 
-@server.command(help="Stop and remove all currently running services.")
+@db.command(help="Stop and remove all currently running services.")
 def stop():
     """
     Stop and remove all currently running services.
@@ -134,4 +142,5 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
+    sleep(10)
     click.echo(f"Done.")

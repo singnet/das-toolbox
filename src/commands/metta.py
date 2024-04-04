@@ -23,11 +23,9 @@ def metta(ctx):
 
 
 @metta.command(help="Load a MeTTa file into the databases")
-@click.option(
-    "--path",
-    help="Specify the path to the Metta file for loading.",
-    required=True,
-    type=str,
+@click.argument(
+    "path",
+    type=click.Path(exists=True),
 )
 def load(path):
     """
@@ -66,7 +64,7 @@ def load(path):
 
         if services_not_running:
             raise ContainerNotRunningException(
-                "\nPlease use 'server start' to start required services before running 'metta load'."
+                "\nPlease use 'db start' to start required services before running 'metta load'."
             )
 
         click.echo("Loading metta file(s)...")
@@ -90,16 +88,14 @@ def load(path):
         exit(1)
 
 
-@metta.command(help="Validate the syntax of a Metta file or directory.")
-@click.option(
-    "--path",
-    help="Specify the path to the Metta file or directory for validation.",
-    required=True,
-    type=str,
+@metta.command(help="Check the syntax of a Metta file or directory.")
+@click.argument(
+    "path",
+    type=click.Path(exists=True),
 )
-def validate(path: str):
+def check(path: str):
     """
-    Validate the syntax of a Metta file or directory.
+    Check the syntax of a Metta file or directory.
     """
 
     try:

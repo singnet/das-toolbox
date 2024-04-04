@@ -1,5 +1,5 @@
 import docker
-from typing import Any
+from typing import Any, Union
 from abc import ABC, abstractclassmethod
 from exceptions import (
     ContainerAlreadyRunningException,
@@ -96,12 +96,32 @@ class ContainerService(ABC):
 
         return response
 
+    def get_label(self, label: str) -> Union[dict, None]:
+        container_name = self.get_container().get_name()
+        container = None
+
+        try:
+            container = self.get_docker_client().api.inspect_container(container_name)
+
+            labels = container["Config"]["Labels"]
+
+            return labels.get(
+                label,
+                None,
+            )
+        except docker.errors.APIError:
+            raise NotFound()
+
     def logs(self) -> None:
         try:
-            container = self.get_docker_client().containers.get(self.get_container().get_name())
+            container = self.get_docker_client().containers.get(
+                self.get_container().get_name()
+            )
         except docker.errors.NotFound:
-            raise DockerException(f"Service {self.get_container().get_name()} is not running")
-        
+            raise DockerException(
+                f"Service {self.get_container().get_name()} is not running"
+            )
+
         logs = ""
         for log in container.logs(stdout=True, stderr=True, stream=True):
             logs += log.decode("utf-8")
