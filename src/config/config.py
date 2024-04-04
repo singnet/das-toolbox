@@ -13,7 +13,7 @@ MONGODB_IMAGE_NAME = "mongo"
 MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.3.2-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "0.3.3-metta-parser"
 
 OPENFAAS_IMAGE_NAME = "trueagi/das"
 
