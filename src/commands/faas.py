@@ -120,9 +120,18 @@ def version():
 def update_version(function, version):
     _validate_version(version)
 
-    config.set("openfaas.version", version)
-    config.set("openfaas.function", function)
-    config.save()
+    function_tag = f"{version}-{function}"
+
+    try:
+        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
+
+        config.set("openfaas.version", version)
+        config.set("openfaas.function", function)
+        config.save()
+
+        click.secho("Function version successfully updated", fg="green")
+    except Exception as e:
+        _handle_exception(e)
 
 
 @faas.command(help="Restart OpenFaaS service.")

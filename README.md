@@ -226,7 +226,7 @@ python3 das_cli.py metta check $PWD/examples/data/animals.metta
 python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
-python3 das_cli.py faas start --function queryengine --version 1.9.2
+python3 das_cli.py faas start
 
 # Modify the examples/distributed_atom_space_remote.py file with the port openFaaS is running (default 8080).
 python3 examples/distributed_atom_space_remote.py
