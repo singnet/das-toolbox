@@ -150,7 +150,7 @@ python3 das_cli.py <command> <subcommand> [options]
 ```
 
 - `--help`: Package help (global flag).
-- `--version`: Package Version.
+- `--version`: Package Version (global flag).
 - `update-version`: Update Package Version.
 - `example local`: Echo commands for local setup.
 - `example faas`: Echo commands for OpenFaaS setup.
