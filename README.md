@@ -149,6 +149,9 @@ The commands outlined below should be executed within the "src" directory if you
 python3 das_cli.py <command> <subcommand> [options]
 ```
 
+- `--help`: Package help (global flag).
+- `--version`: Package Version (global flag).
+- `update-version`: Update Package Version.
 - `example local`: Echo commands for local setup.
 - `example faas`: Echo commands for OpenFaaS setup.
 - `config list`: Display the current configuration settings.
@@ -159,6 +162,8 @@ python3 das_cli.py <command> <subcommand> [options]
 - `faas start`: Start an OpenFaaS service inside a docker container.
 - `faas stop`: Stop and remove the OpenFaaS container.
 - `faas restart`: Restart OpenFaaS container.
+- `faas update-version`: Update an OpenFaaS service to a newer version.
+- `faas version`: Get OpenFaaS function version.
 - `metta load`: Load a MeTTa file into the databases
 - `metta check`: Check the syntax of a Metta file or directory.
 - `logs redis`: Display Docker container log for Redis
@@ -168,6 +173,10 @@ python3 das_cli.py <command> <subcommand> [options]
 - `jupyter-notebook start`: Start a Jupyter Notebook.
 - `jupyter-notebook restart`: Restart Jupyter Notebook.
 - `jupyter-notebook stop`: Stop a Jupyter Notebook.
+- `python-library list`: List all major/minor versions of hyperon-das and hyperon-das-atomdb.
+- `python-library set`: Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries
+- `python-library version`: Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb
+- `python-library update`: Update both hyperon-das and hyperon-das-atomdb to the newest available version.
 
 ## Examples
 
@@ -217,7 +226,7 @@ python3 das_cli.py metta check $PWD/examples/data/animals.metta
 python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
-python3 das_cli.py faas start --function queryengine --version 1.9.2
+python3 das_cli.py faas start
 
 # Modify the examples/distributed_atom_space_remote.py file with the port openFaaS is running (default 8080).
 python3 examples/distributed_atom_space_remote.py

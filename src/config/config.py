@@ -1,3 +1,5 @@
+VERSION = "0.2.3"
+
 # PATHS
 
 USER_DAS_PATH = "~/.das"
