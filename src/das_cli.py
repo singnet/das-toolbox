@@ -1,12 +1,16 @@
 import click
 from sys import exit
 from commands import config, db, faas, metta, example, logs, jupyter_notebook
-from config import Secret, SECRETS_PATH, USER_DAS_PATH
+from config import Secret, SECRETS_PATH, USER_DAS_PATH, VERSION
 from services import PackageService
 from exceptions import NotFound
+import distro
+import os
+import sys
 
 
 @click.group()
+@click.version_option(VERSION)
 @click.pass_context
 def das_cli(ctx):
     ctx.ensure_object(dict)
@@ -21,34 +25,6 @@ def das_cli(ctx):
         exit(1)
 
 
-@das_cli.command(help="Get Package Version.")
-def version():
-    package_name = "das-cli"
-
-    if not PackageService.is_ubuntu():
-        click.secho("This command can only be used on Ubuntu.", fg="red")
-        exit(1)
-
-    try:
-        package_installed = PackageService.is_package_installed(package_name)
-
-        if package_installed:
-            package_version = PackageService.get_version(package_name)
-            click.secho(
-                f"{package_version}",
-                fg="green",
-            )
-        else:
-            raise NotFound()
-
-    except NotFound:
-        click.secho(
-            f"The package {package_name} can only be updated if you installed it via apt.",
-            fg="red",
-        )
-        exit(1)
-
-
 @das_cli.command(help="Update Package Version.")
 @click.option(
     "--version",
@@ -58,24 +34,31 @@ def version():
     default=None,
 )
 def update_version(version):
-    package_name = "das-cli"
-
-    if not PackageService.is_ubuntu():
-        click.secho("This command can only be used on Ubuntu.", fg="red")
-        exit(1)
-
     try:
-        package_installed = PackageService.is_package_installed(package_name)
+        is_executable = getattr(sys, "frozen", False)
 
-        if package_installed:
-            PackageService.install_package(package_name, version)
-            click.secho(
-                f"The package {package_name} has been updated to version {version}.",
-                fg="green",
-            )
-        else:
+        if distro.id() != "ubuntu" or not is_executable:
+            click.secho("This command can only be used on Ubuntu.", fg="red")
+            exit(1)
+
+        package_dir = sys.executable
+        package_name = os.path.basename(package_dir)
+
+        is_binary = os.access(
+            package_dir,
+            os.X_OK,
+        )
+        is_package_installed = PackageService.is_package_installed(package_name)
+
+        if not is_binary or not is_package_installed:
             raise NotFound()
 
+        PackageService.install_package(package_name, version)
+
+        click.secho(
+            f"The package {package_name} has been updated.",
+            fg="green",
+        )
     except NotFound:
         click.secho(
             f"The package {package_name} can only be updated if you installed it via apt.",
