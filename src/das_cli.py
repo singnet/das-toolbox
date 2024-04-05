@@ -1,6 +1,15 @@
 import click
 from sys import exit
-from commands import config, db, faas, metta, example, logs, jupyter_notebook
+from commands import (
+    config,
+    db,
+    faas,
+    metta,
+    example,
+    logs,
+    jupyter_notebook,
+    python_library,
+)
 from config import Secret, SECRETS_PATH, USER_DAS_PATH, VERSION
 from services import PackageService
 from exceptions import NotFound
@@ -80,6 +89,7 @@ das_cli.add_command(metta)
 das_cli.add_command(example)
 das_cli.add_command(logs)
 das_cli.add_command(jupyter_notebook)
+das_cli.add_command(python_library)
 
 if __name__ == "__main__":
     das_cli()
