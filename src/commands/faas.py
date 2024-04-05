@@ -81,7 +81,7 @@ def faas(ctx):
     config = ctx.obj["config"]
 
 
-@faas.command(help="Update an OpenFaaS service to a newer version.")
+@faas.command(help="Get OpenFaaS function version.")
 def version():
     version = config.get("openfaas.version", "latest")
     function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)

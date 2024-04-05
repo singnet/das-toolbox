@@ -112,7 +112,9 @@ def print_versions(versions):
         click.echo(line)
 
 
-@python_library.command(help="")
+@python_library.command(
+    help="Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb"
+)
 def version():
     packages = ["hyperon-das", "hyperon-das-atomdb"]
 
@@ -127,7 +129,9 @@ def version():
         exit(1)
 
 
-@python_library.command(help="")
+@python_library.command(
+    help="Update both hyperon-das and hyperon-das-atomdb to the newest available version."
+)
 def update():
     packages = ["hyperon-das", "hyperon-das-atomdb"]
 
@@ -151,7 +155,10 @@ def update():
     ctx.invoke(version)
 
 
-@python_library.command(name="set", help="")
+@python_library.command(
+    name="set",
+    help="Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries",
+)
 @click.option(
     "--hyperon-das",
     type=str,
