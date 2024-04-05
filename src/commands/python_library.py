@@ -4,6 +4,12 @@ import requests
 from exceptions import NotFound
 import subprocess
 import re
+from enum import Enum
+
+
+class LibraryEnum(Enum):
+    HYPERON_DAS = "hyperon-das"
+    HYPERON_DAS_ATOMDB = "hyperon-das-atomdb"
 
 
 @click.group(help="")
@@ -67,6 +73,45 @@ def validate_version(version):
         exit(1)
 
 
+def extract_versions(versions, show_patches=False):
+    filtered_versions = set()
+    for version in versions:
+        if show_patches:
+            filtered_versions.add(version)
+        else:
+            match = re.match(r"^(\d+\.\d+)", version)
+            if match:
+                filtered_versions.add(match.group(1))
+    return sorted(filtered_versions)
+
+
+def get_all_versions_from_pypi(package_name):
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    if response.status_code == 200:
+        data = response.json()
+        return list(data["releases"].keys())
+    return []
+
+
+def get_all_major_minor_versions_from_pypi(package_name, show_patches=False):
+    all_versions = get_all_versions_from_pypi(package_name)
+    return extract_versions(all_versions, show_patches)
+
+
+def print_versions(versions):
+    max_length = max(len(version) for version in versions)
+    num_columns = min(5, len(versions))
+    column_width = max_length + 2
+    num_rows = -(-len(versions) // num_columns)
+    for row in range(num_rows):
+        line = ""
+        for col in range(num_columns):
+            index = row + col * num_rows
+            if index < len(versions):
+                line += versions[index].ljust(column_width)
+        click.echo(line)
+
+
 @python_library.command(help="")
 def version():
     packages = ["hyperon-das", "hyperon-das-atomdb"]
@@ -106,7 +151,7 @@ def update():
     ctx.invoke(version)
 
 
-@python_library.command(help="")
+@python_library.command(name="set", help="")
 @click.option(
     "--hyperon-das",
     type=str,
@@ -117,7 +162,7 @@ def update():
     type=str,
     required=False,
 )
-def set(hyperon_das, hyperon_das_atomdb):
+def set_versions(hyperon_das, hyperon_das_atomdb):
     if hyperon_das is None and hyperon_das_atomdb is None:
         click.secho(
             "At least one of --hyperon-das or --hyperon-das-atomdb must be provided.",
@@ -152,3 +197,34 @@ def set(hyperon_das, hyperon_das_atomdb):
 
     ctx = click.get_current_context()
     ctx.invoke(version)
+
+
+@python_library.command(
+    name="list",
+    help="List all major/minor versions of hyperon-das and hyperon-das-atomdb.",
+)
+@click.option(
+    "--show-patches",
+    is_flag=True,
+    help="Show patch versions as well.",
+    required=False,
+)
+@click.option(
+    "--library",
+    help="Filter by library name.",
+    required=False,
+    type=click.Choice([e.value for e in LibraryEnum]),
+)
+def list_versions(show_patches, library):
+    packages = [
+        "hyperon-das",
+        "hyperon-das-atomdb",
+    ]
+
+    for package in packages:
+        if library is not None and package != library:
+            continue
+
+        versions = get_all_major_minor_versions_from_pypi(package, show_patches)
+        click.secho(f"\n{package} available versions:\n", fg="green")
+        print_versions(versions)
