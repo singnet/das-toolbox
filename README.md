@@ -177,6 +177,7 @@ python3 das_cli.py <command> <subcommand> [options]
 - `python-library set`: Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries
 - `python-library version`: Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb
 - `python-library update`: Update both hyperon-das and hyperon-das-atomdb to the newest available version.
+- `release-notes`: List available release notes versions.
 
 ## Examples
 

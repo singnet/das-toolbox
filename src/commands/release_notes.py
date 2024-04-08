@@ -3,7 +3,7 @@ from services import ReleaseNotesService
 from exceptions import NotFound
 
 
-@click.command(help="")
+@click.command(help="List available release notes versions.")
 @click.option(
     "--module",
     type=str,
