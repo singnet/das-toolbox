@@ -39,7 +39,7 @@ Before using the DAS Toolbox, make sure you have the following prerequisites ins
 
 ### Installation via APT
 
-If you prefer, you can install the `das-cli` package through apt:
+You can install the `das-cli` package through apt:
 
 1. If this is your first time installing the DAS Toolbox on your computer, you'll need to set up our repository by executing the following command:
 
