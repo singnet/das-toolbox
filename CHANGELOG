@@ -8,6 +8,7 @@
     Remove parameter --path in das-cli metta load and das-cli metta validate and get the input file as a required parameter.
     Rename das-cli metta validate to das-cli metta check.
     das-cli server start should sleep for a couple of seconds after finishing the startup of DB containers 
+    Show progress bar printed by the metta parser binaries (db_loader and syntax_check) when executing das-cli metta load and das-cli metta validate
     Change message showing default version of the running function to show the actual version number.
     Add a das-cli logs das to follow the DAS log das.log
     Add das-cli jupyter-notebook start start a jupyter-notebook server running with all required dependencies to use hyperon-das.
@@ -18,3 +19,4 @@
     das-cli python-library update. Update hyperon-das to the newest available version. As a consequence, hyperon-das-atomdb should be updated to the proper required version as well.
     das-cli python-library set --hyperon-das 0.4.0 --hyperon-das-atomdb 0.8.2 Allow setting specific versions for both libraries
     das-cli python-library list by default, list all major/minor versions of hyperon-das and hyperon-das-atomdb. There should have optional parameters --show-patches and --library <xxx>
+    Add a new command to see release notes of specific version of specific package or lib. das-cli release-notes.
