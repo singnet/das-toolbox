@@ -46,6 +46,9 @@ class MettaLoaderContainerService(ContainerService):
             pass
 
         try:
+            log_path = "/tmp/logs.log"
+            exec_command = f'sh -c "stdbuf -o0 -e0 db_loader {os.path.basename(path)} > {log_path} 2>&1"'
+
             self._start_container(
                 network_mode="host",
                 environment={
@@ -56,13 +59,13 @@ class MettaLoaderContainerService(ContainerService):
                     "DAS_MONGODB_USERNAME": mongodb_username,
                     "DAS_MONGODB_PASSWORD": mongodb_password,
                 },
-                command=f"db_loader {os.path.basename(path)}",
+                command=exec_command,
                 volumes={os.path.dirname(path): {"bind": "/tmp", "mode": "rw"}},
                 stdin_open=True,
                 tty=True,
             )
 
-            self.logs()
+            self.tail(log_path, clear_terminal=True)
 
             return None
         except docker.errors.APIError as e:
