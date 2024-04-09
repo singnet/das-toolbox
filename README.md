@@ -11,9 +11,9 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 
+  - [Installation via APT](#installation-via-apt)
   - [Installation via Repository](#installation-via-repository)
   - [Installation via Binary](#installation-via-binary)
-  - [Installation via APT](#installation-via-apt)
 
 - [Usage](#usage)
 
@@ -36,6 +36,28 @@ Before using the DAS Toolbox, make sure you have the following prerequisites ins
 - Docker
 
 ## Installation
+
+### Installation via APT
+
+If you prefer, you can install the `das-cli` package through apt:
+
+1. If this is your first time installing the DAS Toolbox on your computer, you'll need to set up our repository by executing the following command:
+
+```bash
+sudo bash -c "wget -O - http://45.77.4.33/apt-repo/setup.sh | bash"
+```
+
+2. Once you've completed that step, you can proceed to install the das-cli package:
+
+```bash
+sudo apt install das-cli
+```
+
+3. This will install the DAS CLI package, allowing you to start using the DAS Toolbox's command-line interface
+
+```bash
+das-cli --help
+```
 
 ### Installation via Repository
 
@@ -92,28 +114,6 @@ deactivate
 ### Installation via Binary
 
 You can also download the `das-cli` binary available in the [releases](https://github.com/singnet/das-toolbox/releases) of GitHub.
-
-### Installation via APT
-
-If you prefer, you can install the `das-cli` package through apt:
-
-1. If this is your first time installing the DAS Toolbox on your computer, you'll need to set up our repository by executing the following command:
-
-```bash
-sudo bash -c "wget -O - http://45.77.4.33/apt-repo/setup.sh | bash"
-```
-
-2. Once you've completed that step, you can proceed to install the das-cli package:
-
-```bash
-sudo apt install das-cli
-```
-
-3. This will install the DAS CLI package, allowing you to start using the DAS Toolbox's command-line interface
-
-```bash
-das-cli --help
-```
 
 ## Usage
 
