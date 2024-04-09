@@ -203,7 +203,7 @@ python3 das_cli.py metta check $PWD/examples/data/animals.metta
 # Load a Metta file (absolute path to a single file)
 python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
-# Modify the examples/distributed_atom_space_remote.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
+# Modify the examples/distributed_atom_space_local.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
 python3 examples/distributed_atom_space_local.py
 ```
 
