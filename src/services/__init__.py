@@ -9,3 +9,4 @@ from .openfaas_container_service import OpenFaaSContainerService
 from .redis_container_service import RedisContainerService
 from .image_service import ImageService
 from .package_service import PackageService
+from .release_notes_service import ReleaseNotesService

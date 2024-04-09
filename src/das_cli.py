@@ -9,6 +9,7 @@ from commands import (
     logs,
     jupyter_notebook,
     python_library,
+    release_notes,
 )
 from config import Secret, SECRETS_PATH, USER_DAS_PATH, VERSION
 from services import PackageService
@@ -90,6 +91,7 @@ das_cli.add_command(example)
 das_cli.add_command(logs)
 das_cli.add_command(jupyter_notebook)
 das_cli.add_command(python_library)
+das_cli.add_command(release_notes)
 
 if __name__ == "__main__":
     das_cli()

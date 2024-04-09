@@ -1,4 +1,7 @@
 VERSION = '0.2.5'
+RELEASE_NOTES_URL = (
+    "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
+)
 
 # PATHS
 

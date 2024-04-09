@@ -27,15 +27,15 @@ pip3 install hyperon-das
 {script_name} db start
 
 # Validate a Metta file or directory
-{script_name} metta validate $PWD/examples/data/
+{script_name} metta check $PWD/src/examples/data/
 
 # Load Metta files
-{script_name} metta load $PWD/examples/data/animals.metta
+{script_name} metta load $PWD/src/examples/data/animals.metta
 
 sleep 5
 
-# Modify the examples/distributed_atom_space_remote.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
-{script_name} examples/distributed_atom_space_local.py
+# Modify the src/examples/distributed_atom_space_remote.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
+{script_name} src/examples/distributed_atom_space_local.py
 """
     )
 
@@ -51,17 +51,17 @@ def faas():
 {script_name} db start
 
 # Validate a Metta file or directory
-{script_name} metta validate $PWD/examples/data/
+{script_name} metta check $PWD/src/examples/data/
 
 # Load Metta files
-{script_name} metta load $PWD/examples/data/animals.metta
+{script_name} metta load $PWD/src/examples/data/animals.metta
 
 # Start OpenFaaS Service
-{script_name} faas start --function queryengine --version 1.9.2
+{script_name} faas start
 
 sleep 5
 
-# Modify the examples/distributed_atom_space_remote.py file with the port openFaaS is running (default 8080).
-{script_name} examples/distributed_atom_space_remote.py
+# Modify the src/examples/distributed_atom_space_remote.py file with the port openFaaS is running (default 8080).
+{script_name} src/examples/distributed_atom_space_remote.py
 """
     )
