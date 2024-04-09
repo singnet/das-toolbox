@@ -121,7 +121,7 @@ das-cli --help
 
 Before delving into usage, it's crucial to comprehend the two distinct deployment options available: LOCAL and REMOTE.
 
-**LOCAL** deployment will setup the database backend required to to use a redis_mongo DAS locally, i.e. a DAS instantiated like this:
+**LOCAL** deployment will setup the database backend required to use a redis_mongo DAS locally, i.e. a DAS instantiated like this:
 
 ```
 das = DistributedAtomSpace(query_engine='local', atomdb='redis_mongo', ... )
