@@ -20,7 +20,7 @@ import sys
 
 
 @click.group()
-@click.version_option(VERSION)
+@click.version_option(VERSION, message="%(prog)s %(version)s")
 @click.pass_context
 def das_cli(ctx):
     ctx.ensure_object(dict)
