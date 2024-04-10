@@ -18,6 +18,10 @@ class MettaSyntaxException(Exception):
     pass
 
 
+class MettaLoadException(Exception):
+    pass
+
+
 class DockerException(Exception):
     pass
 
