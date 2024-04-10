@@ -21,3 +21,4 @@
     das-cli python-library list by default, list all major/minor versions of hyperon-das and hyperon-das-atomdb. There should have optional parameters --show-patches and --library <xxx>
     Add a new command to see release notes of specific version of specific package or lib. das-cli release-notes.
 [#62] Remove example python files for local/remote DAS in das-cli examples
+[#59] Fix das-cli --version output message

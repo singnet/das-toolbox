@@ -7,6 +7,7 @@ from exceptions import (
     DockerException,
     ContainerNotRunningException,
     DockerDaemonException,
+    MettaLoadException,
 )
 
 
@@ -83,6 +84,7 @@ def load(path):
         ContainerNotRunningException,
         FileNotFoundError,
         IsADirectoryError,
+        MettaLoadException,
     ) as e:
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
