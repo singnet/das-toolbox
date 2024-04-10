@@ -9,6 +9,7 @@ from exceptions import (
 )
 import subprocess
 import json
+import curses
 
 
 class Container:
@@ -122,14 +123,43 @@ class ContainerService(ABC):
                 f"Service {self.get_container().get_name()} is not running"
             )
 
-        logs = ""
         for log in container.logs(stdout=True, stderr=True, stream=True):
-            logs += log.decode("utf-8")
-            if "\n" in logs:
-                print(logs.strip())
-                logs = ""
+            print(log.decode("utf-8"), end="")
 
-    @abstractclassmethod
+    def tail(self, file_path: str, clear_terminal=False) -> None:
+        container = self.get_docker_client().containers.get(
+            self.get_container().get_name()
+        )
+        exec_command = f"tail -f {file_path}"
+        logs = container.exec_run(
+            cmd=exec_command,
+            tty=True,
+            stdout=True,
+            stderr=True,
+            stream=True,
+        )
+
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        stdscr.keypad(True)
+
+        try:
+            for line in logs.output:
+                if clear_terminal:
+                    stdscr.clear()
+
+                if line.strip() != "":
+                    stdscr.addstr(line.decode().strip() + "\n")
+
+                stdscr.refresh()
+        finally:
+            curses.nocbreak()
+            stdscr.keypad(False)
+            curses.echo()
+            curses.endwin()
+
+    @classmethod
     def start_container(self, **config):
         pass
 

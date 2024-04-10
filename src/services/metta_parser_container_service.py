@@ -27,13 +27,19 @@ class MettaParserContainerService(ContainerService):
             pass
 
         try:
+            log_path = "/tmp/logs.log"
+            exec_command = f'sh -c "stdbuf -o0 -e0 syntax_check {os.path.basename(filepath)} > {log_path} 2>&1"'
+
             self._start_container(
-                command=f"syntax_check {os.path.basename(filepath)}",
+                command=exec_command,
                 volumes={os.path.dirname(filepath): {"bind": "/tmp", "mode": "rw"}},
                 remove=True,
                 stdin_open=True,
                 tty=True,
             )
+
+            self.tail(log_path, clear_terminal=True)
+
         except docker.errors.APIError as e:
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
 
