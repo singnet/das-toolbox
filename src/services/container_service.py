@@ -1,6 +1,8 @@
 import docker
 from typing import Any, Union
 from abc import ABC, abstractclassmethod
+
+import docker.errors
 from exceptions import (
     ContainerAlreadyRunningException,
     NotFound,
@@ -127,17 +129,7 @@ class ContainerService(ABC):
             print(log.decode("utf-8"), end="")
 
     def tail(self, file_path: str, clear_terminal=False) -> None:
-        container = self.get_docker_client().containers.get(
-            self.get_container().get_name()
-        )
-        exec_command = f"tail -f {file_path}"
-        logs = container.exec_run(
-            cmd=exec_command,
-            tty=True,
-            stdout=True,
-            stderr=True,
-            stream=True,
-        )
+        container_name = self.get_container().get_name()
 
         stdscr = curses.initscr()
         curses.noecho()
@@ -145,6 +137,18 @@ class ContainerService(ABC):
         stdscr.keypad(True)
 
         try:
+            container = self.get_docker_client().containers.get(container_name)
+
+            exec_command = f"tail -f {file_path}"
+
+            logs = container.exec_run(
+                cmd=exec_command,
+                tty=True,
+                stdout=True,
+                stderr=True,
+                stream=True,
+            )
+
             for line in logs.output:
                 if clear_terminal:
                     stdscr.clear()
@@ -153,6 +157,9 @@ class ContainerService(ABC):
                     stdscr.addstr(line.decode().strip() + "\n")
 
                 stdscr.refresh()
+
+        except docker.errors.APIError:
+            pass
         finally:
             curses.nocbreak()
             stdscr.keypad(False)
@@ -182,3 +189,11 @@ class ContainerService(ABC):
         except docker.errors.APIError as e:
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
             raise DockerException(e.explanation)
+
+    def container_status(self, container) -> int:
+        try:
+            return container.wait()["StatusCode"]
+        except docker.errors.NotFound:
+            container = self.get_docker_client().containers.get(container)
+            exit_code = container.attrs["State"]["ExitCode"]
+            return exit_code

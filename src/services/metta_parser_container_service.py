@@ -1,5 +1,6 @@
 import os
 import docker
+import docker.errors
 from services.container_service import Container, ContainerService
 from config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 from exceptions import NotFound, DockerException, MettaSyntaxException
@@ -28,25 +29,25 @@ class MettaParserContainerService(ContainerService):
 
         try:
             log_path = "/tmp/logs.log"
-            exec_command = f'sh -c "stdbuf -o0 -e0 syntax_check {os.path.basename(filepath)} > {log_path} 2>&1"'
+            exec_command = f'sh -c "stdbuf -o0 -e0 syntax_check {os.path.basename(filepath)} > {log_path} || exit 1"'
 
-            self._start_container(
+            container = self._start_container(
                 command=exec_command,
                 volumes={os.path.dirname(filepath): {"bind": "/tmp", "mode": "rw"}},
-                remove=True,
                 stdin_open=True,
                 tty=True,
             )
 
             self.tail(log_path, clear_terminal=True)
 
+            exit_code = self.container_status(container)
+
+            if exit_code != 0:
+                raise MettaSyntaxException()
+
         except docker.errors.APIError as e:
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
 
             raise DockerException(e.explanation)
-        except docker.errors.ContainerError as e:
-            # print(e.explanation) # TODO: ADD TO LOGGING FILE
-
-            raise MettaSyntaxException()
 
         return None

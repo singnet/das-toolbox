@@ -1,6 +1,6 @@
 import os
 import docker
-from exceptions import NotFound, DockerException
+from exceptions import NotFound, DockerException, MettaLoadException
 from services.container_service import Container, ContainerService
 from config import (
     METTA_PARSER_IMAGE_NAME,
@@ -49,7 +49,7 @@ class MettaLoaderContainerService(ContainerService):
             log_path = "/tmp/logs.log"
             exec_command = f'sh -c "stdbuf -o0 -e0 db_loader {os.path.basename(path)} > {log_path} 2>&1"'
 
-            self._start_container(
+            container = self._start_container(
                 network_mode="host",
                 environment={
                     "DAS_REDIS_HOSTNAME": "localhost",
@@ -66,6 +66,13 @@ class MettaLoaderContainerService(ContainerService):
             )
 
             self.tail(log_path, clear_terminal=True)
+
+            exit_code = self.container_status(container)
+
+            if exit_code != 0:
+                raise MettaLoadException(
+                    f"File '{os.path.basename(path)}' could not be loaded. Use the command `metta check {path}` to ensure this is a valid file."
+                )
 
             return None
         except docker.errors.APIError as e:
