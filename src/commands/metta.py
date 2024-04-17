@@ -15,9 +15,9 @@ from exceptions import (
 @click.pass_context
 def metta(ctx):
     """
-    Manage Metta operations.
+    Manage operations related to the loading of MeTTa files.
 
-    This command group enables you to manage Metta operations, such as validating the syntax of Metta files and loading them into databases.
+    'das-cli metta' allows you to load or just validate the syntax of MeTTa files. Syntax check is a lot faster than actually loading the file so it may be useful to do it before loading very large files.
     """
 
     global config
@@ -34,10 +34,10 @@ def load(path):
     """
     Load a MeTTa file into the databases.
 
-    The das-cli meta load command loads meta files into the database using the DAS CLI.
-    The <path> argument specifies the absolute path to a meta file to be loaded into the database.
+    'das-cli meta load' loads meta files into the database using the DAS CLI.
+    The <path> argument specifies the absolute path (relative paths are not supported) to a MeTTa file to be loaded into the database.
     Depending on the size of the file and the configuration of your server, loading may take a considerable amount of time.
-    Before using this command, ensure that the database is running using the das-cli db start command.
+    Before using this command, make sure that the database is running using the 'das-cli db start' command.
 
     .SH EXAMPLES
 
@@ -112,12 +112,12 @@ def check(path: str):
     """
     Validate syntax of MeTTa files used with the DAS CLI
 
-    The das-cli metta check command validates the syntax of MeTTa files that eventually will be loaded into the database using the das-cli metta load command.
-    The <path> argument specifies the absolute path to either a directory containing metta files or a specific metta file.
+    'das-cli metta check' just validates the syntax of a MeTTa file without actually loading it.
+    The <path> argument specifies the absolute path (relative paths are not supported) to a MeTTa file.
 
     .SH EXAMPLES
 
-    Validate the syntax of MeTTa files located in the specified directory.
+    Validate the syntax of a MeTTa files.
 
     $ das-cli metta check /path/to/mettas-directory
 
