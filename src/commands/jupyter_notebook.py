@@ -14,8 +14,7 @@ def jupyter_notebook(ctx):
     """
     Manage Jupyter Notebook.
 
-    The das-cli jupyter-notebook command allows you to manage Jupyter Notebook environments.
-    This tool provides commands to start, stop, and restart Jupyter Notebook servers, enabling you to interactively create, edit, and run Python notebooks.
+    'das-cli jupyter-notebook' allows you to manage Jupyter Notebook environments providing commands to start, stop, and restart Jupyter Notebook servers, enabling you to interactively create, edit, and run Python notebooks.
     """
     global config
 
@@ -27,7 +26,7 @@ def restart():
     """
     Restart Jupyter Notebook.
 
-    The das-cli jupyter-notebook restart command restarts a Jupyter Notebook environment.
+    'das-cli jupyter-notebook restart' restarts a Jupyter Notebook environment.
     This command stops the currently running Jupyter server, then starts a new instance of the server, effectively restarting the environment.
 
     .SH EXAMPLES
@@ -46,7 +45,7 @@ def start():
     """
     Start a Jupyter Notebook.
 
-    The das-cli jupyter-notebook start command starts a Jupyter Notebook environment.
+    'das-cli jupyter-notebook start' starts a Jupyter Notebook environment.
     This command launches a Jupyter server on your local machine, allowing you to create, edit, and run Python notebooks interactively in your web browser.
     After starting the Jupyter Notebook environment, the command will display the port in your terminal.
     You can access the Jupyter Notebook by navigating to localhost using the displayed port number in your web browser.
@@ -94,7 +93,7 @@ def stop():
     """
     Stop a Jupyter Notebook.
 
-    The das-cli jupyter-notebook stop command stops a running Jupyter Notebook environment.
+    'das-cli jupyter-notebook stop' stops a running Jupyter Notebook environment.
 
     .SH EXAMPLES
 
