@@ -21,7 +21,7 @@ def release_notes(module, is_list):
     """
     Display available release notes.
 
-    The das-cli release-notes command allows you to view release notes for DAS.
+    'das-cli release-notes' allows you to view release notes for DAS.
     This command retrieves information from the release notes document hosted at https://github.com/singnet/das/blob/master/docs/release-notes.md.
     It displays the release notes for the latest DAS' version available.
 
