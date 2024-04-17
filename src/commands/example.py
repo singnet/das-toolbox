@@ -6,7 +6,7 @@ import os
 @click.group()
 def example():
     """
-    The example command offers a step-by-step guide for using DAS.
+    'das-cli example' offers a step-by-step guide for using DAS.
 
     This command provides various topics to choose from, each offering a step-by-step guide to help you set up and configure DAS for different scenarios, such as local, connecting to OpenFaaS functions, and more.
     """
@@ -23,7 +23,7 @@ def local():
     """
     Echo commands for local setup.
 
-    The das-cli example local command displays an example of the initial steps required to run DAS locally on your server.
+    'das-cli example local' displays an example of the initial steps required to run DAS locally on your server.
 
     .SH EXAMPLES
 
@@ -57,7 +57,7 @@ def faas():
     """
     Echo commands for OpenFaaS setup.
 
-    The das-cli example faas command displays an example of the initial steps required to connect to OpenFaaS functions using DAS.
+    'das-cli example faas' displays an example of the initial steps required to connect to OpenFaaS functions using DAS.
 
     .SH EXAMPLES
 
