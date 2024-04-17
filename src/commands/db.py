@@ -19,7 +19,7 @@ def db(ctx):
     """
     Manage db-related operations.
 
-    The das-cli db command allows you to manage MongoDB and Redis databases for use with the DAS CLI. This tool provides commands to start, stop, and restart the databases as needed.
+    'das-cli db' commands allow you to manage DAS backend DBMSs for use with the DAS CLI. 'das-cli db' provides commands to start, stop, and restart the databases as needed.
     """
 
     global config
@@ -30,18 +30,15 @@ def db(ctx):
 @db.command()
 def restart():
     """
-    Restart Redis and MongoDB containers.
+    Restart all DBMS containers.
 
-    The das-cli db restart command restarts the MongoDB and Redis databases that were previously started with the DAS CLI.
-    This command is useful for restarting the databases to apply changes or address issues.
-
-    Note: Restarting the databases will result in all data being lost.
-    When the databases are started again, they will be empty.
-    You will need to use the das-cli meta load command to reload the data.
+    'das-cli db restart' restarts all database containers previously started with 'das-cli start'. If no database have been started, 'das-cli db restart' just start them.
+    
+    IMPORTANTE NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
 
     .SH EXAMPLES
 
-    Restart MongoDB and Redis databases previously started with the DAS CLI.
+    Restart DBMS containers previously started with the 'das-cli db start'.
 
     $ das-cli db restart
     """
@@ -53,17 +50,17 @@ def restart():
 @db.command()
 def start():
     """
-    Start Redis and MongoDB databases.
+    Starts all DBMS containers.
 
-    The das-cli db start command initiates MongoDB and Redis databases.
+    'das-cli db start' initiates all databases.
     These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
 
-    Upon execution, the command will display the ports on which MongoDB and Redis are running.
-    Note that the port configuration can be modified using the das-cli config set command.
+    Upon execution, the command will display the ports on which each database is running.
+    Note that the port configuration can be modified using the 'das-cli config set' command.
 
     .SH EXAMPLES
 
-    Start MongoDB and Redis databases for use with the DAS CLI.
+    Start all databases for use with the DAS.
 
     $ das-cli db start
     """
@@ -127,17 +124,16 @@ def start():
 @db.command()
 def stop():
     """
-    Stop Redis and MongoDB databases.
+    Stops all DBMS containers.
 
-    The das-cli db stop command stops the MongoDB and Redis databases that were previously started with the DAS CLI.
+    'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
     This command is useful for shutting down the databases when they are no longer needed.
 
-    Note: After stopping the databases, all data will be lost. When starting the databases again, they will be empty.
-    You will need to use the das-cli meta load command to reload the data.
+    IMPORTANT NOTE: After stopping the databases, all data will be lost.
 
     .SH EXAMPLES
 
-    Stop MongoDB and Redis databases previously started with the DAS CLI.
+    Stop DBMS containers previously started with 'das-cli db start'.
 
     $ das-cli db stop
     """
