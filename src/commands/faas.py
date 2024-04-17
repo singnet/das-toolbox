@@ -68,11 +68,13 @@ def _handle_not_found(container_name):
     )
 
 
-@click.group(help="Manage OpenFaaS services.")
+@click.group()
 @click.pass_context
 def faas(ctx):
     """
-    This command group allows you to manage OpenFaaS services.
+    Manage OpenFaaS services.
+
+    This command group empowers you to efficiently manage functions within OpenFaaS using the DAS CLI. This versatile tool offers a range of functionalities, including deploying, removing, starting, stopping, and restarting functions, among others, within an OpenFaaS environment.
     """
 
     global config
@@ -89,10 +91,9 @@ def version():
 
     .SH EXAMPLES
 
-    $ das-cli faas version
-
     This is an example illustrating how to retrieve the version of the function.
 
+    \\fB$ das-cli faas version\\fR
     """
     version = config.get("openfaas.version", "latest")
     function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
@@ -136,17 +137,17 @@ def update_version(function, version):
 
     .SH EXAMPLES
 
-    \\fB$ das-cli update-version\\fR
-
     This is an example of how to update to the latest available function version.
 
-    \\fB$ das-cli update-version --function queryengine\\fR
+    \\fB$ das-cli update-version\\fR
 
     This is an example of how to update the function you want to use (currently only `queryengine` is available).
 
-    \\fB$ das-cli update-version --version 1.0.0\\fR
+    \\fB$ das-cli update-version --function queryengine\\fR
 
     This demonstrates updating the function version to a specific release. You need to specify the version in the semver format
+
+    \\fB$ das-cli update-version --version 1.0.0\\fR
     """
 
     _validate_version(version)
@@ -174,9 +175,9 @@ def restart():
 
     .SH EXAMPLES
 
-    \\fB$ das-cli faas restart\\fR
-
     This is an example of how to restart the execution of the faas function.
+
+    \\fB$ das-cli faas restart\\fR
     """
     ctx = click.Context(faas)
     ctx.invoke(stop)
@@ -198,9 +199,9 @@ def start():
 
     .SH EXAMPLES
 
-    \\fB$ das-cli faas start\\fR
+    This is an example of how to start the function.
 
-    This is an example of how to start the function using the \\fBfaas\\fR command.
+    \\fB$ das-cli faas start\\fR
     """
 
     version = config.get("openfaas.version", "latest")
@@ -262,6 +263,8 @@ def stop():
     The command \\fBdas-cli faas stop\\fR allows you to stop the execution of the DAS function in OpenFaaS. This is useful for terminating the function's operation when it's no longer needed. After stopping the faas, the function will no longer be available and cannot be used with the DAS.
 
     .SH EXAMPLES
+
+    This is an example of how to stop the function
 
     \\fB$ das-cli faas stop\\fR
     """

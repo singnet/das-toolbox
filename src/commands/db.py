@@ -13,11 +13,13 @@ from exceptions import (
 )
 
 
-@click.group(help="Manage db-related operations.")
+@click.group()
 @click.pass_context
 def db(ctx):
     """
-    This command group allows you to manage db-related operations.
+    Manage db-related operations.
+
+    The \\fBdas-cli db\\fR command allows you to manage MongoDB and Redis databases for use with the DAS CLI. This tool provides commands to start, stop, and restart the databases as needed.
     """
 
     global config
@@ -25,17 +27,45 @@ def db(ctx):
     config = ctx.obj["config"]
 
 
-@db.command(help="Restart Redis and MongoDB containers.")
+@db.command()
 def restart():
+    """
+    Restart Redis and MongoDB containers.
+
+    The \\fBdas-cli db restart\\fR command restarts the MongoDB and Redis databases that were previously started with the DAS CLI.
+    This command is useful for restarting the databases to apply changes or address issues.
+
+    \\fBNote:\\fR Restarting the databases will result in all data being lost.
+    When the databases are started again, they will be empty.
+    You will need to use the \\fBdas-cli meta load\\fR command to reload the data.
+
+    .SH EXAMPLES
+
+    Restart MongoDB and Redis databases previously started with the DAS CLI.
+
+    \\fB$ das-cli db restart\\fR
+    """
     ctx = click.Context(restart)
     ctx.invoke(stop)
     ctx.invoke(start)
 
 
-@db.command(help="Start Redis and MongoDB containers.")
+@db.command()
 def start():
     """
-    Start Redis and MongoDB containers.
+    Start Redis and MongoDB databases.
+
+    The \\fBdas-cli db start\\fR command initiates MongoDB and Redis databases.
+    These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
+
+    Upon execution, the command will display the ports on which MongoDB and Redis are running.
+    Note that the port configuration can be modified using the \\fBdas-cli config set\\fR command.
+
+    .SH EXAMPLES
+
+    Start MongoDB and Redis databases for use with the DAS CLI.
+
+    \\fB$ das-cli db start\\fR
     """
 
     click.echo("Starting Redis and MongoDB...")
@@ -94,10 +124,22 @@ def start():
     click.echo("Done.")
 
 
-@db.command(help="Stop and remove all currently running services.")
+@db.command()
 def stop():
     """
-    Stop and remove all currently running services.
+    Stop Redis and MongoDB databases.
+
+    The \\fBdas-cli db stop\\fR command stops the MongoDB and Redis databases that were previously started with the DAS CLI.
+    This command is useful for shutting down the databases when they are no longer needed.
+
+    \\fBNote:\\fR After stopping the databases, all data will be lost. When starting the databases again, they will be empty.
+    You will need to use the \\fBdas-cli meta load\\fR command to reload the data.
+
+    .SH EXAMPLES
+
+    Stop MongoDB and Redis databases previously started with the DAS CLI.
+
+    \\fB$ das-cli db stop\\fR
     """
 
     click.echo(f"Stopping redis service...")
