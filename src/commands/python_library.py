@@ -12,9 +12,16 @@ class LibraryEnum(Enum):
     HYPERON_DAS_ATOMDB = "hyperon-das-atomdb"
 
 
-@click.group(help="")
+@click.group()
 @click.pass_context
 def python_library(ctx):
+    """
+    Manage versions of Python libraries.
+
+    The das-cli python-library command allows you to manage versions of Python libraries, such as hyperon-das and hyperon-das-atomdb.
+    This tool provides commands to list available versions, set specific versions, update to the latest versions, and display installed versions of Python libraries.
+    """
+
     global config
 
     config = ctx.obj["config"]

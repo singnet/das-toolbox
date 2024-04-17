@@ -3,21 +3,42 @@ from services import ReleaseNotesService
 from exceptions import NotFound
 
 
-@click.command(help="List available release notes versions.")
+@click.command()
 @click.option(
     "--module",
     type=str,
-    help="Package or library module to get release notes for.",
+    help="Specify the name of the module to view release notes for a specific component of DAS.",
     required=False,
 )
 @click.option(
     "--list",
     "is_list",
     is_flag=True,
-    help="List available release notes versions.",
+    help="Display only a list of available versions for each component without displaying the changelog.",
     required=False,
 )
 def release_notes(module, is_list):
+    """
+    Display available release notes.
+
+    The das-cli release-notes command allows you to view release notes for DAS.
+    This command retrieves information from the release notes document hosted at https://github.com/singnet/das/blob/master/docs/release-notes.md.
+    It displays the release notes for the latest DAS' version available.
+
+    .SH EXAMPLES
+
+    View release notes for the latest DAS' version.
+
+    $ das-cli release-notes
+
+    View release notes for the hyperon-das component.
+
+    $ das-cli release-notes --module=hyperon-das
+
+    View a list of available versions for each component without displaying the full changelog.
+
+    $ das-cli release-notes --list
+    """
     releases = []
     release_notes_service = ReleaseNotesService()
 
