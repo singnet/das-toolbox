@@ -74,7 +74,7 @@ def faas(ctx):
     """
     Manage OpenFaaS services.
 
-    This command group empowers you to efficiently manage functions within OpenFaaS using the DAS CLI. This versatile tool offers a range of functionalities, including deploying, removing, starting, stopping, and restarting functions, among others, within an OpenFaaS environment.
+    'das-cli faas' provides management commands for OpenFaaS using the DAS CLI including deployment of latest or specific versions, service start/stop/restart, among others.
     """
 
     global config
@@ -87,7 +87,7 @@ def version():
     """
     Get OpenFaaS function version.
 
-    The command das-cli faas version is used to display the current version of the DAS function in OpenFaaS. This command is particularly useful for checking the version of the deployed function, which can be helpful troubleshooting issues, or ensuring compatibility.
+    'das-cli faas version' is used to display the current version of the DAS function in OpenFaaS. This command is particularly useful for checking the version of the deployed function, which can be helpful troubleshooting issues, or ensuring compatibility.
 
     .SH EXAMPLES
 
@@ -133,7 +133,7 @@ def update_version(function, version):
     """
     Update an OpenFaaS service to a newer version.
 
-    The das-cli update-version command allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the queryengine function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only queryengine is available), and define the version of the function you want to use, as mentioned earlier.
+    'das-cli update-version' allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the 'queryengine' function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only 'queryengine' is available), and define the version of the function you want to use, as mentioned earlier.
 
     .SH EXAMPLES
 
@@ -171,7 +171,7 @@ def restart():
     """
     Restart OpenFaaS service.
 
-    The command das-cli faas restart restarts the execution of the DAS function in OpenFaaS. This is useful when you want to restart the function to apply configuration changes. During this process, there is typically a downtime until the function is running again and deemed healthy. This downtime occurs because the existing instance of the function needs to be stopped, and then a new instance needs to be started with the updated configuration or changes.
+    'das-cli faas restart' restarts OpenFaaS server container. This is useful when you want to restart the function to apply configuration changes. During this process, there is typically a downtime until the function is running again and deemed healthy. This downtime occurs because the existing instance of the function needs to be stopped, and then a new instance needs to be started with the updated configuration or changes.
 
     .SH EXAMPLES
 
@@ -260,7 +260,7 @@ def stop():
     """
     Stop the running OpenFaaS service.
 
-    The command das-cli faas stop allows you to stop the execution of the DAS function in OpenFaaS. This is useful for terminating the function's operation when it's no longer needed. After stopping the faas, the function will no longer be available and cannot be used with the DAS.
+    'das-cli faas stop' allows you to stop the execution of the DAS function in OpenFaaS. This is useful for terminating the function's operation when it's no longer needed. After stopping the faas, the function will no longer be available and cannot be used with the DAS.
 
     .SH EXAMPLES
 
