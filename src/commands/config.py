@@ -4,11 +4,12 @@ from utils import table_parser
 from sys import exit
 
 
-@click.group(help="Manage configuration settings.")
+@click.group()
 @click.pass_context
 def config(ctx):
     """
-    This command group allows you to manage configuration settings.
+    'das-cli config' allows you to manage configuration settings for the DAS CLI, with commands to set, list, and modify 
+    parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
     global config_service
@@ -16,10 +17,24 @@ def config(ctx):
     config_service = ctx.obj["config"]
 
 
-@config.command(help="Set Redis and MongoDB configuration settings.")
+@config.command()
 def set():
     """
-    Set Redis and MongoDB configuration settings.
+    
+    'das-cli config set' Sets configuration parameters for DAS CLI.
+
+    'das-cli config set' prompts the user for configuration settings for the DAS CLI.
+    These settings include parameters such as port numbers, usernames, and other relevant information required by various DAS components.
+    The command displays prompts for each configuration option, suggesting default values when available.
+    If the user has already configured a setting, the default value will be the previously set value, allowing for quick modifications.
+    Once all configurations are provided, the command will also inform the user about the location where the configuration file was created.
+
+    .SH EXAMPLES
+
+    Set configuration settings for the DAS CLI.
+
+    $ das-cli config set
+
     """
 
     try:
@@ -90,16 +105,22 @@ def set():
         )
     except PermissionError:
         click.secho(
-            f"\nIt seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            f"\nPermission denied trying to write to {SECRETS_PATH}.",
             fg="red",
         )
         exit(1)
 
 
-@config.command(help="Display the current configuration settings.")
+@config.command()
 def list():
     """
-    Display the current configuration settings.
+    'das-cli config list' displays current configuration settings.
+
+    .SH EXAMPLES
+
+    Display current configuration settings
+
+    $ das-cli config list
     """
 
     try:
@@ -113,7 +134,7 @@ def list():
         click.echo(config_table)
     except PermissionError:
         click.secho(
-            f"\nIt seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            f"\nPermission denied trying to write to {SECRETS_PATH}.",
             fg="red",
         )
         exit(1)

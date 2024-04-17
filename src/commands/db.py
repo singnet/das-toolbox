@@ -13,11 +13,13 @@ from exceptions import (
 )
 
 
-@click.group(help="Manage db-related operations.")
+@click.group()
 @click.pass_context
 def db(ctx):
     """
-    This command group allows you to manage db-related operations.
+    Manage db-related operations.
+
+    'das-cli db' commands allow you to manage DAS backend DBMSs for use with the DAS CLI. 'das-cli db' provides commands to start, stop, and restart the databases as needed.
     """
 
     global config
@@ -25,17 +27,42 @@ def db(ctx):
     config = ctx.obj["config"]
 
 
-@db.command(help="Restart Redis and MongoDB containers.")
+@db.command()
 def restart():
+    """
+    Restart all DBMS containers.
+
+    'das-cli db restart' restarts all database containers previously started with 'das-cli start'. If no database have been started, 'das-cli db restart' just start them.
+    
+    IMPORTANTE NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
+
+    .SH EXAMPLES
+
+    Restart DBMS containers previously started with the 'das-cli db start'.
+
+    $ das-cli db restart
+    """
     ctx = click.Context(restart)
     ctx.invoke(stop)
     ctx.invoke(start)
 
 
-@db.command(help="Start Redis and MongoDB containers.")
+@db.command()
 def start():
     """
-    Start Redis and MongoDB containers.
+    Starts all DBMS containers.
+
+    'das-cli db start' initiates all databases.
+    These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
+
+    Upon execution, the command will display the ports on which each database is running.
+    Note that the port configuration can be modified using the 'das-cli config set' command.
+
+    .SH EXAMPLES
+
+    Start all databases for use with the DAS.
+
+    $ das-cli db start
     """
 
     click.echo("Starting Redis and MongoDB...")
@@ -94,10 +121,21 @@ def start():
     click.echo("Done.")
 
 
-@db.command(help="Stop and remove all currently running services.")
+@db.command()
 def stop():
     """
-    Stop and remove all currently running services.
+    Stops all DBMS containers.
+
+    'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
+    This command is useful for shutting down the databases when they are no longer needed.
+
+    IMPORTANT NOTE: After stopping the databases, all data will be lost.
+
+    .SH EXAMPLES
+
+    Stop DBMS containers previously started with 'das-cli db start'.
+
+    $ das-cli db stop
     """
 
     click.echo(f"Stopping redis service...")

@@ -24,7 +24,9 @@ override_dh_auto_install:
 	cp -r $(ARTIFACTS_DIR)/das-cli $(USR_BIN_DIR)
 
 build_man_pages:
-	pandoc README.md -s -t man > $(TEMP_DIR)/das-cli.1
-	gzip $(TEMP_DIR)/das-cli.1
-	install -D $(TEMP_DIR)/das-cli.1.gz $(CURDIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/das-cli.1.gz
+	python3 $(CURDIR)/src/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/
+	@for file in $(CURDIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
+		gzip -c $$file > $$file.gz; \
+		rm $$file; \
+	done
 

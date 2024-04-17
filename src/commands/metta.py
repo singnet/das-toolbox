@@ -11,11 +11,13 @@ from exceptions import (
 )
 
 
-@click.group(help="Manage Metta operations.")
+@click.group()
 @click.pass_context
 def metta(ctx):
     """
-    This command group allows you to manage Metta operations.
+    Manage operations related to the loading of MeTTa files.
+
+    'das-cli metta' allows you to load or just validate the syntax of MeTTa files. Syntax check is a lot faster than actually loading the file so it may be useful to do it before loading very large files.
     """
 
     global config
@@ -23,14 +25,25 @@ def metta(ctx):
     config = ctx.obj["config"]
 
 
-@metta.command(help="Load a MeTTa file into the databases")
+@metta.command()
 @click.argument(
     "path",
     type=click.Path(exists=True),
 )
 def load(path):
     """
-    Load Metta file(s) into the Metta Loader service.
+    Load a MeTTa file into the databases.
+
+    'das-cli meta load' loads meta files into the database using the DAS CLI.
+    The <path> argument specifies the absolute path (relative paths are not supported) to a MeTTa file to be loaded into the database.
+    Depending on the size of the file and the configuration of your server, loading may take a considerable amount of time.
+    Before using this command, make sure that the database is running using the 'das-cli db start' command.
+
+    .SH EXAMPLES
+
+    Load a meta file into the database.
+
+    $ das-cli meta load /path/to/mettas-directory/animals.metta
     """
 
     loader_container_name = config.get("loader.container_name")
@@ -90,14 +103,27 @@ def load(path):
         exit(1)
 
 
-@metta.command(help="Check the syntax of a Metta file or directory.")
+@metta.command()
 @click.argument(
     "path",
     type=click.Path(exists=True),
 )
 def check(path: str):
     """
-    Check the syntax of a Metta file or directory.
+    Validate syntax of MeTTa files used with the DAS CLI
+
+    'das-cli metta check' just validates the syntax of a MeTTa file without actually loading it.
+    The <path> argument specifies the absolute path (relative paths are not supported) to a MeTTa file.
+
+    .SH EXAMPLES
+
+    Validate the syntax of a MeTTa files.
+
+    $ das-cli metta check /path/to/mettas-directory
+
+    Validate the syntax of a specific metta file.
+
+    $ das-cli metta check /path/to/mettas-directory/animals.metta
     """
 
     try:

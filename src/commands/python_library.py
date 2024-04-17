@@ -12,9 +12,16 @@ class LibraryEnum(Enum):
     HYPERON_DAS_ATOMDB = "hyperon-das-atomdb"
 
 
-@click.group(help="")
+@click.group()
 @click.pass_context
 def python_library(ctx):
+    """
+    Manage versions of Python libraries.
+
+    'das-cli python-library' allows you to manage versions of DAS Python libraries, such as hyperon-das and hyperon-das-atomdb.
+    This tool provides commands to list available versions, set specific versions, update to the latest versions, and display installed versions of Python libraries.
+    """
+
     global config
 
     config = ctx.obj["config"]
@@ -112,10 +119,19 @@ def print_versions(versions):
         click.echo(line)
 
 
-@python_library.command(
-    help="Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb"
-)
+@python_library.command()
 def version():
+    """
+    Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb.
+
+    'das-cli python-library version' displays the versions of installed DAS Python libraries, such as hyperon-das and hyperon-das-atomdb.
+
+    .SH EXAMPLES
+
+    Display versions of installed Python libraries.
+
+    $ das-cli python-library version
+    """
     packages = ["hyperon-das", "hyperon-das-atomdb"]
 
     try:
@@ -129,10 +145,19 @@ def version():
         exit(1)
 
 
-@python_library.command(
-    help="Update both hyperon-das and hyperon-das-atomdb to the newest available version."
-)
+@python_library.command()
 def update():
+    """
+    Update both hyperon-das and hyperon-das-atomdb to the newest available or to a specific version.
+
+    'das-cli python-library update' updates the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the latest available versions.
+
+    .SH EXAMPLES
+
+    Update all Python libraries to their latest versions.
+
+    $ das-cli python-library update
+    """
     packages = ["hyperon-das", "hyperon-das-atomdb"]
 
     for package in packages:
@@ -155,21 +180,36 @@ def update():
     ctx.invoke(version)
 
 
-@python_library.command(
-    name="set",
-    help="Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries",
-)
+@python_library.command(name="set")
 @click.option(
     "--hyperon-das",
+    help="Set the version of the hyperon-das library to the specified version. Available versions can be found at https://github.com/singnet/das-query-engine/releases.",
     type=str,
     required=False,
 )
 @click.option(
     "--hyperon-das-atomdb",
     type=str,
+    help="Set the version of the hyperon-das-atomdb library to the specified version. Available versions can be found at https://github.com/singnet/das-atom-db/releases.",
     required=False,
 )
 def set_versions(hyperon_das, hyperon_das_atomdb):
+    """
+    Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries
+
+    'das-cli python-library set' sets the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the specified versions.
+    This command requires at least one of the following parameters: --hyperon-das or --hyperon-das-atomdb.
+
+    .SH EXAMPLES
+
+    Set the version of the hyperon-das library to version 1.2.0.
+
+    $ das-cli python-library set --hyperon-das=1.2.0
+
+    Set the version of the hyperon-das-atomdb library to version 0.4.0.
+
+    $ das-cli python-library set --hyperon-das-atomdb=0.4.0
+    """
     if hyperon_das is None and hyperon_das_atomdb is None:
         click.secho(
             "At least one of --hyperon-das or --hyperon-das-atomdb must be provided.",
@@ -206,23 +246,41 @@ def set_versions(hyperon_das, hyperon_das_atomdb):
     ctx.invoke(version)
 
 
-@python_library.command(
-    name="list",
-    help="List all major/minor versions of hyperon-das and hyperon-das-atomdb.",
-)
+@python_library.command(name="list")
 @click.option(
     "--show-patches",
     is_flag=True,
-    help="Show patch versions as well.",
+    help="Include patch versions in the list of available versions.",
     required=False,
 )
 @click.option(
     "--library",
-    help="Filter by library name.",
+    help="Specify the name of the library to filter the list of available versions.",
     required=False,
     type=click.Choice([e.value for e in LibraryEnum]),
 )
 def list_versions(show_patches, library):
+    """
+    List all major/minor versions of hyperon-das and hyperon-das-atomdb.
+
+    'das-cli python-library list' lists available versions of DAS Python libraries, such as hyperon-das and hyperon-das-atomdb, from the PyPI.
+    By default, it displays all major and minor versions of both hyperon-das and hyperon-das-atomdb libraries.
+
+    .SH EXAMPLES
+
+    List all major and minor versions of hyperon-das and hyperon-das-atomdb.
+
+    $ das-cli python-library list
+
+    List all major and minor versions of the hyperon-das library.
+
+    $ das-cli python-library list --library hyperon-das
+
+    List all major, minor, and patch versions.
+
+    $ das-cli python-library list --show-patches
+    """
+
     packages = [
         "hyperon-das",
         "hyperon-das-atomdb",
