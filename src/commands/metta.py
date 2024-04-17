@@ -34,16 +34,16 @@ def load(path):
     """
     Load a MeTTa file into the databases.
 
-    The \\fBdas-cli meta load\\fR command loads meta files into the database using the DAS CLI.
+    The das-cli meta load command loads meta files into the database using the DAS CLI.
     The <path> argument specifies the absolute path to a meta file to be loaded into the database.
     Depending on the size of the file and the configuration of your server, loading may take a considerable amount of time.
-    Before using this command, ensure that the database is running using the \\fBdas-cli db start\\fR command.
+    Before using this command, ensure that the database is running using the das-cli db start command.
 
     .SH EXAMPLES
 
     Load a meta file into the database.
 
-    \\fB$ das-cli meta load /path/to/mettas-directory/animals.metta\\fR
+    $ das-cli meta load /path/to/mettas-directory/animals.metta
     """
 
     loader_container_name = config.get("loader.container_name")
@@ -112,18 +112,18 @@ def check(path: str):
     """
     Validate syntax of MeTTa files used with the DAS CLI
 
-    The \\fBdas-cli metta check\\fR command validates the syntax of MeTTa files that eventually will be loaded into the database using the \\fBdas-cli metta load\\fR command.
+    The das-cli metta check command validates the syntax of MeTTa files that eventually will be loaded into the database using the das-cli metta load command.
     The <path> argument specifies the absolute path to either a directory containing metta files or a specific metta file.
 
     .SH EXAMPLES
 
     Validate the syntax of MeTTa files located in the specified directory.
 
-    \\fB$ das-cli metta check /path/to/mettas-directory\\fR
+    $ das-cli metta check /path/to/mettas-directory
 
     Validate the syntax of a specific metta file.
 
-    \\fB$ das-cli metta check /path/to/mettas-directory/animals.metta\\fR
+    $ das-cli metta check /path/to/mettas-directory/animals.metta
     """
 
     try:

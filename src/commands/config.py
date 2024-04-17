@@ -22,7 +22,7 @@ def set():
     """
     Set configuration settings for the DAS CLI
 
-    The \\fBdas-cli config set\\fR command prompts the user to set configuration settings for the DAS CLI.
+    The das-cli config set command prompts the user to set configuration settings for the DAS CLI.
     These settings include parameters such as port numbers, usernames, and other relevant information required by various DAS components.
     The command displays prompts for each configuration option, suggesting default values if available.
     If the user has already configured a setting, the default value will be the previously set value, allowing for quick modifications.
@@ -32,7 +32,7 @@ def set():
 
     Set configuration settings for the DAS CLI.
 
-    \\fB$ das-cli config set\\fR
+    $ das-cli config set
 
     """
 
@@ -115,14 +115,14 @@ def list():
     """
     Display the current configuration settings.
 
-    The das-cli config list command displays the user-defined configurations set using the \\fBdas-cli config set\\fR command.
+    The das-cli config list command displays the user-defined configurations set using the das-cli config set command.
     The command outputs the configurations in a table format, providing a user-friendly overview of the settings.
 
     .SH EXAMPLES
 
     Display the configuration settings
 
-    \\fB$ das-cli config list\\fR
+    $ das-cli config list
     """
 
     try:

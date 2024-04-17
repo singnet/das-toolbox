@@ -23,13 +23,13 @@ def local():
     """
     Echo commands for local setup.
 
-    The \\fBdas-cli example local\\fR command displays an example of the initial steps required to run DAS locally on your server.
+    The das-cli example local command displays an example of the initial steps required to run DAS locally on your server.
 
     .SH EXAMPLES
 
     Display an example of initial steps to run DAS locally.
 
-    \\fB$ das-cli example local\\fR
+    $ das-cli example local
     """
 
     click.echo(
@@ -57,13 +57,13 @@ def faas():
     """
     Echo commands for OpenFaaS setup.
 
-    The \\fBdas-cli example faas\\fR command displays an example of the initial steps required to connect to OpenFaaS functions using DAS.
+    The das-cli example faas command displays an example of the initial steps required to connect to OpenFaaS functions using DAS.
 
     .SH EXAMPLES
 
     Display an example of initial steps to connect to OpenFaaS functions.
 
-    \\fB$ das-cli example faas\\fR
+    $ das-cli example faas
     """
     click.echo(
         f"""

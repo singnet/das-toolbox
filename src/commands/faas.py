@@ -87,13 +87,13 @@ def version():
     """
     Get OpenFaaS function version.
 
-    The command \\fBdas-cli faas version\\fR is used to display the current version of the DAS function in OpenFaaS. This command is particularly useful for checking the version of the deployed function, which can be helpful troubleshooting issues, or ensuring compatibility.
+    The command das-cli faas version is used to display the current version of the DAS function in OpenFaaS. This command is particularly useful for checking the version of the deployed function, which can be helpful troubleshooting issues, or ensuring compatibility.
 
     .SH EXAMPLES
 
     This is an example illustrating how to retrieve the version of the function.
 
-    \\fB$ das-cli faas version\\fR
+    $ das-cli faas version
     """
     version = config.get("openfaas.version", "latest")
     function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
@@ -133,21 +133,21 @@ def update_version(function, version):
     """
     Update an OpenFaaS service to a newer version.
 
-    The \\fBdas-cli update-version\\fR command allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the \\fBqueryengine\\fR function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only \\fBqueryengine\\fR is available), and define the version of the function you want to use, as mentioned earlier.
+    The das-cli update-version command allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the queryengine function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only queryengine is available), and define the version of the function you want to use, as mentioned earlier.
 
     .SH EXAMPLES
 
     This is an example of how to update to the latest available function version.
 
-    \\fB$ das-cli update-version\\fR
+    $ das-cli update-version
 
     This is an example of how to update the function you want to use (currently only `queryengine` is available).
 
-    \\fB$ das-cli update-version --function queryengine\\fR
+    $ das-cli update-version --function queryengine
 
     This demonstrates updating the function version to a specific release. You need to specify the version in the semver format
 
-    \\fB$ das-cli update-version --version 1.0.0\\fR
+    $ das-cli update-version --version 1.0.0
     """
 
     _validate_version(version)
@@ -171,13 +171,13 @@ def restart():
     """
     Restart OpenFaaS service.
 
-    The command \\fBdas-cli faas restart\\fR restarts the execution of the DAS function in OpenFaaS. This is useful when you want to restart the function to apply configuration changes. During this process, there is typically a downtime until the function is running again and deemed healthy. This downtime occurs because the existing instance of the function needs to be stopped, and then a new instance needs to be started with the updated configuration or changes.
+    The command das-cli faas restart restarts the execution of the DAS function in OpenFaaS. This is useful when you want to restart the function to apply configuration changes. During this process, there is typically a downtime until the function is running again and deemed healthy. This downtime occurs because the existing instance of the function needs to be stopped, and then a new instance needs to be started with the updated configuration or changes.
 
     .SH EXAMPLES
 
     This is an example of how to restart the execution of the faas function.
 
-    \\fB$ das-cli faas restart\\fR
+    $ das-cli faas restart
     """
     ctx = click.Context(faas)
     ctx.invoke(stop)
@@ -191,9 +191,9 @@ def start():
 
     OpenFaaS, an open-source serverless computing platform, makes running functions in containers fast and simple. With this command, you can initialize the DAS remotely through a function in OpenFaaS, which can be run on your server or locally.
 
-    If you've just installed the DAS CLI, the function will be executed using the latest version by default. However, if you want to specify a particular version, you can use the \\fBfaas update-version\\fR command. Versions are available at https://github.com/singnet/das-serverless-functions/releases, or you can choose to leave it as \\fBlatest\\fR, which will always use the latest available version.
+    If you've just installed the DAS CLI, the function will be executed using the latest version by default. However, if you want to specify a particular version, you can use the faas update-version command. Versions are available at https://github.com/singnet/das-serverless-functions/releases, or you can choose to leave it as latest, which will always use the latest available version.
 
-    Since the function needs to communicate with databases, you need to run \\fBdb start\\fR to establish this communication. Upon the first execution of the function, it might take a little longer as it needs to fetch the specified version and set everything up for you. Subsequent initializations will be faster unless you change the version, which will require the same process again to set everything up.
+    Since the function needs to communicate with databases, you need to run db start to establish this communication. Upon the first execution of the function, it might take a little longer as it needs to fetch the specified version and set everything up for you. Subsequent initializations will be faster unless you change the version, which will require the same process again to set everything up.
 
     After starting the function, you will receive a message on the screen with the function version and the port on which the function is being executed.
 
@@ -201,7 +201,7 @@ def start():
 
     This is an example of how to start the function.
 
-    \\fB$ das-cli faas start\\fR
+    $ das-cli faas start
     """
 
     version = config.get("openfaas.version", "latest")
@@ -260,13 +260,13 @@ def stop():
     """
     Stop the running OpenFaaS service.
 
-    The command \\fBdas-cli faas stop\\fR allows you to stop the execution of the DAS function in OpenFaaS. This is useful for terminating the function's operation when it's no longer needed. After stopping the faas, the function will no longer be available and cannot be used with the DAS.
+    The command das-cli faas stop allows you to stop the execution of the DAS function in OpenFaaS. This is useful for terminating the function's operation when it's no longer needed. After stopping the faas, the function will no longer be available and cannot be used with the DAS.
 
     .SH EXAMPLES
 
     This is an example of how to stop the function
 
-    \\fB$ das-cli faas stop\\fR
+    $ das-cli faas stop
     """
     openfaas_container_name = config.get("openfaas.container_name")
     redis_container_name = config.get("redis.container_name")
