@@ -4,11 +4,12 @@ from utils import table_parser
 from sys import exit
 
 
-@click.group(help="Manage configuration settings.")
+@click.group()
 @click.pass_context
 def config(ctx):
     """
-    This command group allows you to manage configuration settings.
+    The das-cli config command allows you to manage configuration settings for the DAS CLI.
+    This tool provides commands to set, list, and modify configuration settings, such as port numbers, usernames, and other parameters required by various DAS components.
     """
 
     global config_service
@@ -16,10 +17,23 @@ def config(ctx):
     config_service = ctx.obj["config"]
 
 
-@config.command(help="Set Redis and MongoDB configuration settings.")
+@config.command()
 def set():
     """
-    Set Redis and MongoDB configuration settings.
+    Set configuration settings for the DAS CLI
+
+    The \\fBdas-cli config set\\fR command prompts the user to set configuration settings for the DAS CLI.
+    These settings include parameters such as port numbers, usernames, and other relevant information required by various DAS components.
+    The command displays prompts for each configuration option, suggesting default values if available.
+    If the user has already configured a setting, the default value will be the previously set value, allowing for quick modifications.
+    Once all configurations are provided, the command will also inform the user about the location where the configuration file was created.
+
+    .SH EXAMPLES
+
+    Set configuration settings for the DAS CLI.
+
+    \\fB$ das-cli config set\\fR
+
     """
 
     try:
@@ -96,10 +110,19 @@ def set():
         exit(1)
 
 
-@config.command(help="Display the current configuration settings.")
+@config.command()
 def list():
     """
     Display the current configuration settings.
+
+    The das-cli config list command displays the user-defined configurations set using the \\fBdas-cli config set\\fR command.
+    The command outputs the configurations in a table format, providing a user-friendly overview of the settings.
+
+    .SH EXAMPLES
+
+    Display the configuration settings
+
+    \\fB$ das-cli config list\\fR
     """
 
     try:
