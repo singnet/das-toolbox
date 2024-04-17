@@ -11,11 +11,13 @@ from exceptions import (
 )
 
 
-@click.group(help="Manage Metta operations.")
+@click.group()
 @click.pass_context
 def metta(ctx):
     """
-    This command group allows you to manage Metta operations.
+    Manage Metta operations.
+
+    This command group enables you to manage Metta operations, such as validating the syntax of Metta files and loading them into databases.
     """
 
     global config
@@ -23,14 +25,25 @@ def metta(ctx):
     config = ctx.obj["config"]
 
 
-@metta.command(help="Load a MeTTa file into the databases")
+@metta.command()
 @click.argument(
     "path",
     type=click.Path(exists=True),
 )
 def load(path):
     """
-    Load Metta file(s) into the Metta Loader service.
+    Load a MeTTa file into the databases.
+
+    The \\fBdas-cli meta load\\fR command loads meta files into the database using the DAS CLI.
+    The <path> argument specifies the absolute path to a meta file to be loaded into the database.
+    Depending on the size of the file and the configuration of your server, loading may take a considerable amount of time.
+    Before using this command, ensure that the database is running using the \\fBdas-cli db start\\fR command.
+
+    .SH EXAMPLES
+
+    Load a meta file into the database.
+
+    \\fB$ das-cli meta load /path/to/mettas-directory/animals.metta\\fR
     """
 
     loader_container_name = config.get("loader.container_name")
@@ -90,14 +103,27 @@ def load(path):
         exit(1)
 
 
-@metta.command(help="Check the syntax of a Metta file or directory.")
+@metta.command()
 @click.argument(
     "path",
     type=click.Path(exists=True),
 )
 def check(path: str):
     """
-    Check the syntax of a Metta file or directory.
+    Validate syntax of MeTTa files used with the DAS CLI
+
+    The \\fBdas-cli metta check\\fR command validates the syntax of MeTTa files that eventually will be loaded into the database using the \\fBdas-cli metta load\\fR command.
+    The <path> argument specifies the absolute path to either a directory containing metta files or a specific metta file.
+
+    .SH EXAMPLES
+
+    Validate the syntax of MeTTa files located in the specified directory.
+
+    \\fB$ das-cli metta check /path/to/mettas-directory\\fR
+
+    Validate the syntax of a specific metta file.
+
+    \\fB$ das-cli metta check /path/to/mettas-directory/animals.metta\\fR
     """
 
     try:
