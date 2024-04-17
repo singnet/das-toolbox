@@ -18,7 +18,7 @@ def python_library(ctx):
     """
     Manage versions of Python libraries.
 
-    The das-cli python-library command allows you to manage versions of Python libraries, such as hyperon-das and hyperon-das-atomdb.
+    'das-cli python-library' allows you to manage versions of DAS Python libraries, such as hyperon-das and hyperon-das-atomdb.
     This tool provides commands to list available versions, set specific versions, update to the latest versions, and display installed versions of Python libraries.
     """
 
@@ -124,7 +124,7 @@ def version():
     """
     Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb.
 
-    The das-cli python-library version command displays the versions of installed Python libraries, such as hyperon-das and hyperon-das-atomdb.
+    'das-cli python-library version' displays the versions of installed DAS Python libraries, such as hyperon-das and hyperon-das-atomdb.
 
     .SH EXAMPLES
 
@@ -148,10 +148,9 @@ def version():
 @python_library.command()
 def update():
     """
-    Update both hyperon-das and hyperon-das-atomdb to the newest available version.
+    Update both hyperon-das and hyperon-das-atomdb to the newest available or to a specific version.
 
-    The das-cli python-library update command updates the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the latest available versions.
-    This command updates all installed packages to their respective latest versions.
+    'das-cli python-library update' updates the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the latest available versions.
 
     .SH EXAMPLES
 
@@ -198,7 +197,7 @@ def set_versions(hyperon_das, hyperon_das_atomdb):
     """
     Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries
 
-    The das-cli python-library set command sets the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the specified versions.
+    'das-cli python-library set' sets the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the specified versions.
     This command requires at least one of the following parameters: --hyperon-das or --hyperon-das-atomdb.
 
     .SH EXAMPLES
@@ -264,7 +263,7 @@ def list_versions(show_patches, library):
     """
     List all major/minor versions of hyperon-das and hyperon-das-atomdb.
 
-    The das-cli python-library list command lists available versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, from the PyPI.
+    'das-cli python-library list' lists available versions of DAS Python libraries, such as hyperon-das and hyperon-das-atomdb, from the PyPI.
     By default, it displays all major and minor versions of both hyperon-das and hyperon-das-atomdb libraries.
 
     .SH EXAMPLES
