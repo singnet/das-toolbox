@@ -12,7 +12,7 @@ from commands import (
     release_notes,
 )
 from config import Secret, SECRETS_PATH, USER_DAS_PATH, VERSION
-from services import PackageService
+from services import UbuntuAdvancedPackagingToolService
 from exceptions import NotFound
 import distro
 import os
@@ -44,43 +44,61 @@ def das_cli(ctx):
     default=None,
 )
 def update_version(version):
+    is_executable = getattr(sys, "frozen", False)
+
+    if distro.id() != "ubuntu" or not is_executable:
+        click.secho("This command can only be used on Ubuntu.", fg="red")
+        exit(1)
+
+    package_dir = sys.executable
+    package_name = os.path.basename(package_dir)
+
+    is_sudo = "SUDO_USER" in os.environ
+
+    if not is_sudo:
+        click.secho("This command is not being executed with sudo.", fg="red")
+        exit(1)
+
+    ubuntu_apt_service = UbuntuAdvancedPackagingToolService(package_name)
+
     try:
-        is_executable = getattr(sys, "frozen", False)
-
-        if distro.id() != "ubuntu" or not is_executable:
-            click.secho("This command can only be used on Ubuntu.", fg="red")
-            exit(1)
-
-        package_dir = sys.executable
-        package_name = os.path.basename(package_dir)
-
         is_binary = os.access(
             package_dir,
             os.X_OK,
         )
-        is_package_installed = PackageService.is_package_installed(package_name)
 
-        if not is_binary or not is_package_installed:
+        current_version, _ = ubuntu_apt_service.get_package_version()
+
+        if not is_binary and not current_version:
             raise NotFound()
 
-        PackageService.install_package(package_name, version)
-
-        click.secho(
-            f"The package {package_name} has been updated.",
-            fg="green",
-        )
     except NotFound:
         click.secho(
             f"The package {package_name} can only be updated if you installed it via apt.",
             fg="red",
         )
         exit(1)
+
+    try:
+        click.echo(f"Updating the package {package_name}...")
+        newer_version = ubuntu_apt_service.install_package(version)
     except Exception:
         click.secho(
             f"The {package_name} could not be updated. Please check if the specified version exists.",
             fg="red",
         )
         exit(1)
+
+    if current_version != newer_version:
+        click.secho(
+            f"Package version successfully updated  {current_version} --> {newer_version}.",
+            fg="green",
+        )
+    else:
+        click.secho(
+            f"The package is already updated to version {newer_version}.",
+            fg="yellow",
+        )
 
 
 das_cli.add_command(config)
