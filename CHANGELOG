@@ -23,3 +23,9 @@
 [#62] Remove example python files for local/remote DAS in das-cli examples
 [#59] Fix das-cli --version output message
 [#43] Improve DAS CLI Manual
+[#69] Minor das-cli fixes
+    Updated das-cli metta check/load output to only display db_load and syntax_check outputs.
+    Modified das-cli faas update-version output to provide both old and new version information and advise callers to use das-cli faas restart to update a running faas server and also warns if no newer version is available.
+    Applied changes to the das-cli update-version command output to provide both old and new version information and also warns if no newer version is available.
+    Removed references to the example files distributed_atom_space_local.py and distributed_atom_space_remote.py, as well as the files themselves.
+    Reviewed "Segmentation fault (core dumped)" error
