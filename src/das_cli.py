@@ -68,9 +68,18 @@ def update_version(version):
 
     is_executable = getattr(sys, "frozen", False)
 
-    if distro.id() != "ubuntu" or not is_executable:
-        click.secho("This command can only be used on Ubuntu.", fg="red")
+    if not is_executable:
+        click.secho(
+            "This command should be executed as an executable rather than as a Python script.",
+            fg="red",
+        )
         exit(1)
+
+    if distro.id() != "ubuntu":
+        click.secho(
+            "It's advisable to utilize this command specifically for Ubuntu distributions.",
+            fg="yellow",
+        )
 
     package_dir = sys.executable
     package_name = os.path.basename(package_dir)
