@@ -23,6 +23,11 @@ import sys
 @click.version_option(VERSION, message="%(prog)s %(version)s")
 @click.pass_context
 def das_cli(ctx):
+    """
+    The 'das-cli' command offers a robust suite of commands to efficiently manage a wide range of tasks including containerized services, OpenFaaS functions, Metta operations, and more.
+    It empowers users to seamlessly start and stop server services, effortlessly manage OpenFaaS functions, load Metta files, validate the syntax of Metta files, and perform various other operations with ease and efficiency.
+    """
+
     ctx.ensure_object(dict)
 
     try:
@@ -35,7 +40,7 @@ def das_cli(ctx):
         exit(1)
 
 
-@das_cli.command(help="Update Package Version.")
+@das_cli.command()
 @click.option(
     "--version",
     help="Specify the version of the package (format: x.x.x).",
@@ -44,6 +49,23 @@ def das_cli(ctx):
     default=None,
 )
 def update_version(version):
+    """
+    Update the DAS CLI version (Ubuntu only).
+
+    The 'das-cli update-version' command allows you to update the DAS CLI to the latest version available via the APT repository.
+    This command is intended for Ubuntu Linux distributions only and must be run with sudo privileges.
+
+    .SH EXAMPLES
+
+    Update the DAS CLI to the latest version available via APT repository.
+
+    $ sudo das-cli update-version
+
+    Update the DAS CLI to a specific version (e.g. 1.2.3) available via APT repository.
+
+    $ sudo das-cli update-version --version=1.2.3
+    """
+
     is_executable = getattr(sys, "frozen", False)
 
     if distro.id() != "ubuntu" or not is_executable:
