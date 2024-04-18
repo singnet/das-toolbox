@@ -73,7 +73,7 @@ class MettaLoaderContainerService(ContainerService):
                 tty=True,
             )
 
-            self.tail(log_path, clear_terminal=True)
+            self.tail(log_path)
 
             exit_code = self.container_status(container)
 
