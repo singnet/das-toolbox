@@ -47,7 +47,10 @@ class MettaLoaderContainerService(ContainerService):
 
         try:
             log_path = "/tmp/logs.log"
-            exec_command = f'sh -c "stdbuf -o0 -e0 db_loader {os.path.basename(path)} > {log_path} 2>&1"'
+            filename = os.path.basename(path)
+            exec_command = (
+                f'sh -c "stdbuf -o0 -e0 db_loader {filename} > {log_path} 2>&1"'
+            )
 
             container = self._start_container(
                 network_mode="host",
@@ -60,7 +63,12 @@ class MettaLoaderContainerService(ContainerService):
                     "DAS_MONGODB_PASSWORD": mongodb_password,
                 },
                 command=exec_command,
-                volumes={os.path.dirname(path): {"bind": "/tmp", "mode": "rw"}},
+                volumes={
+                    path: {
+                        "bind": f"/tmp/{filename}",
+                        "mode": "rw",
+                    },
+                },
                 stdin_open=True,
                 tty=True,
             )
