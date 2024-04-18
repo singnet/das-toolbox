@@ -46,11 +46,8 @@ class MettaLoaderContainerService(ContainerService):
             pass
 
         try:
-            log_path = "/tmp/logs.log"
             filename = os.path.basename(path)
-            exec_command = (
-                f'sh -c "stdbuf -o0 -e0 db_loader {filename} > {log_path} 2>&1"'
-            )
+            exec_command = f"db_loader {filename}"
 
             container = self._start_container(
                 network_mode="host",
@@ -73,13 +70,13 @@ class MettaLoaderContainerService(ContainerService):
                 tty=True,
             )
 
-            self.tail(log_path)
+            self.logs()
 
             exit_code = self.container_status(container)
 
             if exit_code != 0:
                 raise MettaLoadException(
-                    f"File '{os.path.basename(path)}' could not be loaded. Use the command `metta check {path}` to ensure this is a valid file."
+                    f"File '{os.path.basename(path)}' could not be loaded."
                 )
 
             return None

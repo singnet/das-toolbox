@@ -28,11 +28,8 @@ class MettaParserContainerService(ContainerService):
             pass
 
         try:
-            log_path = "/tmp/logs.log"
             filename = os.path.basename(filepath)
-            exec_command = (
-                f'sh -c "stdbuf -o0 -e0 syntax_check {filename} > {log_path} || exit 1"'
-            )
+            exec_command = f"syntax_check {filename}"
 
             container = self._start_container(
                 command=exec_command,
@@ -46,7 +43,7 @@ class MettaParserContainerService(ContainerService):
                 tty=True,
             )
 
-            self.tail(log_path)
+            self.logs()
 
             exit_code = self.container_status(container)
 
