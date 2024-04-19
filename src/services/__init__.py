@@ -8,5 +8,5 @@ from .mongo_container_service import MongoContainerService
 from .openfaas_container_service import OpenFaaSContainerService
 from .redis_container_service import RedisContainerService
 from .image_service import ImageService
-from .package_service import PackageService
+from .ubuntu_advanced_packaging_tool_service import UbuntuAdvancedPackagingToolService
 from .release_notes_service import ReleaseNotesService

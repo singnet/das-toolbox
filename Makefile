@@ -9,3 +9,6 @@ endif
 
 build: debian_changelog
 	dpkg-buildpackage
+
+man_pages:
+	@python3 src/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/man

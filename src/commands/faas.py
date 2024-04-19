@@ -68,6 +68,26 @@ def _handle_not_found(container_name):
     )
 
 
+def _get_version() -> tuple:
+    version = config.get("openfaas.version", "latest")
+    function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
+
+    function_tag = f"{version}-{function}"
+
+    try:
+        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
+
+        label = ImageService.get_instance().get_label(
+            OPENFAAS_IMAGE_NAME,
+            function_tag,
+            "fn.version",
+        )
+
+        return function, label
+    except Exception as e:
+        _handle_exception(str(e))
+
+
 @click.group()
 @click.pass_context
 def faas(ctx):
@@ -95,23 +115,9 @@ def version():
 
     $ das-cli faas version
     """
-    version = config.get("openfaas.version", "latest")
-    function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
+    function, version = _get_version()
 
-    function_tag = f"{version}-{function}"
-
-    try:
-        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
-
-        label = ImageService.get_instance().get_label(
-            OPENFAAS_IMAGE_NAME,
-            function_tag,
-            "fn.version",
-        )
-
-        click.secho(f"{function} {label}", fg="green")
-    except Exception as e:
-        _handle_exception(str(e))
+    click.secho(f"{function} {version}", fg="green")
 
 
 @faas.command()
@@ -154,6 +160,8 @@ def update_version(function, version):
 
     function_tag = f"{version}-{function}"
 
+    current_function_name, current_function_version = _get_version()
+
     try:
         _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
 
@@ -161,7 +169,21 @@ def update_version(function, version):
         config.set("openfaas.function", function)
         config.save()
 
-        click.secho("Function version successfully updated", fg="green")
+        newer_function_name, newer_function_version = _get_version()
+
+        if (
+            current_function_name != newer_function_name
+            or current_function_version != newer_function_version
+        ):
+            click.secho(
+                f"Function version successfully updated {current_function_name} {current_function_version} --> {newer_function_name} {newer_function_version}. You need to call 'faas restart' to start using the new version.",
+                fg="green",
+            )
+        else:
+            click.secho(
+                f"Function {current_function_name} is already at version {current_function_version}",
+                fg="yellow",
+            )
     except Exception as e:
         _handle_exception(e)
 
