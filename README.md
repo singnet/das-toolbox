@@ -22,9 +22,6 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 
 - [Examples](#examples)
 
-  - [Local Distributed Atom Space](#local-distributed-atom-space)
-  - [Distributed Atom Space with OpenFaaS](#distributed-atom-space-with-openfaas)
-
 - [Getting Help](#getting-help)
 - [Troubleshooting](#troubleshooting)
   - [Docker Permission Denied](#docker-permission-denied)
@@ -181,11 +178,9 @@ python3 das_cli.py <command> <subcommand> [options]
 
 ## Examples
 
-### Local Distributed Atom Space
+These steps provide a detailed guide on how to run the Distributed Atom Space, ensuring a smooth deployment process.
 
-These steps provide a detailed guide on how to run the Distributed Atom Space, ensuring a smooth deployment process for local use.
-
-Follow these steps to deploy DAS locally:
+Follow these steps:
 
 ```bash
 # Install Hyperon-DAS:
@@ -203,34 +198,8 @@ python3 das_cli.py metta check $PWD/examples/data/animals.metta
 # Load a Metta file (absolute path to a single file)
 python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
-# Modify the examples/distributed_atom_space_local.py file with the credentials added through the configuration command (MongoDB port, username, password, etc.).
-python3 examples/distributed_atom_space_local.py
-```
-
-### Distributed Atom Space with OpenFaaS
-
-These steps guide you through the process of deploying a Distributed Atom Space with OpenFaaS, ensuring a seamless setup for distributed computing using OpenFaaS functions.
-
-Follow these steps to deploy DAS with OpenFaaS:
-
-```bash
-# Set the configuration file
-python3 das_cli.py config set
-
-# Start server services
-python3 das_cli.py db start
-
-# Check a Metta file (absolute path to a single file)
-python3 das_cli.py metta check $PWD/examples/data/animals.metta
-
-# Load a Metta file (absolute path to a single file)
-python3 das_cli.py metta load $PWD/examples/data/animals.metta
-
 # Start OpenFaaS Service
 python3 das_cli.py faas start
-
-# Modify the examples/distributed_atom_space_remote.py file with the port openFaaS is running (default 8080).
-python3 examples/distributed_atom_space_remote.py
 ```
 
 ## Getting Help
