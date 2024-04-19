@@ -29,4 +29,4 @@
     Applied changes to the das-cli update-version command output to provide both old and new version information and also warns if no newer version is available.
     Removed references to the example files distributed_atom_space_local.py and distributed_atom_space_remote.py, as well as the files themselves.
     Reviewed "Segmentation fault (core dumped)" error
-    Allow update-version command for non ubuntu distro with an warning.
+    Added support for non-Ubuntu-based distributions to utilize the update-version command. Note that this command was developed and primarily tested on Ubuntu distributions.
