@@ -24,8 +24,7 @@ import sys
 @click.pass_context
 def das_cli(ctx):
     """
-    The 'das-cli' command offers a robust suite of commands to efficiently manage a wide range of tasks including containerized services, OpenFaaS functions, Metta operations, and more.
-    It empowers users to seamlessly start and stop server services, effortlessly manage OpenFaaS functions, load Metta files, validate the syntax of Metta files, and perform various other operations with ease and efficiency.
+    'das-cli' offers a suite of commands to efficiently manage a wide range of tasks including management of containerized services, OpenFaaS functions, knowledge base operations, and more.
     """
 
     ctx.ensure_object(dict)
@@ -34,7 +33,7 @@ def das_cli(ctx):
         ctx.obj["config"] = Secret()
     except PermissionError:
         click.secho(
-            f"\nIt seems that you don't have the required permissions to write to {SECRETS_PATH}.\n\nTo resolve this, please make sure you are the owner of the file by running: `sudo chown $USER:$USER {USER_DAS_PATH} -R`, and then grant the necessary permissions using: `sudo chmod 770 {USER_DAS_PATH} -R`\n",
+            f"\nPermission denied trying to write to {SECRETS_PATH}.",
             fg="red",
         )
         exit(1)
@@ -52,7 +51,7 @@ def update_version(version):
     """
     Update the DAS CLI version (Ubuntu only).
 
-    The 'das-cli update-version' command allows you to update the DAS CLI to the latest version available via the APT repository.
+    'das-cli update-version' allows you to update the DAS CLI to the latest version available via the APT repository.
     This command is intended for Ubuntu Linux distributions only and must be run with sudo privileges.
 
     .SH EXAMPLES
