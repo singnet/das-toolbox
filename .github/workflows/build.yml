@@ -51,7 +51,7 @@ jobs:
 
   tag:
     if: github.ref == 'refs/heads/master'
-    uses: singnet/das/scripts/semver/semver.yml@master
+    uses: singnet/das/.github/workflows/run-semver.yml@master
     with:
       version: ${{ github.event.inputs.version }}
       version-strategy: bump-version-from-variable-value
