@@ -1,10 +1,10 @@
-import click
-import pkg_resources
-import requests
-from exceptions import NotFound
-import subprocess
 import re
+import click
+import requests
+import subprocess
 from enum import Enum
+from sys import exit
+from exceptions import NotFound
 
 
 class LibraryEnum(Enum):
@@ -29,9 +29,19 @@ def python_library(ctx):
 
 def get_python_package_version(package_name):
     try:
-        versao = pkg_resources.get_distribution(package_name).version
-        return versao
-    except pkg_resources.DistributionNotFound:
+        output = subprocess.check_output(
+            ["pip", "show", package_name],
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        )
+        version_line = re.search(r"^Version:\s*(.*)$", output, re.MULTILINE)
+        if version_line:
+            return version_line.group(1).strip()
+        else:
+            raise NotFound(
+                f"Version information not found for package '{package_name}'."
+            )
+    except subprocess.CalledProcessError as e:
         raise NotFound(f"Package '{package_name}' is not installed.")
 
 
@@ -61,7 +71,7 @@ def update_python_package_version(package_name, version=None):
             check=True,
         )
     except subprocess.CalledProcessError:
-        raise Exception(
+        raise NotFound(
             f"Failed to update package {package_name}. Please verify if the provided version exists or ensure the package name is correct."
         )
 
@@ -119,6 +129,17 @@ def print_versions(versions):
         click.echo(line)
 
 
+def resolve_packages_version(packages: list) -> list:
+    packages_versions = []
+
+    for package in packages:
+        current_version = get_python_package_version(package)
+        latest_version = get_latest_python_package_version(package)
+        packages_versions.append((package, current_version, latest_version))
+
+    return packages_versions
+
+
 @python_library.command()
 def version():
     """
@@ -135,12 +156,12 @@ def version():
     packages = ["hyperon-das", "hyperon-das-atomdb"]
 
     try:
-        for package in packages:
-            current_version = get_python_package_version(package)
-            latest_version = get_latest_python_package_version(package)
+        for package, current_version, latest_version in resolve_packages_version(
+            packages
+        ):
             print_package_info(package, current_version, latest_version)
 
-    except Exception as e:
+    except NotFound as e:
         click.secho(f"{str(e)}", fg="red")
         exit(1)
 

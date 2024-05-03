@@ -68,9 +68,23 @@ def _handle_not_found(container_name):
     )
 
 
+@click.group()
+@click.pass_context
+def faas(ctx):
+    """
+    Manage OpenFaaS services.
+
+    'das-cli faas' provides management commands for OpenFaaS using the DAS CLI including deployment of latest or specific versions, service start/stop/restart, among others.
+    """
+
+    global config_service
+
+    config_service = ctx.obj["config"]
+
+
 def _get_version() -> tuple:
-    version = config.get("openfaas.version", "latest")
-    function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
+    version = config_service.get("openfaas.version", "latest")
+    function = config_service.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
 
     function_tag = f"{version}-{function}"
 
@@ -86,20 +100,6 @@ def _get_version() -> tuple:
         return function, label
     except Exception as e:
         _handle_exception(str(e))
-
-
-@click.group()
-@click.pass_context
-def faas(ctx):
-    """
-    Manage OpenFaaS services.
-
-    'das-cli faas' provides management commands for OpenFaaS using the DAS CLI including deployment of latest or specific versions, service start/stop/restart, among others.
-    """
-
-    global config
-
-    config = ctx.obj["config"]
 
 
 @faas.command()
@@ -165,9 +165,9 @@ def update_version(function, version):
     try:
         _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
 
-        config.set("openfaas.version", version)
-        config.set("openfaas.function", function)
-        config.save()
+        config_service.set("openfaas.version", version)
+        config_service.set("openfaas.function", function)
+        config_service.save()
 
         newer_function_name, newer_function_version = _get_version()
 
@@ -226,15 +226,15 @@ def start():
     $ das-cli faas start
     """
 
-    version = config.get("openfaas.version", "latest")
-    function = config.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
+    version = config_service.get("openfaas.version", "latest")
+    function = config_service.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
 
-    openfaas_container_name = config.get("openfaas.container_name")
-    redis_container_name = config.get("redis.container_name")
-    mongodb_container_name = config.get("mongodb.container_name")
+    openfaas_container_name = config_service.get("openfaas.container_name")
+    redis_container_name = config_service.get("redis.container_name")
+    mongodb_container_name = config_service.get("mongodb.container_name")
 
-    redis_port = config.get("redis.port")
-    mongodb_port = config.get("mongodb.port")
+    redis_port = config_service.get("redis.port")
+    mongodb_port = config_service.get("mongodb.port")
 
     try:
         container_service = OpenFaaSContainerService(
@@ -247,8 +247,8 @@ def start():
 
     _check_service_running(container_service, redis_port, mongodb_port)
 
-    mongodb_username = config.get("mongodb.username")
-    mongodb_password = config.get("mongodb.password")
+    mongodb_username = config_service.get("mongodb.username")
+    mongodb_password = config_service.get("mongodb.password")
 
     try:
         click.echo("Starting OpenFaaS...")
@@ -290,9 +290,9 @@ def stop():
 
     $ das-cli faas stop
     """
-    openfaas_container_name = config.get("openfaas.container_name")
-    redis_container_name = config.get("redis.container_name")
-    mongodb_container_name = config.get("mongodb.container_name")
+    openfaas_container_name = config_service.get("openfaas.container_name")
+    redis_container_name = config_service.get("redis.container_name")
+    mongodb_container_name = config_service.get("mongodb.container_name")
 
     try:
         click.echo(f"Stopping OpenFaaS service...")
