@@ -44,6 +44,9 @@ class ImageService:
 
             labels = container["Config"]["Labels"]
 
+            if labels is None:
+                return label
+
             return labels.get(
                 label,
                 None,
