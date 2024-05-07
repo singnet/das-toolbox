@@ -1,4 +1,4 @@
-VERSION = '0.2.16'
+VERSION = '0.2.17'
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 )
