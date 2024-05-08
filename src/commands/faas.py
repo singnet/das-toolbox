@@ -1,7 +1,6 @@
 import re
 import click
 from sys import exit
-from enum import Enum
 from services import OpenFaaSContainerService, ImageService
 from exceptions import (
     ContainerNotRunningException,
@@ -10,10 +9,7 @@ from exceptions import (
     NotFound,
 )
 from config import OPENFAAS_IMAGE_NAME
-
-
-class FunctionEnum(Enum):
-    QUERY_ENGINE = "queryengine"
+from enums import FunctionEnum
 
 
 def _validate_version(version):
@@ -49,10 +45,12 @@ def _check_service_running(container_service, redis_port, mongodb_port):
         )
 
 
-def _pull_image(repository, image_tag):
+def _pull_image(repository, function, version):
+    image_tag = ImageService.format_function_tag(function, version)
+
     ImageService.get_instance().pull(
-        repository=repository,
-        image_tag=image_tag,
+        repository,
+        image_tag,
     )
 
 
@@ -86,15 +84,13 @@ def _get_version() -> tuple:
     version = config_service.get("openfaas.version", "latest")
     function = config_service.get("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
 
-    function_tag = f"{version}-{function}"
-
     try:
-        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
+        _pull_image(OPENFAAS_IMAGE_NAME, function, version)
 
         label = ImageService.get_instance().get_label(
-            OPENFAAS_IMAGE_NAME,
-            function_tag,
-            "fn.version",
+            repository=OPENFAAS_IMAGE_NAME,
+            tag=ImageService.format_function_tag(function, version),
+            label="fn.version",
         )
 
         return function, label
@@ -139,7 +135,7 @@ def update_version(function, version):
     """
     Update an OpenFaaS service to a newer version.
 
-    'das-cli update-version' allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the 'queryengine' function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only 'queryengine' is available), and define the version of the function you want to use, as mentioned earlier.
+    'das-cli update-version' allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the 'query-engine' function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only 'query-engine' is available), and define the version of the function you want to use, as mentioned earlier.
 
     .SH EXAMPLES
 
@@ -147,9 +143,9 @@ def update_version(function, version):
 
     $ das-cli update-version
 
-    This is an example of how to update the function you want to use (currently only `queryengine` is available).
+    This is an example of how to update the function you want to use (currently only `query-engine` is available).
 
-    $ das-cli update-version --function queryengine
+    $ das-cli update-version --function query-engine
 
     This demonstrates updating the function version to a specific release. You need to specify the version in the semver format
 
@@ -158,12 +154,10 @@ def update_version(function, version):
 
     _validate_version(version)
 
-    function_tag = f"{version}-{function}"
-
     current_function_name, current_function_version = _get_version()
 
     try:
-        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
+        _pull_image(OPENFAAS_IMAGE_NAME, function, version)
 
         config_service.set("openfaas.version", version)
         config_service.set("openfaas.function", function)
@@ -245,16 +239,15 @@ def start():
     except DockerDaemonException as e:
         _handle_exception(str(e))
 
-    _check_service_running(container_service, redis_port, mongodb_port)
-
     mongodb_username = config_service.get("mongodb.username")
     mongodb_password = config_service.get("mongodb.password")
 
     try:
+        _check_service_running(container_service, redis_port, mongodb_port)
+
         click.echo("Starting OpenFaaS...")
 
-        function_tag = f"{version}-{function}"
-        _pull_image(OPENFAAS_IMAGE_NAME, function_tag)
+        _pull_image(OPENFAAS_IMAGE_NAME, function, version)
 
         container_service.start_container(
             function,

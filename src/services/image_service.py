@@ -22,6 +22,9 @@ class ImageService:
             return ImageService()
         return ImageService._instance
 
+    def format_function_tag(function, version) -> str:
+        return f"{function}-{version}"
+
     def pull(self, repository, image_tag) -> None:
         try:
             self._docker_client.images.pull(repository, image_tag)
@@ -45,7 +48,7 @@ class ImageService:
             labels = container["Config"]["Labels"]
 
             if labels is None:
-                return label
+                return tag
 
             return labels.get(
                 label,
