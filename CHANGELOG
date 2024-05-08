@@ -31,3 +31,4 @@
     Reviewed "Segmentation fault (core dumped)" error
     Added support for non-Ubuntu-based distributions to utilize the update-version command. Note that this command was developed and primarily tested on Ubuntu distributions.
 [#73] das-cli python-library version is raising an error
+[#76] Put version number in openfaas docker image name
