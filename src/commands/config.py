@@ -2,13 +2,14 @@ import click
 from config import SECRETS_PATH, USER_DAS_PATH
 from utils import table_parser
 from sys import exit
+from enums import FunctionEnum
 
 
 @click.group()
 @click.pass_context
 def config(ctx):
     """
-    'das-cli config' allows you to manage configuration settings for the DAS CLI, with commands to set, list, and modify 
+    'das-cli config' allows you to manage configuration settings for the DAS CLI, with commands to set, list, and modify
     parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
@@ -20,7 +21,7 @@ def config(ctx):
 @config.command()
 def set():
     """
-    
+
     'das-cli config set' Sets configuration parameters for DAS CLI.
 
     'das-cli config set' prompts the user for configuration settings for the DAS CLI.
@@ -79,8 +80,7 @@ def set():
         openfaas_version = f"latest"
         config_service.set("openfaas.version", openfaas_version)
 
-        openfaas_function = f"queryengine"
-        config_service.set("openfaas.function", openfaas_function)
+        config_service.set("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
 
         jupyter_notebook_port = click.prompt(
             "Enter Jupyter Notebook port",

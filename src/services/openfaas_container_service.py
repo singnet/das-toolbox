@@ -1,5 +1,6 @@
 import docker
 from services.container_service import Container, ContainerService
+from services.image_service import ImageService
 from config import OPENFAAS_IMAGE_NAME
 from exceptions import NotFound, DockerException
 import socket
@@ -31,7 +32,7 @@ class OpenFaaSContainerService(ContainerService):
         mongodb_username: str,
         mongodb_password: str,
     ):
-        function_version = f"{version}-{function}"
+        function_version = ImageService.format_function_tag(function, version)
 
         self.get_container().set_image_version(function_version)
 

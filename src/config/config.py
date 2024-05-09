@@ -1,4 +1,4 @@
-VERSION = '0.2.18'
+VERSION = "0.2.18"
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 )
@@ -20,7 +20,7 @@ MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "0.3.6-metta-parser"
 
-OPENFAAS_IMAGE_NAME = "trueagi/das"
+OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
 JUPYTER_NOTEBOOK_IMAGE_NAME = "trueagi/das"
 JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
