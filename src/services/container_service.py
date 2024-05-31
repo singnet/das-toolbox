@@ -84,13 +84,13 @@ class ContainerService(ABC):
 
         self._container = container
 
-    def _get_client(use: Union[AnyStr, None] = None) -> docker.DockerClient:
+    def _get_client(self, use: Union[AnyStr, None] = None) -> docker.DockerClient:
         """
         Get a docker client for the given docker context
         """
         context = docker.ContextAPI.get_context(use)
         if context is None:
-            raise DockerException(f"Docker context {use!r} not found")
+            raise NotFound(f"Docker context {use!r} not found")
         return docker.DockerClient(
             base_url=context.endpoints["docker"]["Host"],
             tls=context.TLSConfig,

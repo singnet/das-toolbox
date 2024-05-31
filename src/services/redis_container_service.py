@@ -27,10 +27,10 @@ class RedisContainerService(ContainerService):
             raise ContainerAlreadyRunningException()
 
         try:
-            command = [
+            command_params = [
                 "redis-server",
                 "--port",
-                port,
+                f"{port}",
                 "--cluster-enabled",
                 "yes",
                 "--cluster-config-file",
@@ -48,7 +48,7 @@ class RedisContainerService(ContainerService):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                command=command,
+                command=command_params,
                 network_mode="host",
             )
 

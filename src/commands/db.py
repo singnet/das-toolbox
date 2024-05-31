@@ -59,9 +59,7 @@ def _start_redis():
                 exec_context=node_context,
             )
 
-            redis_service.start_container(
-                redis_port,
-            )
+            redis_service.start_container(redis_port)
 
         click.secho(f"Redis started on port {redis_port}", fg="green")
     except ContainerAlreadyRunningException:
@@ -134,30 +132,20 @@ def start():
     click.echo("Done.")
 
 
-@db.command()
-def stop():
-    """
-    Stops all DBMS containers.
-
-    'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
-    This command is useful for shutting down the databases when they are no longer needed.
-
-    IMPORTANT NOTE: After stopping the databases, all data will be lost.
-
-    .SH EXAMPLES
-
-    Stop DBMS containers previously started with 'das-cli db start'.
-
-    $ das-cli db stop
-    """
-
+def _stop_redis():
     click.echo(f"Stopping redis service...")
 
     redis_container_name = config.get("redis.container_name")
+    redis_nodes = config.get("redis.nodes")
 
     try:
-        RedisContainerService(redis_container_name).stop()
-        click.secho("Redis service stopped", fg="green")
+        for node_context in redis_nodes:
+            RedisContainerService(
+                redis_container_name,
+                exec_context=node_context,
+            ).stop()
+
+            click.secho("Redis service stopped", fg="green")
     except NotFound:
         click.secho(
             f"The Redis service named {redis_container_name} is already stopped.",
@@ -173,6 +161,8 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
+
+def _stop_mongodb():
     mongodb_container_name = config.get("mongodb.container_name")
 
     try:
@@ -193,5 +183,25 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
-    sleep(10)
+
+@db.command()
+def stop():
+    """
+    Stops all DBMS containers.
+
+    'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
+    This command is useful for shutting down the databases when they are no longer needed.
+
+    IMPORTANT NOTE: After stopping the databases, all data will be lost.
+
+    .SH EXAMPLES
+
+    Stop DBMS containers previously started with 'das-cli db start'.
+
+    $ das-cli db stop
+    """
+
+    _stop_redis()
+    _stop_mongodb()
+
     click.echo(f"Done.")
