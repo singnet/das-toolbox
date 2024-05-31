@@ -28,3 +28,6 @@ class DockerException(Exception):
 
 class DockerDaemonException(Exception):
     pass
+
+class DockerContextException(Exception):
+    pass

@@ -8,6 +8,7 @@ from exceptions import (
     NotFound,
     DockerException,
     DockerDaemonException,
+    DockerContextException,
 )
 import subprocess
 import json
@@ -90,11 +91,15 @@ class ContainerService(ABC):
         """
         context = docker.ContextAPI.get_context(use)
         if context is None:
-            raise NotFound(f"Docker context {use!r} not found")
-        return docker.DockerClient(
-            base_url=context.endpoints["docker"]["Host"],
-            tls=context.TLSConfig,
-        )
+            raise DockerContextException(f"Docker context {use!r} not found")
+        try:
+            return docker.DockerClient(
+                base_url=context.endpoints["docker"]["Host"],
+                use_ssh_client=True,
+            )
+        except Exception as e:
+            print(e)
+            raise e
 
     def get_docker_client(self) -> docker.DockerClient:
         return self._docker_client
