@@ -33,7 +33,7 @@ def restart():
     Restart all DBMS containers.
 
     'das-cli db restart' restarts all database containers previously started with 'das-cli start'. If no database have been started, 'das-cli db restart' just start them.
-    
+
     IMPORTANTE NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
 
     .SH EXAMPLES
@@ -47,28 +47,10 @@ def restart():
     ctx.invoke(start)
 
 
-@db.command()
-def start():
-    """
-    Starts all DBMS containers.
-
-    'das-cli db start' initiates all databases.
-    These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
-
-    Upon execution, the command will display the ports on which each database is running.
-    Note that the port configuration can be modified using the 'das-cli config set' command.
-
-    .SH EXAMPLES
-
-    Start all databases for use with the DAS.
-
-    $ das-cli db start
-    """
-
-    click.echo("Starting Redis and MongoDB...")
-
+def _start_redis():
     redis_container_name = config.get("redis.container_name")
     redis_port = config.get("redis.port")
+    redis_nodes = config.get("redis.nodes")
 
     try:
         redis_service = RedisContainerService(redis_container_name)
@@ -90,6 +72,8 @@ def start():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
+
+def _start_mongodb():
     mongodb_container_name = config.get("mongodb.container_name")
     mongodb_port = config.get("mongodb.port")
     mongodb_username = config.get("mongodb.username")
@@ -117,6 +101,30 @@ def start():
         )
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
+
+
+@db.command()
+def start():
+    """
+    Starts all DBMS containers.
+
+    'das-cli db start' initiates all databases.
+    These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
+
+    Upon execution, the command will display the ports on which each database is running.
+    Note that the port configuration can be modified using the 'das-cli config set' command.
+
+    .SH EXAMPLES
+
+    Start all databases for use with the DAS.
+
+    $ das-cli db start
+    """
+
+    click.echo("Starting Redis and MongoDB...")
+
+    _start_redis()
+    _start_mongodb()
 
     click.echo("Done.")
 
