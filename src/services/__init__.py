@@ -10,3 +10,4 @@ from .redis_container_service import RedisContainerService
 from .image_service import ImageService
 from .ubuntu_advanced_packaging_tool_service import UbuntuAdvancedPackagingToolService
 from .release_notes_service import ReleaseNotesService
+from .container_remote_service import ContainerRemoteService

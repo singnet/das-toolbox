@@ -3,6 +3,7 @@ from config import SECRETS_PATH, USER_DAS_PATH, Secret as Config
 from utils import table_parser, get_public_ip, get_server_username
 from sys import exit
 from enums import FunctionEnum
+from services import ContainerRemoteService
 
 
 @click.group()
@@ -19,7 +20,7 @@ def config(ctx):
 
 
 def _set_redis_cluster(config_service: Config):
-    server_public_ip = get_public_ip()
+    server_public_ip = "127.0.0.1"
     server_user = get_server_username()
 
     min_nodes = 3
@@ -45,14 +46,12 @@ def _set_redis_cluster(config_service: Config):
         node_ip = click.prompt(
             "Enter the server ip address: ",
             hide_input=False,
-            default=config_service.get(f"redis.nodes.{len(nodes)}.ip"),
         )
         # TODO: validate if it's a valid ip
 
         node_username = click.prompt(
             "Enter the server username: ",
             hide_input=False,
-            default=config_service.get(f"redis.nodes.{len(nodes)}.username"),
         )
 
         nodes.append(
@@ -67,7 +66,10 @@ def _set_redis_cluster(config_service: Config):
                 "Do you want to add more nodes? (yes/no)", hide_input=False, type=bool
             )
 
-    config_service.set("redis.nodes", nodes)
+    container_remote_service = ContainerRemoteService(nodes)
+
+    contexts = container_remote_service.create_context()
+    config_service.set("redis.nodes", contexts)
 
 
 def _set_redis(config_service: Config):
