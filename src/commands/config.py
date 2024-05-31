@@ -1,5 +1,5 @@
 import click
-from config import SECRETS_PATH, USER_DAS_PATH
+from config import SECRETS_PATH, USER_DAS_PATH, Secret as Config
 from utils import table_parser
 from sys import exit
 from enums import FunctionEnum
@@ -16,6 +16,72 @@ def config(ctx):
     global config_service
 
     config_service = ctx.obj["config"]
+
+
+def _set_redis(config_service: Config):
+    redis_port = click.prompt(
+        "Enter Redis port",
+        default=config_service.get("redis.port", 6379),
+        type=int,
+    )
+    config_service.set("redis.port", redis_port)
+
+    redis_container_name = f"das-cli-redis-{redis_port}"
+    config_service.set("redis.container_name", redis_container_name)
+
+
+def _set_mongodb(config_service: Config):
+    mongodb_port = click.prompt(
+        "Enter MongoDB port",
+        default=config_service.get("mongodb.port", 27017),
+        type=int,
+    )
+    config_service.set("mongodb.port", mongodb_port)
+
+    mongodb_container_name = f"das-cli-mongodb-{mongodb_port}"
+    config_service.set("mongodb.container_name", mongodb_container_name)
+
+    mongodb_username = click.prompt(
+        "Enter MongoDB username",
+        default=config_service.get("mongodb.username", "admin"),
+    )
+    config_service.set("mongodb.username", mongodb_username)
+    mongodb_password = click.prompt(
+        "Enter MongoDB password",
+        hide_input=True,
+        default=config_service.get("mongodb.password", "admin"),
+    )
+    config_service.set("mongodb.password", mongodb_password)
+
+
+def _set_loader(config_service: Config):
+    loader_container_name = "das-cli-loader"
+    config_service.set("loader.container_name", loader_container_name)
+
+
+def _set_openfaas(config_service: Config):
+    openfaas_container_name = f"das-cli-openfaas-8080"
+    config_service.set("openfaas.container_name", openfaas_container_name)
+    openfaas_version = f"latest"
+    config_service.set("openfaas.version", openfaas_version)
+    config_service.set("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
+
+
+def _set_jupyter_notebook(config_service: Config):
+    jupyter_notebook_port = click.prompt(
+        "Enter Jupyter Notebook port",
+        hide_input=True,
+        default=config_service.get("jupyter.port", 8888),
+    )
+    config_service.set("jupyter_notebook.port", jupyter_notebook_port)
+
+    jupyter_notebook_container_name = (
+        f"das-cli-jupyter-notebook-{jupyter_notebook_port}"
+    )
+    config_service.set(
+        "jupyter_notebook.container_name",
+        jupyter_notebook_container_name,
+    )
 
 
 @config.command()
@@ -39,63 +105,11 @@ def set():
     """
 
     try:
-        redis_port = click.prompt(
-            "Enter Redis port",
-            default=config_service.get("redis.port", 6379),
-            type=int,
-        )
-        config_service.set("redis.port", redis_port)
-
-        redis_container_name = f"das-cli-redis-{redis_port}"
-        config_service.set("redis.container_name", redis_container_name)
-
-        mongodb_port = click.prompt(
-            "Enter MongoDB port",
-            default=config_service.get("mongodb.port", 27017),
-            type=int,
-        )
-        config_service.set("mongodb.port", mongodb_port)
-
-        mongodb_container_name = f"das-cli-mongodb-{mongodb_port}"
-        config_service.set("mongodb.container_name", mongodb_container_name)
-
-        mongodb_username = click.prompt(
-            "Enter MongoDB username",
-            default=config_service.get("mongodb.username", "admin"),
-        )
-        config_service.set("mongodb.username", mongodb_username)
-        mongodb_password = click.prompt(
-            "Enter MongoDB password",
-            hide_input=True,
-            default=config_service.get("mongodb.password", "admin"),
-        )
-        config_service.set("mongodb.password", mongodb_password)
-
-        loader_container_name = "das-cli-loader"
-        config_service.set("loader.container_name", loader_container_name)
-
-        openfaas_container_name = f"das-cli-openfaas-8080"
-        config_service.set("openfaas.container_name", openfaas_container_name)
-
-        openfaas_version = f"latest"
-        config_service.set("openfaas.version", openfaas_version)
-
-        config_service.set("openfaas.function", FunctionEnum.QUERY_ENGINE.value)
-
-        jupyter_notebook_port = click.prompt(
-            "Enter Jupyter Notebook port",
-            hide_input=True,
-            default=config_service.get("jupyter.port", 8888),
-        )
-        config_service.set("jupyter_notebook.port", jupyter_notebook_port)
-
-        jupyter_notebook_container_name = (
-            f"das-cli-jupyter-notebook-{jupyter_notebook_port}"
-        )
-        config_service.set(
-            "jupyter_notebook.container_name",
-            jupyter_notebook_container_name,
-        )
+        _set_redis(config_service)
+        _set_mongodb(config_service)
+        _set_loader(config_service)
+        _set_openfaas(config_service)
+        _set_jupyter_notebook(config_service)
 
         config_service.save()
 
