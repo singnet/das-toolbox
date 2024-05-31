@@ -1,6 +1,6 @@
 import click
 from config import SECRETS_PATH, USER_DAS_PATH, Secret as Config
-from utils import table_parser
+from utils import table_parser, get_public_ip, get_server_username
 from sys import exit
 from enums import FunctionEnum
 
@@ -18,6 +18,58 @@ def config(ctx):
     config_service = ctx.obj["config"]
 
 
+def _set_redis_cluster(config_service: Config):
+    server_public_ip = get_public_ip()
+    server_user = get_server_username()
+
+    min_nodes = 3
+    nodes = []
+    add_more_nodes_flag = True
+
+    if server_public_ip is None:
+        raise Exception(
+            "The server's public ip could not be solved. Make sure it has internet access."
+        )
+    else:
+        nodes.append(
+            {
+                "ip": server_public_ip,
+                "username": server_user,
+            }
+        )
+
+    while True:
+        if add_more_nodes_flag == False:
+            break
+
+        node_ip = click.prompt(
+            "Enter the server ip address: ",
+            hide_input=False,
+            default=config_service.get(f"redis.nodes.{len(nodes)}.ip"),
+        )
+        # TODO: validate if it's a valid ip
+
+        node_username = click.prompt(
+            "Enter the server username: ",
+            hide_input=False,
+            default=config_service.get(f"redis.nodes.{len(nodes)}.username"),
+        )
+
+        nodes.append(
+            {
+                "ip": node_ip,
+                "username": node_username,
+            }
+        )
+
+        if len(nodes) >= min_nodes:
+            add_more_nodes_flag = click.prompt(
+                "Do you want to add more nodes? (yes/no)", hide_input=False, type=bool
+            )
+
+    config_service.set("redis.nodes", nodes)
+
+
 def _set_redis(config_service: Config):
     redis_port = click.prompt(
         "Enter Redis port",
@@ -28,6 +80,17 @@ def _set_redis(config_service: Config):
 
     redis_container_name = f"das-cli-redis-{redis_port}"
     config_service.set("redis.container_name", redis_container_name)
+
+    redis_cluster = click.prompt(
+        "Is it a redis cluster? (yes/no) ",
+        hide_input=False,
+        default=config_service.get("redis.cluster"),
+        type=bool,
+    )
+    config_service.set("redis.cluster", redis_cluster)
+
+    if redis_cluster:
+        _set_redis_cluster(config_service)
 
 
 def _set_mongodb(config_service: Config):
@@ -122,6 +185,9 @@ def set():
             f"\nPermission denied trying to write to {SECRETS_PATH}.",
             fg="red",
         )
+        exit(1)
+    except Exception as e:
+        click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
 

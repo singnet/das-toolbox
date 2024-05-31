@@ -10,3 +10,18 @@ def remove_special_characters(text):
     clean_text = re.sub(pattern, "", text)
 
     return clean_text.strip()
+
+
+def get_public_ip():
+    import requests
+
+    try:
+        return requests.get("https://api.ipify.org").content.decode("utf8")
+    except:
+        return None
+
+
+def get_server_username():
+    import getpass
+
+    return getpass.getuser()
