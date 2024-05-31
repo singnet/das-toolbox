@@ -53,11 +53,16 @@ def _start_redis():
     redis_nodes = config.get("redis.nodes")
 
     try:
-        redis_service = RedisContainerService(redis_container_name)
+        for node_context in redis_nodes:
+            redis_service = RedisContainerService(
+                redis_container_name,
+                exec_context=node_context,
+            )
 
-        redis_service.start_container(
-            redis_port,
-        )
+            redis_service.start_container(
+                redis_port,
+            )
+
         click.secho(f"Redis started on port {redis_port}", fg="green")
     except ContainerAlreadyRunningException:
         click.secho(

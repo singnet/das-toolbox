@@ -1,5 +1,5 @@
 import docker
-from typing import Any, Union
+from typing import Any, Union, AnyStr
 from abc import ABC, abstractclassmethod
 
 import docker.errors
@@ -69,16 +69,32 @@ class Container:
 
 
 class ContainerService(ABC):
-    def __init__(self, container: Container) -> None:
+    def __init__(
+        self,
+        container: Container,
+        exec_context: Union[AnyStr, None] = None,
+    ) -> None:
         super().__init__()
         try:
-            self._docker_client = docker.from_env()
+            self._docker_client = self._get_client(exec_context)
         except docker.errors.DockerException:
             raise DockerDaemonException(
                 "Your Docker service appears to be either malfunctioning or not running."
             )
 
         self._container = container
+
+    def _get_client(use: Union[AnyStr, None] = None) -> docker.DockerClient:
+        """
+        Get a docker client for the given docker context
+        """
+        context = docker.ContextAPI.get_context(use)
+        if context is None:
+            raise DockerException(f"Docker context {use!r} not found")
+        return docker.DockerClient(
+            base_url=context.endpoints["docker"]["Host"],
+            tls=context.TLSConfig,
+        )
 
     def get_docker_client(self) -> docker.DockerClient:
         return self._docker_client
