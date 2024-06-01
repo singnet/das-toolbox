@@ -107,6 +107,12 @@ class ContainerService(ABC):
     def get_container(self) -> Container:
         return self._container
 
+    def _exec_container(self, command: str):
+        container_name = self.get_container().get_name()
+        container = self.get_docker_client().containers.get(container_name)
+
+        return container.exec_run(command)
+
     def _start_container(self, **kwargs) -> Any:
         if self.get_container().is_running():
             raise ContainerAlreadyRunningException()

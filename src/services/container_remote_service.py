@@ -38,6 +38,10 @@ class ContainerRemoteService:
                 errors.append(f"Could not create context for {server_ip}")
                 continue
 
-            contexts.append(context_name)
+            contexts.append({
+                "context": context_name,
+                "ip": server_ip,
+                "username": server_username,
+            })
 
         return contexts

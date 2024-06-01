@@ -51,15 +51,20 @@ def _start_redis():
     redis_container_name = config.get("redis.container_name")
     redis_port = config.get("redis.port")
     redis_nodes = config.get("redis.nodes")
+    redis_cluster = config.get("redis.cluster")
 
     try:
-        for node_context in redis_nodes:
+        for node in redis_nodes:
+            node_context = node.get("context")
             redis_service = RedisContainerService(
                 redis_container_name,
                 exec_context=node_context,
             )
 
             redis_service.start_container(redis_port)
+
+        if redis_cluster:
+            RedisContainerService(redis_container_name).start_cluster(redis_nodes, redis_port)
 
         click.secho(f"Redis started on port {redis_port}", fg="green")
     except ContainerAlreadyRunningException:
@@ -139,7 +144,8 @@ def _stop_redis():
     redis_nodes = config.get("redis.nodes")
 
     try:
-        for node_context in redis_nodes:
+        for node in redis_nodes:
+            node_context = node.get("context")
             RedisContainerService(
                 redis_container_name,
                 exec_context=node_context,

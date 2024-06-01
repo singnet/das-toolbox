@@ -2,7 +2,7 @@ import docker
 from services.container_service import Container, ContainerService
 from config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 from exceptions import ContainerAlreadyRunningException, DockerException
-from typing import AnyStr, Union
+from typing import AnyStr, Union, List, Dict
 
 
 class RedisContainerService(ContainerService):
@@ -57,3 +57,23 @@ class RedisContainerService(ContainerService):
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
 
             raise DockerException(e.explanation)
+
+
+    def start_cluster(self, redis_nodes: List[Dict], redis_port: AnyStr):
+        try:
+            nodes_str = ""
+
+            for redis_node in redis_nodes:
+                server_ip = redis_node.get("ip")
+                nodes_str += f"{server_ip}:{redis_port} "
+
+            cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0"
+
+            container_id = self._exec_container(cmd)
+
+            return container_id
+        except docker.errors.APIError as e:
+            # print(e.explanation) # TODO: ADD TO LOGGING FILE
+
+            raise DockerException(e.explanation)
+        

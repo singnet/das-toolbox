@@ -44,13 +44,13 @@ def _set_redis_cluster(config_service: Config):
             break
 
         node_ip = click.prompt(
-            "Enter the server ip address: ",
+            "Enter the server ip address",
             hide_input=False,
         )
         # TODO: validate if it's a valid ip
 
         node_username = click.prompt(
-            "Enter the server username: ",
+            "Enter the server username",
             hide_input=False,
         )
 
@@ -68,8 +68,8 @@ def _set_redis_cluster(config_service: Config):
 
     container_remote_service = ContainerRemoteService(nodes)
 
-    contexts = container_remote_service.create_context()
-    config_service.set("redis.nodes", contexts)
+    servers_context = container_remote_service.create_context()
+    config_service.set("redis.nodes", servers_context)
 
 
 def _set_redis(config_service: Config):
