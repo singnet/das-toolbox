@@ -20,7 +20,7 @@ class MongoContainerService(ContainerService):
         username: str,
         password: str,
     ):
-        if self.get_container().is_running():
+        if self.is_running():
             raise ContainerAlreadyRunningException()
 
         try:

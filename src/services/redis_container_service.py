@@ -23,7 +23,7 @@ class RedisContainerService(ContainerService):
         self,
         port: int,
     ):
-        if self.get_container().is_running():
+        if self.is_running():
             raise ContainerAlreadyRunningException()
 
         try:
@@ -76,4 +76,3 @@ class RedisContainerService(ContainerService):
             # print(e.explanation) # TODO: ADD TO LOGGING FILE
 
             raise DockerException(e.explanation)
-        

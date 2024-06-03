@@ -10,14 +10,9 @@ class OpenFaaSContainerService(ContainerService):
     def __init__(
         self,
         openfaas_container_name,
-        redis_container_name,
-        mongodb_container_name,
     ) -> None:
         container = Container(openfaas_container_name, OPENFAAS_IMAGE_NAME)
         super().__init__(container)
-
-        self.redis_container = Container(redis_container_name)
-        self.mongodb_container = Container(mongodb_container_name)
 
     def is_port_in_use(self, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

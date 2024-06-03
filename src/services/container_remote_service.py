@@ -7,7 +7,7 @@ class ContainerRemoteService:
     def __init__(self, servers: List[Dict]) -> None:
         self._servers = servers
 
-    def create_context(self) -> List[AnyStr]:
+    def create_context(self,) -> List[AnyStr]:
         contexts = []
 
         for server in self._servers:
