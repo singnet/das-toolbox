@@ -1,7 +1,7 @@
 import re
 import click
 from sys import exit
-from services import OpenFaaSContainerService, ImageService
+from services import OpenFaaSContainerService, ImageService, RedisContainerService, MongoContainerService
 from exceptions import (
     ContainerNotRunningException,
     DockerException,

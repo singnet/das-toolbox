@@ -56,23 +56,26 @@ def _start_redis():
     try:
         for node in redis_nodes:
             node_context = node.get("context")
+            node_ip = node.get("ip")
+            node_username = node.get("username")
             redis_service = RedisContainerService(
                 redis_container_name,
                 exec_context=node_context,
             )
 
-            redis_service.start_container(redis_port)
+            try:
+                redis_service.start_container(redis_port)
+                click.secho(f"Redis started on port {redis_port} at {node_ip} as {node_username} user", fg="green")
+            except ContainerAlreadyRunningException:
+                click.secho(
+                    f"Redis is already running. It's listening on port {redis_port} at {node_ip} as {node_username} user",
+                    fg="yellow",
+                )
 
         if redis_cluster:
             RedisContainerService(redis_container_name).start_cluster(redis_nodes, redis_port)
 
-        click.secho(f"Redis started on port {redis_port}", fg="green")
-    except ContainerAlreadyRunningException:
-        click.secho(
-            f"Redis is already running. It's listening on port {redis_port}",
-            fg="yellow",
-        )
-    except (DockerException, DockerDaemonException) as e:
+    except Exception as e:
         click.secho(
             f"\nError occurred while trying to start Redis on port {redis_port}\n",
             fg="red",
@@ -146,17 +149,21 @@ def _stop_redis():
     try:
         for node in redis_nodes:
             node_context = node.get("context")
-            RedisContainerService(
-                redis_container_name,
-                exec_context=node_context,
-            ).stop()
+            node_ip = node.get("ip")
+            node_username = node.get("username")
 
-            click.secho("Redis service stopped", fg="green")
-    except NotFound:
-        click.secho(
-            f"The Redis service named {redis_container_name} is already stopped.",
-            fg="yellow",
-        )
+            try:
+                RedisContainerService(
+                    redis_container_name,
+                    exec_context=node_context,
+                ).stop()
+
+                click.secho(f"The Redis service at {node_ip} has been stopped by the {node_username} user", fg="green")
+            except NotFound:
+                click.secho(
+                    f"The Redis service named {redis_container_name} at {node_ip} is already stopped by the {node_username} user.",
+                    fg="yellow",
+                )
     except DockerException as e:
         click.secho(
             f"\nError occurred while trying to stop Redis\n",

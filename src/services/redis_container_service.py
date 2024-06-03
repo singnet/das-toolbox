@@ -67,7 +67,7 @@ class RedisContainerService(ContainerService):
                 server_ip = redis_node.get("ip")
                 nodes_str += f"{server_ip}:{redis_port} "
 
-            cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0"
+            cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0 --cluster-yes"
 
             container_id = self._exec_container(cmd)
 

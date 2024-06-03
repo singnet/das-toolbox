@@ -1,9 +1,10 @@
 import click
 from config import SECRETS_PATH, USER_DAS_PATH, Secret as Config
-from utils import table_parser, get_public_ip, get_server_username
+from utils import table_parser, get_server_username, get_public_ip
 from sys import exit
 from enums import FunctionEnum
 from services import ContainerRemoteService
+from typing import List, Dict
 
 
 @click.group()
@@ -19,57 +20,42 @@ def config(ctx):
     config_service = ctx.obj["config"]
 
 
-def _set_redis_cluster(config_service: Config):
-    server_public_ip = "127.0.0.1"
-    server_user = get_server_username()
-
-    min_nodes = 3
-    nodes = []
+def _set_redis_nodes(cluster_nodes: List[Dict], min_servers: int = 3):
     add_more_nodes_flag = True
-
-    if server_public_ip is None:
-        raise Exception(
-            "The server's public ip could not be solved. Make sure it has internet access."
-        )
-    else:
-        nodes.append(
-            {
-                "ip": server_public_ip,
-                "username": server_user,
-            }
-        )
+    servers = []
 
     while True:
         if add_more_nodes_flag == False:
             break
 
-        node_ip = click.prompt(
+        server_ip = click.prompt(
             "Enter the server ip address",
             hide_input=False,
         )
         # TODO: validate if it's a valid ip
 
-        node_username = click.prompt(
+        server_username = click.prompt(
             "Enter the server username",
             hide_input=False,
         )
 
-        nodes.append(
+        servers.append(
             {
-                "ip": node_ip,
-                "username": node_username,
+                "ip": server_ip,
+                "username": server_username,
             }
         )
 
-        if len(nodes) >= min_nodes:
+        if len(servers) >= min_servers - 1:
             add_more_nodes_flag = click.prompt(
-                "Do you want to add more nodes? (yes/no)", hide_input=False, type=bool
+                "Do you want to add more servers? (yes/no)",
+                hide_input=False,
+                type=bool,
             )
 
-    container_remote_service = ContainerRemoteService(nodes)
+    container_remote_service = ContainerRemoteService(servers)
 
-    servers_context = container_remote_service.create_context()
-    config_service.set("redis.nodes", servers_context)
+    cluster_nodes += container_remote_service.create_context()
 
 
 def _set_redis(config_service: Config):
@@ -91,9 +77,28 @@ def _set_redis(config_service: Config):
     )
     config_service.set("redis.cluster", redis_cluster)
 
-    if redis_cluster:
-        _set_redis_cluster(config_service)
+    nodes = []
+    server_user = get_server_username()
+    redis_current_node = {
+        "context": "default",
+        "ip": "localhost",
+        "username": server_user,
+    }
 
+    if redis_cluster:
+        server_public_ip = get_public_ip()
+
+        if server_public_ip is None:
+            raise Exception(
+                "The server's public ip could not be solved. Make sure it has internet access."
+            )
+
+        redis_current_node["ip"] = server_public_ip
+
+        _set_redis_nodes(nodes)
+
+    nodes.insert(0, redis_current_node)
+    config_service.set("redis.nodes", nodes)
 
 def _set_mongodb(config_service: Config):
     mongodb_port = click.prompt(
