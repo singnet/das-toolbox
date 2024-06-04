@@ -179,12 +179,81 @@ def set():
     The command displays prompts for each configuration option, suggesting default values when available.
     If the user has already configured a setting, the default value will be the previously set value, allowing for quick modifications.
     Once all configurations are provided, the command will also inform the user about the location where the configuration file was created.
+    This file contains several variables that influence the behavior of DAS commands based on the user's provided parameters.
 
     .SH EXAMPLES
 
     Set configuration settings for the DAS CLI.
 
     $ das-cli config set
+
+    .sh VARIABLES
+
+    redis.*
+        These variables control Redis settings, such as:
+
+        redis.port
+            Defines the port number on which the Redis server is listening. The user must ensure this port is available on the server where das-cli is running and also on other nodes if a cluster is being used. If using a firewall like `ufw`, the user can allow the necessary ports for cluster communication using the command `ufw allow 7000:17000/tcp` to ensure proper communication within the cluster, assuming the Redis instance operates on port 7000. It's recommended to restrict access to specific IP addresses for each node. This practice enhances security and minimizes potential vulnerabilities.
+
+        redis.container_name
+            Specifies the name of the Docker container running the Redis server.
+
+        redis.custer
+            Indicates whether a Redis cluster is being used (true/false).
+
+        redis.nodes
+            Receives a list of nodes for Redis configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with Redis. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
+
+        redis.nodes.[].context
+            The name of the Docker context containing connection information for the remote Docker instances of other nodes.
+
+        redis.nodes.[].ip
+            The IP address of the node.
+
+        redis.nodes.[].username
+            The username for connecting to the node.
+
+    mongodb.*
+        These variables control MongoDB settings, such as:
+
+        mongodb.port
+            Defines the port number on which the MongoDB server is listening. The user must ensure this port is available on the server where das-cli is running.
+
+        mongodb.container_name
+            Specifies the name of the Docker container running the MongoDB server.
+
+        mongodb.username
+            The username for connecting to the MongoDB server.
+
+        mongodb.password
+            The password for connecting to the MongoDB server.
+
+    loader.*
+        These variables control the Loader settings, responsible for validating and loading meta files into the database, such as:
+
+        loader.container_name
+            Specifies the name of the Docker container running the Loader.
+
+    openfaas.*
+        These variables control OpenFaaS settings, such as:
+
+        openfaas.container_name
+            Specifies the name of the Docker container running OpenFaaS.
+
+        openfaas.version
+            Specifies the version of OpenFaaS function being used.
+
+        openfaas.function
+            Specifies the name of the function to be executed within OpenFaaS.
+
+    jupyter_notebook.*
+        These variables control Jupyter Notebook settings, such as:
+
+        jupyter_notebook.port
+            Defines the port number on which the Jupyter Notebook server is listening.
+
+        jupyter_notebook.container_name
+            Specifies the name of the Docker container running the Jupyter Notebook server.
 
     """
 
