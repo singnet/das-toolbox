@@ -58,6 +58,14 @@ def _set_redis_nodes(cluster_nodes: List[Dict], min_servers: int = 3):
     cluster_nodes += container_remote_service.create_context()
 
 
+def _remove_redis_contexts(config_service: Config):
+    nodes = config_service.get("redis.nodes")
+
+    container_remote_service = ContainerRemoteService(nodes)
+
+    container_remote_service.remove_context()
+
+
 def _set_redis(config_service: Config):
     redis_port = click.prompt(
         "Enter Redis port",
@@ -69,10 +77,12 @@ def _set_redis(config_service: Config):
     redis_container_name = f"das-cli-redis-{redis_port}"
     config_service.set("redis.container_name", redis_container_name)
 
+    cluster_default_value = "yes" if config_service.get("redis.cluster") else "no"
+
     redis_cluster = click.prompt(
         "Is it a redis cluster? (yes/no) ",
         hide_input=False,
-        default=config_service.get("redis.cluster"),
+        default=cluster_default_value,
         type=bool,
     )
     config_service.set("redis.cluster", redis_cluster)
@@ -98,7 +108,11 @@ def _set_redis(config_service: Config):
         _set_redis_nodes(nodes)
 
     nodes.insert(0, redis_current_node)
+
+    _remove_redis_contexts(config_service)
+
     config_service.set("redis.nodes", nodes)
+
 
 def _set_mongodb(config_service: Config):
     mongodb_port = click.prompt(

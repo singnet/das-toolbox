@@ -7,11 +7,34 @@ class ContainerRemoteService:
     def __init__(self, servers: List[Dict]) -> None:
         self._servers = servers
 
-    def create_context(self,) -> List[AnyStr]:
-        contexts = []
+    def remove_context(self) -> Dict:
+        errors = []
 
         for server in self._servers:
-            errors = []
+            server_context = server.get("context")
+            server_ip = server.get("ip")
+
+            if server_context and server_context != "default":
+                status_code = subprocess.call(
+                    [
+                        "docker",
+                        "context",
+                        "rm",
+                        server_context,
+                    ],
+                )
+
+                if status_code != 0:
+                    errors.append(f"Could not create context for {server_ip}")
+                    continue
+
+        return errors
+
+    def create_context(self) -> List[AnyStr]:
+        contexts = []
+        errors = []
+
+        for server in self._servers:
             server_ip = server.get("ip")
             server_username = server.get("username")
 
@@ -38,10 +61,12 @@ class ContainerRemoteService:
                 errors.append(f"Could not create context for {server_ip}")
                 continue
 
-            contexts.append({
-                "context": context_name,
-                "ip": server_ip,
-                "username": server_username,
-            })
+            contexts.append(
+                {
+                    "context": context_name,
+                    "ip": server_ip,
+                    "username": server_username,
+                }
+            )
 
         return contexts
