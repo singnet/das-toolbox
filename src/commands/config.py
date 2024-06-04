@@ -1,6 +1,6 @@
 import click
 from config import SECRETS_PATH, USER_DAS_PATH, Secret as Config
-from utils import table_parser, get_server_username, get_public_ip
+from utils import table_parser, get_server_username, get_public_ip, is_ssh_server_reachable, is_server_port_available
 from sys import exit
 from enums import FunctionEnum
 from services import ContainerRemoteService
@@ -66,6 +66,17 @@ def _remove_redis_contexts(config_service: Config):
     container_remote_service.remove_context()
 
 
+def _attempt_redis_nodes_connection(redis_port: str, nodes: List[Dict]):
+    for node in nodes:
+        if is_ssh_server_reachable(server=node, port=redis_port):
+            click.secho(f"Server {node["ip"]} is not recheable", fg="red")
+            exit(1)
+        if not is_server_port_available(node["ip"], redis_port, redis_port + 1000):
+            click.secho(f"Server {node["ip"]} is not recheable", fg="red")
+            exit(1)
+
+
+
 def _set_redis(config_service: Config):
     redis_port = click.prompt(
         "Enter Redis port",
@@ -106,6 +117,8 @@ def _set_redis(config_service: Config):
         redis_current_node["ip"] = server_public_ip
 
         _set_redis_nodes(nodes)
+
+    _attempt_redis_nodes_connection(nodes)
 
     nodes.insert(0, redis_current_node)
 
@@ -187,7 +200,7 @@ def set():
 
     $ das-cli config set
 
-    .sh VARIABLES
+    .SH VARIABLES
 
     redis.*
         These variables control Redis settings, such as:
