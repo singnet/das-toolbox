@@ -1,14 +1,19 @@
 import re
 import click
 from sys import exit
-from services import OpenFaaSContainerService, ImageService, RedisContainerService, MongoContainerService
+from services import (
+    OpenFaaSContainerService,
+    ImageService,
+    RedisContainerService,
+    MongoContainerService,
+)
 from exceptions import (
     ContainerNotRunningException,
     DockerException,
     DockerDaemonException,
     NotFound,
 )
-from config import OPENFAAS_IMAGE_NAME
+from config import OPENFAAS_IMAGE_NAME, USER_DAS_PATH
 from enums import FunctionEnum
 
 
@@ -83,6 +88,17 @@ def faas(ctx):
     global config_service
 
     config_service = ctx.obj["config"]
+
+    try:
+        if not config_service.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
 
 
 def _get_version() -> tuple:

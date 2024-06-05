@@ -32,12 +32,18 @@ def get_ssh_user_and_ip(text: str) -> tuple:
         return None
 
 
-def is_server_port_available(host, start_port, end_port):
-    for port in range(start_port, end_port + 1):
+def is_server_port_available(host, start_port: int, end_port: Union[int, None] = None):
+    def server_up(host, port):
         command = f"nc -zv {host} {port}"
         result = subprocess.call(command, shell=True)
 
-        if result != 0:
+        return result == 0
+
+    if end_port is None:
+        return server_up(host, port=start_port)
+
+    for port in range(start_port, end_port + 1):
+        if not server_up(host, port):
             return False
 
     return True

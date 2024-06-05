@@ -1,5 +1,6 @@
 import click
 from services.jupyter_notebook_container_service import JupyterNotebookContainerService
+from config import USER_DAS_PATH
 from exceptions import (
     ContainerAlreadyRunningException,
     DockerException,
@@ -19,6 +20,17 @@ def jupyter_notebook(ctx):
     global config
 
     config = ctx.obj["config"]
+
+    try:
+        if not config.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
 
 
 @jupyter_notebook.command()

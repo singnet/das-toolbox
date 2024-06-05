@@ -1,5 +1,6 @@
 import click
-from time import sleep
+from config import USER_DAS_PATH
+
 from sys import exit
 from services import (
     RedisContainerService,
@@ -25,6 +26,17 @@ def db(ctx):
     global config
 
     config = ctx.obj["config"]
+
+    try:
+        if not config.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
 
 
 @db.command()
@@ -65,7 +77,10 @@ def _start_redis():
 
             try:
                 redis_service.start_container(redis_port)
-                click.secho(f"Redis started on port {redis_port} at {node_ip} as {node_username} user", fg="green")
+                click.secho(
+                    f"Redis started on port {redis_port} at {node_ip} as {node_username} user",
+                    fg="green",
+                )
             except ContainerAlreadyRunningException:
                 click.secho(
                     f"Redis is already running. It's listening on port {redis_port} at {node_ip} as {node_username} user",
@@ -73,7 +88,9 @@ def _start_redis():
                 )
 
         if redis_cluster:
-            RedisContainerService(redis_container_name).start_cluster(redis_nodes, redis_port)
+            RedisContainerService(redis_container_name).start_cluster(
+                redis_nodes, redis_port
+            )
 
     except Exception as e:
         click.secho(
@@ -158,7 +175,10 @@ def _stop_redis():
                     exec_context=node_context,
                 ).stop()
 
-                click.secho(f"The Redis service at {node_ip} has been stopped by the {node_username} user", fg="green")
+                click.secho(
+                    f"The Redis service at {node_ip} has been stopped by the {node_username} user",
+                    fg="green",
+                )
             except NotFound:
                 click.secho(
                     f"The Redis service named {redis_container_name} at {node_ip} is already stopped by the {node_username} user.",

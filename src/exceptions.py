@@ -29,5 +29,10 @@ class DockerException(Exception):
 class DockerDaemonException(Exception):
     pass
 
+
 class DockerContextException(Exception):
+    pass
+
+
+class UnavailableServer(Exception):
     pass
