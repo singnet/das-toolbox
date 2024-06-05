@@ -1,10 +1,17 @@
 import click
 from config import SECRETS_PATH, USER_DAS_PATH, Secret as Config
-from utils import table_parser, get_server_username, get_public_ip, is_ssh_server_reachable, is_server_port_available
+from utils import (
+    table_parser,
+    get_server_username,
+    get_public_ip,
+    is_ssh_server_reachable,
+    is_server_port_available,
+)
 from sys import exit
 from enums import FunctionEnum
 from services import ContainerRemoteService
 from typing import List, Dict
+from exceptions import UnavailableServer
 
 
 @click.group()
@@ -59,7 +66,7 @@ def _set_redis_nodes(cluster_nodes: List[Dict], min_servers: int = 3):
 
 
 def _remove_redis_contexts(config_service: Config):
-    nodes = config_service.get("redis.nodes")
+    nodes = config_service.get("redis.nodes", [])
 
     container_remote_service = ContainerRemoteService(nodes)
 
@@ -68,13 +75,14 @@ def _remove_redis_contexts(config_service: Config):
 
 def _attempt_redis_nodes_connection(redis_port: str, nodes: List[Dict]):
     for node in nodes:
-        if is_ssh_server_reachable(server=node, port=redis_port):
-            click.secho(f"Server {node["ip"]} is not recheable", fg="red")
-            exit(1)
-        if not is_server_port_available(node["ip"], redis_port, redis_port + 1000):
-            click.secho(f"Server {node["ip"]} is not recheable", fg="red")
-            exit(1)
+        node_ip = node["ip"]
 
+        if not is_ssh_server_reachable(server=node):
+            raise UnavailableServer(f"Server {node_ip} is not reachable via SSH.")
+        if not is_server_port_available(node_ip, redis_port):
+            raise UnavailableServer(
+                f"It appears that the Redis port {redis_port} on {node_ip} is not open."
+            )
 
 
 def _set_redis(config_service: Config):
@@ -118,7 +126,7 @@ def _set_redis(config_service: Config):
 
         _set_redis_nodes(nodes)
 
-    _attempt_redis_nodes_connection(nodes)
+    _attempt_redis_nodes_connection(redis_port, nodes)
 
     nodes.insert(0, redis_current_node)
 
