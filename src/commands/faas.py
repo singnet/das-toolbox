@@ -1,14 +1,19 @@
 import re
 import click
 from sys import exit
-from services import OpenFaaSContainerService, ImageService
+from services import (
+    OpenFaaSContainerService,
+    ImageService,
+    RedisContainerService,
+    MongoContainerService,
+)
 from exceptions import (
     ContainerNotRunningException,
     DockerException,
     DockerDaemonException,
     NotFound,
 )
-from config import OPENFAAS_IMAGE_NAME
+from config import OPENFAAS_IMAGE_NAME, USER_DAS_PATH
 from enums import FunctionEnum
 
 
@@ -18,10 +23,15 @@ def _validate_version(version):
         exit(1)
 
 
-def _check_service_running(container_service, redis_port, mongodb_port):
+def _check_services_running(
+    redis_container_service: RedisContainerService,
+    mongodb_container_service: MongoContainerService,
+    redis_port: int,
+    mongodb_port: int,
+):
     services_not_running = False
 
-    if not container_service.redis_container.is_running():
+    if not redis_container_service.is_running():
         click.secho("Redis is not running", fg="red")
         services_not_running = True
     else:
@@ -30,7 +40,7 @@ def _check_service_running(container_service, redis_port, mongodb_port):
             fg="yellow",
         )
 
-    if not container_service.mongodb_container.is_running():
+    if not mongodb_container_service.is_running():
         click.secho("MongoDB is not running", fg="red")
         services_not_running = True
     else:
@@ -78,6 +88,17 @@ def faas(ctx):
     global config_service
 
     config_service = ctx.obj["config"]
+
+    try:
+        if not config_service.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
 
 
 def _get_version() -> tuple:
@@ -231,11 +252,11 @@ def start():
     mongodb_port = config_service.get("mongodb.port")
 
     try:
-        container_service = OpenFaaSContainerService(
+        openfaas_container_service = OpenFaaSContainerService(
             openfaas_container_name,
-            redis_container_name,
-            mongodb_container_name,
         )
+        redis_container_service = RedisContainerService(redis_container_name)
+        mongodb_container_service = MongoContainerService(mongodb_container_name)
     except DockerDaemonException as e:
         _handle_exception(str(e))
 
@@ -243,13 +264,18 @@ def start():
     mongodb_password = config_service.get("mongodb.password")
 
     try:
-        _check_service_running(container_service, redis_port, mongodb_port)
+        _check_services_running(
+            redis_container_service,
+            mongodb_container_service,
+            redis_port,
+            mongodb_port,
+        )
 
         click.echo("Starting OpenFaaS...")
 
         _pull_image(OPENFAAS_IMAGE_NAME, function, version)
 
-        container_service.start_container(
+        openfaas_container_service.start_container(
             function,
             version,
             redis_port,
@@ -258,7 +284,7 @@ def start():
             mongodb_password,
         )
 
-        label = container_service.get_label("fn.version") or version
+        label = openfaas_container_service.get_label("fn.version") or version
         version_str = f"latest ({label})" if version == "latest" else label
 
         click.secho(
@@ -284,17 +310,11 @@ def stop():
     $ das-cli faas stop
     """
     openfaas_container_name = config_service.get("openfaas.container_name")
-    redis_container_name = config_service.get("redis.container_name")
-    mongodb_container_name = config_service.get("mongodb.container_name")
 
     try:
         click.echo(f"Stopping OpenFaaS service...")
-        container_service = OpenFaaSContainerService(
-            openfaas_container_name,
-            redis_container_name,
-            mongodb_container_name,
-        )
-        container_service.stop()
+        openfaas_container_service = OpenFaaSContainerService(openfaas_container_name)
+        openfaas_container_service.stop()
         click.secho("OpenFaaS service stopped", fg="green")
     except NotFound:
         _handle_not_found(openfaas_container_name)

@@ -1,9 +1,10 @@
 import click
 from sys import exit
+from time import sleep
 from services import RedisContainerService, MongoContainerService
 from services import OpenFaaSContainerService
 from exceptions import DockerDaemonException, DockerException
-from time import sleep
+from config import USER_DAS_PATH
 
 
 @click.group()
@@ -19,6 +20,17 @@ def logs(ctx):
     global config
 
     config = ctx.obj["config"]
+
+    try:
+        if not config.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
 
 
 @logs.command()

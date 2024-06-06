@@ -33,7 +33,7 @@ def das_cli(ctx):
         ctx.obj["config"] = Secret()
     except PermissionError:
         click.secho(
-            f"\nPermission denied trying to write to {SECRETS_PATH}.",
+            f"\nPermission denied trying to write/read to {SECRETS_PATH}.",
             fg="red",
         )
         exit(1)

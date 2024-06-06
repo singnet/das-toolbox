@@ -64,7 +64,7 @@ def table_parser(obj: dict) -> str:
                         sw=column_widths["Service"],
                         n=name,
                         nw=column_widths["Name"],
-                        v=value,
+                        v=str(value),
                         vw=column_widths["Value"],
                     )
                 )

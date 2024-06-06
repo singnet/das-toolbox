@@ -1,5 +1,6 @@
 import click
-from time import sleep
+from config import USER_DAS_PATH
+
 from sys import exit
 from services import (
     RedisContainerService,
@@ -26,6 +27,17 @@ def db(ctx):
 
     config = ctx.obj["config"]
 
+    try:
+        if not config.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
+
 
 @db.command()
 def restart():
@@ -33,7 +45,7 @@ def restart():
     Restart all DBMS containers.
 
     'das-cli db restart' restarts all database containers previously started with 'das-cli start'. If no database have been started, 'das-cli db restart' just start them.
-    
+
     IMPORTANTE NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
 
     .SH EXAMPLES
@@ -47,42 +59,40 @@ def restart():
     ctx.invoke(start)
 
 
-@db.command()
-def start():
-    """
-    Starts all DBMS containers.
-
-    'das-cli db start' initiates all databases.
-    These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
-
-    Upon execution, the command will display the ports on which each database is running.
-    Note that the port configuration can be modified using the 'das-cli config set' command.
-
-    .SH EXAMPLES
-
-    Start all databases for use with the DAS.
-
-    $ das-cli db start
-    """
-
-    click.echo("Starting Redis and MongoDB...")
-
+def _start_redis():
     redis_container_name = config.get("redis.container_name")
     redis_port = config.get("redis.port")
+    redis_nodes = config.get("redis.nodes")
+    redis_cluster = config.get("redis.cluster")
 
     try:
-        redis_service = RedisContainerService(redis_container_name)
+        for node in redis_nodes:
+            node_context = node.get("context")
+            node_ip = node.get("ip")
+            node_username = node.get("username")
+            redis_service = RedisContainerService(
+                redis_container_name,
+                exec_context=node_context,
+            )
 
-        redis_service.start_container(
-            redis_port,
-        )
-        click.secho(f"Redis started on port {redis_port}", fg="green")
-    except ContainerAlreadyRunningException:
-        click.secho(
-            f"Redis is already running. It's listening on port {redis_port}",
-            fg="yellow",
-        )
-    except (DockerException, DockerDaemonException) as e:
+            try:
+                redis_service.start_container(redis_port)
+                click.secho(
+                    f"Redis started on port {redis_port} at {node_ip} as {node_username} user",
+                    fg="green",
+                )
+            except ContainerAlreadyRunningException:
+                click.secho(
+                    f"Redis is already running. It's listening on port {redis_port} at {node_ip} as {node_username} user",
+                    fg="yellow",
+                )
+
+        if redis_cluster:
+            RedisContainerService(redis_container_name).start_cluster(
+                redis_nodes, redis_port
+            )
+
+    except Exception as e:
         click.secho(
             f"\nError occurred while trying to start Redis on port {redis_port}\n",
             fg="red",
@@ -90,6 +100,8 @@ def start():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
+
+def _start_mongodb():
     mongodb_container_name = config.get("mongodb.container_name")
     mongodb_port = config.get("mongodb.port")
     mongodb_username = config.get("mongodb.username")
@@ -118,38 +130,60 @@ def start():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
-    click.echo("Done.")
-
 
 @db.command()
-def stop():
+def start():
     """
-    Stops all DBMS containers.
+    Starts all DBMS containers.
 
-    'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
-    This command is useful for shutting down the databases when they are no longer needed.
+    'das-cli db start' initiates all databases.
+    These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
 
-    IMPORTANT NOTE: After stopping the databases, all data will be lost.
+    Upon execution, the command will display the ports on which each database is running.
+    Note that the port configuration can be modified using the 'das-cli config set' command.
 
     .SH EXAMPLES
 
-    Stop DBMS containers previously started with 'das-cli db start'.
+    Start all databases for use with the DAS.
 
-    $ das-cli db stop
+    $ das-cli db start
     """
 
+    click.echo("Starting Redis and MongoDB...")
+
+    _start_redis()
+    _start_mongodb()
+
+    click.echo("Done.")
+
+
+def _stop_redis():
     click.echo(f"Stopping redis service...")
 
     redis_container_name = config.get("redis.container_name")
+    redis_nodes = config.get("redis.nodes")
 
     try:
-        RedisContainerService(redis_container_name).stop()
-        click.secho("Redis service stopped", fg="green")
-    except NotFound:
-        click.secho(
-            f"The Redis service named {redis_container_name} is already stopped.",
-            fg="yellow",
-        )
+        for node in redis_nodes:
+            node_context = node.get("context")
+            node_ip = node.get("ip")
+            node_username = node.get("username")
+
+            try:
+                RedisContainerService(
+                    redis_container_name,
+                    exec_context=node_context,
+                ).stop()
+
+                click.secho(
+                    f"The Redis service at {node_ip} has been stopped by the {node_username} user",
+                    fg="green",
+                )
+            except NotFound:
+                click.secho(
+                    f"The Redis service named {redis_container_name} at {node_ip} is already stopped by the {node_username} user.",
+                    fg="yellow",
+                )
     except DockerException as e:
         click.secho(
             f"\nError occurred while trying to stop Redis\n",
@@ -160,6 +194,8 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
+
+def _stop_mongodb():
     mongodb_container_name = config.get("mongodb.container_name")
 
     try:
@@ -180,5 +216,25 @@ def stop():
         click.secho(f"{str(e)}\n", fg="red")
         exit(1)
 
-    sleep(10)
+
+@db.command()
+def stop():
+    """
+    Stops all DBMS containers.
+
+    'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
+    This command is useful for shutting down the databases when they are no longer needed.
+
+    IMPORTANT NOTE: After stopping the databases, all data will be lost.
+
+    .SH EXAMPLES
+
+    Stop DBMS containers previously started with 'das-cli db start'.
+
+    $ das-cli db stop
+    """
+
+    _stop_redis()
+    _stop_mongodb()
+
     click.echo(f"Done.")

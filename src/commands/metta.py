@@ -9,6 +9,7 @@ from exceptions import (
     DockerDaemonException,
     MettaLoadException,
 )
+from config import USER_DAS_PATH
 
 
 @click.group()
@@ -23,6 +24,17 @@ def metta(ctx):
     global config
 
     config = ctx.obj["config"]
+
+    try:
+        if not config.exists():
+            raise FileNotFoundError()
+
+    except FileNotFoundError:
+        click.secho(
+            f"Configuration file not found in {USER_DAS_PATH}. You can run the command `config set` to create a configuration file.",
+            fg="red",
+        )
+        exit(1)
 
 
 @metta.command()

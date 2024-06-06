@@ -1,5 +1,5 @@
 import docker
-from typing import Any, Union
+from typing import Any, Union, AnyStr
 from abc import ABC, abstractclassmethod
 
 import docker.errors
@@ -8,9 +8,8 @@ from exceptions import (
     NotFound,
     DockerException,
     DockerDaemonException,
+    DockerContextException,
 )
-import subprocess
-import json
 import curses
 
 
@@ -24,36 +23,6 @@ class Container:
         self._name = name
         self._image = image
         self._image_version = image_version
-
-    def discovery(self):
-        output = None
-
-        docker_command = (
-            f'docker ps --filter "name={self.get_name()}" --format "{{{{json . }}}}"'
-        )
-
-        try:
-            output = subprocess.check_output(
-                docker_command,
-                shell=True,
-                text=True,
-                stderr=subprocess.DEVNULL,
-            ).strip()
-        except subprocess.CalledProcessError:
-            raise DockerException()
-
-        try:
-            return json.loads(output)
-        except:
-            return {}
-
-    def is_running(self) -> bool:
-        container = self.discovery()
-
-        if container.get("Names") == self.get_name():
-            return True
-
-        return False
 
     def get_name(self) -> str:
         return self._name
@@ -69,10 +38,14 @@ class Container:
 
 
 class ContainerService(ABC):
-    def __init__(self, container: Container) -> None:
+    def __init__(
+        self,
+        container: Container,
+        exec_context: Union[AnyStr, None] = None,
+    ) -> None:
         super().__init__()
         try:
-            self._docker_client = docker.from_env()
+            self._docker_client = self._get_client(exec_context)
         except docker.errors.DockerException:
             raise DockerDaemonException(
                 "Your Docker service appears to be either malfunctioning or not running."
@@ -80,14 +53,32 @@ class ContainerService(ABC):
 
         self._container = container
 
+    def _get_client(self, use: Union[AnyStr, None] = None) -> docker.DockerClient:
+        context = docker.ContextAPI.get_context(use)
+        if context is None:
+            raise DockerContextException(f"Docker context {use!r} not found")
+        try:
+            return docker.DockerClient(
+                base_url=context.endpoints["docker"]["Host"],
+                use_ssh_client=True,
+            )
+        except Exception as e:
+            raise e
+
     def get_docker_client(self) -> docker.DockerClient:
         return self._docker_client
 
     def get_container(self) -> Container:
         return self._container
 
+    def _exec_container(self, command: str):
+        container_name = self.get_container().get_name()
+        container = self.get_docker_client().containers.get(container_name)
+
+        return container.exec_run(command, tty=True)
+
     def _start_container(self, **kwargs) -> Any:
-        if self.get_container().is_running():
+        if self.is_running():
             raise ContainerAlreadyRunningException()
 
         response = self.get_docker_client().containers.run(
@@ -98,6 +89,16 @@ class ContainerService(ABC):
         )
 
         return response
+
+    def is_running(self):
+        container_name = self._container.get_name()
+
+        try:
+            result = self.get_docker_client().containers.list(filters={"name": container_name})
+            
+            return len(result) > 0
+        except docker.errors.APIError:
+            raise DockerException()
 
     def get_label(self, label: str) -> Union[dict, None]:
         container_name = self.get_container().get_name()
