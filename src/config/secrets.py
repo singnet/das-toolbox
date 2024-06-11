@@ -1,5 +1,5 @@
 import os
-from utils import JsonHandler
+from common.settings import JsonHandler
 from config.config import SECRETS_PATH
 
 
