@@ -1,0 +1,1 @@
+from .release_notes_module import ReleaseNotesModule
