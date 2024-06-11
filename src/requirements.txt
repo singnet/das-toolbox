@@ -3,3 +3,4 @@ docker==7.1.0
 distro==1.9.0
 click-man==0.4.1
 paramiko==3.4.0
+injector==0.21.0

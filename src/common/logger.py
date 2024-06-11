@@ -1,5 +1,5 @@
 import logging
-from config import LOG_FILE_NAME
+from config.config import LOG_FILE_NAME
 
 
 class LoggerError(Exception): ...
