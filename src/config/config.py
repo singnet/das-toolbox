@@ -9,6 +9,10 @@ USER_DAS_PATH = "~/.das"
 
 SECRETS_PATH = f"{USER_DAS_PATH}/config.json"
 
+# LOG
+
+LOG_FILE_NAME = "/tmp/das.log"
+
 # SERVICES
 
 REDIS_IMAGE_NAME = "redis"
