@@ -217,7 +217,7 @@ $ das-cli python-library set --hyperon-das-atomdb=0.4.0
                 "All package has been successfully updated.",
                 severity=StdoutSeverity.SUCCESS,
             )
-            self._python_library_version.run()
+            self._python_library_version.safe_run()
         else:
             self.stdout(
                 "One or more packages could not be updated.",
@@ -268,7 +268,7 @@ $ das-cli python-library update
                 "All package has been successfully updated.",
                 severity=StdoutSeverity.SUCCESS,
             )
-            self._python_library_version.run()
+            self._python_library_version.safe_run()
         else:
             self.stdout(
                 "One or more packages could not be updated.",

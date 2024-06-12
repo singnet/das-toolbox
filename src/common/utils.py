@@ -1,5 +1,6 @@
 import os
 import sys
+import getpass
 
 
 def is_executable_bin():
@@ -11,6 +12,10 @@ def get_script_name():
         return os.path.basename(sys.executable)
     else:
         return "python3 " + sys.argv[0]
+
+
+def get_server_username() -> str:
+    return getpass.getuser()
 
 
 def remove_special_characters(text):

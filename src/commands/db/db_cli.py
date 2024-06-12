@@ -244,8 +244,8 @@ $ das-cli db restart
         self._db_stop = db_stop
 
     def run(self):
-        self._db_stop.run()
-        self._db_start.run()
+        self._db_stop.safe_run()
+        self._db_start.safe_run()
 
 
 class DbCli(CommandGroup):

@@ -36,11 +36,23 @@ class Command:
     def __init__(self) -> None:
         self.command = click.Command(
             name=self.name,
-            callback=self.run,
+            callback=self.safe_run,
             help=self.help,
             short_help=self.short_help,
             params=self.params,
         )
+
+    def safe_run(self, **kwarg):
+        try:
+            return self.run(**kwarg)
+        except Exception as e:
+            error_type = e.__class__.__name__
+            error_message = str(e)
+            pretty_message = f"\033[31m[{error_type}] {error_message}\033[39m"
+
+            logger().exception(error_message)
+
+            print(pretty_message)
 
     def prompt(
         self,
