@@ -216,8 +216,8 @@ $ das-cli faas restart
         self._faas_stop = faas_stop
 
     def run(self):
-        self._faas_stop.run()
-        self._faas_start.run()
+        self._faas_stop.safe_run()
+        self._faas_start.safe_run()
 
 
 class FaaSVersion(Command):

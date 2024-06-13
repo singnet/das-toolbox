@@ -134,8 +134,8 @@ $ das-cli jupyter-notebook restart
         self._jupyter_notebook_stop = jupyter_notebook_stop
 
     def run(self):
-        self._jupyter_notebook_stop.run()
-        self._jupyter_notebook_start.run()
+        self._jupyter_notebook_stop.safe_run()
+        self._jupyter_notebook_start.safe_run()
 
 
 class JupyterNotebookCli(CommandGroup):

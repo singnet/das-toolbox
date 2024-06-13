@@ -9,7 +9,6 @@ from commands.release_notes import ReleaseNotesModule
 from commands.logs import LogsModule
 from commands.metta import MettaModule
 from commands.das import DasModule
-from common.logger import logger
 
 MODULES = [
     ConfigModule,
@@ -44,20 +43,8 @@ def init_cli(module):
     return instance.group
 
 
-def das_cli():
-    try:
-        cli = init_cli(DasModule)
-        init_modules(cli)
-        cli()
-    except Exception as e:
-        error_type = e.__class__.__name__
-        error_message = str(e)
-        pretty_message = f"\033[31m[{error_type}] {error_message}\033[39m"
-
-        logger().exception(error_message)
-
-        print(pretty_message)
-
+das_cli = init_cli(DasModule)
+init_modules(das_cli)
 
 if __name__ == "__main__":
     das_cli()

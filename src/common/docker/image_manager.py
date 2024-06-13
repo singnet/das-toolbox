@@ -1,27 +1,19 @@
 import docker
 from typing import Union
+from .docker_manager import DockerManager
 from .exceptions import (
-    DockerDaemonConnectionError,
     DockerImageNotFoundError,
     DockerError,
 )
 
 
-class ImageManager:
-    def __init__(self) -> None:
-        try:
-            self._docker_client = docker.from_env()
-        except docker.errors.DockerException:
-            raise DockerDaemonConnectionError(
-                "Your Docker service appears to be either malfunctioning or not running."
-            )
-
+class ImageManager(DockerManager):
     def format_function_tag(self, function, version) -> str:
         return f"{function}-{version}"
 
     def pull(self, repository, image_tag) -> None:
         try:
-            self._docker_client.images.pull(repository, image_tag)
+            self.get_docker_client().images.pull(repository, image_tag)
         except docker.errors.APIError as e:
             if e.response.reason == "Not Found":
                 raise DockerImageNotFoundError(
@@ -36,7 +28,7 @@ class ImageManager:
         image = f"{repository}:{tag}"
 
         try:
-            container = self._docker_client.api.inspect_image(image)
+            container = self.get_docker_client().api.inspect_image(image)
 
             labels = container["Config"]["Labels"]
 

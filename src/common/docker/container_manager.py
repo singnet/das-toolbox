@@ -1,15 +1,11 @@
 import docker
 import curses
-from typing import Any, Union, AnyStr
-from abc import ABC, abstractmethod
-
 import docker.errors
-
+from typing import Any, Union, AnyStr
+from .docker_manager import DockerManager
 from .exceptions import (
     DockerContainerDuplicateError,
-    DockerContextError,
     DockerError,
-    DockerDaemonConnectionError,
     DockerContainerNotFoundError,
 )
 
@@ -38,36 +34,14 @@ class Container:
         self._image_version = image_version
 
 
-class ContainerManager(ABC):
+class ContainerManager(DockerManager):
     def __init__(
         self,
         container: Container,
         exec_context: Union[AnyStr, None] = None,
     ) -> None:
-        super().__init__()
-        try:
-            self._docker_client = self._get_client(exec_context)
-        except docker.errors.DockerException:
-            raise DockerDaemonConnectionError(
-                "Your Docker service appears to be either malfunctioning or not running."
-            )
-
+        super().__init__(exec_context)
         self._container = container
-
-    def _get_client(self, use: Union[AnyStr, None] = None) -> docker.DockerClient:
-        context = docker.ContextAPI.get_context(use)
-        if context is None:
-            raise DockerContextError(f"Docker context {use!r} not found")
-        try:
-            return docker.DockerClient(
-                base_url=context.endpoints["docker"]["Host"],
-                use_ssh_client=True,
-            )
-        except Exception as e:
-            raise e
-
-    def get_docker_client(self) -> docker.DockerClient:
-        return self._docker_client
 
     def get_container(self) -> Container:
         return self._container
@@ -179,7 +153,6 @@ class ContainerManager(ABC):
             curses.echo()
             curses.endwin()
 
-    @abstractmethod
     def start_container(self, **config):
         pass
 

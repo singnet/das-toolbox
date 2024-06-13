@@ -1,6 +1,5 @@
 import subprocess
 import requests
-import getpass
 from typing import Union
 import re
 
@@ -10,10 +9,6 @@ def get_public_ip():
         return requests.get("https://api.ipify.org").content.decode("utf8")
     except:
         return None
-
-
-def get_server_username() -> str:
-    return getpass.getuser()
 
 
 # TODO: validate ip

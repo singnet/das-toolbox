@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from config import VERSION
+from config.config import VERSION
 
 setup(
     name="das-cli",

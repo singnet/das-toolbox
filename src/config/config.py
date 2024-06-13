@@ -1,3 +1,5 @@
+from common.utils import get_server_username
+
 VERSION = "0.2.18"
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
@@ -11,7 +13,8 @@ SECRETS_PATH = f"{USER_DAS_PATH}/config.json"
 
 # LOG
 
-LOG_FILE_NAME = "/tmp/das.log"
+LOG_FILE_DIR = get_server_username()
+LOG_FILE_NAME = f"/tmp/{LOG_FILE_DIR}-das-cli.log"
 
 # SERVICES
 
