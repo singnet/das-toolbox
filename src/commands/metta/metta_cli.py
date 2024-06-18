@@ -84,7 +84,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
 
             self.stdout(
                 f"MongoDB is running on port {mongodb_port}",
-                fg="yellow",
+                severity=StdoutSeverity.WARNING,
             )
 
         if services_not_running:
@@ -135,9 +135,11 @@ $ das-cli metta check /path/to/mettas-directory/animals.metta
     def __init__(
         self,
         metta_syntax_container_manager: MettaSyntaxContainerManager,
+        settings: Settings,
     ) -> None:
         super().__init__()
         self._metta_syntax_container_manager = metta_syntax_container_manager
+        self._settings = settings
 
     def check_syntax(self, file_path):
         self._metta_syntax_container_manager.start_container(file_path)
