@@ -68,16 +68,9 @@ $ das-cli logs faas
         self._settings.raise_on_missing_file()
 
         openfaas_container_name = self._settings.get("openfaas.container_name")
-        mongodb_container_name = self._settings.get("mongodb.container_name")
-        redis_container_name = self._settings.get("redis.container_name")
 
         try:
-            openfaas_service = OpenFaaSContainerManager(
-                openfaas_container_name,
-                redis_container_name,
-                mongodb_container_name,
-            )
-
+            openfaas_service = OpenFaaSContainerManager(openfaas_container_name)
             openfaas_service.logs()
         except DockerError as e:
             self.stdout(
