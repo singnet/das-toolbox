@@ -120,7 +120,6 @@ $ das-cli faas start
                     severity=StdoutSeverity.ERROR,
                 )
                 services_not_running = True
-                break
             else:
                 self.stdout(
                     f"{service_name} is running on port {service_port}",
@@ -216,8 +215,8 @@ $ das-cli faas restart
         self._faas_stop = faas_stop
 
     def run(self):
-        self._faas_stop.safe_run()
-        self._faas_start.safe_run()
+        self._faas_stop.run()
+        self._faas_start.run()
 
 
 class FaaSVersion(Command):

@@ -117,6 +117,11 @@ class CommandGroup(Command):
         self.group = click.Group(self.name)
         self.configure_params()
 
+    def override_group_command(self):
+        self.group.invoke_without_command = True
+        self.group.callback = self.safe_run
+        self.group.no_args_is_help = False
+
     def add_commands(self, commands: list):
         for command in commands:
             self.group.add_command(command)
