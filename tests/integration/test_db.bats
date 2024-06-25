@@ -34,6 +34,12 @@ Redis has started successfully on port ${redis_port} at localhost, operating und
 Starting mongodb service...
 MongoDB started on port ${mongodb_port}
 EOF
+
+    run is_service_up redis
+    assert_success
+
+    run is_service_up mongodb
+    assert_success
 }
 
 @test "It should gives up a warning when db is already up" {
@@ -50,6 +56,12 @@ Redis is already running. It is currently listening on port ${redis_port} at IP 
 Starting mongodb service...
 MongoDB is already running. It's listening on port ${mongodb_port}
 EOF
+
+    run is_service_up redis
+    assert_success
+
+    run is_service_up mongodb
+    assert_success
 }
 
 @test "It should restart even though services are stopped" {
@@ -69,6 +81,12 @@ Redis has started successfully on port ${redis_port} at localhost, operating und
 Starting mongodb service...
 MongoDB started on port ${mongodb_port}
 EOF
+
+    run is_service_up redis
+    assert_success
+
+    run is_service_up mongodb
+    assert_success
 }
 
 @test "It should restart db successfully when db is already up" {
@@ -88,6 +106,12 @@ Redis has started successfully on port ${redis_port} at localhost, operating und
 Starting mongodb service...
 MongoDB started on port ${mongodb_port}
 EOF
+
+    run is_service_up redis
+    assert_success
+
+    run is_service_up mongodb
+    assert_success
 }
 
 @test "It should stop db successfully" {
@@ -100,6 +124,12 @@ Stopping redis service...
 The Redis service at localhost has been stopped by the ${current_user} user
 MongoDB service stopped
 EOF
+
+    run is_service_up redis
+    assert_failure
+
+    run is_service_up mongodb
+    assert_failure
 }
 
 @test "It should warns up when db is already stopped" {
@@ -113,4 +143,15 @@ Stopping redis service...
 The Redis service named ${redis_container_name} at localhost is already stopped by the ${current_user} user.
 The MongoDB service named ${mongodb_container_name} is already stopped.
 EOF
+
+    run is_service_up redis
+    assert_failure
+
+    run is_service_up mongodb
+    assert_failure
+}
+
+
+@test "Starting db with redis cluster" {
+    
 }
