@@ -37,7 +37,6 @@ $ das-cli release-notes --list
         ),
         CommandOption(
             ["--list"],
-            "is_list",
             is_flag=True,
             help="Display only a list of available versions for each component without displaying the changelog.",
             required=False,
@@ -50,15 +49,14 @@ $ das-cli release-notes --list
         release_notes_package: ReleaseNotesPackage,
     ) -> None:
         super().__init__()
-        self.group.invoke = self.run
+        self.override_group_command()
         self._release_notes_package = release_notes_package
 
     def run(
         self,
-        ctx,
+        module,
+        list,
     ):
-        module = ctx.params.get("module")
-        is_list = ctx.params.get("list")
         releases = []
 
         if not module:
@@ -75,6 +73,6 @@ $ das-cli release-notes --list
                 severity=StdoutSeverity.SUCCESS,
             )
 
-            if not is_list:
+            if not list:
                 changelog = package.get_changelog()
                 self.stdout(f"\n{changelog}")

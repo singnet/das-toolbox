@@ -74,7 +74,7 @@ $ das-cli logs faas
             openfaas_service.logs()
         except DockerError as e:
             self.stdout(
-                "You need to run the server with command 'db start'",
+                "You need to run the server with command 'faas start'",
                 severity=StdoutSeverity.ERROR,
             )
             raise e

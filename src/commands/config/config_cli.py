@@ -209,7 +209,7 @@ jupyter_notebook.*
         )
         mongodb_password = self.prompt(
             "Enter MongoDB password",
-            hide_input=True,
+            # hide_input=True, # When hide_input is set I cannot set the answers based on a text file making impossible to test this command
             default=self._settings.get("mongodb.password", "admin"),
         )
         return {
@@ -232,7 +232,6 @@ jupyter_notebook.*
     def _jupyter_notebook(self) -> dict:
         jupyter_notebook_port = self.prompt(
             "Enter Jupyter Notebook port",
-            hide_input=True,
             default=self._settings.get("jupyter.port", 8888),
         )
 
