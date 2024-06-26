@@ -71,7 +71,7 @@ setup() {
     done
 }
 
-@test "Show Das logs when the log file does not exist" {
+@test "Show DAS logs when the log file does not exist" {
     unset_log
 
     ! [ -f "$das_log_file" ]
@@ -81,7 +81,7 @@ setup() {
     assert_output "No logs to show up here"
 }
 
-@test "Show logs for Das" {
+@test "Show logs for DAS" {
 
     run timeout 5s das-cli logs das
 

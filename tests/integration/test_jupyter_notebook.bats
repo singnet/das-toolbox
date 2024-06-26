@@ -10,7 +10,7 @@ setup() {
     das-cli jupyter-notebook stop
 }
 
-@test "Trying to start, stop and restart jupyter notebook with unset configuration file" {
+@test "Trying to start, stop and restart Jupyter notebook with unset configuration file" {
     local cmds=(start stop restart)
 
     unset_config
@@ -22,7 +22,7 @@ setup() {
     done
 }
 
-@test "Starting jupyter notebook server" {
+@test "Starting Jupyter notebook server" {
     local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
 
     run das-cli jupyter-notebook start
@@ -35,7 +35,7 @@ Jupyter Notebook started on port $jupyter_notebook_port"
     assert_success
 }
 
-@test "Trying to start jupyter notebook server after it has being started" {
+@test "Trying to start Jupyter notebook server after it has being started" {
     local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
 
     das-cli jupyter-notebook start
@@ -50,7 +50,7 @@ Jupyter Notebook is already running. It's listening on port $jupyter_notebook_po
     assert_success
 }
 
-@test "Stopping jupyter notebook server" {
+@test "Stopping Jupyter notebook server" {
     das-cli jupyter-notebook start
 
     run das-cli jupyter-notebook stop
@@ -63,7 +63,7 @@ Jupyter Notebook service stopped"
     assert_failure
 }
 
-@test "Trying to stop jupyter notebook server after has already being stopped" {
+@test "Trying to stop Jupyter notebook server after has already being stopped" {
     local jupyter_notebook_container_name="$(get_config .jupyter_notebook.container_name)"
 
     run das-cli jupyter-notebook stop
@@ -76,7 +76,7 @@ The Jupyter Notebook service named $jupyter_notebook_container_name is already s
     assert_failure
 }
 
-@test "Restarting jupyter notebook server" {
+@test "Restarting Jupyter notebook server" {
     local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
 
     das-cli jupyter-notebook start
@@ -93,7 +93,7 @@ Jupyter Notebook started on port $jupyter_notebook_port"
     assert_success
 }
 
-@test "Trying to restart jupyter notebook server before start server" {
+@test "Trying to restart Jupyter notebook server before start server" {
     local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
     local jupyter_notebook_container_name="$(get_config .jupyter_notebook.container_name)"
 

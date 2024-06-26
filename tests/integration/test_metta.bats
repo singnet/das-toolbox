@@ -12,7 +12,7 @@ teardown() {
     das-cli db stop
 }
 
-@test "Checking metta file syntax with unset configuration file" {
+@test "Checking MeTTa file syntax with unset configuration file" {
     unset_config
 
     run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
@@ -20,7 +20,7 @@ teardown() {
     assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
-@test "Checking syntax of one valid metta file" {
+@test "Checking syntax of a valid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
 
     run das-cli metta check $metta_file_path
@@ -29,7 +29,7 @@ teardown() {
     assert_line --partial "Syntax check OK"
 }
 
-@test "Checking syntax of one one invalid metta file" {
+@test "Checking syntax of an invalid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
 
     run das-cli metta check $metta_file_path
@@ -38,7 +38,7 @@ teardown() {
     assert_line --partial "syntax error"
 }
 
-@test "Checking syntax of multiple metta files" {
+@test "Checking syntax of multiple MeTTa files" {
     local metta_file_path="$test_fixtures_dir/metta/"
 
     run das-cli metta check $metta_file_path
@@ -48,7 +48,7 @@ teardown() {
     assert_line --partial "syntax error"
 }
 
-@test "Checking metta file with invalid path" {
+@test "Checking MeTTa file with invalid path" {
     local metta_file_path="/invalid/path"
 
     run das-cli metta check $metta_file_path
@@ -56,14 +56,14 @@ teardown() {
     assert_failure
 }
 
-@test "Checking metta file command without path" {
+@test "Checking MeTTa file command without path" {
 
     run das-cli metta check
 
     assert_failure
 }
 
-@test "Loading metta file with unset configuration file" {
+@test "Loading MeTTa file with unset configuration file" {
     unset_config
 
     run das-cli metta load "$test_fixtures_dir/metta/animals.metta"
@@ -71,7 +71,7 @@ teardown() {
     assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
-@test "Loading an invalid metta file" {
+@test "Loading an invalid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
     local mongodb_port="$(get_config .mongodb.port)"
     local redis_port="$(get_config .redis.port)"
@@ -88,7 +88,7 @@ teardown() {
     assert_line --partial "[31m[DockerError] File 'invalid.metta' could not be loaded.[39m"
 }
 
-@test "Loading a valid metta file" {
+@test "Loading a valid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
     local mongodb_port="$(get_config .mongodb.port)"
     local redis_port="$(get_config .redis.port)"
@@ -106,7 +106,7 @@ teardown() {
     assert_success
 }
 
-@test "Trying to load a metta file with an invalid path" {
+@test "Trying to load a MeTTa file with an invalid path" {
     local metta_file_path="/invalid/path"
 
     run das-cli metta load $metta_file_path
@@ -121,7 +121,7 @@ teardown() {
     assert_failure
 }
 
-@test "Loading metta file before db has being started" {
+@test "Loading MeTTa file before db has being started" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
 
     das-cli db stop
