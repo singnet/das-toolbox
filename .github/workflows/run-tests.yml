@@ -49,7 +49,7 @@ jobs:
           path: packages
 
       - name: Installing das-cli package
-        run: sudo apt -y install $(ls packages/*.deb | head -n 1)
+        run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
 
       - name: Runnign integration tests
         run: make integration-tests
