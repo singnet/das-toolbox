@@ -2,6 +2,26 @@
 
 openfaas_repository="trueagi/openfaas"
 
+function set_ssh_context() {
+    local context_name
+    local context_username="$1"
+    local context_ip="$2"
+
+    context_name="$(date +%s)"
+
+    docker context create --description "This context is managed by das-cli (integration-test)" --docker="host=ssh://$context_username@$context_ip" "$context_name" &>/dev/null
+
+    echo "$context_name"
+}
+
+function unset_ssh_context() {
+    local context_name="$1"
+
+    if docker context inspect "$context_name" &>/dev/null; then
+        docker context rm "$context_name" &>/dev/null
+    fi
+}
+
 function get_latest_image_tag() {
     local repository="$1"
     local filter="$2"

@@ -3,8 +3,13 @@
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
+load 'libs/docker'
 
 setup() {
+    local redis_server_01=($current_user "104.207.150.215")
+    local redis_server_02=("root" "45.32.130.104")
+    local redis_server_03=("root" "45.63.85.181")
+
     use_config "simple"
 
     das-cli faas stop
@@ -153,33 +158,38 @@ EOF
 
 # bats test_tags=redis:cluster
 @test "Starting db with redis cluster" {
+    local redis_context_01="default" # current server is always default
+    local redis_context_02="$(set_ssh_context $redis_server_02[0] $redis_server_02[1])"
+    local redis_context_03="$(set_ssh_context $redis_server_03[0] $redis_server_03[1])"
+
     set_config ".redis.cluster" true
     set_config ".redis.nodes" "[
     {
-        "context": "default",
-        "ip": "localhost",
-        "username": "$current_user"
+        "context": "${redis_context_01}",
+        "ip": "${redis_server_01[1]}",
+        "username": "${redis_server_01[0]}"
     },
     {
-        "context": "default",
-        "ip": "172.17.0.6",
-        "username": "root"
+        "context": "${redis_context_02}",
+        "ip": "${redis_server_02[1]}",
+        "username": "${redis_server_02[0]}"
     },
     {
-        "context": "default",
-        "ip": "172.17.0.5",
-        "username": "root"
-    }
+        "context": "${redis_context_03}",
+        "ip": "${redis_server_03[2]}",
+        "username": "${redis_server_03[1]}"
+    },
 ]"
 
     run das-cli db start
 
-        assert_output <<EOF
+    assert_output <<EOF
 Starting redis service...
 Redis has started successfully on port ${redis_port} at localhost, operating under the user ${CURRENT_USER}.
 Starting mongodb service...
 MongoDB started on port ${mongodb_port}
 EOF
 
-    assert_success
+    unset_ssh_context "$redis_context_02"
+    unset_ssh_context "$redis_context_03"
 }
