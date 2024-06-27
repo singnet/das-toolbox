@@ -14,4 +14,9 @@ man_pages:
 	@python3 src/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/man
 
 integration_tests:
-	@bats tests/integration/*.bats
+ifdef DAS_CLI_TEST_CLUSTER
+	@bats tests/integration/*.bats --filter-tags 'redis:cluster'
+endif
+
+	@bats tests/integration/*.bats --filter-tags '!redis:cluster'
+
