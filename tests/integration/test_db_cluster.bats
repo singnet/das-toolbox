@@ -15,9 +15,9 @@ setup() {
     local redis_node3_ip="$(get_config .redis.nodes[2].ip)"
     local redis_node3_username="$(get_config .redis.nodes[2].username)"
 
-    set_config ".redis.nodes[0].username" "'"$current_user"'"
-    set_config ".redis.nodes[1].context" "'"$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"'"
-    set_config ".redis.nodes[2].context" "'"$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"'"
+    set_config ".redis.nodes[0].username" ''"$current_user"''
+    set_config ".redis.nodes[1].context" ''"$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"''
+    set_config ".redis.nodes[2].context" ''"$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"''
 
     das-cli db stop
 }
