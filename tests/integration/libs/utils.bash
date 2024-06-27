@@ -5,7 +5,7 @@ current_user="$(whoami)"
 export current_user
 export test_fixtures_dir="${BATS_TEST_DIRNAME}/fixtures"
 export das_log_file="/tmp/$current_user-das-cli.log"
-export das_config_dir="/home/${current_user}/.das"
+export das_config_dir="${HOME}/.das"
 export das_config_file="${das_config_dir}/config.json"
 
 function get_das_cli_latest_version() {
