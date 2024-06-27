@@ -26,11 +26,12 @@ setup() {
 @test "Starting mongodb and redis standalone" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config .redis.port)"
+    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
 
     run das-cli db start
 
     assert_output "Starting Redis service...
-Redis has started successfully on port ${redis_port} at localhost, operating under the user ${current_user}.
+Redis has started successfully on port ${redis_port} at localhost, operating under the user ${redis_node1_username}.
 Starting MongoDB service...
 MongoDB started on port ${mongodb_port}"
 
@@ -44,13 +45,14 @@ MongoDB started on port ${mongodb_port}"
 @test "It should gives up a warning when db is already up" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config .redis.port)"
+    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
 
     das-cli db start
 
     run das-cli db start
 
     assert_output "Starting Redis service...
-Redis is already running. It is currently listening on port ${redis_port} at IP address localhost under the user ${current_user}.
+Redis is already running. It is currently listening on port ${redis_port} at IP address localhost under the user ${redis_node1_username}.
 Starting MongoDB service...
 MongoDB is already running. It's listening on port ${mongodb_port}"
 
@@ -66,14 +68,15 @@ MongoDB is already running. It's listening on port ${mongodb_port}"
     local redis_port="$(get_config .redis.port)"
     local redis_container_name="$(get_config .redis.container_name)"
     local mongodb_container_name="$(get_config .mongodb.container_name)"
+    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
 
     run das-cli db restart
 
     assert_output "Stopping redis service...
-The Redis service named ${redis_container_name} at localhost is already stopped by the ${current_user} user.
+The Redis service named ${redis_container_name} at localhost is already stopped by the ${redis_node1_username} user.
 The MongoDB service named ${mongodb_container_name} is already stopped.
 Starting Redis service...
-Redis has started successfully on port ${redis_port} at localhost, operating under the user ${current_user}.
+Redis has started successfully on port ${redis_port} at localhost, operating under the user ${redis_node1_username}.
 Starting MongoDB service...
 MongoDB started on port ${mongodb_port}"
 
@@ -87,16 +90,17 @@ MongoDB started on port ${mongodb_port}"
 @test "It should restart db successfully when db is already up" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config .redis.port)"
+    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
 
     das-cli db start
 
     run das-cli db restart
 
     assert_output "Stopping redis service...
-The Redis service at localhost has been stopped by the ${current_user} user
+The Redis service at localhost has been stopped by the ${redis_node1_username} user
 MongoDB service stopped
 Starting Redis service...
-Redis has started successfully on port ${redis_port} at localhost, operating under the user ${current_user}.
+Redis has started successfully on port ${redis_port} at localhost, operating under the user ${redis_node1_username}.
 Starting MongoDB service...
 MongoDB started on port ${mongodb_port}"
 
@@ -108,12 +112,14 @@ MongoDB started on port ${mongodb_port}"
 }
 
 @test "It should stop db successfully" {
+    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
+
     das-cli db start &>/dev/null
 
     run das-cli db stop
 
     assert_output "Stopping redis service...
-The Redis service at localhost has been stopped by the ${current_user} user
+The Redis service at localhost has been stopped by the ${redis_node1_username} user
 MongoDB service stopped"
 
     run is_service_up redis
@@ -126,11 +132,12 @@ MongoDB service stopped"
 @test "It should warns up when db is already stopped" {
     local redis_container_name="$(get_config .redis.container_name)"
     local mongodb_container_name="$(get_config .mongodb.container_name)"
+    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
 
     run das-cli db stop
 
     assert_output "Stopping redis service...
-The Redis service named ${redis_container_name} at localhost is already stopped by the ${current_user} user.
+The Redis service named ${redis_container_name} at localhost is already stopped by the ${redis_node1_username} user.
 The MongoDB service named ${mongodb_container_name} is already stopped."
 
     run is_service_up redis
