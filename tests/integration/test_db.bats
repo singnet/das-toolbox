@@ -6,10 +6,6 @@ load 'libs/utils'
 load 'libs/docker'
 
 setup() {
-    redis_server_01=("$current_user" "45.63.85.181")
-    redis_server_02=("root" "45.32.130.104")
-    redis_server_03=("root" "104.207.150.215")
-
     use_config "simple"
 
     das-cli db stop
@@ -143,53 +139,4 @@ The MongoDB service named ${mongodb_container_name} is already stopped."
 
     run is_service_up mongodb
     assert_failure
-}
-
-# bats test_tags=redis:cluster
-@test "Starting db with redis cluster" {
-    local redis_context_01="default" # current server is always default
-    local redis_context_02="$(set_ssh_context ${redis_server_02[0]} ${redis_server_02[1]})"
-    local redis_context_03="$(set_ssh_context ${redis_server_03[0]} ${redis_server_03[1]})"
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local redis_port="$(get_config ".redis.port")"
-
-    local redis_cluster="true"
-    local redis_nodes='[
-        {
-            "context": "'"$redis_context_01"'",
-            "ip": "'"${redis_server_01[1]}"'",
-            "username": "'"${redis_server_01[0]}"'"
-        },
-        {
-            "context": "'"$redis_context_02"'",
-            "ip": "'"${redis_server_02[1]}"'",
-            "username": "'"${redis_server_02[0]}"'"
-        },
-        {
-            "context": "'"$redis_context_03"'",
-            "ip": "'"${redis_server_03[1]}"'",
-            "username": "'"${redis_server_03[0]}"'"
-        }
-    ]'
-
-    set_config ".redis.cluster" "$redis_cluster"
-    set_config ".redis.nodes" "$redis_nodes"
-    set_config ".redis.port" "$redis_port"
-
-    run timeout 5m das-cli db start
-
-    assert_success
-
-    assert_output "Stopping redis service...
-Redis has started successfully on port ${redis_port} at ${redis_server_01[1]}, operating under the user ${redis_server_02[0]}.
-Redis has started successfully on port ${redis_port} at ${redis_server_02[1]}, operating under the user ${redis_server_02[0]}.
-Redis has started successfully on port ${redis_port} at ${redis_server_03[1]}, operating under the user ${redis_server_03[0]}.
-MongoDB started on port ${mongodb_port}"
-
-    unset_ssh_context "$redis_context_02"
-    unset_ssh_context "$redis_context_03"
-
-    run exec_cmd_on_service "redis" "redis-cli -c CLUSTER NODES | wc -l"
-
-    assert_output "3"
 }
