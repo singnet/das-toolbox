@@ -40,7 +40,7 @@ jobs:
 
       - name: Install requirements
         run: |-
-          sudo apt -y update && apt -y install make
+          sudo apt -y update && sudo apt -y install make
           cd /tmp
           git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
           cd bats-core
