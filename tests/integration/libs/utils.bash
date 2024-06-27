@@ -5,8 +5,13 @@ current_user="$(whoami)"
 export current_user
 export test_fixtures_dir="${BATS_TEST_DIRNAME}/fixtures"
 export das_log_file="/tmp/$current_user-das-cli.log"
-export das_config_dir="/home/${current_user}/.das"
+export das_config_dir="${HOME}/.das"
 export das_config_file="${das_config_dir}/config.json"
+
+function clean_string() {
+    local a=${1//[^[:alnum:]]/}
+    echo "${a,,}"
+}
 
 function get_das_cli_latest_version() {
     local package_name="$1"
@@ -45,28 +50,6 @@ function get_python_package_latest_version() {
 
     echo "$latest_version"
     return 0
-}
-
-function is_service_up() {
-    local container_name
-    local service_name="$1"
-
-    container_name=$(get_config ".${service_name}.container_name")
-
-    if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}\$"; then
-        return 1
-    fi
-
-    return 0
-}
-
-function service_stop() {
-    local container_name
-    local service_name="$1"
-
-    container_name=$(get_config ".${service_name}.container_name")
-
-    docker container rm -f "$container_name" &>/dev/null
 }
 
 function human_to_boolean() {
@@ -117,7 +100,7 @@ function set_config() {
     local attr="$1"
     local value="$2"
 
-    jq -r --argjson new_value "$value" ".$attr = \$new_value" "$das_config_file" >"$das_config_file.tmp" &&
+    jq "$attr = $value" "$das_config_file" >"$das_config_file.tmp" &&
         mv "$das_config_file.tmp" "$das_config_file"
 }
 

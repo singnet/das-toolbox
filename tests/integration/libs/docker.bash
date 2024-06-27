@@ -2,6 +2,67 @@
 
 openfaas_repository="trueagi/openfaas"
 
+function is_service_up() {
+    local container_name
+    local service_name="$1"
+
+    container_name=$(get_config ".${service_name}.container_name")
+
+    if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}\$"; then
+        return 1
+    fi
+
+    return 0
+}
+
+function service_stop() {
+    local container_name
+    local service_name="$1"
+
+    container_name=$(get_config ".${service_name}.container_name")
+
+    docker container rm -f "$container_name" &>/dev/null
+}
+
+function exec_cmd_on_service() {
+    local container_name
+    local service_name="$1"
+    local cmd="$2"
+
+    if ! is_service_up "$service_name"; then
+        return 1
+    fi
+
+    container_name=$(get_config ".${service_name}.container_name")
+
+    docker container exec -it "$container_name" sh -c "$cmd"
+
+    return 0
+}
+
+function set_ssh_context() {
+    local context_name
+    local context_username="$1"
+    local context_ip="$2"
+
+    context_name="$(
+        tr -dc A-Za-z0-9 </dev/urandom | head -c 13
+        echo
+    )"
+
+    docker context create --description "This context is managed by das-cli (integration-test)" --docker="host=ssh://$context_username@$context_ip" "$context_name" &>/dev/null
+
+    echo "$context_name"
+}
+
+function unset_ssh_context() {
+    local context_name="$1"
+
+    if docker context inspect "$context_name" &>/dev/null; then
+        docker context rm "$context_name" &>/dev/null
+    fi
+}
+
 function get_latest_image_tag() {
     local repository="$1"
     local filter="$2"
