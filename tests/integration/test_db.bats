@@ -151,7 +151,35 @@ EOF
     assert_failure
 }
 
-
+# bats test_tags=redis:cluster
 @test "Starting db with redis cluster" {
-    
+    set_config ".redis.cluster" true
+    set_config ".redis.nodes" "[
+    {
+        "context": "default",
+        "ip": "localhost",
+        "username": "$current_user"
+    },
+    {
+        "context": "default",
+        "ip": "172.17.0.6",
+        "username": "root"
+    },
+    {
+        "context": "default",
+        "ip": "172.17.0.5",
+        "username": "root"
+    }
+]"
+
+    run das-cli db start
+
+        assert_output <<EOF
+Starting redis service...
+Redis has started successfully on port ${redis_port} at localhost, operating under the user ${CURRENT_USER}.
+Starting mongodb service...
+MongoDB started on port ${mongodb_port}
+EOF
+
+    assert_success
 }
