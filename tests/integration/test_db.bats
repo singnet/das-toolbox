@@ -6,9 +6,9 @@ load 'libs/utils'
 load 'libs/docker'
 
 setup() {
-    local redis_server_01=($current_user "104.207.150.215")
-    local redis_server_02=("root" "45.32.130.104")
-    local redis_server_03=("root" "45.63.85.181")
+    redis_server_01=("$current_user" "45.63.85.181")
+    redis_server_02=("root" "45.32.130.104")
+    redis_server_03=("root" "104.207.150.215")
 
     use_config "simple"
 
@@ -33,12 +33,10 @@ setup() {
 
     run das-cli db start
 
-    assert_output <<EOF
-Starting redis service...
+    assert_output "Starting redis service...
 Redis has started successfully on port ${redis_port} at localhost, operating under the user ${CURRENT_USER}.
 Starting mongodb service...
-MongoDB started on port ${mongodb_port}
-EOF
+MongoDB started on port ${mongodb_port}"
 
     run is_service_up redis
     assert_success
@@ -55,12 +53,10 @@ EOF
 
     run das-cli db start
 
-    assert_output <<EOF
-Starting redis service...
+    assert_output "Starting redis service...
 Redis is already running. It is currently listening on port ${redis_port} at IP address localhost under the user ${current_user}.
 Starting mongodb service...
-MongoDB is already running. It's listening on port ${mongodb_port}
-EOF
+MongoDB is already running. It's listening on port ${mongodb_port}"
 
     run is_service_up redis
     assert_success
@@ -77,15 +73,13 @@ EOF
 
     run das-cli db restart
 
-    assert_output <<EOF
-Stopping redis service...
+    assert_output "Stopping redis service...
 The Redis service named ${redis_container_name} at localhost is already stopped by the ${current_user} user.
 The MongoDB service named ${mongodb_container_name} is already stopped.
 Starting redis service...
 Redis has started successfully on port ${redis_port} at localhost, operating under the user ${current_user}.
 Starting mongodb service...
-MongoDB started on port ${mongodb_port}
-EOF
+MongoDB started on port ${mongodb_port}"
 
     run is_service_up redis
     assert_success
@@ -102,15 +96,14 @@ EOF
 
     run das-cli db restart
 
-    assert_output <<EOF
+    assert_output "
 Stopping redis service...
 The Redis service at localhost has been stopped by the ${current_user} user
 MongoDB service stopped
 Starting redis service...
 Redis has started successfully on port ${redis_port} at localhost, operating under the user ${current_user}.
 Starting mongodb service...
-MongoDB started on port ${mongodb_port}
-EOF
+MongoDB started on port ${mongodb_port}"
 
     run is_service_up redis
     assert_success
@@ -124,11 +117,9 @@ EOF
 
     run das-cli db stop
 
-    assert_output <<EOF
-Stopping redis service...
+    assert_output "Stopping redis service...
 The Redis service at localhost has been stopped by the ${current_user} user
-MongoDB service stopped
-EOF
+MongoDB service stopped"
 
     run is_service_up redis
     assert_failure
@@ -143,11 +134,9 @@ EOF
 
     run das-cli db stop
 
-    assert_output <<EOF
-Stopping redis service...
+    assert_output "Stopping redis service...
 The Redis service named ${redis_container_name} at localhost is already stopped by the ${current_user} user.
-The MongoDB service named ${mongodb_container_name} is already stopped.
-EOF
+The MongoDB service named ${mongodb_container_name} is already stopped."
 
     run is_service_up redis
     assert_failure
@@ -159,36 +148,39 @@ EOF
 # bats test_tags=redis:cluster
 @test "Starting db with redis cluster" {
     local redis_context_01="default" # current server is always default
-    local redis_context_02="$(set_ssh_context $redis_server_02[0] $redis_server_02[1])"
-    local redis_context_03="$(set_ssh_context $redis_server_03[0] $redis_server_03[1])"
+    local redis_context_02="$(set_ssh_context ${redis_server_02[0]} ${redis_server_02[1]})"
+    local redis_context_03="$(set_ssh_context ${redis_server_03[0]} ${redis_server_03[1]})"
 
-    set_config ".redis.cluster" true
-    set_config ".redis.nodes" "[
-    {
-        "context": "${redis_context_01}",
-        "ip": "${redis_server_01[1]}",
-        "username": "${redis_server_01[0]}"
-    },
-    {
-        "context": "${redis_context_02}",
-        "ip": "${redis_server_02[1]}",
-        "username": "${redis_server_02[0]}"
-    },
-    {
-        "context": "${redis_context_03}",
-        "ip": "${redis_server_03[2]}",
-        "username": "${redis_server_03[1]}"
-    },
-]"
+    local cluster="true"
+    local nodes='[
+        {
+            "context": "'"$redis_context_01"'",
+            "ip": "'"${redis_server_01[1]}"'",
+            "username": "'"${redis_server_01[0]}"'"
+        },
+        {
+            "context": "'"$redis_context_02"'",
+            "ip": "'"${redis_server_02[1]}"'",
+            "username": "'"${redis_server_02[0]}"'"
+        },
+        {
+            "context": "'"$redis_context_03"'",
+            "ip": "'"${redis_server_03[1]}"'",
+            "username": "'"${redis_server_03[0]}"'"
+        }
+    ]'
 
-    run das-cli db start
+    set_config ".redis.cluster" "$cluster"
+    set_config ".redis.nodes" "$nodes"
 
-    assert_output <<EOF
-Starting redis service...
+    run timeout 20s das-cli db start
+
+    assert_success
+
+    assert_output "Starting redis service...
 Redis has started successfully on port ${redis_port} at localhost, operating under the user ${CURRENT_USER}.
 Starting mongodb service...
-MongoDB started on port ${mongodb_port}
-EOF
+MongoDB started on port ${mongodb_port}"
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"

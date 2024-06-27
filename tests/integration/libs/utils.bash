@@ -117,7 +117,7 @@ function set_config() {
     local attr="$1"
     local value="$2"
 
-    jq -r --argjson new_value "$value" ".$attr = \$new_value" "$das_config_file" >"$das_config_file.tmp" &&
+    jq "$attr = $value" "$das_config_file" >"$das_config_file.tmp" &&
         mv "$das_config_file.tmp" "$das_config_file"
 }
 

@@ -7,7 +7,7 @@ function set_ssh_context() {
     local context_username="$1"
     local context_ip="$2"
 
-    context_name="$(date +%s)"
+    context_name="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)"
 
     docker context create --description "This context is managed by das-cli (integration-test)" --docker="host=ssh://$context_username@$context_ip" "$context_name" &>/dev/null
 
