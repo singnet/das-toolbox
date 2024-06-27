@@ -12,7 +12,7 @@ setup() {
 
     use_config "simple"
 
-    das-cli faas stop
+    das-cli db stop
 }
 
 @test "Trying to start, stop and restart db with unset configuration file" {
