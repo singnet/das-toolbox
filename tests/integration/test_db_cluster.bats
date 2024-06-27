@@ -15,9 +15,9 @@ setup() {
     local redis_node3_ip="$(get_config .redis.nodes[2].ip)"
     local redis_node3_username="$(get_config .redis.nodes[2].username)"
 
-    set_config ".redis.nodes[0].username" ''"$current_user"''
-    set_config ".redis.nodes[1].context" ''"$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"''
-    set_config ".redis.nodes[2].context" ''"$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"''
+    set_config ".redis.nodes[0].username" "\"$current_user\""
+    set_config ".redis.nodes[1].context" "\"$(set_ssh_context "$redis_node2_username" "$redis_node2_ip")\""
+    set_config ".redis.nodes[2].context" "\"$(set_ssh_context "$redis_node3_username" "$redis_node3_ip")\""
 
     das-cli db stop
 }
@@ -48,9 +48,9 @@ teardown() {
     assert_success
 
     assert_output "Stopping redis service...
-Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node2_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node2_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node2_username}.
+Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node1_username}.
+Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the user ${redis_node2_username}.
+Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the user ${redis_node3_username}.
 MongoDB started on port ${mongodb_port}"
 
     unset_ssh_context "$redis_context_02"
@@ -58,5 +58,5 @@ MongoDB started on port ${mongodb_port}"
 
     run exec_cmd_on_service "redis" "redis-cli -c CLUSTER NODES | wc -l"
 
-    assert_output "3"
+    assert [ "$(clean_string $output)" == "3" ]
 }

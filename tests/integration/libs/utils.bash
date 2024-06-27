@@ -8,6 +8,11 @@ export das_log_file="/tmp/$current_user-das-cli.log"
 export das_config_dir="${HOME}/.das"
 export das_config_file="${das_config_dir}/config.json"
 
+function clean_string() {
+    local a=${1//[^[:alnum:]]/}
+    echo "${a,,}"
+}
+
 function get_das_cli_latest_version() {
     local package_name="$1"
 

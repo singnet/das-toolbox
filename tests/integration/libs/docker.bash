@@ -29,7 +29,7 @@ function exec_cmd_on_service() {
     local service_name="$1"
     local cmd="$2"
 
-    if ! is_service_up "$container_name"; then
+    if ! is_service_up "$service_name"; then
         return 1
     fi
 
