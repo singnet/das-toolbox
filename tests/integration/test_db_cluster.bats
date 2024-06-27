@@ -9,15 +9,15 @@ setup() {
 
     use_config "redis_cluster"
 
-    local redis_node2_ip="$(get_config .redis.nodes.1.ip)"
-    local redis_node2_username="$(get_config .redis.nodes.1.username)"
+    local redis_node2_ip="$(get_config .redis.nodes.[1].ip)"
+    local redis_node2_username="$(get_config .redis.nodes.[1].username)"
 
-    local redis_node3_ip="$(get_config .redis.nodes.2.ip)"
-    local redis_node3_username="$(get_config .redis.nodes.2.username)"
+    local redis_node3_ip="$(get_config .redis.nodes.[2].ip)"
+    local redis_node3_username="$(get_config .redis.nodes.[2].username)"
 
-    set_config ".redis.nodes.0.username" "$current_user"
-    set_config ".redis.nodes.1.context" "$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"
-    set_config ".redis.nodes.2.context" "$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"
+    set_config ".redis.nodes.[0].username" "$current_user"
+    set_config ".redis.nodes.[1].context" "$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"
+    set_config ".redis.nodes.[2].context" "$(set_ssh_context ${redis_node2_username} ${redis_node2_ip})"
 
     das-cli db stop
 }
@@ -31,17 +31,17 @@ teardown() {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
 
-    local redis_node1_context="$(get_config ".redis.nodes.0.context")"
-    local redis_node1_ip="$(get_config ".redis.nodes.0.ip")"
-    local redis_node1_username="$(get_config ".redis.nodes.0.username")"
+    local redis_node1_context="$(get_config ".redis.nodes.[0].context")"
+    local redis_node1_ip="$(get_config ".redis.nodes.[0].ip")"
+    local redis_node1_username="$(get_config ".redis.nodes.[0].username")"
 
-    local redis_node2_context="$(get_config ".redis.nodes.1.context")"
-    local redis_node2_ip="$(get_config ".redis.nodes.1.ip")"
-    local redis_node2_username="$(get_config ".redis.nodes.1.username")"
+    local redis_node2_context="$(get_config ".redis.nodes.[1].context")"
+    local redis_node2_ip="$(get_config ".redis.nodes.[1].ip")"
+    local redis_node2_username="$(get_config ".redis.nodes.[1].username")"
 
-    local redis_node3_context="$(get_config ".redis.nodes.2.context")"
-    local redis_node3_ip="$(get_config ".redis.nodes.2.ip")"
-    local redis_node3_username="$(get_config ".redis.nodes.2.username")"
+    local redis_node3_context="$(get_config ".redis.nodes.[2].context")"
+    local redis_node3_ip="$(get_config ".redis.nodes.[2].ip")"
+    local redis_node3_username="$(get_config ".redis.nodes.[2].username")"
 
     run timeout 5m das-cli db start
 
