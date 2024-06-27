@@ -66,7 +66,6 @@ MongoDB started on port ${mongodb_port}"
 
 # bats test_tags=redis:cluster
 @test "Stopping db with redis cluster" {
-    local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
 
     local redis_node1_context="$(get_config ".redis.nodes[0].context")"
@@ -87,10 +86,11 @@ MongoDB started on port ${mongodb_port}"
 
     assert_success
 
-    assert_output "The Redis service at  ${redis_node1_ip} has been stopped by the ${redis_node1_username} user
-The Redis service at  ${redis_node2_ip} has been stopped by the ${redis_node2_username} user
-The Redis service at  ${redis_node3_ip} has been stopped by the ${redis_node3_username} user
-MongoDB started on port ${mongodb_port}"
+    assert_output "Stopping redis service...
+The Redis service at ${redis_node1_ip} has been stopped by the ${redis_node1_username} user
+The Redis service at ${redis_node2_ip} has been stopped by the ${redis_node2_username} user
+The Redis service at ${redis_node3_ip} has been stopped by the ${redis_node3_username} user
+MongoDB service stopped"
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"
