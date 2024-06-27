@@ -3,6 +3,7 @@
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
+load 'libs/docker'
 
 setup() {
     use_config "simple"

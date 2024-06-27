@@ -160,6 +160,8 @@ $ das-cli db start
         redis_container_manager.start_cluster(redis_nodes, redis_port)
 
     def _redis(self):
+        self.stdout(f"Starting Redis service...")
+
         redis_container_name = self._settings.get("redis.container_name")
         redis_port = self._settings.get("redis.port")
         redis_nodes = self._settings.get("redis.nodes", [])
@@ -182,6 +184,8 @@ $ das-cli db start
             raise e
 
     def _mongodb(self):
+        self.stdout(f"Starting MongoDB service...")
+
         mongodb_container_name = self._settings.get("mongodb.container_name")
         mongodb_port = self._settings.get("mongodb.port")
         mongodb_username = self._settings.get("mongodb.username")
@@ -215,7 +219,6 @@ $ das-cli db start
     def run(self):
         self._settings.raise_on_missing_file()
 
-        self.stdout(f"Stopping redis service...")
         self._redis()
         self._mongodb()
 

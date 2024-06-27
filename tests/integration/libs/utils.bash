@@ -47,28 +47,6 @@ function get_python_package_latest_version() {
     return 0
 }
 
-function is_service_up() {
-    local container_name
-    local service_name="$1"
-
-    container_name=$(get_config ".${service_name}.container_name")
-
-    if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}\$"; then
-        return 1
-    fi
-
-    return 0
-}
-
-function service_stop() {
-    local container_name
-    local service_name="$1"
-
-    container_name=$(get_config ".${service_name}.container_name")
-
-    docker container rm -f "$container_name" &>/dev/null
-}
-
 function human_to_boolean() {
     local response="${1,,}"
 

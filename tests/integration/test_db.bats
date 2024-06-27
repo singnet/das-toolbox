@@ -150,9 +150,12 @@ The MongoDB service named ${mongodb_container_name} is already stopped."
     local redis_context_01="default" # current server is always default
     local redis_context_02="$(set_ssh_context ${redis_server_02[0]} ${redis_server_02[1]})"
     local redis_context_03="$(set_ssh_context ${redis_server_03[0]} ${redis_server_03[1]})"
+    local mongodb_port="$(get_config ".mongodb.port")"
+    local redis_port="$(get_config ".redis.port")"
+    local redis_container_name="$(get_config ".redis.container_name")"
 
-    local cluster="true"
-    local nodes='[
+    local redis_cluster="true"
+    local redis_nodes='[
         {
             "context": "'"$redis_context_01"'",
             "ip": "'"${redis_server_01[1]}"'",
@@ -170,18 +173,24 @@ The MongoDB service named ${mongodb_container_name} is already stopped."
         }
     ]'
 
-    set_config ".redis.cluster" "$cluster"
-    set_config ".redis.nodes" "$nodes"
+    set_config ".redis.cluster" "$redis_cluster"
+    set_config ".redis.nodes" "$redis_nodes"
+    set_config ".redis.port" "$redis_port"
 
-    run timeout 20s das-cli db start
+    run timeout 5m das-cli db start
 
     assert_success
 
-    assert_output "Starting redis service...
-Redis has started successfully on port ${redis_port} at localhost, operating under the user ${CURRENT_USER}.
-Starting mongodb service...
+    assert_output "Stopping redis service...
+Redis has started successfully on port ${redis_port} at ${redis_server_01[1]}, operating under the user ${redis_server_02[0]}.
+Redis has started successfully on port ${redis_port} at ${redis_server_02[1]}, operating under the user ${redis_server_02[0]}.
+Redis has started successfully on port ${redis_port} at ${redis_server_03[1]}, operating under the user ${redis_server_03[0]}.
 MongoDB started on port ${mongodb_port}"
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"
+
+    run exec_cmd_on_service "$redis_container_name" "redis-cli -c CLUSTER NODES | wc -l"
+
+    assert_output "3"
 }
