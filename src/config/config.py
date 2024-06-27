@@ -1,6 +1,6 @@
 from common.utils import get_server_username
 
-VERSION = '0.2.19'
+VERSION = '0.2.20'
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 )
