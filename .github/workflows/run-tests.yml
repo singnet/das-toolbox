@@ -9,7 +9,6 @@ on:
       - edited
       - synchronize
 
-
 jobs:
   build-das-cli:
     runs-on: ubuntu-latest
@@ -31,7 +30,7 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - build-das-cli
     steps:
       - name: Checkout
@@ -40,7 +39,13 @@ jobs:
           submodules: true
 
       - name: Install requirements
-        run: sudo apt -y install bats make
+        run: |-
+          sudo apt update && apt -y install make
+          cd /tmp
+          git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
+          cd bats-core
+          ./install.sh /usr/local
+          cd -
 
       - name: Download das-cli artifact
         uses: actions/download-artifact@v4
