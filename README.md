@@ -23,6 +23,7 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 - [Examples](#examples)
 
 - [Getting Help](#getting-help)
+- [Integration Tests](#integration-tests)
 - [Troubleshooting](#troubleshooting)
   - [Docker Permission Denied](#docker-permission-denied)
 
@@ -221,6 +222,26 @@ python3 das_cli.py faas start --help
 ```
 
 The `--help` option is a powerful tool to understand how to use each command effectively. Use it at any level in the command hierarchy to access relevant documentation and ensure correct command execution.
+
+## Integration Tests
+
+To execute the integration tests, use the following commands:
+
+1. **Without Cluster Tests:**
+
+   ```bash
+   make integration_tests
+   ```
+
+   This command runs all integration tests, excluding those that require a configured Redis cluster.
+
+2. **With Cluster Tests:**
+
+   ```bash
+   DAS_CLI_TEST_CLUSTER=true make integration_tests
+   ```
+
+   Make sure you have configured the `tests/integration/fixtures/config/redis_cluster.json` file. Replace the `username` and `ip` for the cluster nodes. For the first node, you don't need to replace the `username` as it will automatically use the current server's user where the tests are running with `das-cli`. Do not change the `context` as it will be created during test execution.
 
 ## Troubleshooting
 
