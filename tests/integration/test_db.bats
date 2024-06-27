@@ -152,7 +152,6 @@ The MongoDB service named ${mongodb_container_name} is already stopped."
     local redis_context_03="$(set_ssh_context ${redis_server_03[0]} ${redis_server_03[1]})"
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
-    local redis_container_name="$(get_config ".redis.container_name")"
 
     local redis_cluster="true"
     local redis_nodes='[
@@ -190,7 +189,7 @@ MongoDB started on port ${mongodb_port}"
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"
 
-    run exec_cmd_on_service "$redis_container_name" "redis-cli -c CLUSTER NODES | wc -l"
+    run exec_cmd_on_service "redis" "redis-cli -c CLUSTER NODES | wc -l"
 
     assert_output "3"
 }
