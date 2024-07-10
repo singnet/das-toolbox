@@ -1,4 +1,5 @@
 from injector import inject
+from typing import List, Dict
 from common import Settings, StdoutSeverity
 from common import (
     Command,
@@ -114,11 +115,39 @@ jupyter_notebook.*
             else:
                 self._settings.set(key, value)
 
-    def _redis_cluster(self, redis_port) -> list:
+    def _build_nodes(self, is_cluster: bool, port: int) -> List[Dict]:
+        nodes = []
+        server_user = get_server_username()
+        current_node = {
+            "context": "default",
+            "ip": "localhost",
+            "username": server_user,
+        }
+
+        if is_cluster:
+            server_public_ip = get_public_ip()
+
+            if server_public_ip is None:
+                raise Exception(
+                    "The server's public ip could not be solved. Make sure it has internet access."
+                )
+
+            current_node["ip"] = server_public_ip
+
+            nodes = self._build_cluster(port)
+
+        nodes.insert(
+            0,
+            current_node,
+        )
+
+        return nodes
+
+    def _build_cluster(self, port: int, min_nodes: int = 3) -> List[Dict]:
         total_nodes = self.prompt(
-            "Enter the total number of nodes for the redis cluster (>= 3)",
+            f"Enter the total number of nodes for the cluster (>= {min_nodes})",
             hide_input=False,
-            type=IntRange(3),
+            type=IntRange(min_nodes),
         )
 
         servers = []
@@ -126,7 +155,7 @@ jupyter_notebook.*
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
-                type=ReachableIpAddress(redis_port),
+                type=ReachableIpAddress(port),
             )
             server_username = self.prompt(
                 f"Enter the server username for the server-{i + 1}",
@@ -142,41 +171,22 @@ jupyter_notebook.*
         remote_context_manager = RemoteContextManager(servers)
         cluster_contexts = remote_context_manager.create_context()
 
-        old_servers = self._settings.get("redis.nodes", [])
-        remote_context_manager.set_servers(old_servers)
-        remote_context_manager.remove_context()
-
         return cluster_contexts
 
-    def _redis_nodes(self, redis_cluster, redis_port) -> list:
-        nodes = []
-        server_user = get_server_username()
-        redis_current_node = {
-            "context": "default",
-            "ip": "localhost",
-            "username": server_user,
-        }
+    def _destroy_contexts(self, servers: List[Dict]):
+        remote_context_manager = RemoteContextManager(servers)
+        remote_context_manager.remove_context()
 
-        if redis_cluster:
-            server_public_ip = get_public_ip()
+    def _redis_nodes(self, redis_cluster, redis_port) -> List[Dict]:
+        redis_nodes = self._build_nodes(redis_cluster, redis_port)
 
-            if server_public_ip is None:
-                raise Exception(
-                    "The server's public ip could not be solved. Make sure it has internet access."
-                )
-
-            redis_current_node["ip"] = server_public_ip
-
-            nodes = self._redis_cluster(redis_port)
-
-        nodes.insert(
-            0,
-            redis_current_node,
+        self._destroy_contexts(
+            servers=self._settings.get("redis.nodes", []),
         )
 
-        return nodes
+        return redis_nodes
 
-    def _redis(self) -> dict:
+    def _redis(self) -> Dict:
         redis_port = self.prompt(
             "Enter Redis port",
             default=self._settings.get("redis.port", 6379),
@@ -184,7 +194,7 @@ jupyter_notebook.*
         )
         cluster_default_value = "yes" if self._settings.get("redis.cluster") else "no"
         redis_cluster = self.prompt(
-            "Is it a redis cluster? (yes/no) ",
+            "Is it a Redis cluster? (yes/no) ",
             hide_input=False,
             default=cluster_default_value,
             type=bool,
@@ -196,6 +206,15 @@ jupyter_notebook.*
             "redis.cluster": redis_cluster,
             "redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
         }
+
+    def _mongodb_nodes(self, mongodb_cluster, mongodb_port) -> List[Dict]:
+        mongodb_nodes = self._build_nodes(mongodb_cluster, mongodb_port)
+
+        self._destroy_contexts(
+            servers=self._settings.get("mongodb.nodes", []),
+        )
+
+        return mongodb_nodes
 
     def _mongodb(self) -> dict:
         mongodb_port = self.prompt(
@@ -212,11 +231,23 @@ jupyter_notebook.*
             # hide_input=True, # When hide_input is set I cannot set the answers based on a text file making impossible to test this command
             default=self._settings.get("mongodb.password", "admin"),
         )
+        cluster_default_value = "yes" if self._settings.get("mongodb.cluster") else "no"
+        is_mongodb_cluster = self.prompt(
+            "Is it a MongoDB cluster? (yes/no) ",
+            hide_input=False,
+            default=cluster_default_value,
+            type=bool,
+        )
         return {
             "mongodb.port": mongodb_port,
             "mongodb.container_name": f"das-cli-mongodb-{mongodb_port}",
             "mongodb.username": mongodb_username,
             "mongodb.password": mongodb_password,
+            "mongodb.cluster": is_mongodb_cluster,
+            "mongodb.nodes": lambda: self._mongodb_nodes(
+                is_mongodb_cluster,
+                mongodb_port,
+            ),
         }
 
     def _loader(self) -> dict:

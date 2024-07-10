@@ -152,7 +152,7 @@ $ das-cli db start
     def _redis_cluster(
         self,
         redis_container_name: str,
-        redis_nodes: dict,
+        redis_nodes: list,
         redis_port: int,
     ):
         redis_container_manager = RedisContainerManager(redis_container_name)
@@ -182,6 +182,24 @@ $ das-cli db start
                 severity=StdoutSeverity.ERROR,
             )
             raise e
+
+    def _mongodb_node(
+        self,
+        mongodb_container_name: str,
+        mongodb_port: int,
+        mongodb_node: dict,
+    ):
+        pass
+
+    def _mongodb_cluster(
+        self,
+        mongodb_container_name: str,
+        mongodb_nodes: list,
+        mongodb_port: int,
+    ):
+        mongodb_container_manager = MongodbContainerManager(mongodb_container_name)
+
+        mongodb_container_manager.start_cluster(mongodb_nodes, mongodb_port)
 
     def _mongodb(self):
         self.stdout(f"Starting MongoDB service...")
