@@ -42,7 +42,7 @@ redis.*
     redis.container_name
         Specifies the name of the Docker container running the Redis server.
 
-    redis.custer
+    redis.cluster
         Indicates whether a Redis cluster is being used (true/false).
 
     redis.nodes
@@ -71,6 +71,21 @@ mongodb.*
 
     mongodb.password
         The password for connecting to the MongoDB server.
+
+    mongodb.cluster
+        Indicates whether a MongoDB cluster is being used (true/false).
+
+    mongodb.nodes
+        Receives a list of nodes for MongoDB configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
+
+    mongodb.nodes.[].context
+        The name of the Docker context containing connection information for the remote Docker instances of other nodes.
+
+    mongodb.nodes.[].ip
+        The IP address of the node.
+
+    mongodb.nodes.[].username
+        The username for connecting to the node.
 
 loader.*
     These variables control the Loader settings, responsible for validating and loading meta files into the database, such as:
