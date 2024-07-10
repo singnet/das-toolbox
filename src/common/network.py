@@ -33,7 +33,12 @@ def is_server_port_available(
     def server_up(host, port):
 
         command = f"ssh {username}@{host} \"ufw status | grep '{port}.*ALLOW'\""
-        result = subprocess.call(command, shell=True)
+        result = subprocess.call(
+            command,
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
         return result == 0
 

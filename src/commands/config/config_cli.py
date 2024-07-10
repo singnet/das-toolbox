@@ -149,7 +149,7 @@ jupyter_notebook.*
 
             current_node["ip"] = server_public_ip
 
-            nodes = self._build_cluster(port)
+            nodes = self._build_cluster(server_user, port)
 
         nodes.insert(
             0,
@@ -158,7 +158,12 @@ jupyter_notebook.*
 
         return nodes
 
-    def _build_cluster(self, port: int, min_nodes: int = 3) -> List[Dict]:
+    def _build_cluster(
+        self,
+        username: str,
+        port: int,
+        min_nodes: int = 3,
+    ) -> List[Dict]:
         total_nodes = self.prompt(
             f"Enter the total number of nodes for the cluster (>= {min_nodes})",
             hide_input=False,
@@ -170,7 +175,7 @@ jupyter_notebook.*
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
-                type=ReachableIpAddress(port),
+                type=ReachableIpAddress(username, port),
             )
             server_username = self.prompt(
                 f"Enter the server username for the server-{i + 1}",
