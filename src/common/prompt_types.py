@@ -1,6 +1,7 @@
 import re
 from click import IntRange, ParamType, Choice, Path
 from common.network import is_server_port_available
+from typing import Union
 
 
 class FunctionVersion(ParamType):
@@ -15,23 +16,31 @@ class FunctionVersion(ParamType):
         return value
 
     def __repr__(self):
-        return "ReachableIpAddress(%r, %r)" % (self.port)
+        return "FunctionVersion()"
 
 
 class ReachableIpAddress(ParamType):
     name = "reachable ip address"
 
-    def __init__(self, port=None):
+    def __init__(self, username: str, port: Union[int, None] = None):
         self.port = port
+        self.username = username
 
     def convert(self, value, param, ctx):
-        if not is_server_port_available(host=value, start_port=22):
+        if not is_server_port_available(
+            username=self.username,
+            host=value,
+            start_port=22,
+        ):
             self.fail("%s is not reachable via SSH." % (value,), param, ctx)
 
-        if not is_server_port_available(host=value, start_port=self.port):
+        if not is_server_port_available(
+            username=self.username,
+            host=value,
+            start_port=self.port,
+        ):
             self.fail(
-                "It appears that the Redis port %s on %s is not open."
-                % (self.port, value),
+                "It appears that the port %s on %s is not open." % (self.port, value),
                 param,
                 ctx,
             )
@@ -39,4 +48,4 @@ class ReachableIpAddress(ParamType):
         return value
 
     def __repr__(self):
-        return "ReachableIpAddress(%r, %r)" % (self.port)
+        return "ReachableIpAddress(%r, %r)" % (self.port, self.username)
