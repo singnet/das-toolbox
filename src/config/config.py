@@ -1,9 +1,10 @@
-from common.utils import get_server_username
+from common.utils import get_server_username, get_rand_token
 
-VERSION = '0.2.20'
+VERSION = "0.2.20"
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 )
+SESSION_ID = get_rand_token()
 
 # PATHS
 
@@ -31,8 +32,3 @@ OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
 JUPYTER_NOTEBOOK_IMAGE_NAME = "trueagi/das"
 JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
-
-# OTHERS
-
-CLI_GROUP_NAME = "das"
-CLI_USER_NAME = "das"

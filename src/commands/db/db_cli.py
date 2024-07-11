@@ -1,5 +1,5 @@
 from injector import inject
-from common import Command, CommandGroup, Settings, StdoutSeverity, generate_keyfile
+from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerError,
@@ -183,13 +183,19 @@ $ das-cli db start
         mongodb_port: int,
         mongodb_username: str,
         mongodb_password: str,
+        is_cluster_enabled: bool = False,
     ) -> None:
         node_context = mongodb_node.get("context")
         node_ip = mongodb_node.get("ip")
         node_username = mongodb_node.get("username")
-        mongodb_keyfile_path = "/tmp/mongodb-keyfile.txt"
-
-        generate_keyfile(mongodb_keyfile_path)
+        cluster_node = (
+            dict(
+                host=node_ip,
+                username=node_username,
+            )
+            if is_cluster_enabled
+            else None
+        )
 
         try:
             self._mongodb_container_manager.set_exec_context(node_context)
@@ -197,7 +203,7 @@ $ das-cli db start
                 mongodb_port,
                 mongodb_username,
                 mongodb_password,
-                mongodb_keyfile_path,
+                cluster_node,
             )
             self._mongodb_container_manager.unset_exec_context()
 
@@ -232,6 +238,7 @@ $ das-cli db start
                 mongodb_port,
                 mongodb_username,
                 mongodb_password,
+                mongodb_cluster,
             )
 
         if mongodb_cluster:

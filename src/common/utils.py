@@ -1,7 +1,6 @@
 import os
 import sys
 import getpass
-import subprocess
 
 
 def is_executable_bin():
@@ -29,10 +28,10 @@ def remove_special_characters(text):
     return clean_text.strip()
 
 
-def generate_keyfile(path: str):
-    keyfile_content = subprocess.check_output(["openssl", "rand", "-base64", "756"])
+def get_rand_token(num_bytes: int = 756) -> str:
+    import secrets
+    import base64
 
-    with open(path, "wb") as keyfile:
-        keyfile.write(keyfile_content)
+    random_bytes = secrets.token_bytes(num_bytes)
 
-    os.chmod(path, 0o400)
+    return base64.b64encode(random_bytes).decode("utf-8")
