@@ -24,7 +24,7 @@ class MongodbContainerManager(ContainerManager):
             ssh_conn.exec_command(f"chmod 400 {file_path}")
 
     def _setup_cluster_node_config(self, cluster_node: dict):
-        keyfile_path = "/tmp/keyfile"
+        keyfile_path = "/data/keyfile.txt"
 
         self._generate_cluster_node_keyfile(**cluster_node, file_path=keyfile_path)
 
