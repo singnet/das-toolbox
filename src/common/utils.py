@@ -29,11 +29,10 @@ def remove_special_characters(text):
     return clean_text.strip()
 
 
-def generate_keyfile(path: str) -> bool:
-    command = f"openssl rand -base64 756 > {path}"
-    status_code = subprocess.call(
-        command,
-        stderr=subprocess.DEVNULL,
-    )
+def generate_keyfile(path: str):
+    keyfile_content = subprocess.check_output(["openssl", "rand", "-base64", "756"])
 
-    return status_code == 0
+    with open(path, "wb") as keyfile:
+        keyfile.write(keyfile_content)
+
+    os.chmod(path, 0o400)

@@ -187,7 +187,9 @@ $ das-cli db start
         node_context = mongodb_node.get("context")
         node_ip = mongodb_node.get("ip")
         node_username = mongodb_node.get("username")
-        mongodb_keyfile_path = "/tmp/mongodb.txt"
+        mongodb_keyfile_path = "/tmp/mongodb-keyfile.txt"
+
+        generate_keyfile(mongodb_keyfile_path)
 
         try:
             self._mongodb_container_manager.set_exec_context(node_context)
