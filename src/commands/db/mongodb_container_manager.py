@@ -18,20 +18,23 @@ class MongodbContainerManager(ContainerManager):
     def _generate_cluster_node_keyfile(self, host: str, username: str, file_path: str):
         with ssh.open(host, username) as (ssh_conn, sftp_conn):
             content_stream = io.BytesIO(SESSION_ID.encode("utf-8"))
-            remote_file = sftp_conn.file(file_path, "w")
+            remote_file = sftp_conn.open(file_path, "w")
             remote_file.write(content_stream.read())
 
             ssh_conn.exec_command(f"chmod 400 {file_path}")
 
     def _setup_cluster_node_config(self, cluster_node: dict):
+        keyfile_server_path = "/tmp/das-cli-mongodb-keyfile.txt"
         keyfile_path = "/data/keyfile.txt"
 
-        self._generate_cluster_node_keyfile(**cluster_node, file_path=keyfile_path)
+        self._generate_cluster_node_keyfile(
+            **cluster_node, file_path=keyfile_server_path
+        )
 
         return dict(
             command=f"mongod --replSet rs0 --keyFile {keyfile_path} --auth",
             volumes={
-                keyfile_path: {
+                keyfile_server_path: {
                     "bind": keyfile_path,
                     "mode": "ro",
                 },
