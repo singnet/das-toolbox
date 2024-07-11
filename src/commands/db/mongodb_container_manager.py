@@ -18,11 +18,12 @@ class MongodbContainerManager(ContainerManager):
         port: int,
         username: str,
         password: str,
+        keyfile_path: str,
     ):
         self.raise_running_container()
 
         container_id = self._start_container(
-            command="--replSet rs0",
+            command="--replSet rs0 --keyFile /data/keyfile --auth",
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
@@ -33,6 +34,12 @@ class MongodbContainerManager(ContainerManager):
             environment={
                 "MONGO_INITDB_ROOT_USERNAME": username,
                 "MONGO_INITDB_ROOT_PASSWORD": password,
+            },
+            volumes={
+                keyfile_path: {
+                    "bind": "/data/keyfile",
+                    "mode": "ro",
+                },
             },
         )
 

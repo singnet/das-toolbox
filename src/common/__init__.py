@@ -16,5 +16,6 @@ from .utils import (
     is_executable_bin,
     remove_special_characters,
     get_server_username,
+    generate_keyfile,
 )
 from .logger import logger
