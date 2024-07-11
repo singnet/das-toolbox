@@ -29,10 +29,10 @@ class MongodbContainerManager(ContainerManager):
         self._generate_cluster_node_keyfile(**cluster_node, file_path=keyfile_path)
 
         return dict(
-            command="mongod --replSet rs0 --keyFile /data/keyfile --auth",
+            command=f"mongod --replSet rs0 --keyFile {keyfile_path} --auth",
             volumes={
                 keyfile_path: {
-                    "bind": "/data/keyfile",
+                    "bind": keyfile_path,
                     "mode": "ro",
                 },
             },
