@@ -16,7 +16,7 @@ class MongodbContainerManager(ContainerManager):
         super().__init__(container)
 
     def _generate_cluster_node_keyfile(self, host: str, username: str, file_path: str):
-        with ssh.open(host, username) as (sftp_conn, ssh_conn):
+        with ssh.open(host, username) as (ssh_conn, sftp_conn):
             content_stream = io.BytesIO(SESSION_ID.encode("utf-8"))
             remote_file = sftp_conn.file(file_path, "w")
             remote_file.write(content_stream.read())
