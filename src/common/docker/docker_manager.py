@@ -11,9 +11,12 @@ class DockerManager:
         self,
         exec_context: Union[AnyStr, None] = None,
     ) -> None:
-        self._exec_context = exec_context
+        self.set_exec_context(exec_context)
 
-    def set_exec_context(self, exec_context: Union[AnyStr]) -> None:
+    def unset_exec_context(self) -> None:
+        self.set_exec_context(None)
+
+    def set_exec_context(self, exec_context: Union[AnyStr, None] = None):
         self._exec_context = exec_context
 
     def _get_client(self, use: Union[AnyStr, None] = None) -> docker.DockerClient:

@@ -47,6 +47,7 @@ $ das-cli db stop
         try:
             self._redis_container_manager.set_exec_context(node_context)
             self._redis_container_manager.stop()
+            self._redis_container_manager.unset_exec_context()
 
             self.stdout(
                 f"The Redis service at {node_ip} has been stopped by the {node_username} user",
@@ -139,6 +140,7 @@ $ das-cli db start
         try:
             self._redis_container_manager.set_exec_context(node_context)
             self._redis_container_manager.start_container(redis_port)
+            self._redis_container_manager.unset_exec_context()
 
             self.stdout(
                 f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the user {node_username}.",
@@ -193,6 +195,7 @@ $ das-cli db start
                 mongodb_username,
                 mongodb_password,
             )
+            self._mongodb_container_manager.unset_exec_context()
 
             self.stdout(
                 f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the user {node_username}.",
