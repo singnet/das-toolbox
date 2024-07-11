@@ -28,17 +28,19 @@ class MongodbContainerManager(ContainerManager):
         keyfile_path = "/data/keyfile.txt"
 
         self._generate_cluster_node_keyfile(
-            **cluster_node, file_path=keyfile_server_path
+            **cluster_node,
+            file_path=keyfile_server_path,
         )
 
         return dict(
-            command=f"mongod --replSet rs0 --keyFile {keyfile_path} --auth",
             volumes={
                 keyfile_server_path: {
                     "bind": keyfile_path,
                     "mode": "ro",
                 },
             },
+            command=f"mongo --replSet rs0 --keyFile {keyfile_path} --auth",
+            entrypoint="mongod",
         )
 
     def start_container(
