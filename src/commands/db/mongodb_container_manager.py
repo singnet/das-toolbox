@@ -6,6 +6,8 @@ from typing import AnyStr, List, Dict, Union
 
 
 class MongodbContainerManager(ContainerManager):
+    _repl_set = "rs0"
+
     def __init__(self, mongodb_container_name) -> None:
         container = Container(
             mongodb_container_name,
@@ -38,7 +40,7 @@ class MongodbContainerManager(ContainerManager):
         if not cluster_node:
             return {}
         return {
-            "command": f"--replSet rs0 --keyFile {keyfile_path} --auth",
+            "command": f"--replSet {self._repl_set} --keyFile {keyfile_path} --auth",
             "volumes": {
                 keyfile_server_path: {
                     "bind": keyfile_path,
@@ -79,7 +81,7 @@ class MongodbContainerManager(ContainerManager):
         mongodb_nodes: List[Dict],
     ) -> dict:
         rs_config = {
-            "_id": "mongo_repl",
+            "_id": self._repl_set,
             "members": [],
         }
 
@@ -103,5 +105,7 @@ class MongodbContainerManager(ContainerManager):
         rl_config = self._get_replica_set_config(mongodb_port, mongodb_nodes)
         rl_config_json = json.dumps(rl_config)
 
+        print(rl_config_json)
+
         self.set_exec_context(mongodb_nodes[0]["context"])
-        self._exec_container(f'mongo --eval "rs.add({rl_config_json})"')
+        self._exec_container(f'mongo --eval "rs.initiate({rl_config_json})"')
