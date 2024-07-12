@@ -9,6 +9,7 @@ from common import (
     RemoteContextManager,
     get_server_username,
     get_public_ip,
+    get_rand_token,
 )
 
 
@@ -258,6 +259,10 @@ jupyter_notebook.*
             default=cluster_default_value,
             type=bool,
         )
+        cluster_secret_key = self._settings.get(
+            "mongodb.cluster_secret_key",
+            get_rand_token(num_bytes=15),
+        )
         return {
             "mongodb.port": mongodb_port,
             "mongodb.container_name": f"das-cli-mongodb-{mongodb_port}",
@@ -268,6 +273,7 @@ jupyter_notebook.*
                 is_mongodb_cluster,
                 mongodb_port,
             ),
+            "mongodb.cluster_secret_key": cluster_secret_key,
         }
 
     def _loader(self) -> dict:

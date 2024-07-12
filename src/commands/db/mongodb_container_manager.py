@@ -1,8 +1,8 @@
 import json
 import io
 from common import Container, ContainerManager, ssh, get_rand_token
-from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, SESSION_ID
-from typing import List, Dict, Union
+from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
+from typing import List, Dict, Union, AnyStr
 from common.docker.exceptions import DockerError
 
 
@@ -18,24 +18,32 @@ class MongodbContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _generate_cluster_node_keyfile(self, host: str, username: str, file_path: str):
-        with ssh.open(host, username) as (ssh_conn, sftp_conn):
-            content_stream = io.BytesIO(SESSION_ID.encode("utf-8"))
-            remote_file = sftp_conn.open(file_path, "w")
-            remote_file.write(content_stream.read())
+    def _upload_key_to_server(self, cluster_node, mongodb_cluster_secret_key):
+        keyfile_server_path = f"/tmp/{get_rand_token(num_bytes=5)}.txt"
 
-            ssh_conn.exec_command(f"chmod 400 {file_path}")
-            ssh_conn.exec_command(
-                f"chown 999:999 {file_path}"
-            )  # Inside the container 999 is the mongodb's uid and gid
+        try:
+            with ssh.open(cluster_node["ip"], cluster_node["username"]) as (
+                ssh_conn,
+                sftp_conn,
+            ):
+                with sftp_conn.open(keyfile_server_path, "w") as remote_file:
+                    remote_file.write(mongodb_cluster_secret_key.encode("utf-8"))
 
-    def _get_cluster_node_config(self, cluster_node):
-        keyfile_server_path = "/tmp/" + get_rand_token(num_bytes=5) + ".txt"
+                ssh_conn.exec_command(f"chmod 400 {keyfile_server_path}")
+                ssh_conn.exec_command(f"chown 999:999 {keyfile_server_path}")
+
+            return keyfile_server_path
+
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to upload key to server at {cluster_node['ip']} (username: {cluster_node['username']}): {e}"
+            )
+
+    def _get_cluster_node_config(self, cluster_node, mongodb_cluster_secret_key):
         keyfile_path = "/data/keyfile.txt"
-
-        self._generate_cluster_node_keyfile(
-            **cluster_node,
-            file_path=keyfile_server_path,
+        keyfile_server_path = self._upload_key_to_server(
+            cluster_node,
+            mongodb_cluster_secret_key,
         )
 
         if not cluster_node:
@@ -56,11 +64,12 @@ class MongodbContainerManager(ContainerManager):
         username: str,
         password: str,
         cluster_node: Union[Dict, None] = None,
+        mongodb_cluster_secret_key: Union[AnyStr, None] = None,
     ):
         self.raise_running_container()
 
         container = self._start_container(
-            **self._get_cluster_node_config(cluster_node),
+            **self._get_cluster_node_config(cluster_node, mongodb_cluster_secret_key),
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,

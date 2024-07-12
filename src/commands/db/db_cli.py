@@ -7,6 +7,7 @@ from common.docker.exceptions import (
 )
 from .mongodb_container_manager import MongodbContainerManager
 from .redis_container_manager import RedisContainerManager
+from typing import Union, AnyStr
 
 
 class DbStop(Command):
@@ -39,24 +40,20 @@ $ das-cli db stop
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
 
-    def _redis_node(self, redis_node):
-        node_context = redis_node.get("context")
-        node_ip = redis_node.get("ip")
-        node_username = redis_node.get("username")
-
+    def _redis_node(self, context, ip, username):
         try:
-            self._redis_container_manager.set_exec_context(node_context)
+            self._redis_container_manager.set_exec_context(context)
             self._redis_container_manager.stop()
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The Redis service at {node_ip} has been stopped by the {node_username} user",
+                f"The Redis service at {ip} has been stopped by the {username} user.",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
             container_name = self._redis_container_manager.get_container().get_name()
             self.stdout(
-                f"The Redis service named {container_name} at {node_ip} is already stopped by the {node_username} user.",
+                f"The Redis service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
 
@@ -82,13 +79,13 @@ $ das-cli db stop
             self._mongodb_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The MongoDB service at {ip} has been stopped by the {username} user",
+                f"The MongoDB service at {ip} has been stopped by {username}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
             container_name = self._mongodb_container_manager.get_container().get_name()
             self.stdout(
-                f"The MongoDB service named {container_name} at {ip} is already stopped by the {username} user.",
+                f"The MongoDB service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
 
@@ -101,13 +98,6 @@ $ das-cli db stop
             for mongodb_node in mongodb_nodes:
                 self._mongodb_node(**mongodb_node)
 
-        except DockerContainerNotFoundError:
-            container_name = self._mongodb_container_manager.get_container().get_name()
-
-            self.stdout(
-                f"The MongoDB service named {container_name} is already stopped.",
-                severity=StdoutSeverity.WARNING,
-            )
         except DockerError as e:
             self.stdout(
                 f"\nError occurred while trying to stop MongoDB\n",
@@ -205,10 +195,12 @@ $ das-cli db start
         mongodb_username: str,
         mongodb_password: str,
         is_cluster_enabled: bool = False,
+        mongodb_cluster_secret_key: Union[AnyStr, None] = None,
     ) -> None:
         node_context = mongodb_node.get("context")
         node_ip = mongodb_node.get("ip")
         node_username = mongodb_node.get("username")
+
         cluster_node = (
             dict(
                 host=node_ip,
@@ -225,6 +217,7 @@ $ das-cli db start
                 mongodb_username,
                 mongodb_password,
                 cluster_node,
+                mongodb_cluster_secret_key,
             )
             self._mongodb_container_manager.unset_exec_context()
 
@@ -252,6 +245,7 @@ $ das-cli db start
         mongodb_password = self._settings.get("mongodb.password")
         mongodb_nodes = self._settings.get("mongodb.nodes", [])
         mongodb_cluster = self._settings.get("mongodb.cluster", False)
+        mongodb_cluster_secret_key = self._settings.get("mongodb.cluster_secret_key")
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
@@ -260,6 +254,7 @@ $ das-cli db start
                 mongodb_username,
                 mongodb_password,
                 mongodb_cluster,
+                mongodb_cluster_secret_key,
             )
 
         if mongodb_cluster:
