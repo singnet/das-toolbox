@@ -202,8 +202,9 @@ class ContainerManager(DockerManager):
         return status_code == 0
 
     def is_container_healthy(self, container):
-        api_client = docker.APIClient()
-        inspect_results = api_client.inspect_container(container.name)
+        inspect_results = self._get_client().containers.client.inspect_container(
+            container.name
+        )
         return inspect_results["State"]["Health"]["Status"] == "healthy"
 
     def wait_for_container(self, container, timeout=60, interval=2):
