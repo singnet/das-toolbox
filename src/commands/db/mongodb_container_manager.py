@@ -23,25 +23,17 @@ class MongodbContainerManager(ContainerManager):
 
             ssh_conn.exec_command(f"chmod 400 {file_path}")
 
-    def _setup_cluster_node_config(self, cluster_node: dict):
-        keyfile_server_path = "/tmp/das-cli-mongodb-keyfile.txt"
-        keyfile_path = "/data/keyfile.txt"
-
-        self._generate_cluster_node_keyfile(
-            **cluster_node,
-            file_path=keyfile_server_path,
-        )
-
-        return dict(
-            volumes={
+    def _get_cluster_node_config(self, cluster_node, keyfile_server_path, keyfile_path):
+        if not cluster_node:
+            return {}
+        return {
+            "volumes": {
                 keyfile_server_path: {
                     "bind": keyfile_path,
                     "mode": "ro",
-                },
-            },
-            command=f"mongo --replSet rs0 --keyFile {keyfile_path} --auth",
-            entrypoint="mongod",
-        )
+                }
+            }
+        }
 
     def start_container(
         self,
@@ -51,12 +43,16 @@ class MongodbContainerManager(ContainerManager):
         cluster_node: Union[Dict, None] = None,
     ):
         self.raise_running_container()
-        cluster_node_config = (
-            self._setup_cluster_node_config(cluster_node) if cluster_node else {}
-        )
 
-        container_id = self._start_container(
-            **cluster_node_config,
+        keyfile_server_path = "/tmp/das-cli-mongodb-keyfile.txt"
+        keyfile_path = "/data/keyfile.txt"
+
+        container = self._start_container(
+            **self._get_cluster_node_config(
+                cluster_node,
+                keyfile_server_path,
+                keyfile_path,
+            ),
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
@@ -70,7 +66,17 @@ class MongodbContainerManager(ContainerManager):
             },
         )
 
-        return container_id
+        if cluster_node:
+            if self.wait_for_container(container):
+                self._exec_container(
+                    f"mongod --replSet rs0 --keyFile {keyfile_path} --auth"
+                )
+            else:
+                raise RuntimeError(
+                    "Failed to start the container within the timeout period."
+                )
+
+        return container
 
     def start_cluster(
         self,

@@ -1,5 +1,6 @@
 import docker
 import curses
+import time
 import docker.errors
 from typing import Any, Union, AnyStr
 from .docker_manager import DockerManager
@@ -175,10 +176,30 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
-    def container_status(self, container) -> int:
+    def get_container_exit_status(self, container) -> int:
         try:
             return container.wait()["StatusCode"]
         except docker.errors.NotFound:
             container = self.get_docker_client().containers.get(container)
             exit_code = container.attrs["State"]["ExitCode"]
             return exit_code
+
+    def get_container_status(self, container) -> int:
+        try:
+            container = self.get_docker_client().containers.get(container)
+            return container.attrs["State"]["ExitCode"]
+        except docker.errors.NotFound:
+            return -1
+
+    def is_container_running(self, container):
+        status_code = self.get_container_status(container)
+        return status_code == 0
+
+    def wait_for_container(self, container_id, timeout=60, interval=2):
+        elapsed_time = 0
+        while elapsed_time < timeout:
+            if self.is_container_running(container_id):
+                return True
+            time.sleep(interval)
+            elapsed_time += interval
+        return False
