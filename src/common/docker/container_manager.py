@@ -52,7 +52,14 @@ class ContainerManager(DockerManager):
             container_name = self.get_container().get_name()
             container = self.get_docker_client().containers.get(container_name)
 
-            return container.exec_run(command, tty=True)
+            exec_result = container.exec_run(command, tty=True)
+
+            if exec_result.exit_code != 0:
+                raise DockerError(
+                    f"Command '{command}' failed with exit code {exec_result.exit_code}. Output: {exec_result.output}"
+                )
+
+            return exec_result
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
