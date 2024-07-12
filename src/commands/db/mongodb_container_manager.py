@@ -22,9 +22,12 @@ class MongodbContainerManager(ContainerManager):
             remote_file.write(content_stream.read())
 
             ssh_conn.exec_command(f"chmod 400 {file_path}")
+            ssh_conn.exec_command(
+                f"chown 999:999 {file_path}"
+            )  # Inside the container 999 is the mongodb's uid and gid
 
     def _get_cluster_node_config(self, cluster_node):
-        keyfile_server_path = "/tmp/" + get_rand_token(num_bytes=40) + ".txt"
+        keyfile_server_path = "/tmp/" + get_rand_token(num_bytes=5) + ".txt"
         keyfile_path = "/data/keyfile.txt"
 
         self._generate_cluster_node_keyfile(
