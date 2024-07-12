@@ -101,11 +101,13 @@ class MongodbContainerManager(ContainerManager):
         self,
         mongodb_nodes: List[Dict],
         mongodb_port: int,
+        mongodb_username: str,
+        mongodb_password: str,
     ):
         rl_config = self._get_replica_set_config(mongodb_port, mongodb_nodes)
         rl_config_json = json.dumps(rl_config)
 
-        print(rl_config_json)
-
         self.set_exec_context(mongodb_nodes[0]["context"])
-        self._exec_container(f'bash -c "mongo --eval "rs.initiate({rl_config_json})""')
+        self._exec_container(
+            f"bash -c mongosh --username {mongodb_username} --password {mongodb_password} --eval 'rs.initiate({rl_config_json})'"
+        )

@@ -246,6 +246,8 @@ $ das-cli db start
                 self._mongodb_container_manager.start_cluster(
                     mongodb_nodes,
                     mongodb_port,
+                    mongodb_username,
+                    mongodb_password,
                 )
             except Exception as e:
                 self.stdout(
