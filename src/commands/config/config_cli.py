@@ -75,6 +75,9 @@ mongodb.*
 
     mongodb.cluster
         Indicates whether a MongoDB cluster is being used (true/false).
+    
+    mongodb.cluster_secret_key
+        This key is uploaded to all nodes within the MongoDB cluster. It is used for mutual authentication between nodes, ensuring that only authorized nodes can communicate with each other.
 
     mongodb.nodes
         Receives a list of nodes for MongoDB configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
