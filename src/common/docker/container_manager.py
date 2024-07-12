@@ -205,7 +205,14 @@ class ContainerManager(DockerManager):
         elapsed_time = 0
         while elapsed_time < timeout:
             if self.is_container_running(container):
-                return True
+                if "Health" in container.attrs and "Status" in container.attrs["State"]:
+                    health_status = container.attrs["State"]["Health"]["Status"]
+                    if health_status == "healthy":
+                        return True
+                else:
+                    return True
+
             time.sleep(interval)
             elapsed_time += interval
+
         return False

@@ -72,6 +72,10 @@ class MongodbContainerManager(ContainerManager):
                 "MONGO_INITDB_ROOT_USERNAME": username,
                 "MONGO_INITDB_ROOT_PASSWORD": password,
             },
+            healthcheck={
+                "Test": ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"],
+                "StartPeriod": 20000000,
+            },
         )
 
         if not self.wait_for_container(container):
