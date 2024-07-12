@@ -108,4 +108,4 @@ class MongodbContainerManager(ContainerManager):
         print(rl_config_json)
 
         self.set_exec_context(mongodb_nodes[0]["context"])
-        self._exec_container(f'mongo --eval "rs.initiate({rl_config_json})"')
+        self._exec_container(f'bash -c "mongo --eval "rs.initiate({rl_config_json})""')
