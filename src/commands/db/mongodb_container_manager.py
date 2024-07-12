@@ -73,19 +73,26 @@ class MongodbContainerManager(ContainerManager):
 
         return container
 
-
-    def _get_replica_set_config(self, mongodb_port: int, mongodb_nodes: List[Dict]) -> dict:
+    def _get_replica_set_config(
+        self,
+        mongodb_port: int,
+        mongodb_nodes: List[Dict],
+    ) -> dict:
         rs_config = {
             "_id": "mongo_repl",
             "members": [],
         }
 
         for index, mongodb_node in enumerate(mongodb_nodes):
-            rs_config["members"].append({
-                "_id": index,
-                "host": f"{mongodb_node["ip"]}:{mongodb_port}",
-            })
-        
+            mongodb_node_ip = mongodb_node["ip"]
+
+            rs_config["members"].append(
+                {
+                    "_id": index,
+                    "host": f"{mongodb_node_ip}:{mongodb_port}",
+                }
+            )
+
         return rs_config
 
     def start_cluster(
@@ -97,6 +104,4 @@ class MongodbContainerManager(ContainerManager):
         rl_config_json = json.dumps(rl_config)
 
         self.set_exec_context(mongodb_nodes[0]["context"])
-        self._exec_container(
-            f"mongo --eval \"rs.add({rl_config_json})\""
-        )
+        self._exec_container(f'mongo --eval "rs.add({rl_config_json})"')
