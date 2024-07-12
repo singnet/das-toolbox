@@ -64,7 +64,7 @@ $ das-cli db stop
 
         try:
             for redis_node in redis_nodes:
-                self._redis_node(redis_node)
+                self._redis_node(**redis_node)
         except DockerError as e:
             self.stdout(
                 f"\nError occurred while trying to stop Redis\n",
