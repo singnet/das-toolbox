@@ -23,16 +23,25 @@ class MongodbContainerManager(ContainerManager):
 
             ssh_conn.exec_command(f"chmod 400 {file_path}")
 
-    def _get_cluster_node_config(self, cluster_node, keyfile_server_path, keyfile_path):
+    def _get_cluster_node_config(self, cluster_node):
+        keyfile_server_path = "/tmp/das-cli-mongodb-keyfile.txt"
+        keyfile_path = "/data/keyfile.txt"
+
+        self._generate_cluster_node_keyfile(
+            **cluster_node,
+            file_path=keyfile_server_path,
+        )
+
         if not cluster_node:
             return {}
         return {
+            "command": f"--replSet rs0 --keyFile {keyfile_path} --auth",
             "volumes": {
                 keyfile_server_path: {
                     "bind": keyfile_path,
                     "mode": "ro",
                 }
-            }
+            },
         }
 
     def start_container(
@@ -44,15 +53,8 @@ class MongodbContainerManager(ContainerManager):
     ):
         self.raise_running_container()
 
-        keyfile_server_path = "/tmp/das-cli-mongodb-keyfile.txt"
-        keyfile_path = "/data/keyfile.txt"
-
         container = self._start_container(
-            **self._get_cluster_node_config(
-                cluster_node,
-                keyfile_server_path,
-                keyfile_path,
-            ),
+            **self._get_cluster_node_config(cluster_node),
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
@@ -65,16 +67,6 @@ class MongodbContainerManager(ContainerManager):
                 "MONGO_INITDB_ROOT_PASSWORD": password,
             },
         )
-
-        if cluster_node:
-            if self.wait_for_container(container):
-                self._exec_container(
-                    f"mongod --replSet rs0 --keyFile {keyfile_path} --auth"
-                )
-            else:
-                raise RuntimeError(
-                    "Failed to start the container within the timeout period."
-                )
 
         return container
 
