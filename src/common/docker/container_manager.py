@@ -201,10 +201,10 @@ class ContainerManager(DockerManager):
         status_code = self.get_container_status(container)
         return status_code == 0
 
-    def wait_for_container(self, container_id, timeout=60, interval=2):
+    def wait_for_container(self, container, timeout=60, interval=2):
         elapsed_time = 0
         while elapsed_time < timeout:
-            if self.is_container_running(container_id):
+            if self.is_container_running(container):
                 return True
             time.sleep(interval)
             elapsed_time += interval

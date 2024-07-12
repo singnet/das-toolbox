@@ -2,7 +2,8 @@ import json
 import io
 from common import Container, ContainerManager, ssh, get_rand_token
 from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, SESSION_ID
-from typing import AnyStr, List, Dict, Union
+from typing import List, Dict, Union
+from common.docker.exceptions import DockerError
 
 
 class MongodbContainerManager(ContainerManager):
@@ -73,6 +74,9 @@ class MongodbContainerManager(ContainerManager):
             },
         )
 
+        if not self.wait_for_container(container):
+            raise DockerError("Timeout waiting for MongoDB container to start.")
+
         return container
 
     def _get_replica_set_config(
@@ -109,5 +113,5 @@ class MongodbContainerManager(ContainerManager):
 
         self.set_exec_context(mongodb_nodes[0]["context"])
         self._exec_container(
-            f"bash -c mongosh --username {mongodb_username} --password {mongodb_password} --eval 'rs.initiate({rl_config_json})'"
+            f"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'rs.initiate({rl_config_json})'"
         )
