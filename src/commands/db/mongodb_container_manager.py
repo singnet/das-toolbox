@@ -1,6 +1,6 @@
 import os
 import io
-from common import Container, ContainerManager, ssh
+from common import Container, ContainerManager, ssh, get_rand_token
 from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, SESSION_ID
 from typing import AnyStr, List, Dict, Union
 
@@ -24,7 +24,7 @@ class MongodbContainerManager(ContainerManager):
             ssh_conn.exec_command(f"chmod 400 {file_path}")
 
     def _get_cluster_node_config(self, cluster_node):
-        keyfile_server_path = "/tmp/das-cli-mongodb-keyfile.txt"
+        keyfile_server_path = "/tmp/" + get_rand_token(num_bytes=40) + ".txt"
         keyfile_path = "/data/keyfile.txt"
 
         self._generate_cluster_node_keyfile(
