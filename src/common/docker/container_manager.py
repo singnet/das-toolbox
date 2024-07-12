@@ -186,7 +186,6 @@ class ContainerManager(DockerManager):
 
     def get_container_status(self, container) -> int:
         try:
-            container = self.get_docker_client().containers.get(container)
             return container.attrs["State"]["ExitCode"]
         except docker.errors.NotFound:
             return -1
