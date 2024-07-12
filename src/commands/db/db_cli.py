@@ -61,7 +61,7 @@ $ das-cli db stop
             )
 
     def _redis(self):
-        self.stdout(f"Stopping redis service...")
+        self.stdout(f"Stopping Redis service...")
 
         redis_nodes = self._settings.get("redis.nodes", [])
 
@@ -75,11 +75,32 @@ $ das-cli db stop
             )
             raise e
 
-    def _mongodb(self):
+    def _mongodb_node(self, context, ip, username):
         try:
+            self._mongodb_container_manager.set_exec_context(context)
             self._mongodb_container_manager.stop()
+            self._mongodb_container_manager.unset_exec_context()
 
-            self.stdout("MongoDB service stopped", severity=StdoutSeverity.SUCCESS)
+            self.stdout(
+                f"The MongoDB service at {ip} has been stopped by the {username} user",
+                severity=StdoutSeverity.SUCCESS,
+            )
+        except DockerContainerNotFoundError:
+            container_name = self._mongodb_container_manager.get_container().get_name()
+            self.stdout(
+                f"The MongoDB service named {container_name} at {ip} is already stopped by the {username} user.",
+                severity=StdoutSeverity.WARNING,
+            )
+
+    def _mongodb(self):
+        self.stdout(f"Stopping MongoDB service...")
+
+        mongodb_nodes = self._settings.get("mongodb.nodes", [])
+
+        try:
+            for mongodb_node in mongodb_nodes:
+                self._mongodb_node(**mongodb_node)
+
         except DockerContainerNotFoundError:
             container_name = self._mongodb_container_manager.get_container().get_name()
 
