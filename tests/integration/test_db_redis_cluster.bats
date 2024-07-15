@@ -26,7 +26,7 @@ teardown() {
     das-cli db stop
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Starting db with redis cluster" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
@@ -63,7 +63,7 @@ teardown() {
     assert_success
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Stopping db with redis cluster" {
     local redis_port="$(get_config ".redis.port")"
 
@@ -99,7 +99,7 @@ teardown() {
 
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Restarting db with redis cluster after cluster is up" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
@@ -143,7 +143,7 @@ teardown() {
     assert_success
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Restarting db with redis cluster before cluster is up" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local mongodb_container_name="$(get_config ".mongodb.container_name")"

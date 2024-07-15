@@ -15,8 +15,8 @@ man_pages:
 
 integration_tests:
 ifdef DAS_CLI_TEST_CLUSTER
-	@bats tests/integration/*.bats --filter-tags 'redis:cluster'
+	@bats tests/integration/*.bats --filter-tags 'cluster'
 endif
 
-	@bats tests/integration/*.bats --filter-tags '!redis:cluster'
+	@bats tests/integration/*.bats --filter-tags '!cluster'
 
