@@ -2,7 +2,7 @@
     "redis": {
         "port": 6379,
         "container_name": "das-cli-redis-6379",
-        "cluster": true,
+        "cluster": false,
         "nodes": [
             {
                 "context": "default",
@@ -12,7 +12,7 @@
         ]
     },
     "mongodb": {
-        "cluster": false,
+        "cluster": true,
         "port": 27017,
         "container_name": "das-cli-mongodb-27017",
         "username": "admin",
