@@ -1,51 +1,51 @@
 {
-    "redis": {
-        "port": 6379,
-        "container_name": "das-cli-redis-6379",
-        "cluster": false,
-        "nodes": [
-            {
-                "context": "default",
-                "ip": "localhost",
-                "username": "rafaellevi"
-            }
-        ]
-    },
-    "mongodb": {
-        "cluster": true,
-        "port": 27017,
-        "container_name": "das-cli-mongodb-27017",
-        "username": "admin",
-        "password": "admin",
-        "cluster_secret_key": "eri290eiw299e0-92",
-        "nodes": [
-            {
-                "context": "default",
-                "ip": "45.63.85.181",
-                "username": "SERVER01_USERNAME"
-            },
-            {
-                "context": "SERVER02_CONTEXT",
-                "ip": "45.32.130.104",
-                "username": "root"
-            },
-            {
-                "context": "SERVER03_CONTEXT",
-                "ip": "104.207.150.215",
-                "username": "root"
-            }
-        ]
-    },
-    "loader": {
-        "container_name": "das-cli-loader"
-    },
-    "openfaas": {
-        "container_name": "das-cli-openfaas-8080",
-        "version": "1.12.10",
-        "function": "query-engine"
-    },
-    "jupyter_notebook": {
-        "port": 8888,
-        "container_name": "das-cli-jupyter-notebook-8888"
-    }
+  "redis": {
+    "port": 6379,
+    "container_name": "das-cli-redis-6379",
+    "cluster": false,
+    "nodes": [
+      {
+        "context": "default",
+        "ip": "localhost",
+        "username": "rafaellevi"
+      }
+    ]
+  },
+  "mongodb": {
+    "cluster": true,
+    "port": 28100,
+    "container_name": "das-cli-mongodb-28100",
+    "username": "admin",
+    "password": "admin",
+    "cluster_secret_key": "eri290eiw299e0",
+    "nodes": [
+      {
+        "context": "default",
+        "ip": "104.207.150.215",
+        "username": "root"
+      },
+      {
+        "context": "747083fe-a5f7-4426-b116-d2d1d9794e09",
+        "ip": "45.63.85.181",
+        "username": "root"
+      },
+      {
+        "context": "b9164d81-e68e-4012-84f1-b7d2cd7f216c",
+        "ip": "45.32.130.104",
+        "username": "root"
+      }
+    ]
+  },
+  "loader": {
+    "container_name": "das-cli-loader"
+  },
+  "openfaas": {
+    "container_name": "das-cli-openfaas-8080",
+    "version": "1.12.10",
+    "function": "query-engine"
+  },
+  "jupyter_notebook": {
+    "port": 8888,
+    "container_name": "das-cli-jupyter-notebook-8888"
+  }
 }

@@ -29,7 +29,8 @@ teardown() {
 # bats test_tags=cluster
 @test "Starting db with mongodb cluster" {
     local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_port="$(get_config ".mongodb.port")"
+    local mongodb_username="$(get_config ".mongodb.username")"
+    local mongodb_password="$(get_config ".mongodb.password")"
 
     local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
     local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
@@ -55,7 +56,7 @@ teardown() {
     unset_ssh_context "$mongodb_context_02"
     unset_ssh_context "$mongodb_context_03"
 
-    run exec_cmd_on_service "mongodb" "mongosh --eval 'rs.status().members.filter(member => member.state === 1 || member.state === 2).length'"
+    run exec_cmd_on_service "mongodb" "mongosh -u ${mongodb_username} -p ${mongodb_password} --eval 'rs.status().members.filter(member => member.state === 1 || member.state === 2).length' | tail -n 1"
 
     assert [ "$(clean_string $output)" == "3" ]
 
@@ -102,7 +103,8 @@ teardown() {
 # bats test_tags=cluster
 @test "Restarting db with mongodb cluster after cluster is up" {
     local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_port="$(get_config ".mongodb.port")"
+    local mongodb_username="$(get_config ".mongodb.username")"
+    local mongodb_password="$(get_config ".mongodb.password")"
 
     local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
     local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
@@ -135,7 +137,7 @@ teardown() {
     unset_ssh_context "$mongodb_context_02"
     unset_ssh_context "$mongodb_context_03"
 
-    run exec_cmd_on_service "mongodb" "mongosh --eval 'rs.status().members.filter(member => member.state === 1 || member.state === 2).length'"
+    run exec_cmd_on_service "mongodb" "mongosh -u ${mongodb_username} -p ${mongodb_password} --eval 'rs.status().members.filter(member => member.state === 1 || member.state === 2).length' | tail -n 1"
 
     assert [ "$(clean_string $output)" == "3" ]
 
@@ -146,8 +148,9 @@ teardown() {
 # bats test_tags=cluster
 @test "Restarting db with mongodb cluster before cluster is up" {
     local mongodb_port="$(get_config ".mongodb.port")"
+    local mongodb_username="$(get_config ".mongodb.username")"
+    local mongodb_password="$(get_config ".mongodb.password")"
     local mongodb_container_name="$(get_config ".mongodb.container_name")"
-    local mongodb_port="$(get_config ".mongodb.port")"
     local mongodb_container_name="$(get_config ".mongodb.container_name")"
 
     local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
@@ -180,7 +183,7 @@ teardown() {
     unset_ssh_context "$mongodb_context_02"
     unset_ssh_context "$mongodb_context_03"
 
-    run exec_cmd_on_service "mongodb" "mongosh --eval 'rs.status().members.filter(member => member.state === 1 || member.state === 2).length'"
+    run exec_cmd_on_service "mongodb" "mongosh -u ${mongodb_username} -p ${mongodb_password} --eval 'rs.status().members.filter(member => member.state === 1 || member.state === 2).length' | tail -n 1"
 
     assert [ "$(clean_string $output)" == "3" ]
 
