@@ -227,7 +227,7 @@ $ das-cli db start
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                f"MongoDB is already running. It's listening on port {mongodb_port}",
+                f"MongoDB is already running. It is currently listening on port {mongodb_port} at IP address {node_ip} under the user {node_username}.",
                 severity=StdoutSeverity.WARNING,
             )
         except DockerError as e:
