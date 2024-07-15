@@ -33,3 +33,4 @@
 [#73] das-cli python-library version is raising an error
 [#76] Put version number in openfaas docker image name
 [#75] Enable the configuration of a Redis cluster instead of maintaining only a standalone instance
+[#87] Configuration of a Mongodb cluster instead of maintaining only a standalone instance
