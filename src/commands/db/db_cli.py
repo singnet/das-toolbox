@@ -47,7 +47,7 @@ $ das-cli db stop
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The Redis service at {ip} has been stopped by the {username} user.",
+                f"The Redis service at {ip} has been stopped by the server user {username}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
@@ -79,7 +79,7 @@ $ das-cli db stop
             self._mongodb_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The MongoDB service at {ip} has been stopped by {username}",
+                f"The MongoDB service at {ip} has been stopped by the server user {username}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
@@ -154,17 +154,17 @@ $ das-cli db start
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
-                f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the user {node_username}.",
+                f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the server user {node_username}.",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                f"Redis is already running. It is currently listening on port {redis_port} at IP address {node_ip} under the user {node_username}.",
+                f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}.",
                 severity=StdoutSeverity.WARNING,
             )
         except DockerError as e:
             self.stdout(
-                f"\nError occurred while trying to start Redis on port {redis_port} at IP address {node_ip} under the user {node_username}.\n",
+                f"\nError occurred while trying to start Redis on port {redis_port} at {node_ip} under the server user {node_username}.\n",
                 severity=StdoutSeverity.ERROR,
             )
 
@@ -222,12 +222,12 @@ $ das-cli db start
             self._mongodb_container_manager.unset_exec_context()
 
             self.stdout(
-                f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the user {node_username}.",
+                f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}.",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                f"MongoDB is already running. It is currently listening on port {mongodb_port} at IP address {node_ip} under the user {node_username}.",
+                f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}.",
                 severity=StdoutSeverity.WARNING,
             )
         except DockerError as e:
