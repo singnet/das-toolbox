@@ -22,10 +22,19 @@
         ]
     },
     "mongodb": {
+        "cluster": false,
         "port": 27017,
         "container_name": "das-cli-mongodb-27017",
         "username": "admin",
-        "password": "admin"
+        "password": "admin",
+        "cluster_secret_key": "eri290eiw299e0-92",
+        "nodes": [
+            {
+                "context": "default",
+                "ip": "localhost",
+                "username": "rafaellevi"
+            }
+        ]
     },
     "loader": {
         "container_name": "das-cli-loader"
