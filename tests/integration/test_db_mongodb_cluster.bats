@@ -48,9 +48,9 @@ teardown() {
     assert_success
 
     assert_line --partial "Starting MongoDB service..."
-    assert_line --partial "MonoDB has started successfully on port ${mongodb_port} at ${mongodb_node1_ip}, operating under the server user ${mongodb_node1_username}."
-    assert_line --partial "MonoDB has started successfully on port ${mongodb_port} at ${mongodb_node2_ip}, operating under the server user ${mongodb_node2_username}."
-    assert_line --partial "MonoDB has started successfully on port ${mongodb_port} at ${mongodb_node3_ip}, operating under the server user ${mongodb_node3_username}."
+    assert_line --partial "MongoDB has started successfully on port ${mongodb_port} at ${mongodb_node1_ip}, operating under the server user ${mongodb_node1_username}."
+    assert_line --partial "MongoDB has started successfully on port ${mongodb_port} at ${mongodb_node2_ip}, operating under the server user ${mongodb_node2_username}."
+    assert_line --partial "MongoDB has started successfully on port ${mongodb_port} at ${mongodb_node3_ip}, operating under the server user ${mongodb_node3_username}."
 
     unset_ssh_context "$mongodb_context_02"
     unset_ssh_context "$mongodb_context_03"
