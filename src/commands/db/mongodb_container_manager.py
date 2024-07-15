@@ -84,7 +84,8 @@ class MongodbContainerManager(ContainerManager):
             },
             healthcheck={
                 "Test": ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"],
-                "StartPeriod": 20000000,
+                "StartPeriod": 5000000,
+                "Interval": 2000000,
             },
         )
 
