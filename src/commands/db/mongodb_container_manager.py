@@ -26,11 +26,14 @@ class MongodbContainerManager(ContainerManager):
                 ssh_conn,
                 sftp_conn,
             ):
-                with sftp_conn.open(keyfile_server_path, "w") as remote_file:
-                    remote_file.write(mongodb_cluster_secret_key.encode("utf-8"))
+                content_stream = io.BytesIO(mongodb_cluster_secret_key.encode("utf-8"))
+                remote_file = sftp_conn.open(keyfile_server_path, "w")
+                remote_file.write(content_stream.read())
 
                 ssh_conn.exec_command(f"chmod 400 {keyfile_server_path}")
-                ssh_conn.exec_command(f"chown 999:999 {keyfile_server_path}")
+                ssh_conn.exec_command(
+                    f"chown 999:999 {keyfile_server_path}"
+                )  # Inside the container 999 is the mongodb's uid and gid
 
             return keyfile_server_path
 
@@ -84,8 +87,6 @@ class MongodbContainerManager(ContainerManager):
             },
             healthcheck={
                 "Test": ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"],
-                "StartPeriod": 5000000,
-                "Interval": 2000000,
             },
         )
 
