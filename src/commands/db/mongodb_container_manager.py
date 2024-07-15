@@ -40,14 +40,15 @@ class MongodbContainerManager(ContainerManager):
             )
 
     def _get_cluster_node_config(self, cluster_node, mongodb_cluster_secret_key):
+        if not cluster_node:
+            return {}
+
         keyfile_path = "/data/keyfile.txt"
         keyfile_server_path = self._upload_key_to_server(
             cluster_node,
             mongodb_cluster_secret_key,
         )
 
-        if not cluster_node:
-            return {}
         return {
             "command": f"--replSet {self._repl_set} --keyFile {keyfile_path} --auth",
             "volumes": {
