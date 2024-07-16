@@ -24,10 +24,21 @@ def get_ssh_user_and_ip(text: str) -> tuple:
         return None
 
 
-def is_server_port_available(host, start_port: int, end_port: Union[int, None] = None):
+def is_server_port_available(
+    username: str,
+    host: str,
+    start_port: int,
+    end_port: Union[int, None] = None,
+):
     def server_up(host, port):
-        command = f"nc -zv {host} {port}"
-        result = subprocess.call(command, shell=True)
+
+        command = f"ssh {username}@{host} \"ufw status | grep '{port}.*ALLOW'\""
+        result = subprocess.call(
+            command,
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
         return result == 0
 

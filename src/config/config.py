@@ -1,5 +1,6 @@
 from common.utils import get_server_username
 
+
 VERSION = '0.2.21'
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
@@ -31,8 +32,3 @@ OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
 JUPYTER_NOTEBOOK_IMAGE_NAME = "trueagi/das"
 JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
-
-# OTHERS
-
-CLI_GROUP_NAME = "das"
-CLI_USER_NAME = "das"

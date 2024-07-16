@@ -65,7 +65,7 @@ class MettaLoaderContainerManager(ContainerManager):
 
             self.logs()
 
-            exit_code = self.container_status(container)
+            exit_code = self.get_container_exit_status(container)
 
             if exit_code != 0:
                 raise DockerError(

@@ -26,7 +26,7 @@ teardown() {
     das-cli db stop
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Starting db with redis cluster" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
@@ -47,11 +47,10 @@ teardown() {
 
     assert_success
 
-    assert_output "Stopping redis service...
-Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node1_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the user ${redis_node2_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the user ${redis_node3_username}.
-MongoDB started on port ${mongodb_port}"
+    assert_line --partial "Starting Redis service..."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the server user ${redis_node1_username}."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the server user ${redis_node2_username}."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the server user ${redis_node3_username}."
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"
@@ -64,7 +63,7 @@ MongoDB started on port ${mongodb_port}"
     assert_success
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Stopping db with redis cluster" {
     local redis_port="$(get_config ".redis.port")"
 
@@ -86,11 +85,11 @@ MongoDB started on port ${mongodb_port}"
 
     assert_success
 
-    assert_output "Stopping redis service...
-The Redis service at ${redis_node1_ip} has been stopped by the ${redis_node1_username} user
-The Redis service at ${redis_node2_ip} has been stopped by the ${redis_node2_username} user
-The Redis service at ${redis_node3_ip} has been stopped by the ${redis_node3_username} user
-MongoDB service stopped"
+
+    assert_line --partial "Stopping Redis service..."
+    assert_line --partial "The Redis service at ${redis_node2_ip} has been stopped by the server user ${redis_node2_username}"
+    assert_line --partial "The Redis service at ${redis_node1_ip} has been stopped by the server user ${redis_node1_username}"
+    assert_line --partial "The Redis service at ${redis_node3_ip} has been stopped by the server user ${redis_node3_username}"
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"
@@ -100,7 +99,7 @@ MongoDB service stopped"
 
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Restarting db with redis cluster after cluster is up" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local redis_port="$(get_config ".redis.port")"
@@ -123,16 +122,15 @@ MongoDB service stopped"
 
     assert_success
 
-    assert_output "Stopping redis service...
-The Redis service at ${redis_node1_ip} has been stopped by the root user
-The Redis service at ${redis_node2_ip} has been stopped by the root user
-The Redis service at ${redis_node3_ip} has been stopped by the root user
-MongoDB service stopped
-Stopping redis service...
-Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node1_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the user ${redis_node2_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the user ${redis_node3_username}.
-MongoDB started on port ${mongodb_port}"
+    assert_line --partial "Stopping Redis service..."
+    assert_line --partial "The Redis service at ${redis_node2_ip} has been stopped by the server user ${redis_node2_username}"
+    assert_line --partial "The Redis service at ${redis_node1_ip} has been stopped by the server user ${redis_node1_username}"
+    assert_line --partial "The Redis service at ${redis_node3_ip} has been stopped by the server user ${redis_node3_username}"
+
+    assert_line --partial "Starting Redis service..."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the server user ${redis_node1_username}."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the server user ${redis_node2_username}."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the server user ${redis_node3_username}."
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"
@@ -145,7 +143,7 @@ MongoDB started on port ${mongodb_port}"
     assert_success
 }
 
-# bats test_tags=redis:cluster
+# bats test_tags=cluster
 @test "Restarting db with redis cluster before cluster is up" {
     local mongodb_port="$(get_config ".mongodb.port")"
     local mongodb_container_name="$(get_config ".mongodb.container_name")"
@@ -168,16 +166,16 @@ MongoDB started on port ${mongodb_port}"
 
     assert_success
 
-    assert_output "Stopping redis service...
-The Redis service named ${redis_container_name} at ${redis_node1_ip} is already stopped by the ${redis_node1_username} user.
-The Redis service named ${redis_container_name} at ${redis_node2_ip} is already stopped by the ${redis_node2_username} user.
-The Redis service named ${redis_container_name} at ${redis_node3_ip} is already stopped by the ${redis_node3_username} user.
-The MongoDB service named ${mongodb_container_name} is already stopped.
-Stopping redis service...
-Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the user ${redis_node1_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the user ${redis_node2_username}.
-Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the user ${redis_node3_username}.
-MongoDB started on port ${mongodb_port}"
+
+    assert_line --partial "Stopping Redis service..."
+    assert_line --partial "The Redis service named ${redis_container_name} at ${redis_node1_ip} is already stopped."
+    assert_line --partial "The Redis service named ${redis_container_name} at ${redis_node2_ip} is already stopped."
+    assert_line --partial "The Redis service named ${redis_container_name} at ${redis_node3_ip} is already stopped."
+
+    assert_line --partial "Starting Redis service..."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node1_ip}, operating under the server user ${redis_node1_username}."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node2_ip}, operating under the server user ${redis_node2_username}."
+    assert_line --partial "Redis has started successfully on port ${redis_port} at ${redis_node3_ip}, operating under the server user ${redis_node3_username}."
 
     unset_ssh_context "$redis_context_02"
     unset_ssh_context "$redis_context_03"

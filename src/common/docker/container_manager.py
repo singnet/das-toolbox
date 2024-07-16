@@ -1,5 +1,6 @@
 import docker
 import curses
+import time
 import docker.errors
 from typing import Any, Union, AnyStr
 from .docker_manager import DockerManager
@@ -51,7 +52,14 @@ class ContainerManager(DockerManager):
             container_name = self.get_container().get_name()
             container = self.get_docker_client().containers.get(container_name)
 
-            return container.exec_run(command, tty=True)
+            exec_result = container.exec_run(command, tty=True)
+
+            if exec_result.exit_code != 0:
+                raise DockerError(
+                    f"Command '{command}' failed with exit code {exec_result.exit_code}. Output: {exec_result.output}"
+                )
+
+            return exec_result
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
@@ -175,10 +183,37 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
-    def container_status(self, container) -> int:
+    def get_container_exit_status(self, container) -> int:
         try:
             return container.wait()["StatusCode"]
         except docker.errors.NotFound:
             container = self.get_docker_client().containers.get(container)
             exit_code = container.attrs["State"]["ExitCode"]
             return exit_code
+
+    def get_container_status(self, container) -> int:
+        try:
+            return container.attrs["State"]["ExitCode"]
+        except docker.errors.NotFound:
+            return -1
+
+    def is_container_running(self, container):
+        status_code = self.get_container_status(container)
+        return status_code == 0
+
+    def is_container_healthy(self, container):
+        inspect_results = self.get_docker_client().api.inspect_container(container.name)
+        return inspect_results["State"]["Health"]["Status"] == "healthy"
+
+    def wait_for_container(self, container, timeout=60, interval=2):
+        elapsed_time = 0
+        while elapsed_time < timeout:
+            if self.is_container_running(container) and self.is_container_healthy(
+                container
+            ):
+                return True
+
+            time.sleep(interval)
+            elapsed_time += interval
+
+        return False

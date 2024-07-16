@@ -21,6 +21,7 @@ class RedisContainerManager(ContainerManager):
         self,
         port: int,
     ):
+        self.raise_running_container()
 
         command_params = [
             "redis-server",

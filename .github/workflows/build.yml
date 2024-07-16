@@ -80,12 +80,6 @@ jobs:
       - name: Runnign integration tests
         run: make integration_tests
 
-      - name: Installing das-cli package
-        run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
-
-      - name: Runnign integration tests
-        run: make integration_tests
-
   tag:
     needs:
       - integration-tests

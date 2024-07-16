@@ -91,9 +91,6 @@ One or more packages could not be updated."
 }
 
 @test "Update library versions to latest version" {
-    local current_hyperon_das_version="$(get_python_package_version hyperon-das)"
-    local current_hyperon_das_atomdb_version="$(get_python_package_version hyperon-das-atomdb)"
-
     local latest_hyperon_das_version="$(get_python_package_latest_version hyperon-das)"
     local latest_hyperon_das_atomdb_version="$(get_python_package_latest_version hyperon-das-atomdb)"
 
@@ -103,10 +100,10 @@ One or more packages could not be updated."
 Updating package hyperon-das-atomdb...
 All package has been successfully updated.
 hyperon-das
-  INSTALLED: $current_hyperon_das_version
+  INSTALLED: $latest_hyperon_das_version
   LATEST:    $latest_hyperon_das_version
 hyperon-das-atomdb
-  INSTALLED: $current_hyperon_das_atomdb_version
+  INSTALLED: $latest_hyperon_das_atomdb_version
   LATEST:    $latest_hyperon_das_atomdb_version"
 }
 

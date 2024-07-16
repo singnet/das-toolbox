@@ -7,6 +7,7 @@ from common.docker.exceptions import (
 )
 from .mongodb_container_manager import MongodbContainerManager
 from .redis_container_manager import RedisContainerManager
+from typing import Union, AnyStr
 
 
 class DbStop(Command):
@@ -28,42 +29,42 @@ $ das-cli db stop
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        redis_container_manager: RedisContainerManager,
+        mongodb_container_manager: MongodbContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
+        self._redis_container_manager = redis_container_manager
+        self._mongodb_container_manager = mongodb_container_manager
 
-    def _redis_node(self, redis_container_name, redis_node):
-        node_context = redis_node.get("context")
-        node_ip = redis_node.get("ip")
-        node_username = redis_node.get("username")
-
+    def _redis_node(self, context, ip, username):
         try:
-            redis_container_manager = RedisContainerManager(
-                redis_container_name,
-                exec_context=node_context,
-            )
-
-            redis_container_manager.stop()
+            self._redis_container_manager.set_exec_context(context)
+            self._redis_container_manager.stop()
+            self._redis_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The Redis service at {node_ip} has been stopped by the {node_username} user",
+                f"The Redis service at {ip} has been stopped by the server user {username}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
+            container_name = self._redis_container_manager.get_container().get_name()
             self.stdout(
-                f"The Redis service named {redis_container_name} at {node_ip} is already stopped by the {node_username} user.",
+                f"The Redis service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
 
     def _redis(self):
-        self.stdout(f"Stopping redis service...")
+        self.stdout(f"Stopping Redis service...")
 
-        redis_container_name = self._settings.get("redis.container_name")
         redis_nodes = self._settings.get("redis.nodes", [])
 
         try:
             for redis_node in redis_nodes:
-                self._redis_node(redis_container_name, redis_node)
+                self._redis_node(**redis_node)
         except DockerError as e:
             self.stdout(
                 f"\nError occurred while trying to stop Redis\n",
@@ -71,18 +72,32 @@ $ das-cli db stop
             )
             raise e
 
-    def _mongodb(self):
-        mongodb_container_name = self._settings.get("mongodb.container_name")
-
+    def _mongodb_node(self, context, ip, username):
         try:
-            MongodbContainerManager(mongodb_container_name).stop()
+            self._mongodb_container_manager.set_exec_context(context)
+            self._mongodb_container_manager.stop()
+            self._mongodb_container_manager.unset_exec_context()
 
-            self.stdout("MongoDB service stopped", severity=StdoutSeverity.SUCCESS)
-        except DockerContainerNotFoundError:
             self.stdout(
-                f"The MongoDB service named {mongodb_container_name} is already stopped.",
+                f"The MongoDB service at {ip} has been stopped by the server user {username}",
+                severity=StdoutSeverity.SUCCESS,
+            )
+        except DockerContainerNotFoundError:
+            container_name = self._mongodb_container_manager.get_container().get_name()
+            self.stdout(
+                f"The MongoDB service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
+
+    def _mongodb(self):
+        self.stdout(f"Stopping MongoDB service...")
+
+        mongodb_nodes = self._settings.get("mongodb.nodes", [])
+
+        try:
+            for mongodb_node in mongodb_nodes:
+                self._mongodb_node(**mongodb_node)
+
         except DockerError as e:
             self.stdout(
                 f"\nError occurred while trying to stop MongoDB\n",
@@ -117,96 +132,102 @@ $ das-cli db start
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        redis_container_manager: RedisContainerManager,
+        mongodb_container_manager: MongodbContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
+        self._redis_container_manager = redis_container_manager
+        self._mongodb_container_manager = mongodb_container_manager
 
-    def _redis_node(
-        self,
-        redis_container_name: str,
-        redis_port: int,
-        redis_node: dict,
-    ):
+    def _redis_node(self, redis_node: dict, redis_port: int) -> None:
         node_context = redis_node.get("context")
         node_ip = redis_node.get("ip")
         node_username = redis_node.get("username")
 
-        redis_container_manager = RedisContainerManager(
-            redis_container_name,
-            exec_context=node_context,
+        try:
+            self._redis_container_manager.set_exec_context(node_context)
+            self._redis_container_manager.start_container(redis_port)
+            self._redis_container_manager.unset_exec_context()
+
+            self.stdout(
+                f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the server user {node_username}.",
+                severity=StdoutSeverity.SUCCESS,
+            )
+        except DockerContainerDuplicateError:
+            self.stdout(
+                f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}.",
+                severity=StdoutSeverity.WARNING,
+            )
+        except DockerError as e:
+            self.stdout(
+                f"\nError occurred while trying to start Redis on port {redis_port} at {node_ip} under the server user {node_username}.\n",
+                severity=StdoutSeverity.ERROR,
+            )
+
+    def _redis(self) -> None:
+        self.stdout(f"Starting Redis service...")
+
+        redis_port = self._settings.get("redis.port")
+        redis_nodes = self._settings.get("redis.nodes", [])
+        redis_cluster = self._settings.get("redis.cluster", False)
+
+        for redis_node in redis_nodes:
+            self._redis_node(redis_node, redis_port)
+
+        if redis_cluster:
+            try:
+                self._redis_container_manager.start_cluster(redis_nodes, redis_port)
+            except Exception as e:
+                self.stdout(
+                    f"\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
+                    severity=StdoutSeverity.ERROR,
+                )
+                raise e
+
+    def _mongodb_node(
+        self,
+        mongodb_node: dict,
+        mongodb_port: int,
+        mongodb_username: str,
+        mongodb_password: str,
+        is_cluster_enabled: bool = False,
+        mongodb_cluster_secret_key: Union[AnyStr, None] = None,
+    ) -> None:
+        node_context = mongodb_node.get("context")
+        node_ip = mongodb_node.get("ip")
+        node_username = mongodb_node.get("username")
+
+        cluster_node = (
+            dict(
+                host=node_ip,
+                username=node_username,
+            )
+            if is_cluster_enabled
+            else None
         )
 
         try:
-            redis_container_manager.start_container(redis_port)
-
-            self.stdout(
-                f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the user {node_username}.",
-                severity=StdoutSeverity.SUCCESS,
-            )
-        except DockerContainerDuplicateError:
-            self.stdout(
-                f"Redis is already running. It is currently listening on port {redis_port} at IP address {node_ip} under the user {node_username}.",
-                severity=StdoutSeverity.WARNING,
-            )
-
-    def _redis_cluster(
-        self,
-        redis_container_name: str,
-        redis_nodes: dict,
-        redis_port: int,
-    ):
-        redis_container_manager = RedisContainerManager(redis_container_name)
-
-        redis_container_manager.start_cluster(redis_nodes, redis_port)
-
-    def _redis(self):
-        self.stdout(f"Starting Redis service...")
-
-        redis_container_name = self._settings.get("redis.container_name")
-        redis_port = self._settings.get("redis.port")
-        redis_nodes = self._settings.get("redis.nodes", [])
-        redis_cluster = self._settings.get("redis.cluster")
-
-        try:
-            for redis_node in redis_nodes:
-                self._redis_node(redis_container_name, redis_port, redis_node)
-
-            if redis_cluster:
-                self._redis_cluster(redis_container_name, redis_nodes, redis_port)
-
-        except DockerError as e:
-            cluster_text = "cluster" if redis_cluster else ""
-
-            self.stdout(
-                f"\nError occurred while trying to start Redis {cluster_text} on port {redis_port}\n",
-                severity=StdoutSeverity.ERROR,
-            )
-            raise e
-
-    def _mongodb(self):
-        self.stdout(f"Starting MongoDB service...")
-
-        mongodb_container_name = self._settings.get("mongodb.container_name")
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
-
-        try:
-            mongodb_container_manager = MongodbContainerManager(mongodb_container_name)
-
-            mongodb_container_manager.start_container(
+            self._mongodb_container_manager.set_exec_context(node_context)
+            self._mongodb_container_manager.start_container(
                 mongodb_port,
                 mongodb_username,
                 mongodb_password,
+                cluster_node,
+                mongodb_cluster_secret_key,
             )
+            self._mongodb_container_manager.unset_exec_context()
+
             self.stdout(
-                f"MongoDB started on port {mongodb_port}",
+                f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}.",
                 severity=StdoutSeverity.SUCCESS,
             )
-
         except DockerContainerDuplicateError:
             self.stdout(
-                f"MongoDB is already running. It's listening on port {mongodb_port}",
+                f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}.",
                 severity=StdoutSeverity.WARNING,
             )
         except DockerError as e:
@@ -215,6 +236,41 @@ $ das-cli db start
                 severity=StdoutSeverity.ERROR,
             )
             raise e
+
+    def _mongodb(self) -> None:
+        self.stdout(f"Starting MongoDB service...")
+
+        mongodb_port = self._settings.get("mongodb.port")
+        mongodb_username = self._settings.get("mongodb.username")
+        mongodb_password = self._settings.get("mongodb.password")
+        mongodb_nodes = self._settings.get("mongodb.nodes", [])
+        mongodb_cluster = self._settings.get("mongodb.cluster", False)
+        mongodb_cluster_secret_key = self._settings.get("mongodb.cluster_secret_key")
+
+        for mongodb_node in mongodb_nodes:
+            self._mongodb_node(
+                mongodb_node,
+                mongodb_port,
+                mongodb_username,
+                mongodb_password,
+                mongodb_cluster,
+                mongodb_cluster_secret_key,
+            )
+
+        if mongodb_cluster:
+            try:
+                self._mongodb_container_manager.start_cluster(
+                    mongodb_nodes,
+                    mongodb_port,
+                    mongodb_username,
+                    mongodb_password,
+                )
+            except Exception as e:
+                self.stdout(
+                    f"\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
+                    severity=StdoutSeverity.ERROR,
+                )
+                raise e
 
     def run(self):
         self._settings.raise_on_missing_file()
