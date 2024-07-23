@@ -1,7 +1,7 @@
 from common.utils import get_server_username
 
 
-VERSION = '0.2.21'
+VERSION = '0.3.0'
 RELEASE_NOTES_URL = (
     "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 )
@@ -26,7 +26,7 @@ MONGODB_IMAGE_NAME = "mongo"
 MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.3.6-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "0.4.0-metta-parser"
 
 OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
