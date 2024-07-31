@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-das-cli:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
           path: dist/*
 
   integration-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - build-das-cli
     steps:

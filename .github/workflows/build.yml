@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-jupyter-notebook:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout
@@ -30,7 +30,7 @@ jobs:
         run: docker push trueagi/das:latest-jupyter-notebook
 
   build-das-cli:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
     needs: build-jupyter-notebook
     steps:
@@ -50,7 +50,7 @@ jobs:
           path: dist/*
 
   integration-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - build-das-cli
     steps:
@@ -98,7 +98,7 @@ jobs:
     secrets: inherit
 
   deploy-das-cli:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
     needs: integration-tests
     steps:
