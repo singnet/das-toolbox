@@ -24,7 +24,7 @@ teardown() {
     else
         run das-cli update-version
 
-        assert_output "[31m[PermissionError] This command is not being executed with sudo.[39m"
+        assert_output "[31m[PermissionError] Requires 'root' permissions to execute[39m"
     fi
 }
 
