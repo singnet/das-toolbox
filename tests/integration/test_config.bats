@@ -156,11 +156,11 @@ EOF
     assert_not_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
     assert_not_equal "$(get_config ".jupyter_notebook.port")" "$jupyter_notebook_port"
 
-    assert_equal "$(get_config ".redis.port")" "$old_redis_port"
-    assert_equal "$(get_config ".redis.cluster")" "$(human_to_boolean "$old_redis_cluster")"
-    assert_equal "$(get_config ".mongodb.port")" "$old_mongodb_port"
-    assert_equal "$(get_config ".mongodb.username")" "$old_mongodb_username"
-    assert_equal "$(get_config ".mongodb.password")" "$old_mongodb_password"
-    assert_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$old_mongodb_cluster")"
-    assert_equal "$(get_config ".jupyter_notebook.port")" "$old_jupyter_notebook_port"
+    assert_equal "$old_redis_port" "$(get_config ".redis.port")"
+    assert_equal "$(human_to_boolean "$old_redis_cluster")" "$(get_config ".redis.cluster")"
+    assert_equal "$old_mongodb_port" "$(get_config ".mongodb.port")"
+    assert_equal "$old_mongodb_username" "$(get_config ".mongodb.username")"
+    assert_equal "$old_mongodb_password" "$(get_config ".mongodb.password")"
+    assert_equal "$(human_to_boolean "$old_mongodb_cluster")" "$(get_config ".mongodb.cluster")"
+    assert_equal "$old_jupyter_notebook_port" "$(get_config ".jupyter_notebook.port")"
 }

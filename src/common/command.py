@@ -80,6 +80,9 @@ class Command:
             show_choices,
         )
 
+    def confirm(self, text: str, **kwarg):
+        return click.confirm(text=text, **kwarg)
+
     def stdout(
         self,
         content: Any,

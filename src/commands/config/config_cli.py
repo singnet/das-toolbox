@@ -216,14 +216,11 @@ jupyter_notebook.*
             default=self._settings.get("redis.port", 6379),
             type=int,
         )
-        cluster_default_value = "yes" if self._settings.get("redis.cluster") else "no"
-        redis_cluster = self.prompt(
-            "Is it a Redis cluster? (yes/no) ",
-            hide_input=False,
+        cluster_default_value = self._settings.get("redis.cluster", False)
+        redis_cluster = self.confirm(
+            "Is it a Redis cluster?",
             default=cluster_default_value,
-            type=bool,
         )
-
         return {
             "redis.port": redis_port,
             "redis.container_name": f"das-cli-redis-{redis_port}",
@@ -255,12 +252,10 @@ jupyter_notebook.*
             # hide_input=True, # When hide_input is set I cannot set the answers based on a text file making impossible to test this command
             default=self._settings.get("mongodb.password", "admin"),
         )
-        cluster_default_value = "yes" if self._settings.get("mongodb.cluster") else "no"
-        is_mongodb_cluster = self.prompt(
-            "Is it a MongoDB cluster? (yes/no) ",
-            hide_input=False,
+        cluster_default_value = self._settings.get("mongodb.cluster", False)
+        is_mongodb_cluster = self.confirm(
+            "Is it a MongoDB cluster?",
             default=cluster_default_value,
-            type=bool,
         )
         cluster_secret_key = self._settings.get(
             "mongodb.cluster_secret_key",
