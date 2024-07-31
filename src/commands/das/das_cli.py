@@ -75,7 +75,7 @@ $ sudo das-cli update-version --version=1.2.3
         is_sudo = "SUDO_USER" in os.environ
 
         if not is_sudo:
-            raise PermissionError("This command is not being executed with sudo.")
+            raise PermissionError("Requires 'root' permissions to execute")
 
         is_binary = os.access(
             self.package_dir,
