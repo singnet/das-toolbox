@@ -231,7 +231,7 @@ Function version successfully updated $old_function $old_version --> $new_functi
     assert_output "Downloading the $function function, version latest...
 Function version successfully updated $function $old_version --> $function latest. You need to call 'faas restart' to start using the new version."
 
-    local image_version_digest="$(get_disgest_local_image "$openfaas_repository:latest-query-engine")"
+    local image_version_digest="$(get_disgest_local_image "$openfaas_repository:query-engine-latest")"
 
     run is_digest_same_as_remote_faas_latest_function "$image_version_digest" 
     assert_success
