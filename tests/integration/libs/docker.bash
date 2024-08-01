@@ -63,6 +63,28 @@ function unset_ssh_context() {
     fi
 }
 
+function get_disgest_local_image() {
+    local image="$1"
+    local digest=""
+
+    digest="$(docker image inspect $image | jq -r '.[].RepoDigests[0]' | sed 's/.*@//')"
+
+    echo "${digest}"
+}
+
+function is_digest_same_as_remote_faas_latest_function() {
+    local digest="$1"
+    local url="https://hub.docker.com/v2/repositories/trueagi/openfaas/tags?page_size=1&page=1&ordering=&name=query-engine-latest"
+
+    latest_digest=$(curl -s "$url" | jq -r '.results[0].images[0].digest')
+
+    if [ "${digest}" = "${latest_digest}" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
 function get_latest_image_tag() {
     local repository="$1"
     local filter="$2"
