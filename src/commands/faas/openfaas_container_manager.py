@@ -13,9 +13,15 @@ class OpenFaaSContainerManager(ContainerManager):
         container = Container(openfaas_container_name, OPENFAAS_IMAGE_NAME)
         super().__init__(container)
 
-    def is_port_in_use(self, port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(("localhost", port)) == 0
+    def raise_on_port_in_use(self, ports: list):
+        for port in ports:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                port_in_use = s.connect_ex(("localhost", port)) == 0
+
+                if port_in_use:
+                    raise DockerError(
+                        f"Port {port} is already in use. Please stop the service that is currently using this port."
+                    )
 
     def start_container(
         self,
@@ -32,12 +38,13 @@ class OpenFaaSContainerManager(ContainerManager):
         except (DockerContainerNotFoundError, DockerError):
             pass
 
-        if self.is_port_in_use(
-            8080
-        ):  # TODO: This check is only required for host network mode (remove it when change it)
-            raise DockerError(
-                "Port 8080 is already in use. Please stop the service that is currently using this port."
-            )
+        self.raise_on_port_in_use(
+            [
+                8080,
+                5000,
+                8081,
+            ]
+        )  # TODO: This check is only required for host network mode (remove it when change it)
 
         try:
             container_id = self._start_container(

@@ -16,6 +16,70 @@ teardown() {
     das-cli db stop
 }
 
+@test "Start FaaS when port is already in use" {
+    local mongodb_port="$(get_config .mongodb.port)"
+    local redis_port="$(get_config .redis.port)"
+    local faas_port=8080
+
+
+    run listen_port "${faas_port}"
+    assert_success
+
+    run das-cli faas start
+    assert_output "MongoDB is running on port ${mongodb_port}
+Redis is running on port ${redis_port}
+Starting OpenFaaS...
+[31m[DockerError] Port ${faas_port} is already in use. Please stop the service that is currently using this port.[39m"
+
+    run stop_listen_port "${faas_port}"
+    assert_success
+
+    run is_service_up openfaas
+    assert_failure
+}
+
+@test "Start FaaS when metric port is already in use" {
+    local mongodb_port="$(get_config .mongodb.port)"
+    local redis_port="$(get_config .redis.port)"
+    local metric_port=8081
+
+    run listen_port "${metric_port}"
+    assert_success
+
+    run das-cli faas start
+    assert_output "MongoDB is running on port ${mongodb_port}
+Redis is running on port ${redis_port}
+Starting OpenFaaS...
+[31m[DockerError] Port ${metric_port} is already in use. Please stop the service that is currently using this port.[39m"
+
+    run stop_listen_port "${metric_port}"
+    assert_success
+
+    run is_service_up openfaas
+    assert_failure
+}
+
+@test "Start FaaS when datadog port is already in use" {
+    local mongodb_port="$(get_config .mongodb.port)"
+    local redis_port="$(get_config .redis.port)"
+    local datadog_port=5000
+
+    run listen_port "${datadog_port}"
+    assert_success
+
+    run das-cli faas start
+    assert_output "MongoDB is running on port ${mongodb_port}
+Redis is running on port ${redis_port}
+Starting OpenFaaS...
+[31m[DockerError] Port ${datadog_port} is already in use. Please stop the service that is currently using this port.[39m"
+
+    run stop_listen_port "${datadog_port}"
+    assert_success
+
+    run is_service_up openfaas
+    assert_failure
+}
+
 @test "Trying to start, stop and restart the FaaS with unset configuration file" {
     local cmds=(start stop restart)
 
@@ -242,3 +306,4 @@ Function version successfully updated $function $old_version --> $function lates
     run is_service_up openfaas
     assert_success
 }
+
