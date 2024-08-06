@@ -2,7 +2,7 @@
 
 ## Overview
 
-This CLI provides a set of commands to manage containerized services, OpenFaaS functions, and Metta operations. It includes functionalities to start and stop server services, manage OpenFaaS functions, load Metta files, and validate Metta file syntax.
+This CLI provides a set of commands to manage containerized services, OpenFaaS functions, and Metta operations. It includes functionalities to start and stop db services, manage OpenFaaS functions, load Metta files, and validate Metta file syntax.
 
 ## Table of Contents
 
@@ -61,7 +61,7 @@ das-cli --help
 
 To install the DAS Toolbox from the source code, you require the following prerequisites, in addition to those outlined in the Prerequisites section:
 
-- Python 3.8.x
+- Python 3.10.x
 - Virtualenv (optional but recommended)
 - Pip (Python package installer)
 
@@ -190,7 +190,7 @@ pip3 install hyperon-das
 # Set the configuration file
 python3 das_cli.py config set
 
-# Start server services
+# Start db services
 python3 das_cli.py db start
 
 # Check a Metta file (absolute path to a single file)
@@ -211,10 +211,7 @@ To view help information for any command or subcommand, you can use the `--help`
 # View help for the main script
 python3 das_cli.py --help
 
-# View help for a specific command (e.g., server)
-python3 das_cli.py server --help
-
-# View help for a specific subcommand (e.g., start within the server command)
+# View help for a specific subcommand (e.g., start within the db command)
 python3 das_cli.py db start --help
 
 # View help for the OpenFaaS start command
@@ -222,6 +219,19 @@ python3 das_cli.py faas start --help
 ```
 
 The `--help` option is a powerful tool to understand how to use each command effectively. Use it at any level in the command hierarchy to access relevant documentation and ensure correct command execution.
+
+For users who install the deb package, a man page is available for additional reference. You can access it using the man command. This provides comprehensive documentation, including usage examples, descriptions of options, and more.
+
+```bash
+# View help for the main command
+man das-cli
+
+# View help for a specific subcommand (e.g., start within the db command)
+man das-cli-db-start
+
+# View help for the OpenFaaS start command
+man das-cli-faas-start
+```
 
 ## Integration Tests
 
