@@ -1,1 +1,3 @@
 [#99] Correct default value display in prompt for Redis and MongoDB cluster setting (PR: #102)
+[das#66] Port validation for faas start: Before starting, the CLI now checks if the required ports (8080, 8081, and 5000) are available. If any port is in use, faas start will terminate with an error message specifying which port is occupied. (PR: #106)
+ 
