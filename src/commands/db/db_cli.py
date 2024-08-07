@@ -143,7 +143,12 @@ $ das-cli db start
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
 
-    def _redis_node(self, redis_node: dict, redis_port: int, redis_cluster: bool) -> None:
+    def _redis_node(
+        self,
+        redis_node: dict,
+        redis_port: int,
+        redis_cluster: bool,
+    ) -> None:
         node_context = redis_node.get("context")
         node_ip = redis_node.get("ip")
         node_username = redis_node.get("username")

@@ -35,16 +35,14 @@ class RedisContainerManager(ContainerManager):
         ]
 
         if cluster:
-            command_params.append(
-                [
-                    "--cluster-enabled",
-                    "yes",
-                    "--cluster-config-file",
-                    "nodes.conf",
-                    "--cluster-node-timeout",
-                    "5000",
-                ]
-            )
+            command_params += [
+                "--cluster-enabled",
+                "yes",
+                "--cluster-config-file",
+                "nodes.conf",
+                "--cluster-node-timeout",
+                "5000",
+            ]
 
         container_id = self._start_container(
             restart_policy={
