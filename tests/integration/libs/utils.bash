@@ -130,3 +130,35 @@ function use_config() {
 
     cp "${config_path}" "${das_config_file}"
 }
+
+function listen_port() {
+    local port="$1"
+    
+    nohup nc -lk "$port" > /dev/null 2>&1 &
+
+    local pid=$!
+    disown $pid
+
+    if [ "$?" -ne 0 ]; then
+        echo "It could not start listening on port $port"
+        return 1
+    else
+        echo "Started listening on port $port with PID $pid"
+    fi
+}
+
+function stop_listen_port() {
+    local port="$1"
+    local pids=()
+
+    pids=($(lsof -ti :$port))
+
+    if [ -z "$pids" ]; then
+        echo "There are no service running on port $port to be stopped"
+        return 1
+    fi
+
+    for pid in "${pids[@]}"; do
+        kill -9 "$pid"
+    done
+}

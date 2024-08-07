@@ -87,6 +87,18 @@ If you've just installed the DAS CLI, the function will be executed using the la
 
 Since the function needs to communicate with databases, you need to run db start to establish this communication. Upon the first execution of the function, it might take a little longer as it needs to fetch the specified version and set everything up for you. Subsequent initializations will be faster unless you change the version, which will require the same process again to set everything up.
 
+.B
+Ensure that the following ports are open:
+
+.IP \[bu] 2
+Port 8080: For the function
+
+.IP \[bu] 2
+Port 8081: For metrics
+
+.IP \[bu] 2
+Port 5000: For the watchdog
+
 After starting the function, you will receive a message on the screen with the function version and the port on which the function is being executed.
 
 .SH EXAMPLES
