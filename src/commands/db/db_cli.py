@@ -143,14 +143,14 @@ $ das-cli db start
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
 
-    def _redis_node(self, redis_node: dict, redis_port: int) -> None:
+    def _redis_node(self, redis_node: dict, redis_port: int, redis_cluster: bool) -> None:
         node_context = redis_node.get("context")
         node_ip = redis_node.get("ip")
         node_username = redis_node.get("username")
 
         try:
             self._redis_container_manager.set_exec_context(node_context)
-            self._redis_container_manager.start_container(redis_port)
+            self._redis_container_manager.start_container(redis_port, redis_cluster)
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
@@ -176,7 +176,7 @@ $ das-cli db start
         redis_cluster = self._settings.get("redis.cluster", False)
 
         for redis_node in redis_nodes:
-            self._redis_node(redis_node, redis_port)
+            self._redis_node(redis_node, redis_port, redis_cluster)
 
         if redis_cluster:
             try:

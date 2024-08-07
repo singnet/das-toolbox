@@ -20,6 +20,7 @@ class RedisContainerManager(ContainerManager):
     def start_container(
         self,
         port: int,
+        cluster: bool = False,
     ):
         self.raise_running_container()
 
@@ -27,17 +28,23 @@ class RedisContainerManager(ContainerManager):
             "redis-server",
             "--port",
             f"{port}",
-            "--cluster-enabled",
-            "yes",
-            "--cluster-config-file",
-            "nodes.conf",
-            "--cluster-node-timeout",
-            "5000",
             "--appendonly",
             "yes",
             "--protected-mode",
             "no",
         ]
+
+        if cluster:
+            command_params.append(
+                [
+                    "--cluster-enabled",
+                    "yes",
+                    "--cluster-config-file",
+                    "nodes.conf",
+                    "--cluster-node-timeout",
+                    "5000",
+                ]
+            )
 
         container_id = self._start_container(
             restart_policy={
