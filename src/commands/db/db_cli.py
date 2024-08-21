@@ -61,7 +61,7 @@ $ das-cli db stop
             )
 
     def _redis(self):
-        self.stdout(f"Stopping Redis service...")
+        self.stdout("Stopping Redis service...")
 
         redis_nodes = self._settings.get("redis.nodes", [])
 
@@ -70,7 +70,7 @@ $ das-cli db stop
                 self._redis_node(**redis_node)
         except DockerError as e:
             self.stdout(
-                f"\nError occurred while trying to stop Redis\n",
+                "\nError occurred while trying to stop Redis\n",
                 severity=StdoutSeverity.ERROR,
             )
             raise e
@@ -93,7 +93,7 @@ $ das-cli db stop
             )
 
     def _mongodb(self):
-        self.stdout(f"Stopping MongoDB service...")
+        self.stdout("Stopping MongoDB service...")
 
         mongodb_nodes = self._settings.get("mongodb.nodes", [])
 
@@ -103,7 +103,7 @@ $ das-cli db stop
 
         except DockerError as e:
             self.stdout(
-                f"\nError occurred while trying to stop MongoDB\n",
+                "\nError occurred while trying to stop MongoDB\n",
                 severity=StdoutSeverity.ERROR,
             )
             raise e
@@ -170,14 +170,14 @@ $ das-cli db start
                 f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}.",
                 severity=StdoutSeverity.WARNING,
             )
-        except DockerError as e:
+        except DockerError:
             self.stdout(
                 f"\nError occurred while trying to start Redis on port {redis_port} at {node_ip} under the server user {node_username}.\n",
                 severity=StdoutSeverity.ERROR,
             )
 
     def _redis(self) -> None:
-        self.stdout(f"Starting Redis service...")
+        self.stdout("Starting Redis service...")
 
         redis_port = self._settings.get("redis.port")
         redis_nodes = self._settings.get("redis.nodes", [])
@@ -191,7 +191,7 @@ $ das-cli db start
                 self._redis_container_manager.start_cluster(redis_nodes, redis_port)
             except Exception as e:
                 self.stdout(
-                    f"\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
+                    "\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
                     severity=StdoutSeverity.ERROR,
                 )
                 raise e
@@ -246,7 +246,7 @@ $ das-cli db start
             raise e
 
     def _mongodb(self) -> None:
-        self.stdout(f"Starting MongoDB service...")
+        self.stdout("Starting MongoDB service...")
 
         mongodb_port = self._settings.get("mongodb.port")
         mongodb_username = self._settings.get("mongodb.username")
@@ -275,7 +275,7 @@ $ das-cli db start
                 )
             except Exception as e:
                 self.stdout(
-                    f"\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
+                    "\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
                     severity=StdoutSeverity.ERROR,
                 )
                 raise e
@@ -293,7 +293,9 @@ class DbRestart(Command):
     short_help = "Restart all DBMS containers."
 
     help = """
-'das-cli db restart' restarts all database containers previously started with 'das-cli start'. If no database have been started, 'das-cli db restart' just start them.
+'das-cli db restart' restarts all database containers previously started with
+'das-cli start'. If no database have been started, 'das-cli db restart' just
+start them.
 
 IMPORTANTE NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
 
@@ -320,7 +322,11 @@ class DbCli(CommandGroup):
 
     short_help = "Manage db-related operations."
 
-    help = "'das-cli db' commands allow you to manage DAS backend DBMSs for use with the DAS CLI. 'das-cli db' provides commands to start, stop, and restart the databases as needed."
+    help = """
+        'das-cli db' commands allow you to manage DAS backend DBMSs for use
+        with the DAS CLI. 'das-cli db' provides commands to start, stop, and
+        restart the databases as needed.
+        """
 
     @inject
     def __init__(

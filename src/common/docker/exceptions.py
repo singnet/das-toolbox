@@ -29,12 +29,6 @@ class DockerContainerNotFoundError(DockerError):
 
 
 class DockerImageNotFoundError(DockerError):
-    """Exception raised when a specified image cannot be found."""
-
-    pass
-
-
-class DockerImageNotFoundError(DockerError):
     """Exception raised when a specified Docker image cannot be found."""
 
     pass

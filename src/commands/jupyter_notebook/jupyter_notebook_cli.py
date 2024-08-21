@@ -88,7 +88,7 @@ $ das-cli jupyter-notebook stop
     def run(self):
         self._settings.raise_on_missing_file()
 
-        self.stdout(f"Stopping jupyter notebook...")
+        self.stdout("Stopping jupyter notebook...")
 
         jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
 

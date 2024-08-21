@@ -45,7 +45,10 @@ class FaaSStop(Command):
     short_help = "Stop the running OpenFaaS service.."
 
     help = """
-'das-cli faas stop' allows you to stop the execution of the DAS function in OpenFaaS. This is useful for terminating the function's operation when it's no longer needed. After stopping the faas, the function will no longer be available and cannot be used with the DAS.
+'das-cli faas stop' allows you to stop the execution of the DAS function in
+OpenFaaS. This is useful for terminating the function's operation when it's no
+longer needed. After stopping the faas, the function will no longer be
+available and cannot be used with the DAS.
 
 .SH EXAMPLES
 
@@ -62,7 +65,7 @@ $ das-cli faas stop
     def run(self):
         self._settings.raise_on_missing_file()
 
-        self.stdout(f"Stopping OpenFaaS service...")
+        self.stdout("Stopping OpenFaaS service...")
 
         openfaas_container_name = self._settings.get("openfaas.container_name")
 
@@ -80,12 +83,24 @@ class FaaSStart(Command):
 
     short_help = "Start OpenFaaS service."
 
-    help = """
-OpenFaaS, an open-source serverless computing platform, makes running functions in containers fast and simple. With this command, you can initialize the DAS remotely through a function in OpenFaaS, which can be run on your server or locally.
+    help = r"""
+OpenFaaS, an open-source serverless computing platform, makes running functions
+in containers fast and simple. With this command, you can initialize the DAS
+remotely through a function in OpenFaaS, which can be run on your server or
+locally.
 
-If you've just installed the DAS CLI, the function will be executed using the latest version by default. However, if you want to specify a particular version, you can use the faas update-version command. Versions are available at https://github.com/singnet/das-serverless-functions/releases, or you can choose to leave it as latest, which will always use the latest available version.
+If you've just installed the DAS CLI, the function will be executed using the
+latest version by default. However, if you want to specify a particular
+version, you can use the faas update-version command. Versions are available at
+https://github.com/singnet/das-serverless-functions/releases, or you can choose
+to leave it as latest, which will always use the latest available version.
 
-Since the function needs to communicate with databases, you need to run db start to establish this communication. Upon the first execution of the function, it might take a little longer as it needs to fetch the specified version and set everything up for you. Subsequent initializations will be faster unless you change the version, which will require the same process again to set everything up.
+Since the function needs to communicate with databases, you need to run db
+start to establish this communication. Upon the first execution of the
+function, it might take a little longer as it needs to fetch the specified
+version and set everything up for you. Subsequent initializations will be
+faster unless you change the version, which will require the same process again
+to set everything up.
 
 .B
 Ensure that the following ports are open:
@@ -99,7 +114,8 @@ Port 8081: For metrics
 .IP \[bu] 2
 Port 5000: For the watchdog
 
-After starting the function, you will receive a message on the screen with the function version and the port on which the function is being executed.
+After starting the function, you will receive a message on the screen with the
+function version and the port on which the function is being executed.
 
 .SH EXAMPLES
 
@@ -209,7 +225,12 @@ class FaaSRestart(Command):
     short_help = "Restart OpenFaaS service."
 
     help = """
-'das-cli faas restart' restarts OpenFaaS server container. This is useful when you want to restart the function to apply configuration changes. During this process, there is typically a downtime until the function is running again and deemed healthy. This downtime occurs because the existing instance of the function needs to be stopped, and then a new instance needs to be started with the updated configuration or changes.
+'das-cli faas restart' restarts OpenFaaS server container. This is useful when
+you want to restart the function to apply configuration changes. During this
+process, there is typically a downtime until the function is running again and
+deemed healthy. This downtime occurs because the existing instance of the
+function needs to be stopped, and then a new instance needs to be started with
+the updated configuration or changes.
 
 .SH EXAMPLES
 
@@ -235,7 +256,10 @@ class FaaSVersion(Command):
     short_help = "Get OpenFaaS function version."
 
     help = """
-'das-cli faas version' is used to display the current version of the DAS function in OpenFaaS. This command is particularly useful for checking the version of the deployed function, which can be helpful troubleshooting issues, or ensuring compatibility.
+'das-cli faas version' is used to display the current version of the DAS
+function in OpenFaaS. This command is particularly useful for checking the
+version of the deployed function, which can be helpful troubleshooting issues,
+or ensuring compatibility.
 
 .SH EXAMPLES
 
@@ -275,7 +299,14 @@ class FaaSUpdateVersion(Command):
     short_help = "Update an OpenFaaS service to a newer version."
 
     help = """
-'das-cli update-version' allows you to update the version of your function in OpenFaaS. All available versions can be found at https://github.com/singnet/das-serverless-functions/releases. This command has two optional parameters. When executed without parameters, it will fetch the latest version of the 'query-engine' function and update it on your local server if a newer version is found. You can also specify the function you want to update in OpenFaaS (currently only 'query-engine' is available), and define the version of the function you want to use, as mentioned earlier.
+'das-cli update-version' allows you to update the version of your function in
+OpenFaaS. All available versions can be found at
+https://github.com/singnet/das-serverless-functions/releases. This command has
+two optional parameters. When executed without parameters, it will fetch the
+latest version of the 'query-engine' function and update it on your local
+server if a newer version is found. You can also specify the function you want
+to update in OpenFaaS (currently only 'query-engine' is available), and define
+the version of the function you want to use, as mentioned earlier.
 
 .SH EXAMPLES
 

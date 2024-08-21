@@ -3,7 +3,7 @@ import logging
 from config.config import LOG_FILE_NAME
 
 
-class LoggerError(Exception): ...
+class LoggerError(Exception): ...  # noqa: E701
 
 
 class Logger:

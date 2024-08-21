@@ -78,7 +78,7 @@ mongodb.*
 
     mongodb.cluster
         Indicates whether a MongoDB cluster is being used (true/false).
-    
+
     mongodb.cluster_secret_key
         This key is uploaded to all nodes within the MongoDB cluster. It is used for mutual authentication between nodes, ensuring that only authorized nodes can communicate with each other.
 

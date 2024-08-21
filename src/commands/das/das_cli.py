@@ -15,7 +15,7 @@ from .das_ubuntu_advanced_packaging_tool import (
 )
 
 
-class PermissionError(Exception): ...
+class PermissionError(Exception): ...  # noqa: E701
 
 
 class DasCliUpdateVersion(Command):

@@ -167,7 +167,8 @@ class ContainerManager(DockerManager):
 
         try:
             container.kill()
-        except:
+        # TODO: better exception handling, for now do not use bare except
+        except Exception:
             pass
 
         try:
