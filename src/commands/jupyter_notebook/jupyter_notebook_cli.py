@@ -37,9 +37,7 @@ $ das-cli jupyter-notebook start
 
         self.stdout("Starting Jupyter Notebook...")
 
-        jupyter_notebook_container_name = self._settings.get(
-            "jupyter_notebook.container_name"
-        )
+        jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
         jupyter_notebook_port = self._settings.get("jupyter_notebook.port")
 
         try:
@@ -90,9 +88,7 @@ $ das-cli jupyter-notebook stop
 
         self.stdout(f"Stopping jupyter notebook...")
 
-        jupyter_notebook_container_name = self._settings.get(
-            "jupyter_notebook.container_name"
-        )
+        jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
 
         try:
             JupyterNotebookContainerManager(jupyter_notebook_container_name).stop()

@@ -61,9 +61,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
 
         services_not_running = False
 
-        metta_loader_container_manager = MettaLoaderContainerManager(
-            metta_container_name
-        )
+        metta_loader_container_manager = MettaLoaderContainerManager(metta_container_name)
         redis_container_manager = RedisContainerManager(redis_container_name)
         mongodb_container_manager = MongodbContainerManager(mongodb_container_name)
 
@@ -153,9 +151,7 @@ $ das-cli metta check /path/to/mettas-directory/animals.metta
         except IsADirectoryError:
             raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"The specified file path '{file_path}' does not exist."
-            )
+            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
         except DockerError:
             self.stdout("Checking syntax... FAILED", severity=StdoutSeverity.ERROR)
 

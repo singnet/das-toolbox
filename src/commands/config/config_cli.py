@@ -354,9 +354,7 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = (
-        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
-    )
+    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
 
     @inject
     def __init__(

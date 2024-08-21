@@ -64,9 +64,7 @@ class PythonLibraryPackage:
     def update_version(self, package_name, version=None):
         self.get_version(package_name)
 
-        pypi_package = (
-            f"{package_name}=={version}" if version is not None else package_name
-        )
+        pypi_package = f"{package_name}=={version}" if version is not None else package_name
 
         try:
             subprocess.run(

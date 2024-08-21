@@ -33,13 +33,9 @@ class Settings(JsonHandler):
                 else:
                     name = key if service else key
                     service = service.strip(".")
-                    column_widths["Service"] = max(
-                        column_widths["Service"], len(service)
-                    )
+                    column_widths["Service"] = max(column_widths["Service"], len(service))
                     column_widths["Name"] = max(column_widths["Name"], len(name))
-                    column_widths["Value"] = max(
-                        column_widths["Value"], len(str(value))
-                    )
+                    column_widths["Value"] = max(column_widths["Value"], len(str(value)))
 
         calculate_column_widths(obj)
 

@@ -65,9 +65,7 @@ $ das-cli faas stop
         openfaas_container_name = self._settings.get("openfaas.container_name")
 
         try:
-            openfaas_container_service = OpenFaaSContainerManager(
-                openfaas_container_name
-            )
+            openfaas_container_service = OpenFaaSContainerManager(openfaas_container_name)
             openfaas_container_service.stop()
 
             self.stdout("OpenFaaS service stopped", severity=StdoutSeverity.SUCCESS)
@@ -158,9 +156,7 @@ $ das-cli faas start
             [
                 {
                     "name": "MongoDB",
-                    "container_manager": MongodbContainerManager(
-                        mongodb_container_name
-                    ),
+                    "container_manager": MongodbContainerManager(mongodb_container_name),
                     "port": mongodb_port,
                 },
                 {
@@ -329,9 +325,7 @@ $ das-cli update-version --version 1.0.0
     ) -> None:
         self._settings.raise_on_missing_file()
 
-        current_function_name, current_function_version = get_function_version(
-            self._settings
-        )
+        current_function_name, current_function_version = get_function_version(self._settings)
 
         self.stdout(f"Downloading the {function} function, version {version}...")
 
@@ -344,9 +338,7 @@ $ das-cli update-version --version 1.0.0
 
         self._set_version(function, version)
 
-        newer_function_name, newer_function_version = get_function_version(
-            self._settings
-        )
+        newer_function_name, newer_function_version = get_function_version(self._settings)
 
         if (
             current_function_name != newer_function_name

@@ -38,9 +38,7 @@ class DasUbuntuAdvancedPackagingTool:
                 stderr=subprocess.DEVNULL,
             )
 
-            version_pattern = (
-                r"Installed:\s*(\d+\.\d+\.\d+)\n\s*Candidate:\s*(\d+\.\d+\.\d+)"
-            )
+            version_pattern = r"Installed:\s*(\d+\.\d+\.\d+)\n\s*Candidate:\s*(\d+\.\d+\.\d+)"
 
             matches = re.findall(version_pattern, output.decode("utf-8"))
 

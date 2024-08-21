@@ -2,9 +2,7 @@ from common.utils import get_server_username
 
 
 VERSION = '0.4.0'
-RELEASE_NOTES_URL = (
-    "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
-)
+RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 # PATHS
 
