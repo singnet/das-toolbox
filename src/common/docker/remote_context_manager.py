@@ -1,5 +1,5 @@
 import subprocess
-from typing import List, Dict, AnyStr
+from typing import AnyStr, Dict, List
 from uuid import uuid4
 
 

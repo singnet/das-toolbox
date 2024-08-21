@@ -1,2 +1,2 @@
-from .secrets import Secret
 from .config import *
+from .secrets import Secret

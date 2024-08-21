@@ -1,14 +1,12 @@
-import docker
 import curses
 import time
+from typing import Any, AnyStr, Union
+
+import docker
 import docker.errors
-from typing import Any, Union, AnyStr
+
 from .docker_manager import DockerManager
-from .exceptions import (
-    DockerContainerDuplicateError,
-    DockerError,
-    DockerContainerNotFoundError,
-)
+from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
 
 
 class Container:

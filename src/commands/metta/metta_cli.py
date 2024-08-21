@@ -1,19 +1,15 @@
 import glob
 import os
+
 from injector import inject
-from common import (
-    Command,
-    CommandGroup,
-    CommandArgument,
-    Path,
-    Settings,
-    StdoutSeverity,
-)
-from .metta_loader_container_manager import MettaLoaderContainerManager
-from .metta_syntax_container_manager import MettaSyntaxContainerManager
+
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
+
+from .metta_loader_container_manager import MettaLoaderContainerManager
+from .metta_syntax_container_manager import MettaSyntaxContainerManager
 
 
 class MettaLoad(Command):

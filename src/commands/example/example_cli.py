@@ -1,4 +1,5 @@
 from injector import inject
+
 from common import Command, CommandGroup
 
 

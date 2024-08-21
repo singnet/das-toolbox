@@ -1,10 +1,12 @@
+from time import sleep
+
 from injector import inject
-from common import Command, CommandGroup, StdoutSeverity, Settings
-from common.docker.exceptions import DockerError
-from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
+
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from time import sleep
+from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
+from common import Command, CommandGroup, Settings, StdoutSeverity
+from common.docker.exceptions import DockerError
 from config import LOG_FILE_NAME
 
 

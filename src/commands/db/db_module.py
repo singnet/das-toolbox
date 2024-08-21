@@ -1,5 +1,6 @@
 from common import Module
-from .db_cli import DbCli, RedisContainerManager, Settings, MongodbContainerManager
+
+from .db_cli import DbCli, MongodbContainerManager, RedisContainerManager, Settings
 
 
 class DbModule(Module):

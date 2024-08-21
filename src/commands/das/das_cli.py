@@ -1,20 +1,17 @@
 import os
+import sys
+
 import click
 import distro
-import sys
-from config import VERSION
 from injector import inject
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    is_executable_bin,
-    StdoutSeverity,
-)
+
+from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
+from config import VERSION
+
 from .das_ubuntu_advanced_packaging_tool import (
-    DasUbuntuAdvancedPackagingTool,
-    DasNotFoundError,
     DasError,
+    DasNotFoundError,
+    DasUbuntuAdvancedPackagingTool,
 )
 
 

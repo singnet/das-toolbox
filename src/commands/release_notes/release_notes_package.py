@@ -1,8 +1,10 @@
 import re
-import requests
-from config import RELEASE_NOTES_URL
 from typing import Union
+
+import requests
+
 from common import remove_special_characters
+from config import RELEASE_NOTES_URL
 
 
 class ReleaseNoteError(Exception): ...

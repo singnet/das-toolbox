@@ -1,5 +1,6 @@
-import paramiko
 from typing import Union
+
+import paramiko
 
 
 class SSHConnection:

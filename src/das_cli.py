@@ -1,14 +1,15 @@
 from injector import Injector
+
 from commands.config import ConfigModule
-from commands.example import ExampleModule
+from commands.das import DasModule
 from commands.db import DbModule
+from commands.example import ExampleModule
 from commands.faas import FaaSModule
 from commands.jupyter_notebook import JupyterNotebookModule
-from commands.python_library import PythonLibraryModule
-from commands.release_notes import ReleaseNotesModule
 from commands.logs import LogsModule
 from commands.metta import MettaModule
-from commands.das import DasModule
+from commands.python_library import PythonLibraryModule
+from commands.release_notes import ReleaseNotesModule
 
 MODULES = [
     ConfigModule,

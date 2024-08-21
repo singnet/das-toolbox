@@ -1,7 +1,9 @@
 import re
-from click import IntRange, ParamType, Choice, Path
-from common.network import is_server_port_available
 from typing import Union
+
+from click import Choice, IntRange, ParamType, Path
+
+from common.network import is_server_port_available
 
 
 class FunctionVersion(ParamType):

@@ -1,14 +1,10 @@
 from enum import Enum
+
 from injector import inject
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Choice,
-    StdoutSeverity,
-    FunctionVersion,
-)
-from .python_library_package import PythonLibraryPackage, PackageError
+
+from common import Choice, Command, CommandGroup, CommandOption, FunctionVersion, StdoutSeverity
+
+from .python_library_package import PackageError, PythonLibraryPackage
 
 
 class LibraryEnum(Enum):

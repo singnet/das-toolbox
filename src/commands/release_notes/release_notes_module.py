@@ -1,4 +1,5 @@
 from common import Module
+
 from .release_notes_cli import ReleaseNotesCli
 
 

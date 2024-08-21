@@ -1,6 +1,6 @@
 import re
 import subprocess
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 
 class DasError(Exception): ...

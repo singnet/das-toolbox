@@ -1,6 +1,7 @@
-import requests
 import re
 import subprocess
+
+import requests
 
 
 class PackageError(Exception): ...

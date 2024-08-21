@@ -1,18 +1,20 @@
 from injector import inject
-from config import OPENFAAS_IMAGE_NAME
+
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common.docker.exceptions import DockerContainerNotFoundError
 from common import (
+    Choice,
     Command,
     CommandGroup,
-    StdoutSeverity,
+    CommandOption,
+    FunctionVersion,
     ImageManager,
     Settings,
-    CommandOption,
-    Choice,
-    FunctionVersion,
+    StdoutSeverity,
 )
+from common.docker.exceptions import DockerContainerNotFoundError
+from config import OPENFAAS_IMAGE_NAME
+
 from .openfaas_container_manager import OpenFaaSContainerManager
 
 

@@ -1,7 +1,8 @@
-import subprocess
-import requests
-from typing import Union
 import re
+import subprocess
+from typing import Union
+
+import requests
 
 
 def get_public_ip():

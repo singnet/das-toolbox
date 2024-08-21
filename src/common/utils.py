@@ -1,9 +1,9 @@
-import os
-import sys
-import getpass
-import secrets
 import base64
+import getpass
+import os
+import secrets
 import string
+import sys
 
 
 def is_executable_bin():

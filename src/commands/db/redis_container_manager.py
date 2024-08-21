@@ -1,6 +1,7 @@
+from typing import AnyStr, Dict, List, Union
+
 from common import Container, ContainerManager
 from config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
-from typing import AnyStr, Union, List, Dict
 
 
 class RedisContainerManager(ContainerManager):

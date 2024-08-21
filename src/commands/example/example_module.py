@@ -1,6 +1,6 @@
-from common import Module
+from common import Module, get_script_name
+
 from .example_cli import ExampleCli, ExampleFaaS, ExampleLocal
-from common import get_script_name
 
 
 class ExampleModule(Module):

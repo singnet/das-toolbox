@@ -1,13 +1,16 @@
+from typing import AnyStr, Union
+
 from injector import inject
+
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
-    DockerError,
     DockerContainerNotFoundError,
+    DockerError,
 )
+
 from .mongodb_container_manager import MongodbContainerManager
 from .redis_container_manager import RedisContainerManager
-from typing import Union, AnyStr
 
 
 class DbStop(Command):

@@ -1,12 +1,11 @@
 import os
+
 import docker
 import docker.errors
+
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from config import (
-    METTA_PARSER_IMAGE_NAME,
-    METTA_PARSER_IMAGE_VERSION,
-)
+from config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaSyntaxContainerManager(ContainerManager):

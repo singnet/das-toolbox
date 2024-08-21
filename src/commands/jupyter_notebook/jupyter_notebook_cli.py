@@ -1,10 +1,12 @@
 from injector import inject
+
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
-    DockerError,
     DockerContainerNotFoundError,
+    DockerError,
 )
+
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
