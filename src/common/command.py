@@ -1,3 +1,4 @@
+from fabric import Connection
 from enum import Enum
 from typing import Any
 
@@ -34,6 +35,12 @@ class Command:
     help = ""
     short_help = ""
     params = []
+    remote_params = [
+        CommandOption(["--remote/--no-remote"], type=bool, default=False),
+        CommandOption(["--host", "-H"], type=str, help="qwer", required=False),
+        CommandOption(["--user", "-H"], type=str, help="qwer", required=False),
+        CommandOption(["--port", "-H"], type=str, help="qwer", required=False),
+    ]
 
     def __init__(self) -> None:
         self.command = click.Command(
@@ -41,12 +48,42 @@ class Command:
             callback=self.safe_run,
             help=self.help,
             short_help=self.short_help,
-            params=self.params,
+            params=self.params + self.remote_params,
         )
 
-    def safe_run(self, **kwarg):
+    def _get_remote_kwargs(self, kwargs) -> tuple[dict, dict]:
+        if not kwargs:
+            return kwargs, {}
+        remote_kwargs = {
+            "user": kwargs.pop("user") or "",
+            "port": kwargs.pop("port") or 22,
+            "host": kwargs.pop("host") or "",
+        }
+
+        if not kwargs.pop("remote"):
+            return kwargs, {}
+
+        return (kwargs, remote_kwargs)
+
+    def _remote_run(self, kwargs, remote_kwargs):
+
         try:
-            return self.run(**kwarg)
+            ctx = click.get_current_context()
+            command = ctx.command_path
+            print(f"Executing remote {command=}...")
+            result = Connection(**remote_kwargs).run(command)
+            print(result)
+        except Exception as e:
+            print("Caught it")
+            print(type(e))
+
+    def safe_run(self, **kwargs):
+        kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
+        try:
+            if remote_kwargs.get("host"):
+                print(remote_kwargs)
+                return self._remote_run(kwargs, remote_kwargs)
+            return self.run(**kwargs)
         except Exception as e:
             error_type = e.__class__.__name__
             error_message = str(e)
@@ -116,7 +153,9 @@ class CommandGroup(Command):
     name = "unknown"
     help = ""
     short_help = ""
-    params = []
+    params = [
+        CommandOption(["--hostGroup"], type=str, help="qwer", required=False),
+    ]
 
     def __init__(self) -> None:
         self.group = click.Group(self.name)
