@@ -1,3 +1,5 @@
+from click import Choice, IntRange, Path
+
 from . import ssh
 from .command import (
     Command,
@@ -12,7 +14,6 @@ from .logger import logger
 from .module import Module
 from .network import get_public_ip
 from .prompt_types import FunctionVersion, ReachableIpAddress
-from click import Choice, IntRange, Path
 from .settings import JsonHandler, Settings
 from .utils import (
     get_rand_token,
