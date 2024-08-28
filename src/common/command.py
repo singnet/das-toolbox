@@ -35,11 +35,30 @@ class Command:
     help = ""
     short_help = ""
     params = []
+    # TODO: Add more ways to connect, example: ssh-key file, etc. Look at the fabric docs.
     remote_params = [
-        CommandOption(["--remote/--no-remote"], type=bool, default=False),
-        CommandOption(["--host", "-H"], type=str, help="qwer", required=False),
-        CommandOption(["--user", "-H"], type=str, help="qwer", required=False),
-        CommandOption(["--port", "-H"], type=str, help="qwer", required=False),
+        CommandOption(
+            ["--remote"],
+            type=bool,
+            default=False,
+            is_flag=True,
+            help="whether to run the command on a remote server",
+        ),
+        CommandOption(
+            ["--host", "-H"],
+            type=str,
+            help="the login user for the remote connection",
+            required=False,
+        ),
+        CommandOption(
+            ["--user", "-H"],
+            type=str,
+            help="the login user for the remote connection",
+            required=False,
+        ),
+        CommandOption(
+            ["--port", "-H"], type=int, help="the remote port", required=False
+        ),
     ]
 
     def __init__(self) -> None:
@@ -65,23 +84,40 @@ class Command:
 
         return (kwargs, remote_kwargs)
 
+    def _dict_to_command_line_args(self, d: dict) -> str:
+        """
+        Convert dict to command line args
+
+        Params:
+            d (dict): the dict to be converted convert
+
+        """
+        args = []
+        for key, value in d.items():
+            arg_key = str(key).replace("_", "-")
+
+            if isinstance(value, bool):
+                args.append(f"--{arg_key}")
+            else:
+                arg_value = str(value).lower()
+                arg = f"--{arg_key} {arg_value}"
+                args.append(arg)
+
+        return " ".join(args)
+
     def _remote_run(self, kwargs, remote_kwargs):
 
-        try:
-            ctx = click.get_current_context()
-            command = ctx.command_path
-            print(f"Executing remote {command=}...")
-            result = Connection(**remote_kwargs).run(command)
-            print(result)
-        except Exception as e:
-            print("Caught it")
-            print(type(e))
+        ctx = click.get_current_context()
+        prefix = "das-cli"
+        command_path = " ".join(ctx.command_path.split(" ")[1:])
+        extra_args = self._dict_to_command_line_args(kwargs)
+        command = f"{prefix} {command_path} {extra_args}"
+        Connection(**remote_kwargs).run(command)
 
     def safe_run(self, **kwargs):
         kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
         try:
             if remote_kwargs.get("host"):
-                print(remote_kwargs)
                 return self._remote_run(kwargs, remote_kwargs)
             return self.run(**kwargs)
         except Exception as e:
