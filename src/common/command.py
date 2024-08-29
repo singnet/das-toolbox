@@ -1,8 +1,8 @@
-from fabric import Connection
 from enum import Enum
 from typing import Any
 
 import click
+from fabric import Connection
 
 from common.logger import logger
 
@@ -57,7 +57,10 @@ class Command:
             required=False,
         ),
         CommandOption(
-            ["--port", "-H"], type=int, help="the remote port", required=False
+            ["--port", "-H"],
+            type=int,
+            help="the remote port",
+            required=False,
         ),
     ]
 
@@ -70,19 +73,23 @@ class Command:
             params=self.params + self.remote_params,
         )
 
-    def _get_remote_kwargs(self, kwargs) -> tuple[dict, dict]:
+    def _get_remote_kwargs(self, kwargs) -> tuple[bool, dict, dict]:
+        """
+        Gets remote kwargs from kwargs.
+        Params:
+        Returns (bool, kwargs, remote_kwargs):
+            First value is whether the command should be run on a remote server or not.
+        """
         if not kwargs:
-            return kwargs, {}
+            return (False, kwargs, {})
         remote_kwargs = {
             "user": kwargs.pop("user") or "",
             "port": kwargs.pop("port") or 22,
             "host": kwargs.pop("host") or "",
         }
+        remote = kwargs.pop("remote") or False
 
-        if not kwargs.pop("remote"):
-            return kwargs, {}
-
-        return (kwargs, remote_kwargs)
+        return (remote, kwargs, remote_kwargs)
 
     def _dict_to_command_line_args(self, d: dict) -> str:
         """
@@ -97,16 +104,17 @@ class Command:
             arg_key = str(key).replace("_", "-")
 
             if isinstance(value, bool):
-                args.append(f"--{arg_key}")
+                if value:
+                    args.append(f"--{arg_key}")
             else:
-                arg_value = str(value).lower()
-                arg = f"--{arg_key} {arg_value}"
-                args.append(arg)
+                if value:
+                    arg_value = str(value).lower()
+                    arg = f"--{arg_key} {arg_value}"
+                    args.append(arg)
 
         return " ".join(args)
 
     def _remote_run(self, kwargs, remote_kwargs):
-
         ctx = click.get_current_context()
         prefix = "das-cli"
         command_path = " ".join(ctx.command_path.split(" ")[1:])
@@ -115,9 +123,9 @@ class Command:
         Connection(**remote_kwargs).run(command)
 
     def safe_run(self, **kwargs):
-        kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
+        remote, kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
         try:
-            if remote_kwargs.get("host"):
+            if remote:
                 return self._remote_run(kwargs, remote_kwargs)
             return self.run(**kwargs)
         except Exception as e:
@@ -189,9 +197,7 @@ class CommandGroup(Command):
     name = "unknown"
     help = ""
     short_help = ""
-    params = [
-        CommandOption(["--hostGroup"], type=str, help="qwer", required=False),
-    ]
+    params = []
 
     def __init__(self) -> None:
         self.group = click.Group(self.name)
