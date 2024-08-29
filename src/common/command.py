@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any
 
 import click
+from fabric import Connection
 
 from common.logger import logger
 
@@ -34,6 +35,34 @@ class Command:
     help = ""
     short_help = ""
     params = []
+    # TODO: Add more ways to connect, example: ssh-key file, etc. Look at the fabric docs.
+    remote_params = [
+        CommandOption(
+            ["--remote"],
+            type=bool,
+            default=False,
+            is_flag=True,
+            help="whether to run the command on a remote server",
+        ),
+        CommandOption(
+            ["--host", "-H"],
+            type=str,
+            help="the login user for the remote connection",
+            required=False,
+        ),
+        CommandOption(
+            ["--user", "-H"],
+            type=str,
+            help="the login user for the remote connection",
+            required=False,
+        ),
+        CommandOption(
+            ["--port", "-H"],
+            type=int,
+            help="the remote port",
+            required=False,
+        ),
+    ]
 
     def __init__(self) -> None:
         self.command = click.Command(
@@ -41,12 +70,64 @@ class Command:
             callback=self.safe_run,
             help=self.help,
             short_help=self.short_help,
-            params=self.params,
+            params=self.params + self.remote_params,
         )
 
-    def safe_run(self, **kwarg):
+    def _get_remote_kwargs(self, kwargs) -> tuple[bool, dict, dict]:
+        """
+        Gets remote kwargs from kwargs.
+        Params:
+        Returns (bool, kwargs, remote_kwargs):
+            First value is whether the command should be run on a remote server or not.
+        """
+        if not kwargs:
+            return (False, kwargs, {})
+        remote_kwargs = {
+            "user": kwargs.pop("user") or "",
+            "port": kwargs.pop("port") or 22,
+            "host": kwargs.pop("host") or "",
+        }
+        remote = kwargs.pop("remote") or False
+
+        return (remote, kwargs, remote_kwargs)
+
+    def _dict_to_command_line_args(self, d: dict) -> str:
+        """
+        Convert dict to command line args
+
+        Params:
+            d (dict): the dict to be converted convert
+
+        """
+        args = []
+        for key, value in d.items():
+            arg_key = str(key).replace("_", "-")
+
+            if isinstance(value, bool):
+                if value:
+                    args.append(f"--{arg_key}")
+            else:
+                if value:
+                    arg_value = str(value).lower()
+                    arg = f"--{arg_key} {arg_value}"
+                    args.append(arg)
+
+        return " ".join(args)
+
+    def _remote_run(self, kwargs, remote_kwargs):
+        ctx = click.get_current_context()
+        prefix = "das-cli"
+        command_path = " ".join(ctx.command_path.split(" ")[1:])
+        extra_args = self._dict_to_command_line_args(kwargs)
+        command = f"{prefix} {command_path} {extra_args}"
+        Connection(**remote_kwargs).run(command)
+
+    def safe_run(self, **kwargs):
+        remote, kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
         try:
-            return self.run(**kwarg)
+            if remote:
+                return self._remote_run(kwargs, remote_kwargs)
+            return self.run(**kwargs)
         except Exception as e:
             error_type = e.__class__.__name__
             error_message = str(e)
