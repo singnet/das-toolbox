@@ -1,14 +1,16 @@
 import re
-import requests
-from config import RELEASE_NOTES_URL
 from typing import Union
+
+import requests
+
 from common import remove_special_characters
+from config import RELEASE_NOTES_URL
 
 
-class ReleaseNoteError(Exception): ...
+class ReleaseNoteError(Exception): ...  # noqa: E701
 
 
-class ReleaseNoteNotFound(ReleaseNoteError): ...
+class ReleaseNoteNotFound(ReleaseNoteError): ...  # noqa: E701
 
 
 class Library:

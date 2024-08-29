@@ -1,11 +1,10 @@
 import os
+
 import docker
+
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from config import (
-    METTA_PARSER_IMAGE_NAME,
-    METTA_PARSER_IMAGE_VERSION,
-)
+from config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaLoaderContainerManager(ContainerManager):
@@ -68,9 +67,7 @@ class MettaLoaderContainerManager(ContainerManager):
             exit_code = self.get_container_exit_status(container)
 
             if exit_code != 0:
-                raise DockerError(
-                    f"File '{os.path.basename(path)}' could not be loaded."
-                )
+                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
 
             return None
         except docker.errors.APIError as e:

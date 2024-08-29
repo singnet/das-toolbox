@@ -1,15 +1,18 @@
+from typing import Dict, List
+
 from injector import inject
-from typing import List, Dict
-from common import Settings, StdoutSeverity
+
 from common import (
     Command,
     CommandGroup,
-    ReachableIpAddress,
     IntRange,
+    ReachableIpAddress,
     RemoteContextManager,
-    get_server_username,
+    Settings,
+    StdoutSeverity,
     get_public_ip,
     get_rand_token,
+    get_server_username,
 )
 
 
@@ -75,7 +78,7 @@ mongodb.*
 
     mongodb.cluster
         Indicates whether a MongoDB cluster is being used (true/false).
-    
+
     mongodb.cluster_secret_key
         This key is uploaded to all nodes within the MongoDB cluster. It is used for mutual authentication between nodes, ensuring that only authorized nodes can communicate with each other.
 
@@ -354,9 +357,7 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = (
-        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
-    )
+    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
 
     @inject
     def __init__(

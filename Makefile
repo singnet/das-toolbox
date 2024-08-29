@@ -1,4 +1,5 @@
 #!/usr/bin/make -f
+LINT_TARGETS=./src
 
 debian_changelog:
 ifndef DAS_CLI_VERSION
@@ -20,3 +21,15 @@ endif
 
 	@bats tests/integration/*.bats --filter-tags '!cluster'
 
+isort:
+	@isort --settings-path ./src/.isort.cfg $(LINT_TARGETS)
+
+black:
+	@black --config ./src/.black.cfg $(LINT_TARGETS)
+
+flake8:
+	@flake8 --config ./src/.flake8.cfg $(LINT_TARGETS)
+
+lint: isort black flake8
+
+pre-commit: lint

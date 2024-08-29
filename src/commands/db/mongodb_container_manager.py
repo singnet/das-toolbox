@@ -1,9 +1,10 @@
-import json
 import io
-from common import Container, ContainerManager, ssh, get_rand_token
-from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
-from typing import List, Dict, Union, AnyStr
+import json
+from typing import AnyStr, Dict, List, Union
+
+from common import Container, ContainerManager, get_rand_token, ssh
 from common.docker.exceptions import DockerError
+from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
 
 
 class MongodbContainerManager(ContainerManager):

@@ -1,12 +1,13 @@
-import requests
 import re
 import subprocess
 
+import requests
 
-class PackageError(Exception): ...
+
+class PackageError(Exception): ...  # noqa: E701
 
 
-class PackageNotFoundError(PackageError): ...
+class PackageNotFoundError(PackageError): ...  # noqa: E701
 
 
 class PythonLibraryPackage:
@@ -58,15 +59,13 @@ class PythonLibraryPackage:
                 raise PackageNotFoundError(
                     f"Version information not found for package '{package_name}'."
                 )
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             raise PackageNotFoundError(f"Package '{package_name}' is not installed.")
 
     def update_version(self, package_name, version=None):
         self.get_version(package_name)
 
-        pypi_package = (
-            f"{package_name}=={version}" if version is not None else package_name
-        )
+        pypi_package = f"{package_name}=={version}" if version is not None else package_name
 
         try:
             subprocess.run(

@@ -1,7 +1,9 @@
 import re
-from click import IntRange, ParamType, Choice, Path
-from common.network import is_server_port_available
 from typing import Union
+
+from click import ParamType
+
+from common.network import is_server_port_available
 
 
 class FunctionVersion(ParamType):
@@ -9,9 +11,7 @@ class FunctionVersion(ParamType):
 
     def convert(self, value, param, ctx):
         if value != "latest" and not re.match(r"v?\d+\.\d+\.\d+", value):
-            self.fail(
-                "The version must follow the format x.x.x (e.g 1.10.9)", param, ctx
-            )
+            self.fail("The version must follow the format x.x.x (e.g 1.10.9)", param, ctx)
 
         return value
 

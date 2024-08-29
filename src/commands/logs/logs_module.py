@@ -1,4 +1,5 @@
 from common import Module
+
 from .logs_cli import LogsCli
 
 

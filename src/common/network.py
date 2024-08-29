@@ -1,13 +1,15 @@
-import subprocess
-import requests
-from typing import Union
 import re
+import subprocess
+from typing import Union
+
+import requests
 
 
 def get_public_ip():
     try:
         return requests.get("https://api.ipify.org").content.decode("utf8")
-    except:
+    # TODO: better exception handler, for now do not use bare except
+    except Exception:
         return None
 
 

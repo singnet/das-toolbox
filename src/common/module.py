@@ -1,4 +1,5 @@
-from injector import Binder, Module as InjectorModule
+from injector import Binder
+from injector import Module as InjectorModule
 
 
 class Module(InjectorModule):

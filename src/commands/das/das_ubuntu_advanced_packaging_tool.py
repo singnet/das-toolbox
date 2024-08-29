@@ -1,12 +1,12 @@
 import re
 import subprocess
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 
-class DasError(Exception): ...
+class DasError(Exception): ...  # noqa: E701
 
 
-class DasNotFoundError(DasError): ...
+class DasNotFoundError(DasError): ...  # noqa: E701
 
 
 class DasUbuntuAdvancedPackagingTool:
@@ -38,9 +38,7 @@ class DasUbuntuAdvancedPackagingTool:
                 stderr=subprocess.DEVNULL,
             )
 
-            version_pattern = (
-                r"Installed:\s*(\d+\.\d+\.\d+)\n\s*Candidate:\s*(\d+\.\d+\.\d+)"
-            )
+            version_pattern = r"Installed:\s*(\d+\.\d+\.\d+)\n\s*Candidate:\s*(\d+\.\d+\.\d+)"
 
             matches = re.findall(version_pattern, output.decode("utf-8"))
 

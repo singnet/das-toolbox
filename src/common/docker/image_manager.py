@@ -1,10 +1,9 @@
-import docker
 from typing import Union
+
+import docker
+
 from .docker_manager import DockerManager
-from .exceptions import (
-    DockerImageNotFoundError,
-    DockerError,
-)
+from .exceptions import DockerError, DockerImageNotFoundError
 
 
 class ImageManager(DockerManager):

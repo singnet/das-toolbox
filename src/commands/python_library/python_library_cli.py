@@ -1,14 +1,10 @@
 from enum import Enum
+
 from injector import inject
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Choice,
-    StdoutSeverity,
-    FunctionVersion,
-)
-from .python_library_package import PythonLibraryPackage, PackageError
+
+from common import Choice, Command, CommandGroup, CommandOption, FunctionVersion, StdoutSeverity
+
+from .python_library_package import PackageError, PythonLibraryPackage
 
 
 class LibraryEnum(Enum):
@@ -50,9 +46,7 @@ $ das-cli python-library version
 
     def run(self):
         for package, current_version, latest_version in self.get_packages_version():
-            self.stdout(
-                f"{package}\n  INSTALLED: {current_version}\n  LATEST:    {latest_version}"
-            )
+            self.stdout(f"{package}\n  INSTALLED: {current_version}\n  LATEST:    {latest_version}")
 
 
 class PythonLibraryList(Command):
@@ -124,11 +118,9 @@ $ das-cli python-library list --show-patches
             if library is not None and package != library:
                 continue
 
-            versions = (
-                self._python_library_package.get_all_major_minor_versions_from_pypi(
-                    package,
-                    show_patches,
-                )
+            versions = self._python_library_package.get_all_major_minor_versions_from_pypi(
+                package,
+                show_patches,
             )
             self.stdout(
                 f"\n{package} available versions:\n",
@@ -140,7 +132,9 @@ $ das-cli python-library list --show-patches
 class PythonLibrarySet(Command):
     name = "set"
 
-    short_help = "Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries"
+    short_help = (
+        "Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries"
+    )
 
     help = """
 'das-cli python-library set' sets the versions of Python libraries, such as hyperon-das and hyperon-das-atomdb, to the specified versions.
@@ -201,9 +195,7 @@ $ das-cli python-library set --hyperon-das-atomdb=0.4.0
             if package_version is not None:
                 try:
                     self.stdout(f"Updating package {package_name}...")
-                    self._python_library_package.update_version(
-                        package_name, package_version
-                    )
+                    self._python_library_package.update_version(package_name, package_version)
                     self.stdout(
                         f"Package {package_name} has been successfully updated.",
                         severity=StdoutSeverity.SUCCESS,

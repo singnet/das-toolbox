@@ -1,9 +1,8 @@
-import docker
 from typing import AnyStr, Union
-from .exceptions import (
-    DockerContextError,
-    DockerDaemonConnectionError,
-)
+
+import docker
+
+from .exceptions import DockerContextError, DockerDaemonConnectionError
 
 
 class DockerManager:

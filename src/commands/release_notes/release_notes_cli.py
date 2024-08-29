@@ -1,5 +1,7 @@
 from injector import inject
-from common import CommandOption, CommandGroup, StdoutSeverity
+
+from common import CommandGroup, CommandOption, StdoutSeverity
+
 from .release_notes_package import ReleaseNotesPackage
 
 
