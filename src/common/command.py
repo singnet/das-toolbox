@@ -83,11 +83,11 @@ class Command:
         if not kwargs:
             return (False, kwargs, {})
         remote_kwargs = {
-            "user": kwargs.pop("user") or "",
-            "port": kwargs.pop("port") or 22,
-            "host": kwargs.pop("host") or "",
+            "user": kwargs.pop("user", ""),
+            "port": kwargs.pop("port", 22),
+            "host": kwargs.pop("host", ""),
         }
-        remote = kwargs.pop("remote") or False
+        remote = kwargs.pop("remote", False)
 
         return (remote, kwargs, remote_kwargs)
 
