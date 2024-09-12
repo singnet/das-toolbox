@@ -39,36 +39,25 @@ $ das-cli jupyter-notebook start --working-dir /path/to/working/directory
             help="The working directory to bind to the Jupyter Notebook container.",
             required=False,
             default=None,
-            type=Path(
-                file_okay=False,
-                dir_okay=True,
-                exists=True,
-                writable=True,
-                readable=True,
-                path_type=str,
-            ),
+            type=AbsolutePath(),
         )
     ]
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, jupyter_notebook_container_manager: JupyterNotebookContainerManager) -> None:
         super().__init__()
         self._settings = settings
+        self._jupyter_notebook_container_manager = jupyter_notebook_container_manager
 
     def run(self, working_dir: str | None = None):
         self._settings.raise_on_missing_file()
 
         self.stdout("Starting Jupyter Notebook...")
 
-        jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
         jupyter_notebook_port = self._settings.get("jupyter_notebook.port")
 
         try:
-            jupyter_notebook_service = JupyterNotebookContainerManager(
-                jupyter_notebook_container_name
-            )
-
-            jupyter_notebook_service.start_container(
+            self._jupyter_notebook_container_manager.start_container(
                 jupyter_notebook_port,
                 working_dir,
             )
@@ -103,26 +92,26 @@ $ das-cli jupyter-notebook stop
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, jupyter_notebook_container_manager: JupyterNotebookContainerManager) -> None:
         super().__init__()
         self._settings = settings
+        self._jupyter_notebook_container_manager = jupyter_notebook_container_manager
 
     def run(self):
         self._settings.raise_on_missing_file()
 
         self.stdout("Stopping jupyter notebook...")
 
-        jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
-
         try:
-            JupyterNotebookContainerManager(jupyter_notebook_container_name).stop()
+            self._jupyter_notebook_container_manager.stop()
             self.stdout(
                 "Jupyter Notebook service stopped",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
+            container_name = self._jupyter_notebook_container_manager.get_container().get_name()
             self.stdout(
-                f"The Jupyter Notebook service named {jupyter_notebook_container_name} is already stopped.",
+                f"The Jupyter Notebook service named {container_name} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
 
