@@ -1,4 +1,5 @@
 import docker
+import os
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerError
@@ -18,8 +19,16 @@ class JupyterNotebookContainerManager(ContainerManager):
     def start_container(
         self,
         port: int,
+        working_dir: str | None = None,
     ):
         self.raise_running_container()
+
+        volumes = {
+            (working_dir or os.getcwd()): {
+                "bind": "/home/jovyan/work",
+                "mode": "rw"
+            }
+        }
 
         try:
             container = self._start_container(
@@ -30,6 +39,7 @@ class JupyterNotebookContainerManager(ContainerManager):
                 ports={
                     "8888/tcp": port,
                 },
+                volumes=volumes,
             )
 
             return container

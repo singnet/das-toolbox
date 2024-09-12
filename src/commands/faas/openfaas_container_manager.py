@@ -1,5 +1,3 @@
-import socket
-
 import docker
 
 from common import Container, ContainerManager
@@ -11,16 +9,6 @@ class OpenFaaSContainerManager(ContainerManager):
     def __init__(self, openfaas_container_name) -> None:
         container = Container(openfaas_container_name, OPENFAAS_IMAGE_NAME)
         super().__init__(container)
-
-    def raise_on_port_in_use(self, ports: list):
-        for port in ports:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                port_in_use = s.connect_ex(("localhost", port)) == 0
-
-                if port_in_use:
-                    raise DockerError(
-                        f"Port {port} is already in use. Please stop the service that is currently using this port."
-                    )
 
     def start_container(
         self,
