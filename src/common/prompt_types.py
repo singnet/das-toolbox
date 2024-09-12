@@ -1,8 +1,8 @@
+import os
 import re
 from typing import Union
 
-from click import ParamType
-
+from click import ParamType, Path as ClickPath
 from common.network import is_server_port_available
 
 
@@ -49,3 +49,22 @@ class ReachableIpAddress(ParamType):
 
     def __repr__(self):
         return "ReachableIpAddress(%r, %r)" % (self.port, self.username)
+
+class AbsolutePath(ClickPath):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            file_okay=False,
+            dir_okay=True,
+            exists=True,
+            writable=True,
+            readable=True,
+            path_type=str,
+            *args,
+            **kwargs
+        )
+
+    def convert(self, value, param, ctx):
+        path = super().convert(value, param, ctx)
+        if not os.path.isabs(path):
+            self.fail("The path must be absolute.", param, ctx)
+        return path

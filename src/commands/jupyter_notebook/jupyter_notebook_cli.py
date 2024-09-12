@@ -6,7 +6,7 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
-from click import Path
+from common.prompt_types import AbsolutePath
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
@@ -153,14 +153,7 @@ $ das-cli jupyter-notebook restart --working-dir /path/to/working/directory
             help="The working directory to bind to the Jupyter Notebook container.",
             required=False,
             default=None,
-            type=Path(
-                file_okay=False,
-                dir_okay=True,
-                exists=True,
-                writable=True,
-                readable=True,
-                path_type=str,
-            ),
+            type=AbsolutePath(),
         )
     ]
 
