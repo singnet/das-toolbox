@@ -1,12 +1,12 @@
 from injector import inject
 
-from common import Command, CommandGroup, Settings, StdoutSeverity
+from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
-
+from common.prompt_types import AbsolutePath
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
@@ -27,28 +27,39 @@ There is no token or password required for access.
 Start a Jupyter Notebook environment.
 
 $ das-cli jupyter-notebook start
+
+Start a Jupyter Notebook environment with a custom working directory.
+
+$ das-cli jupyter-notebook start --working-dir /path/to/working/directory
 """
 
+    params = [
+        CommandOption(
+            ["--working-dir", "-w"],
+            help="The working directory to bind to the Jupyter Notebook container.",
+            required=False,
+            default=None,
+            type=AbsolutePath(),
+        )
+    ]
+
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, jupyter_notebook_container_manager: JupyterNotebookContainerManager) -> None:
         super().__init__()
         self._settings = settings
+        self._jupyter_notebook_container_manager = jupyter_notebook_container_manager
 
-    def run(self):
+    def run(self, working_dir: str | None = None):
         self._settings.raise_on_missing_file()
 
         self.stdout("Starting Jupyter Notebook...")
 
-        jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
         jupyter_notebook_port = self._settings.get("jupyter_notebook.port")
 
         try:
-            jupyter_notebook_service = JupyterNotebookContainerManager(
-                jupyter_notebook_container_name
-            )
-
-            jupyter_notebook_service.start_container(
+            self._jupyter_notebook_container_manager.start_container(
                 jupyter_notebook_port,
+                working_dir,
             )
             self.stdout(
                 f"Jupyter Notebook started on port {jupyter_notebook_port}",
@@ -81,26 +92,26 @@ $ das-cli jupyter-notebook stop
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, jupyter_notebook_container_manager: JupyterNotebookContainerManager) -> None:
         super().__init__()
         self._settings = settings
+        self._jupyter_notebook_container_manager = jupyter_notebook_container_manager
 
     def run(self):
         self._settings.raise_on_missing_file()
 
         self.stdout("Stopping jupyter notebook...")
 
-        jupyter_notebook_container_name = self._settings.get("jupyter_notebook.container_name")
-
         try:
-            JupyterNotebookContainerManager(jupyter_notebook_container_name).stop()
+            self._jupyter_notebook_container_manager.stop()
             self.stdout(
                 "Jupyter Notebook service stopped",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
+            container_name = self._jupyter_notebook_container_manager.get_container().get_name()
             self.stdout(
-                f"The Jupyter Notebook service named {jupyter_notebook_container_name} is already stopped.",
+                f"The Jupyter Notebook service named {container_name} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
 
@@ -119,7 +130,21 @@ This command stops the currently running Jupyter server, then starts a new insta
 Restart a Jupyter Notebook environment.
 
 $ das-cli jupyter-notebook restart
+
+Restart a Jupyter Notebook environment with a custom working directory.
+
+$ das-cli jupyter-notebook restart --working-dir /path/to/working/directory
 """
+
+    params = [
+        CommandOption(
+            ["--working-dir", "-w"],
+            help="The working directory to bind to the Jupyter Notebook container.",
+            required=False,
+            default=None,
+            type=AbsolutePath(),
+        )
+    ]
 
     @inject
     def __init__(
@@ -131,9 +156,9 @@ $ das-cli jupyter-notebook restart
         self._jupyter_notebook_start = jupyter_notebook_start
         self._jupyter_notebook_stop = jupyter_notebook_stop
 
-    def run(self):
+    def run(self, working_dir: str | None = None):
         self._jupyter_notebook_stop.run()
-        self._jupyter_notebook_start.run()
+        self._jupyter_notebook_start.run(working_dir)
 
 
 class JupyterNotebookCli(CommandGroup):

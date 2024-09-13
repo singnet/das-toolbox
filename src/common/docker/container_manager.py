@@ -2,6 +2,7 @@ import curses
 import time
 from typing import Any, AnyStr, Union
 
+import socket
 import docker
 import docker.errors
 
@@ -75,6 +76,17 @@ class ContainerManager(DockerManager):
             return response
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
+
+
+    def raise_on_port_in_use(self, ports: list):
+        for port in ports:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                port_in_use = s.connect_ex(("localhost", port)) == 0
+
+                if port_in_use:
+                    raise DockerError(
+                        f"Port {port} is already in use. Please stop the service that is currently using this port."
+                    )
 
     def raise_running_container(self):
         if self.is_running():
