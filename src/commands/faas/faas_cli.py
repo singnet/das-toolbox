@@ -63,7 +63,9 @@ $ das-cli faas stop
         openfaas_container_name = self._settings.get("openfaas.container_name")
 
         try:
-            openfaas_container_service = OpenFaaSContainerManager(openfaas_container_name)
+            openfaas_container_service = OpenFaaSContainerManager(
+                openfaas_container_name
+            )
             openfaas_container_service.stop()
 
             self.stdout("OpenFaaS service stopped", severity=StdoutSeverity.SUCCESS)
@@ -167,7 +169,9 @@ $ das-cli faas start
             [
                 {
                     "name": "MongoDB",
-                    "container_manager": MongodbContainerManager(mongodb_container_name),
+                    "container_manager": MongodbContainerManager(
+                        mongodb_container_name
+                    ),
                     "port": mongodb_port,
                 },
                 {
