@@ -1,1 +1,2 @@
 [#105] Add working directory option to jupyter-notebook start command. (PR: #120)
+[#119] Correct misleading message in das-cli faas update-version to accurately reflect the latest version. (PR: #121)
