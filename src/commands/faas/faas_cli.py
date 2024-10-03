@@ -184,8 +184,8 @@ $ das-cli faas start
 
         self.stdout("Starting OpenFaaS...")
 
-        function = self.settings.get("openfaas.function")
-        version = self.settings.get("openfaas.version")
+        function = self._settings.get("openfaas.function")
+        version = self._settings.get("openfaas.version")
 
         pull_function_version(
             self._image_manager,
