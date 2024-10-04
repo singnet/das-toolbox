@@ -289,11 +289,12 @@ Function version successfully updated $old_function $old_version --> $new_functi
 @test "Update FaaS to the latest available version" {
     local old_version="$(get_config .openfaas.version)"
     local function="$(get_config .openfaas.function)"
+    local latest_version="$(get_latest_image_tag $openfaas_repository)"
 
     run das-cli faas update-version
 
     assert_output "Downloading the $function function, version latest...
-Function version successfully updated $function $old_version --> $function latest. You need to call 'faas restart' to start using the new version."
+Function version successfully updated $function $old_version --> $function $latest_version. You need to call 'faas restart' to start using the new version."
 
     local image_version_digest="$(get_disgest_local_image "$openfaas_repository:query-engine-latest")"
 
