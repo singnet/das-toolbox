@@ -280,7 +280,7 @@ $ das-cli faas version
         self._settings.rewind() # Ensure we are getting the latest setting content
         function = self._settings.get("openfaas.function", "query-engine")
 
-        version = self._image_manager.get_label(
+        image_tag = self._image_manager.get_label(
             repository=OPENFAAS_IMAGE_NAME,
             tag=self._image_manager.format_function_tag(
                 function,
@@ -288,6 +288,8 @@ $ das-cli faas version
             ),
             label="fn.version",
         )
+
+        version = image_tag.split("-").pop()
 
         return function, version
 
