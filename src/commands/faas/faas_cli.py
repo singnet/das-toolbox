@@ -18,13 +18,6 @@ from config import OPENFAAS_IMAGE_NAME
 from .openfaas_container_manager import OpenFaaSContainerManager
 
 
-def get_function_version(settings: Settings) -> tuple:
-    function_name = settings.get("openfaas.function")
-    function_version = settings.get("openfaas.version")
-
-    return function_name, function_version
-
-
 def pull_function_version(
     image_manager: ImageManager,
     repository: str,
@@ -70,7 +63,9 @@ $ das-cli faas stop
         openfaas_container_name = self._settings.get("openfaas.container_name")
 
         try:
-            openfaas_container_service = OpenFaaSContainerManager(openfaas_container_name)
+            openfaas_container_service = OpenFaaSContainerManager(
+                openfaas_container_name
+            )
             openfaas_container_service.stop()
 
             self.stdout("OpenFaaS service stopped", severity=StdoutSeverity.SUCCESS)
@@ -174,7 +169,9 @@ $ das-cli faas start
             [
                 {
                     "name": "MongoDB",
-                    "container_manager": MongodbContainerManager(mongodb_container_name),
+                    "container_manager": MongodbContainerManager(
+                        mongodb_container_name
+                    ),
                     "port": mongodb_port,
                 },
                 {
@@ -187,7 +184,8 @@ $ das-cli faas start
 
         self.stdout("Starting OpenFaaS...")
 
-        function, version = get_function_version(self._settings)
+        function = self._settings.get("openfaas.function")
+        version = self._settings.get("openfaas.version")
 
         pull_function_version(
             self._image_manager,
@@ -278,19 +276,29 @@ $ das-cli faas version
         self._settings = settings
         self._image_manager = image_manager
 
-    def run(self):
-        self._settings.raise_on_missing_file()
-
-        version = self._settings.get("openfaas.version", "latest")
+    def get_current_function_version(self) -> tuple:
+        self._settings.rewind() # Ensure we are getting the latest setting content
         function = self._settings.get("openfaas.function", "query-engine")
 
-        label = self._image_manager.get_label(
+        image_tag = self._image_manager.get_label(
             repository=OPENFAAS_IMAGE_NAME,
-            tag=self._image_manager.format_function_tag(function, version),
+            tag=self._image_manager.format_function_tag(
+                function,
+                version=self._settings.get("openfaas.version", "latest"),
+            ),
             label="fn.version",
         )
 
-        self.stdout(f"{function} {label}", severity=StdoutSeverity.SUCCESS)
+        version = image_tag.split("-").pop()
+
+        return function, version
+
+    def run(self):
+        self._settings.raise_on_missing_file()
+
+        function, version = self.get_current_function_version()
+
+        self.stdout(f"{function} {version}", severity=StdoutSeverity.SUCCESS)
 
 
 class FaaSUpdateVersion(Command):
@@ -341,15 +349,22 @@ $ das-cli update-version --version 1.0.0
     ]
 
     @inject
-    def __init__(self, settings: Settings, image_manager: ImageManager) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        image_manager: ImageManager,
+        faas_version: FaaSVersion,
+    ) -> None:
         super().__init__()
         self._settings = settings
         self._image_manager = image_manager
+        self._faas_version = faas_version
 
     def _set_version(self, function: str, version: str) -> None:
         self._settings.set("openfaas.version", version)
         self._settings.set("openfaas.function", function)
         self._settings.save()
+        self._settings.rewind()
 
     def run(
         self,
@@ -358,7 +373,9 @@ $ das-cli update-version --version 1.0.0
     ) -> None:
         self._settings.raise_on_missing_file()
 
-        current_function_name, current_function_version = get_function_version(self._settings)
+        current_function_name, current_function_version = (
+            self._faas_version.get_current_function_version()
+        )
 
         self.stdout(f"Downloading the {function} function, version {version}...")
 
@@ -371,7 +388,9 @@ $ das-cli update-version --version 1.0.0
 
         self._set_version(function, version)
 
-        newer_function_name, newer_function_version = get_function_version(self._settings)
+        newer_function_name, newer_function_version = (
+            self._faas_version.get_current_function_version()
+        )
 
         if (
             current_function_name != newer_function_name
