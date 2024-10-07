@@ -53,11 +53,6 @@ class ReachableIpAddress(ParamType):
 class AbsolutePath(ClickPath):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            file_okay=False,
-            dir_okay=True,
-            exists=True,
-            writable=True,
-            readable=True,
             path_type=str,
             *args,
             **kwargs
