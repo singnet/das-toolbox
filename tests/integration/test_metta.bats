@@ -71,6 +71,21 @@ teardown() {
     assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
+@test "Loading a MeTTa file with a relative path" {
+    local metta_file_path="$(realpath --relative-to="$BATS_TEST_DIRNAME/../.." "$test_fixtures_dir/metta/animals.metta")"
+    local mongodb_port="$(get_config .mongodb.port)"
+    local redis_port="$(get_config .redis.port)"
+
+    das-cli db start
+
+    sleep 20s
+
+    run das-cli metta load $metta_file_path
+
+    assert_failure
+    assert_line --partial "The path must be absolute."
+}
+
 @test "Loading an invalid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
     local mongodb_port="$(get_config .mongodb.port)"

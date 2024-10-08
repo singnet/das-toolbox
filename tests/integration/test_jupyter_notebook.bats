@@ -36,6 +36,36 @@ Jupyter Notebook started on port $jupyter_notebook_port"
     assert_success
 }
 
+@test "Starting Jupyter notebook server with relative working directory" {
+    local jupyter_dir="$(mktemp -d)"
+    local relative_jupyter_dir_path="relative"
+
+    mkdir -p "$jupyter_dir/$relative_jupyter_dir_path"
+
+    cd "$jupyter_dir"
+
+    run das-cli jupyter-notebook start --working-dir $relative_jupyter_dir_path
+
+    cd -
+
+    assert_failure
+    assert_line --partial "The path must be absolute."
+}
+
+@test "Starting Jupyter notebook server with working directory" {
+    local jupyter_dir="$(mktemp -d)"
+    local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
+
+    run das-cli jupyter-notebook start --working-dir $jupyter_dir
+
+    assert_output "Starting Jupyter Notebook...
+Jupyter Notebook started on port $jupyter_notebook_port"
+
+    run is_service_up jupyter_notebook
+
+    assert_success
+}
+
 @test "Trying to start Jupyter notebook server after it has being started" {
     local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
 

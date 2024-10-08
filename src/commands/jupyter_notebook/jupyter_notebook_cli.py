@@ -39,12 +39,22 @@ $ das-cli jupyter-notebook start --working-dir /path/to/working/directory
             help="The working directory to bind to the Jupyter Notebook container.",
             required=False,
             default=None,
-            type=AbsolutePath(),
+            type=AbsolutePath(
+                file_okay=False,
+                dir_okay=True,
+                exists=True,
+                writable=True,
+                readable=True,
+            ),
         )
     ]
 
     @inject
-    def __init__(self, settings: Settings, jupyter_notebook_container_manager: JupyterNotebookContainerManager) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        jupyter_notebook_container_manager: JupyterNotebookContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
         self._jupyter_notebook_container_manager = jupyter_notebook_container_manager
@@ -92,7 +102,11 @@ $ das-cli jupyter-notebook stop
 """
 
     @inject
-    def __init__(self, settings: Settings, jupyter_notebook_container_manager: JupyterNotebookContainerManager) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        jupyter_notebook_container_manager: JupyterNotebookContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
         self._jupyter_notebook_container_manager = jupyter_notebook_container_manager
@@ -109,7 +123,9 @@ $ das-cli jupyter-notebook stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = self._jupyter_notebook_container_manager.get_container().get_name()
+            container_name = (
+                self._jupyter_notebook_container_manager.get_container().get_name()
+            )
             self.stdout(
                 f"The Jupyter Notebook service named {container_name} is already stopped.",
                 severity=StdoutSeverity.WARNING,
@@ -142,7 +158,13 @@ $ das-cli jupyter-notebook restart --working-dir /path/to/working/directory
             help="The working directory to bind to the Jupyter Notebook container.",
             required=False,
             default=None,
-            type=AbsolutePath(),
+            type=AbsolutePath(
+                file_okay=False,
+                dir_okay=True,
+                exists=True,
+                writable=True,
+                readable=True,
+            ),
         )
     ]
 
