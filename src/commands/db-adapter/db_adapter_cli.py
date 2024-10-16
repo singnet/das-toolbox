@@ -11,9 +11,7 @@ class DbAdapterStop(Command):
     help = ""
 
     @inject
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
     def run(self):
