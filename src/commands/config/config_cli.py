@@ -280,6 +280,11 @@ jupyter_notebook.*
     def _loader(self) -> dict:
         return {"loader.container_name": "das-cli-loader"}
 
+
+    def _database_adapter(self) -> dict:
+        return {"database_adapter.container_name": "das-cli-db-adapter"}
+
+
     def _openfaas(self) -> dict:
         return {
             "openfaas.container_name": "das-cli-openfaas-8080",
@@ -310,6 +315,7 @@ jupyter_notebook.*
             self._redis,
             self._mongodb,
             self._loader,
+            self._database_adapter,
             self._openfaas,
             self._jupyter_notebook,
         ]
