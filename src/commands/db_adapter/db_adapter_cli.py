@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, Settings, CommandArgument
+from common import Command, CommandGroup, Settings, CommandOption
 from .database_adapter_server_container_manager import (
     DatabaseAdapterServerContainerManager,
 )
@@ -31,17 +31,24 @@ class DbAdapterStart(Command):
     help = ""
 
     params = [
-       CommandArgument(
-           ["password"],
-       ),
-
-       CommandArgument(
-           ["hostname"],
-       ),
-
-       CommandArgument(
-           ["port"],
-       ) 
+        CommandOption(
+            ["--server-name", "-s"],
+            help="",
+            type=str,
+        ),
+        CommandOption(
+            ["--server-port", "-p"],
+            help="",
+            type=int,
+        ),
+        CommandOption(
+            ["--server-password", "-w"],
+            help="",
+            type=str,
+            required=False,
+        ),
+        CommandOption(["--client"], help="", type=bool, required=False, default=True),
+        CommandOption(["--server"], help="", type=bool, required=False, default=True),
     ]
 
     @inject
@@ -51,22 +58,33 @@ class DbAdapterStart(Command):
         database_adapter_server_container_manager: DatabaseAdapterServerContainerManager,
     ) -> None:
         super().__init__()
-
         self._settings = settings
         self._database_adapter_server_container_manager = (
             database_adapter_server_container_manager
         )
 
-    def _start_server(self):
+    def _start_server(
+        self,
+        hostname: str,
+        port: int,
+        password: str,
+    ):
         self.stdout("Starting database adapter server...")
-        self._database_adapter_server_container_manager.start_container()
+        self._database_adapter_server_container_manager.start_container(hostname, port, password)
 
         self.stdout("Database adapter server is runnig on port ..")
 
     def _start_client(self):
         pass
 
-    def run(self):
+    def run(
+        self,
+        server_name: str,
+        server_port: int,
+        server_password: str,
+        client: bool,
+        server: bool,
+    ) -> None:
         self._settings.raise_on_missing_file()
 
         self._start_server()

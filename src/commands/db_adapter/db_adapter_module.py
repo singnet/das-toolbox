@@ -1,6 +1,10 @@
 from common import Module
 
-from .db_adapter_cli import DbAdapterCli, DatabaseAdapterServerContainerManager, Settings
+from .db_adapter_cli import (
+    DbAdapterCli,
+    DatabaseAdapterServerContainerManager,
+    Settings,
+)
 
 
 class DbAdapterModule(Module):
@@ -22,5 +26,17 @@ class DbAdapterModule(Module):
         self,
     ) -> DatabaseAdapterServerContainerManager:
         container_name = self._settings.get("database_adapter.container_name")
+        mongodb_hostname = self._settings.get("mongodb.nodes")[0]
+        mongodb_port = self._settings.get("mongodb.port")
+        redis_hostname = self._settings.get("redis.nodes")[0]
+        redis_port = self._settings.get("redis.port")
 
-        return DatabaseAdapterServerContainerManager(container_name)
+        return DatabaseAdapterServerContainerManager(
+            container_name,
+            options={
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_port": mongodb_port,
+                "redis_hostname": redis_hostname,
+                "redis_port": redis_port,
+            },
+        )
