@@ -1,24 +1,22 @@
 from typing import AnyStr, Union, Dict
 
 from common import Container, ContainerManager
-from config import DATABASE_ADAPTER_IMAGE_NAME, DATABASE_ADAPTER_IMAGE_VERSION
+from config import DATABASE_ADAPTER_SERVER_IMAGE_NAME, DATABASE_ADAPTER_SERVER_IMAGE_VERSION
 
 
 class DatabaseAdapterClientContainerManager(ContainerManager):
     def __init__(
         self,
         container_name,
-        options: Dict,
         exec_context: Union[AnyStr, None] = None,
     ) -> None:
         container = Container(
             container_name,
-            DATABASE_ADAPTER_IMAGE_NAME,
-            DATABASE_ADAPTER_IMAGE_VERSION,
+            DATABASE_ADAPTER_SERVER_IMAGE_NAME,
+            DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
         )
 
         super().__init__(container, exec_context)
-        self._options = options
 
     def start_container(
         self,

@@ -30,5 +30,5 @@ OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 JUPYTER_NOTEBOOK_IMAGE_NAME = "trueagi/das"
 JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
 
-DATABASE_ADAPTER_IMAGE_NAME = "trueagi/das"
-DATABASE_ADAPTER_IMAGE_VERSION = "latest-database-adapter"
+DATABASE_ADAPTER_SERVER_IMAGE_NAME = "trueagi/das"
+DATABASE_ADAPTER_SERVER_IMAGE_VERSION = "latest-database-adapter-server"
