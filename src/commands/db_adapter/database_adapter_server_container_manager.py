@@ -2,7 +2,11 @@ from typing import AnyStr, Union, Dict
 from uuid import uuid4
 
 from common import Container, ContainerManager
-from config import DATABASE_ADAPTER_SERVER_IMAGE_VERSION, DATABASE_ADAPTER_SERVER_IMAGE_NAME
+from config import (
+    DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
+    DATABASE_ADAPTER_SERVER_IMAGE_NAME,
+)
+
 
 class DatabaseAdapterServerContainerManager(ContainerManager):
     def __init__(
