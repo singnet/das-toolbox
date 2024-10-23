@@ -29,7 +29,7 @@ class DatabaseAdapterServerContainerManager(ContainerManager):
 
         command_params = [
             "--server-id",
-            str(uuid4()),
+            "localhost:30100",
             "--mongo-hostname",
             self._options.get("mongodb_hostname"),
             "--mongo-port",
@@ -46,6 +46,7 @@ class DatabaseAdapterServerContainerManager(ContainerManager):
 
         return self._start_container(
             command=command_params,
+            extra_hosts={"localhost": "192.168.0.100"},
             ports={
                 "30100/tcp": self._options.get("adapter_server_port"),
             },

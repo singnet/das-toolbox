@@ -3,6 +3,8 @@ from injector import inject
 from config.config import (
     DATABASE_ADAPTER_SERVER_IMAGE_NAME,
     DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
+    DATABASE_ADAPTER_CLIENT_IMAGE_NAME,
+    DATABASE_ADAPTER_CLIENT_IMAGE_VERSION,
 )
 from common import (
     Command,
@@ -10,6 +12,7 @@ from common import (
     Settings,
     ImageManager,
     StdoutSeverity,
+    CommandOption,
 )
 
 from common.docker.exceptions import DockerContainerNotFoundError
@@ -83,17 +86,30 @@ class DbAdapterStart(Command):
     help = ""
 
     params = [
-        # CommandOption(
-        #     ["--server-name", "-s"],
-        #     help="",
-        #     type=str,
-        # ),
-        # CommandOption(
-        #     ["--server-password", "-w"],
-        #     help="",
-        #     type=str,
-        #     required=False,
-        # ),
+        CommandOption(
+            ["--client-hostname"],
+            help="",
+            type=str,
+            required=True,
+        ),
+        CommandOption(
+            ["--client-port"],
+            help="",
+            type=int,
+            required=True,
+        ),
+        CommandOption(
+            ["--client-username"],
+            help="",
+            type=str,
+            required=True,
+        ),
+        CommandOption(
+            ["--client-password"],
+            help="",
+            type=str,
+            required=True,
+        ),
     ]
 
     @inject
@@ -119,6 +135,11 @@ class DbAdapterStart(Command):
             DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
         )
 
+        self._image_manager.pull(
+            DATABASE_ADAPTER_CLIENT_IMAGE_NAME,
+            DATABASE_ADAPTER_CLIENT_IMAGE_VERSION,
+        )
+
     def _start_server(self):
         self.stdout("Starting database adapter server...")
         self._database_adapter_server_container_manager.start_container()
@@ -129,18 +150,37 @@ class DbAdapterStart(Command):
             severity=StdoutSeverity.SUCCESS,
         )
 
-    def _start_client(self, username: str, password: str):
-        self.stdout("Starting database adapter client...")
+    def _start_client(
+        self,
+        hostname: str,
+        port: int,
+        username: str,
+        password: str,
+    ):
+        self.stdout(f"Starting database adapter client {hostname}:{port}")
         self._database_adapter_client_container_manager.start_container(
+            hostname,
+            port,
             username,
             password,
         )
 
-    def run(self) -> None:
+    def run(
+        self,
+        client_hostname: str,
+        client_port: int,
+        client_username: str,
+        client_password: str,
+    ) -> None:
         self._settings.raise_on_missing_file()
 
         self._start_server()
-        # self._start_client()
+        self._start_client(
+            client_hostname,
+            client_port,
+            client_username,
+            client_password,
+        )
 
 
 class DbAdapterRestart(Command):
