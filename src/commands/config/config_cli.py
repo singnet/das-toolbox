@@ -283,13 +283,20 @@ jupyter_notebook.*
     def _database_adapter(self) -> dict:
         database_adapter_server_port = self.prompt(
             "Enter the port for the Database Adapter Server:",
-            default=self._settings.get("database_adapter.server_container_name", 30100),
+            default=self._settings.get("database_adapter.server_port", 30100),
+            type=int,
+        )
+        database_adapter_client_port = self.prompt(
+            "Enter the port for the Database Adapter Client:",
+            default=self._settings.get("database_adapter.client_port", 30200),
             type=int,
         )
 
         return {
             "database_adapter.server_container_name": f"das-cli-db-adapter-server-{database_adapter_server_port}",
+            "database_adapter.client_container_name": f"das-cli-db-adapter-client-{database_adapter_client_port}",
             "database_adapter.server_port": database_adapter_server_port,
+            "database_adapter.client_port": database_adapter_client_port,
         }
 
     def _openfaas(self) -> dict:

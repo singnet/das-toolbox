@@ -58,7 +58,7 @@ class DbAdapterModule(Module):
     def _database_adapter_client_container_manager_factory(
         self,
     ) -> DatabaseAdapterClientContainerManager:
-        container_name = self._settings.get("database_adapter.container_name")
+        container_name = self._settings.get("database_adapter.client_container_name")
         adapter_client_port = self._settings.get("database_adapter.client_port")
 
         return DatabaseAdapterClientContainerManager(

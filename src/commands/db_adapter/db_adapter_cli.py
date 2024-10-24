@@ -1,5 +1,7 @@
 from injector import inject
 
+from common.prompt_types import AbsolutePath
+
 from config.config import (
     DATABASE_ADAPTER_SERVER_IMAGE_NAME,
     DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
@@ -110,6 +112,19 @@ class DbAdapterStart(Command):
             type=str,
             required=True,
         ),
+        CommandOption(
+            ["--client-database"],
+            help="",
+            type=str,
+            default="postgres",
+            required=False,
+        ),
+        CommandOption(
+            ["--context"],
+            help="",
+            type=AbsolutePath(),
+            required=True,
+        ),
     ]
 
     @inject
@@ -152,34 +167,42 @@ class DbAdapterStart(Command):
 
     def _start_client(
         self,
+        context: str,
         hostname: str,
         port: int,
         username: str,
         password: str,
+        database: str,
     ):
         self.stdout(f"Starting database adapter client {hostname}:{port}")
         self._database_adapter_client_container_manager.start_container(
+            context,
             hostname,
             port,
             username,
             password,
+            database,
         )
 
     def run(
         self,
+        context: str,
         client_hostname: str,
         client_port: int,
         client_username: str,
         client_password: str,
+        client_database: str,
     ) -> None:
         self._settings.raise_on_missing_file()
 
         self._start_server()
         self._start_client(
+            context,
             client_hostname,
             client_port,
             client_username,
             client_password,
+            client_database,
         )
 
 
