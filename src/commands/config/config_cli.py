@@ -280,6 +280,19 @@ jupyter_notebook.*
     def _loader(self) -> dict:
         return {"loader.container_name": "das-cli-loader"}
 
+    def _database_adapter(self) -> dict:
+        database_adapter_server_port = self.prompt(
+            "Enter the port for the Database Adapter Server:",
+            default=self._settings.get("database_adapter.server_port", 30100),
+            type=int,
+        )
+
+        return {
+            "database_adapter.server_container_name": f"das-cli-db-adapter-server-{database_adapter_server_port}",
+            "database_adapter.client_container_name": f"das-cli-db-adapter-client-{database_adapter_client_port}",
+            "database_adapter.server_port": database_adapter_server_port,
+        }
+
     def _openfaas(self) -> dict:
         return {
             "openfaas.container_name": "das-cli-openfaas-8080",
@@ -310,6 +323,7 @@ jupyter_notebook.*
             self._redis,
             self._mongodb,
             self._loader,
+            self._database_adapter,
             self._openfaas,
             self._jupyter_notebook,
         ]
@@ -357,7 +371,9 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    short_help = (
+        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    )
 
     @inject
     def __init__(
