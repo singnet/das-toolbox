@@ -11,6 +11,9 @@ from config import (
 )
 
 
+from common.docker.exceptions import DockerError
+
+
 class DatabaseAdapterClientContainerManager(ContainerManager):
     def __init__(
         self,
@@ -79,7 +82,7 @@ class DatabaseAdapterClientContainerManager(ContainerManager):
                 context_target_path,
             ]
 
-            return self._start_container(
+            container = self._start_container(
                 command=command_params,
                 volumes={
                     file.name: {
@@ -91,7 +94,13 @@ class DatabaseAdapterClientContainerManager(ContainerManager):
                         "mode": "ro",
                     },
                 },
-                ports={
-                    "30200/tcp": self._options.get("adapter_client_port"),
-                },
             )
+
+            self.logs()
+
+            exit_code = self.get_container_exit_status(container)
+
+            self.stop()
+
+            if exit_code != 0:
+                raise DockerError()

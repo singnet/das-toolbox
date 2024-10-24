@@ -39,7 +39,6 @@ class DbAdapterStop(Command):
         self,
         settings: Settings,
         database_adapter_server_container_manager: DatabaseAdapterServerContainerManager,
-        database_adapter_client_container_manager: DatabaseAdapterClientContainerManager,
     ) -> None:
         super().__init__()
 
@@ -47,12 +46,6 @@ class DbAdapterStop(Command):
         self._database_adapter_server_container_manager = (
             database_adapter_server_container_manager
         )
-        self._database_adapter_client_container_manager = (
-            database_adapter_client_container_manager
-        )
-
-    def _client(self):
-        self._database_adapter_client_container_manager.stop()
 
     def _server(self):
         self.stdout("Stopping Database Adapter Server service...")
@@ -75,13 +68,11 @@ class DbAdapterStop(Command):
 
     def run(self):
         self._settings.raise_on_missing_file()
-
-        # self._client()
         self._server()
 
 
-class DbAdapterStart(Command):
-    name = "start"
+class DbAdapterSync(Command):
+    name = "sync"
 
     short_help = ""
 
@@ -132,37 +123,18 @@ class DbAdapterStart(Command):
         self,
         settings: Settings,
         image_manager: ImageManager,
-        database_adapter_server_container_manager: DatabaseAdapterServerContainerManager,
         database_adapter_client_container_manager: DatabaseAdapterClientContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._image_manager = image_manager
-        self._database_adapter_server_container_manager = (
-            database_adapter_server_container_manager
-        )
         self._database_adapter_client_container_manager = (
             database_adapter_client_container_manager
         )
 
         self._image_manager.pull(
-            DATABASE_ADAPTER_SERVER_IMAGE_NAME,
-            DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
-        )
-
-        self._image_manager.pull(
             DATABASE_ADAPTER_CLIENT_IMAGE_NAME,
             DATABASE_ADAPTER_CLIENT_IMAGE_VERSION,
-        )
-
-    def _start_server(self):
-        self.stdout("Starting database adapter server...")
-        self._database_adapter_server_container_manager.start_container()
-
-        adapter_server_port = self._database_adapter_server_container_manager.get_port()
-        self.stdout(
-            f"Database adapter server is runnig on port {adapter_server_port}",
-            severity=StdoutSeverity.SUCCESS,
         )
 
     def _start_client(
@@ -173,7 +145,7 @@ class DbAdapterStart(Command):
         username: str,
         password: str,
         database: str,
-    ):
+    ) -> None:
         self.stdout(f"Starting database adapter client {hostname}:{port}")
         self._database_adapter_client_container_manager.start_container(
             context,
@@ -183,6 +155,7 @@ class DbAdapterStart(Command):
             password,
             database,
         )
+        self.stdout("Done.")
 
     def run(
         self,
@@ -194,8 +167,6 @@ class DbAdapterStart(Command):
         client_database: str,
     ) -> None:
         self._settings.raise_on_missing_file()
-
-        self._start_server()
         self._start_client(
             context,
             client_hostname,
@@ -204,6 +175,47 @@ class DbAdapterStart(Command):
             client_password,
             client_database,
         )
+
+
+class DbAdapterStart(Command):
+    name = "start"
+
+    short_help = ""
+
+    help = ""
+
+    @inject
+    def __init__(
+        self,
+        settings: Settings,
+        image_manager: ImageManager,
+        database_adapter_server_container_manager: DatabaseAdapterServerContainerManager,
+    ) -> None:
+        super().__init__()
+        self._settings = settings
+        self._image_manager = image_manager
+        self._database_adapter_server_container_manager = (
+            database_adapter_server_container_manager
+        )
+        self._image_manager.pull(
+            DATABASE_ADAPTER_SERVER_IMAGE_NAME,
+            DATABASE_ADAPTER_SERVER_IMAGE_VERSION,
+        )
+
+    def _start_server(self) -> None:
+        self.stdout("Starting database adapter server...")
+        self._database_adapter_server_container_manager.start_container()
+
+        adapter_server_port = self._database_adapter_server_container_manager.get_port()
+        self.stdout(
+            f"Database adapter server is runnig on port {adapter_server_port}",
+            severity=StdoutSeverity.SUCCESS,
+        )
+
+    def run(self) -> None:
+        self._settings.raise_on_missing_file()
+
+        self._start_server()
 
 
 class DbAdapterRestart(Command):
@@ -241,6 +253,7 @@ class DbAdapterCli(CommandGroup):
         db_adapter_start: DbAdapterStart,
         db_adapter_stop: DbAdapterStop,
         db_adapter_restart: DbAdapterRestart,
+        db_adapter_sync: DbAdapterSync,
     ) -> None:
         super().__init__()
         self.add_commands(
@@ -248,5 +261,6 @@ class DbAdapterCli(CommandGroup):
                 db_adapter_start.command,
                 db_adapter_stop.command,
                 db_adapter_restart.command,
+                db_adapter_sync.command,
             ]
         )
