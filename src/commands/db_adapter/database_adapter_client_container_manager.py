@@ -41,7 +41,7 @@ class DatabaseAdapterClientContainerManager(ContainerManager):
         return secrets
 
     def _store_secrets_file_temporarily(self, secrets: configparser.ConfigParser):
-        file = tempfile.NamedTemporaryFile("+w", delete=False, suffix=".txt")
+        file = tempfile.NamedTemporaryFile("+w", delete=True, suffix=".txt")
         secrets.write(file)
         file.flush()
         file.seek(0)

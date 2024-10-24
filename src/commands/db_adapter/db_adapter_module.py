@@ -7,6 +7,9 @@ from .db_adapter_cli import (
     Settings,
 )
 
+from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.mongodb_container_manager import MongodbContainerManager
+
 
 class DbAdapterModule(Module):
     _instance = DbAdapterCli
@@ -18,6 +21,14 @@ class DbAdapterModule(Module):
 
         self._dependecy_injection = [
             (
+                RedisContainerManager,
+                self._redis_container_manager_factory,
+            ),
+            (
+                MongodbContainerManager,
+                self._mongodb_container_manager_factory,
+            ),
+            (
                 DatabaseAdapterServerContainerManager,
                 self._database_adapter_server_container_manager_factory,
             ),
@@ -26,6 +37,16 @@ class DbAdapterModule(Module):
                 self._database_adapter_client_container_manager_factory,
             ),
         ]
+
+    def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
+        container_name = self._settings.get("mongodb.container_name")
+
+        return MongodbContainerManager(container_name)
+
+    def _redis_container_manager_factory(self) -> RedisContainerManager:
+        container_name = self._settings.get("redis.container_name")
+
+        return RedisContainerManager(container_name)
 
     def _database_adapter_server_container_manager_factory(
         self,

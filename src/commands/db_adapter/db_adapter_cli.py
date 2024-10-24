@@ -17,7 +17,7 @@ from common import (
     CommandOption,
 )
 
-from common.docker.exceptions import DockerContainerNotFoundError
+from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 
 from .database_adapter_server_container_manager import (
     DatabaseAdapterServerContainerManager,
@@ -25,6 +25,9 @@ from .database_adapter_server_container_manager import (
 from .database_adapter_client_container_manager import (
     DatabaseAdapterClientContainerManager,
 )
+
+from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.mongodb_container_manager import MongodbContainerManager
 
 
 class DbAdapterStop(Command):
@@ -124,12 +127,16 @@ class DbAdapterSync(Command):
         settings: Settings,
         image_manager: ImageManager,
         database_adapter_client_container_manager: DatabaseAdapterClientContainerManager,
+        database_adapter_server_container_manager: DatabaseAdapterServerContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._image_manager = image_manager
         self._database_adapter_client_container_manager = (
             database_adapter_client_container_manager
+        )
+        self._database_adapter_server_container_manager = (
+            database_adapter_server_container_manager
         )
 
         self._image_manager.pull(
@@ -147,6 +154,7 @@ class DbAdapterSync(Command):
         database: str,
     ) -> None:
         self.stdout(f"Starting database adapter client {hostname}:{port}")
+
         self._database_adapter_client_container_manager.start_container(
             context,
             hostname,
@@ -156,6 +164,14 @@ class DbAdapterSync(Command):
             database,
         )
         self.stdout("Done.")
+
+    def _raise_on_server_not_running(self):
+        is_server_running = self._database_adapter_server_container_manager.is_running()
+
+        if not is_server_running:
+            raise DockerError(
+                "The server is not running. Please start the server by executing db-adapter start before attempting to run this command."
+            )
 
     def run(
         self,
@@ -167,6 +183,7 @@ class DbAdapterSync(Command):
         client_database: str,
     ) -> None:
         self._settings.raise_on_missing_file()
+        self._raise_on_server_not_running()
         self._start_client(
             context,
             client_hostname,
