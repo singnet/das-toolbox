@@ -20,45 +20,83 @@ from commands.das_peer.das_peer_container_manager import DasPeerContainerManager
 class DbmsPeerRun(Command):
     name = "run"
 
-    short_help = ""
+    short_help = "Runs the DBMS peer client to connect with DAS peer server."
 
-    help = ""
+    help = """
+'das-cli dbms-peer run' starts the DBMS peer client, enabling it to connect 
+to the DAS peer server and facilitate data synchronization. This command 
+establishes a link to the DAS peer using the provided client database credentials 
+and settings.
+
+To run the command, specify the database connection details including hostname, 
+port, username, password, and optionally, the database name (defaults to 'postgres'). 
+A context file with necessary configurations is also required.
+
+.SH PARAMETERS
+
+--client-hostname
+    Required. Specifies the hostname of the client database to connect to.
+    
+--client-port
+    Required. Defines the port number on which the client database is running.
+
+--client-username
+    Required. The username for authenticating to the client database.
+
+--client-password
+    Required. The password for authenticating to the client database.
+
+--client-database
+    Optional. Specifies the database name to connect to; defaults to 'postgres' if not provided.
+
+--context
+    Required. Path to the context configuration file, which provides additional settings 
+    necessary for running the DBMS peer client. Must be an absolute path to an existing, 
+    readable file.
+
+.SH EXAMPLES
+
+To run the DBMS peer client with specified database and context:
+
+$ das-cli dbms-peer run --client-hostname example.com --client-port 5432 \\
+    --client-username user --client-password pass --context /path/to/context.json
+"""
 
     params = [
         CommandOption(
             ["--client-hostname"],
-            help="",
+            help="Specifies the hostname of the client database.",
             type=str,
             required=True,
         ),
         CommandOption(
             ["--client-port"],
-            help="",
+            help="Defines the port number of the client database.",
             type=int,
             required=True,
         ),
         CommandOption(
             ["--client-username"],
-            help="",
+            help="The username for authenticating to the client database.",
             type=str,
             required=True,
         ),
         CommandOption(
             ["--client-password"],
-            help="",
+            help="The password for authenticating to the client database.",
             type=str,
             required=True,
         ),
         CommandOption(
             ["--client-database"],
-            help="",
+            help="Specifies the database name; defaults to 'postgres'.",
             type=str,
             default="postgres",
             required=False,
         ),
         CommandOption(
             ["--context"],
-            help="",
+            help="Path to the configuration file for the DBMS peer client.",
             type=AbsolutePath(
                 file_okay=True,
                 dir_okay=False,
@@ -141,9 +179,16 @@ class DbmsPeerRun(Command):
 class DbmsPeerCli(CommandGroup):
     name = "dbms-peer"
 
-    short_help = ""
+    short_help = "Manage DBMS peer client operations."
 
-    help = ""
+    help = """
+        'das-cli dbms-peer' commands allow management of DBMS peer client operations.
+        The DBMS peer acts as a client that connects to the DAS peer server, enabling 
+        data synchronization and transfer between the DAS peer and the database.
+
+        Using 'das-cli dbms-peer', you can initiate commands to run and configure 
+        the DBMS peer client with specified connection details.
+    """
 
     @inject
     def __init__(
