@@ -10,7 +10,8 @@ from commands.logs import LogsModule
 from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.release_notes import ReleaseNotesModule
-from commands.db_adapter import DbAdapterModule
+from commands.das_peer import DasPeerModule
+from commands.dbms_peer import DbmsPeerModule
 
 MODULES = [
     ConfigModule,
@@ -22,7 +23,8 @@ MODULES = [
     MettaModule,
     PythonLibraryModule,
     ReleaseNotesModule,
-    DbAdapterModule,
+    DasPeerModule,
+    DbmsPeerModule,
 ]
 
 
