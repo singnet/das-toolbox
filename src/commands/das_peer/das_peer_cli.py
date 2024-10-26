@@ -20,9 +20,20 @@ from .das_peer_container_manager import DasPeerContainerManager
 class DasPeerStop(Command):
     name = "stop"
 
-    short_help = ""
+    short_help = "Stops the DAS peer server."
 
-    help = ""
+    help = """
+'das-cli das-peer stop' stops the DAS peer server.
+The DAS peer server will be shut down, halting any data receiving and processing.
+
+After executing this command, the DAS peer server container will no longer be accessible until restarted with the 'das-cli das-peer start' command.
+
+.SH EXAMPLES
+
+To stop the DAS peer server:
+
+$ das-cli das-peer stop
+"""
 
     @inject
     def __init__(
@@ -60,9 +71,21 @@ class DasPeerStop(Command):
 class DasPeerStart(Command):
     name = "start"
 
-    short_help = ""
+    short_help = "Starts the DAS peer server."
 
-    help = ""
+    help = """
+'das-cli das-peer start' initializes the DAS peer server.
+The DAS peer server acts as the main server within this setup, receiving data and storing it in the AtomDB.
+
+Upon starting, this command will display the port on which the DAS peer server is running.
+This port can be adjusted using the 'das-cli config set' command, allowing custom network configurations.
+
+.SH EXAMPLES
+
+To start the DAS peer server for data collection and storage:
+
+$ das-cli das-peer start
+"""
 
     @inject
     def __init__(
@@ -99,9 +122,18 @@ class DasPeerStart(Command):
 class DasPeerRestart(Command):
     name = "restart"
 
-    short_help = ""
+    short_help = "Restarts the DAS peer server."
 
-    help = ""
+    help = """
+'das-cli das-peer restart' stops and then restarts the DAS peer server container.
+This command is useful for applying configuration changes or resolving issues without manually stopping and starting the server.
+
+.SH EXAMPLES
+
+To restart the DAS peer server:
+
+$ das-cli das-peer restart
+"""
 
     @inject
     def __init__(
@@ -121,9 +153,14 @@ class DasPeerRestart(Command):
 class DasPeerCli(CommandGroup):
     name = "das-peer"
 
-    short_help = ""
+    short_help = "Manage DAS peer server operations."
 
-    help = ""
+    help = """
+        'das-cli das-peer' commands provide control over the DAS peer server, 
+        which acts as the main server in the DAS setup. 
+        Using 'das-cli das-peer', you can start, stop, and restart the DAS peer 
+        server container as needed to manage its operations and connectivity.
+    """
 
     @inject
     def __init__(
