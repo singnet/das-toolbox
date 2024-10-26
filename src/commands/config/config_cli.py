@@ -120,6 +120,21 @@ jupyter_notebook.*
 
     jupyter_notebook.container_name
         Specifies the name of the Docker container running the Jupyter Notebook server.
+
+das_peer.*
+    These variables configure settings for the DAS Peer, such as:
+
+    das_peer.container_name
+        Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
+
+    das_peer.port
+        Defines the port on which the DAS peer server listens for incoming connections from clients.
+
+dbms_peer.*
+    These variables configure settings for the DBMS Peer, such as:
+
+    dbms_peer.container_name
+        Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
 """
 
     @inject
@@ -280,17 +295,21 @@ jupyter_notebook.*
     def _loader(self) -> dict:
         return {"loader.container_name": "das-cli-loader"}
 
-    def _database_adapter(self) -> dict:
+    def _das_peer(self) -> dict:
         database_adapter_server_port = self.prompt(
-            "Enter the port for the Database Adapter Server:",
-            default=self._settings.get("database_adapter.server_port", 30100),
+            "Enter the port for the DAS Peer:",
+            default=self._settings.get("das_peer.port", 30100),
             type=int,
         )
 
         return {
-            "database_adapter.server_container_name": f"das-cli-db-adapter-server-{database_adapter_server_port}",
-            "database_adapter.client_container_name": f"das-cli-db-adapter-client-{database_adapter_client_port}",
-            "database_adapter.server_port": database_adapter_server_port,
+            "das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
+            "das_peer.port": database_adapter_server_port,
+        }
+
+    def _dbms_peer(self) -> dict:
+        return {
+            "dbms_peer.container_name": f"das-cli-dbms-peer",
         }
 
     def _openfaas(self) -> dict:
@@ -323,7 +342,8 @@ jupyter_notebook.*
             self._redis,
             self._mongodb,
             self._loader,
-            self._database_adapter,
+            self._das_peer,
+            self._dbms_peer,
             self._openfaas,
             self._jupyter_notebook,
         ]
