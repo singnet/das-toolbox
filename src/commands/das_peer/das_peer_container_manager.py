@@ -42,7 +42,9 @@ class DasPeerContainerManager(ContainerManager):
 
         return self._start_container(
             command=command_params,
-            extra_hosts={"localhost": "172.17.0.1"},  # TODO: GET THE USERS IP
+            extra_hosts={
+                "localhost": "172.17.0.1",  # docker interface
+            },
             ports={
                 "30100/tcp": self._options.get("das_peer_port"),
             },
