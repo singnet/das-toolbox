@@ -11,10 +11,13 @@ from common import (
     ImageManager,
     StdoutSeverity,
 )
-
+from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 
 from .das_peer_container_manager import DasPeerContainerManager
+
+from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.mongodb_container_manager import MongodbContainerManager
 
 
 class DasPeerStop(Command):
@@ -93,11 +96,17 @@ $ das-cli das-peer start
         settings: Settings,
         image_manager: ImageManager,
         das_peer_container_manager: DasPeerContainerManager,
+        mongodb_container_manager: MongodbContainerManager,
+        redis_container_manager: RedisContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._image_manager = image_manager
+
         self._das_peer_container_manager = das_peer_container_manager
+        self._mongodb_container_manager = mongodb_container_manager
+        self._redis_container_manager = redis_container_manager
+
         self._image_manager.pull(
             DAS_PEER_IMAGE_NAME,
             DAS_PEER_IMAGE_VERSION,
@@ -113,6 +122,10 @@ $ das-cli das-peer start
             severity=StdoutSeverity.SUCCESS,
         )
 
+    @ensure_container_running(
+        [MongodbContainerManager, RedisContainerManager],
+        exception_text="\nPlease use 'db start' to start required services before running 'das-peer start'.",
+    )
     def run(self) -> None:
         self._settings.raise_on_missing_file()
 

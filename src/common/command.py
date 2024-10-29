@@ -166,8 +166,8 @@ class Command:
     def confirm(self, text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
+    @staticmethod
     def stdout(
-        self,
         content: Any,
         stdout_type: StdoutType = StdoutType.DEFAULT,
         severity: StdoutSeverity = StdoutSeverity.INFO,
