@@ -1,6 +1,6 @@
 import curses
 import time
-from typing import Any, AnyStr, Union
+from typing import Any, AnyStr, Union, TypedDict, Optional
 
 import socket
 import docker
@@ -14,28 +14,52 @@ from .exceptions import (
 )
 
 
-class Container:
-    def __init__(
-        self,
-        name,
-        image=None,
-        image_version: str = "latest",
-    ) -> None:
-        self._name = name
-        self._image = image
-        self._image_version = image_version
+class ContainerImageMetadata(TypedDict):
+    name = str
+    version = Optional[str]
 
-    def get_name(self) -> str:
+
+class ContainerMetadata(TypedDict):
+    port = Optional[int]
+    image = ContainerImageMetadata
+
+
+class Container:
+
+    def __init__(self, name, metadata: ContainerMetadata) -> None:
+        self._name = name
+        self._metadata = metadata
+
+    @property
+    def name(self) -> str:
         return self._name
 
-    def get_image(self) -> str:
-        return f"{self._image}:{self._image_version}"
+    @property
+    def image(self) -> str:
+        name = self._metadata.image.name
+        version = self._metadata.image.version or "latest"
 
-    def set_image(self, image: str) -> None:
-        self._image = image
+        return f"{name}:{version}"
 
-    def set_image_version(self, image_version: str) -> None:
-        self._image_version = image_version
+    def update_metadate(self, metadata: ContainerMetadata):
+        pass
+
+
+container = Container("mycontainer", metadata=ContainerMetadata(i))
+container.image
+
+# @property
+# def image(self) -> str:
+#     image = None
+#     image_version: str = ("latest",)
+
+#     return f"{self._image}:{self._image_version}"
+
+# def set_image(self, image: str) -> None:
+#     self._image = image
+
+# def set_image_version(self, image_version: str) -> None:
+#     self._image_version = image_version
 
 
 class ContainerManager(DockerManager):
