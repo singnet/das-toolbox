@@ -7,7 +7,11 @@ import docker
 import docker.errors
 
 from .docker_manager import DockerManager
-from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
+from .exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+    DockerError,
+)
 
 
 class Container:
@@ -77,7 +81,6 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
-
     def raise_on_port_in_use(self, ports: list):
         for port in ports:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -96,7 +99,9 @@ class ContainerManager(DockerManager):
         container_name = self._container.get_name()
 
         try:
-            result = self.get_docker_client().containers.list(filters={"name": container_name})
+            result = self.get_docker_client().containers.list(
+                filters={"name": container_name}
+            )
 
             return len(result) > 0
         except docker.errors.APIError:
@@ -120,9 +125,13 @@ class ContainerManager(DockerManager):
 
     def logs(self) -> None:
         try:
-            container = self.get_docker_client().containers.get(self.get_container().get_name())
+            container = self.get_docker_client().containers.get(
+                self.get_container().get_name()
+            )
         except docker.errors.NotFound:
-            raise DockerError(f"Service {self.get_container().get_name()} is not running")
+            raise DockerError(
+                f"Service {self.get_container().get_name()} is not running"
+            )
 
         for log in container.logs(stdout=True, stderr=True, stream=True):
             print(log.decode("utf-8"), end="")
@@ -213,7 +222,9 @@ class ContainerManager(DockerManager):
     def wait_for_container(self, container, timeout=60, interval=2):
         elapsed_time = 0
         while elapsed_time < timeout:
-            if self.is_container_running(container) and self.is_container_healthy(container):
+            if self.is_container_running(container) and self.is_container_healthy(
+                container
+            ):
                 return True
 
             time.sleep(interval)
