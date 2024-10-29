@@ -157,7 +157,7 @@ dbms_peer.*
         server_user = get_server_username()
         current_node = {
             "context": "default",
-            "ip": "localhost",
+            "ip": "host.docker.internal",
             "username": server_user,
         }
 

@@ -66,7 +66,7 @@ class DbmsPeerContainerManager(ContainerManager):
                 "--node-id",
                 "localhost:30200",
                 "--server-id",
-                "localhost:30100",
+                "host.docker.internal:30100",
                 "--postgres-hostname",
                 hostname,
                 "--postgres-port",
