@@ -6,7 +6,7 @@ setup(
     name="das-cli",
     version=VERSION,
     packages=find_packages(),
-    scripts=["das-cli.py"],
+    scripts=["das_cli.py"],
     entry_points={
         "console_scripts": [
             "das-cli=das_cli:das_cli",
