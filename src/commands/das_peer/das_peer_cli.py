@@ -111,14 +111,14 @@ $ das-cli das-peer start
         self.stdout("Starting DAS Peer server...")
         self._das_peer_container_manager.start_container()
 
-        adapter_server_port = self._das_peer_container_manager.get_port()
+        adapter_server_port = self._das_peer_container_manager.get_container().port
         self.stdout(
             f"DAS Peer is runnig on port {adapter_server_port}",
             severity=StdoutSeverity.SUCCESS,
         )
 
     @ensure_container_running(
-        [MongodbContainerManager, RedisContainerManager],
+        ["_mongodb_container_manager", "_redis_container_manager"],
         exception_text="\nPlease use 'db start' to start required services before running 'das-peer start'.",
     )
     def run(self) -> None:

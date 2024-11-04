@@ -57,11 +57,8 @@ class DasPeerContainerManager(ContainerManager):
                 "host.docker.internal": "172.17.0.1",  # docker interface
             },
             ports={
-                "30100/tcp": self._options.get("das_peer_port"),
+                "30100/tcp": self._container.port,
             },
         )
 
         return container
-
-    def get_port(self) -> int:
-        return self._options.get("das_peer_port")

@@ -1,26 +1,35 @@
 from functools import wraps
 from typing import List, Callable
 
-from .docker.container_manager import ContainerManager
 from .docker.exceptions import DockerContainerNotFoundError
 
 from .command import Command, StdoutSeverity
 
 
 def ensure_container_running(
-    container_manager_list: List[ContainerManager],
+    cls_container_manager_attrs: List[str],
     exception_text: str = "",
 ):
     def decorator(func: Callable):
-        @wraps
-        def wrapper(*arg, **args):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            self._settings.raise_on_missing_file()
+
             container_not_running = False
 
-            for container_manager in container_manager_list:
-                service_name = container_manager.get_container().name
-                service_port = container_manager.get_port()
+            for container_manager_attr in cls_container_manager_attrs:
+                if not hasattr(self, container_manager_attr):
+                    raise ValueError(
+                        f"`{container_manager_attr}` is not a valid container manager attribute."
+                    )
 
-                if not container_manager.is_running():
+                container = getattr(self, container_manager_attr)
+
+                container_instance = container.get_container()
+                service_name = container_instance.name
+                service_port = container_instance.port
+
+                if not container.is_running():
                     Command.stdout(
                         f"{service_name} is not running",
                         severity=StdoutSeverity.ERROR,
@@ -35,7 +44,7 @@ def ensure_container_running(
             if container_not_running:
                 raise DockerContainerNotFoundError(exception_text)
 
-            return func(*arg, **args)
+            return func(self, *args, **kwargs)
 
         return wrapper
 

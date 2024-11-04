@@ -28,13 +28,13 @@ class ContainerMetadata(TypedDict):
 
 class Container:
 
-    def __init__(self, name, metadata: ContainerMetadata) -> None:
+    def __init__(self, name: str, metadata: ContainerMetadata) -> None:
         self._name = name
         self._metadata = metadata
 
     @property
     def port(self) -> int | None:
-        return self._metadata["port"] if hasattr(self._metadata, "port") else None
+        return self._metadata.get("port")
 
     @property
     def name(self) -> str:

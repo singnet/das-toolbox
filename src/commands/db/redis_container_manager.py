@@ -14,7 +14,7 @@ class RedisContainerManager(ContainerManager):
         container = Container(
             redis_container_name,
             metadata={
-                "port": options.get("redeis_port"),
+                "port": options.get("redis_port"),
                 "image": {
                     "name": REDIS_IMAGE_NAME,
                     "version": REDIS_IMAGE_VERSION,

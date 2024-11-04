@@ -35,13 +35,25 @@ class DasPeerModule(Module):
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
         container_name = self._settings.get("mongodb.container_name")
+        port = self._settings.get("mongodb.port")
 
-        return MongodbContainerManager(container_name)
+        return MongodbContainerManager(
+            container_name,
+            options={
+                "mongodb_port": port,
+            },
+        )
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("redis.container_name")
+        port = self._settings.get("redis.port")
 
-        return RedisContainerManager(container_name)
+        return RedisContainerManager(
+            container_name,
+            options={
+                "redis_port": port,
+            },
+        )
 
     def _das_peer_container_manager_factory(self) -> DasPeerContainerManager:
         container_name = self._settings.get("das_peer.container_name")
