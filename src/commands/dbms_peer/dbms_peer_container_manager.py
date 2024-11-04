@@ -15,13 +15,18 @@ class DbmsPeerContainerManager(ContainerManager):
     def __init__(
         self,
         container_name,
-        options: Dict,
+        options: Dict = {},
         exec_context: Union[AnyStr, None] = None,
     ) -> None:
         container = Container(
             container_name,
-            DBMS_PEER_IMAGE_NAME,
-            DBMS_PEER_IMAGE_VERSION,
+            metadata={
+                "port": None,
+                "image": {
+                    "name": DBMS_PEER_IMAGE_NAME,
+                    "version": DBMS_PEER_IMAGE_VERSION,
+                },
+            },
         )
 
         super().__init__(container, exec_context)

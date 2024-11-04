@@ -1,4 +1,5 @@
 import docker
+from typing import Dict
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -6,8 +7,21 @@ from config import OPENFAAS_IMAGE_NAME
 
 
 class OpenFaaSContainerManager(ContainerManager):
-    def __init__(self, openfaas_container_name) -> None:
-        container = Container(openfaas_container_name, OPENFAAS_IMAGE_NAME)
+    def __init__(
+        self,
+        openfaas_container_name: str,
+        options: Dict = {},
+    ) -> None:
+        container = Container(
+            openfaas_container_name,
+            metadata={
+                "port": options.get("openfaas_port"),
+                "image": {
+                    "name": OPENFAAS_IMAGE_NAME,
+                },
+            },
+        )
+
         super().__init__(container)
 
     def start_container(
@@ -18,7 +32,13 @@ class OpenFaaSContainerManager(ContainerManager):
         mongodb_username: str,
         mongodb_password: str,
     ):
-        self.get_container().set_image_version(function_version)
+        self.get_container().update_metadata(
+            {
+                "image": {
+                    "version": function_version,
+                }
+            }
+        )
 
         try:
             self.stop()

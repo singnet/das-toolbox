@@ -17,7 +17,7 @@ def ensure_container_running(
             container_not_running = False
 
             for container_manager in container_manager_list:
-                service_name = container_manager.get_container().get_name()
+                service_name = container_manager.get_container().name
                 service_port = container_manager.get_port()
 
                 if not container_manager.is_running():

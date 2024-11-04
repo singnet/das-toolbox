@@ -121,11 +121,6 @@ $ das-cli dbms-peer run --client-hostname example.com --client-port 5432 \\
         self._dbms_peer_container_manager = dbms_peer_container_manager
         self._das_peer_container_manager = das_peer_container_manager
 
-        self._image_manager.pull(
-            DBMS_PEER_IMAGE_NAME,
-            DBMS_PEER_IMAGE_VERSION,
-        )
-
     def _start_client(
         self,
         context: str,
@@ -166,6 +161,12 @@ $ das-cli dbms-peer run --client-hostname example.com --client-port 5432 \\
     ) -> None:
         self._settings.raise_on_missing_file()
         self._raise_on_server_not_running()
+
+        self._image_manager.pull(
+            DBMS_PEER_IMAGE_NAME,
+            DBMS_PEER_IMAGE_VERSION,
+        )
+
         self._start_client(
             context,
             client_hostname,

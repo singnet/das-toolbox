@@ -13,8 +13,13 @@ class DasPeerContainerManager(ContainerManager):
     ) -> None:
         container = Container(
             container_name,
-            DAS_PEER_IMAGE_NAME,
-            DAS_PEER_IMAGE_VERSION,
+            metadata={
+                "port": options.get("das_peer_port"),
+                "image": {
+                    "name": DAS_PEER_IMAGE_NAME,
+                    "version": DAS_PEER_IMAGE_VERSION,
+                },
+            },
         )
 
         super().__init__(container, exec_context)

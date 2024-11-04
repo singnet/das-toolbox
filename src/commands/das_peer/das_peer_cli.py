@@ -60,7 +60,7 @@ $ das-cli das-peer stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = self._das_peer_container_manager.get_container().get_name()
+            container_name = self._das_peer_container_manager.get_container().name
             self.stdout(
                 f"The DAS Peer service named {container_name} is already stopped.",
                 severity=StdoutSeverity.WARNING,
@@ -107,11 +107,6 @@ $ das-cli das-peer start
         self._mongodb_container_manager = mongodb_container_manager
         self._redis_container_manager = redis_container_manager
 
-        self._image_manager.pull(
-            DAS_PEER_IMAGE_NAME,
-            DAS_PEER_IMAGE_VERSION,
-        )
-
     def _start_server(self) -> None:
         self.stdout("Starting DAS Peer server...")
         self._das_peer_container_manager.start_container()
@@ -128,6 +123,11 @@ $ das-cli das-peer start
     )
     def run(self) -> None:
         self._settings.raise_on_missing_file()
+
+        self._image_manager.pull(
+            DAS_PEER_IMAGE_NAME,
+            DAS_PEER_IMAGE_VERSION,
+        )
 
         self._start_server()
 

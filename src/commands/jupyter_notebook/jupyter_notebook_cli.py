@@ -124,7 +124,7 @@ $ das-cli jupyter-notebook stop
             )
         except DockerContainerNotFoundError:
             container_name = (
-                self._jupyter_notebook_container_manager.get_container().get_name()
+                self._jupyter_notebook_container_manager.get_container().name
             )
             self.stdout(
                 f"The Jupyter Notebook service named {container_name} is already stopped.",

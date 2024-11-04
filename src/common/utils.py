@@ -53,3 +53,13 @@ def retry(func: callable, max_retries=5, interval=2, *args, **kwargs):
             if attempts >= max_retries:
                 raise e
             time.sleep(interval)
+
+
+def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
+    result = dict1.copy()
+    for key, value in dict2.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge_dicts(result[key], value)
+        else:
+            result[key] = value
+    return result

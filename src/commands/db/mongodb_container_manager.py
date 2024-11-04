@@ -10,11 +10,20 @@ from config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
 class MongodbContainerManager(ContainerManager):
     _repl_set = "rs0"
 
-    def __init__(self, mongodb_container_name) -> None:
+    def __init__(
+        self,
+        mongodb_container_name: str,
+        options: Dict = {},
+    ) -> None:
         container = Container(
             mongodb_container_name,
-            MONGODB_IMAGE_NAME,
-            MONGODB_IMAGE_VERSION,
+            metadata={
+                "port": options.get('mongodb_port'),
+                "image": {
+                    "name": MONGODB_IMAGE_NAME,
+                    "version": MONGODB_IMAGE_VERSION,
+                },
+            },
         )
 
         super().__init__(container)

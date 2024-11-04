@@ -22,6 +22,7 @@ from .utils import (
     is_executable_bin,
     remove_special_characters,
     retry,
+    deep_merge_dicts,
 )
 
 __all__ = [
@@ -52,4 +53,5 @@ __all__ = [
     "is_executable_bin",
     "remove_special_characters",
     "retry",
+    "deep_merge_dicts",
 ]

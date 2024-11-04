@@ -84,7 +84,4 @@ class DbmsPeerModule(Module):
     ) -> DbmsPeerContainerManager:
         container_name = self._settings.get("dbms_peer.container_name")
 
-        return DbmsPeerContainerManager(
-            container_name,
-            options={},
-        )
+        return DbmsPeerContainerManager(container_name)
