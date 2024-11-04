@@ -50,6 +50,7 @@ setup() {
     local mongodb_password="admin"
     local mongodb_cluster="no"
     local jupyter_notebook_port="8888"
+    local das_peer_port="30100"
 
     run das-cli config set <<EOF
 $redis_port
@@ -58,6 +59,7 @@ $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$das_peer_port
 $jupyter_notebook_port
 EOF
 
@@ -68,6 +70,7 @@ EOF
     assert_equal "$(get_config ".mongodb.username")" "$mongodb_username"
     assert_equal "$(get_config ".mongodb.password")" "$mongodb_password"
     assert_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
+    assert_equal "$(get_config ".das_peer.port")" "$das_peer_port"
     assert_equal "$(get_config ".jupyter_notebook.port")" "$jupyter_notebook_port"
 }
 
@@ -80,6 +83,7 @@ EOF
     local old_mongodb_username="$(get_config ".mongodb.username")"
     local old_mongodb_password="$(get_config ".mongodb.password")"
     local old_mongodb_cluster="$(get_config ".mongodb.cluster")"
+    local old_das_peer_port="$(get_config ".das_peer.port")"
     local old_jupyter_notebook_port="$(get_config ".jupyter_notebook.port")"
 
     local redis_port="7000"
@@ -88,6 +92,7 @@ EOF
     local mongodb_username=""
     local mongodb_password="new_password"
     local mongodb_cluster="no"
+    local das_peer_port="30200"
     local jupyter_notebook_port="8000"
 
     run das-cli config set <<EOF
@@ -97,6 +102,7 @@ $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$das_peer_port
 $jupyter_notebook_port
 EOF
 
@@ -107,6 +113,7 @@ EOF
     assert_not_equal "$(get_config ".mongodb.username")" "$mongodb_username"
     assert_equal "$(get_config ".mongodb.password")" "$mongodb_password"
     assert_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
+    assert_equal "$(get_config ".das_peer.port")" "$das_peer_port"
     assert_equal "$(get_config ".jupyter_notebook.port")" "$jupyter_notebook_port"
 
     assert_not_equal "$redis_port" "$old_redis_port"
@@ -115,6 +122,7 @@ EOF
     assert_equal "$(get_config ".mongodb.username")" "$old_mongodb_username"
     assert_not_equal "$mongodb_password" "$old_mongodb_password"
     assert_equal "$(human_to_boolean "$mongodb_cluster")" "$old_mongodb_cluster"
+    assert_not_equal "$das_peer_port" "$old_das_peer_port"
     assert_not_equal "$jupyter_notebook_port" "$old_jupyter_notebook_port"
 
 }
