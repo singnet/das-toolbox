@@ -107,7 +107,9 @@ class ContainerManager(DockerManager):
 
     def raise_running_container(self) -> None:
         if self.is_running():
-            raise DockerContainerDuplicateError()
+            raise DockerContainerDuplicateError(
+                "The Docker container is already running. Cannot start another container with the same name."
+            )
 
     def is_running(self) -> bool | None:
         try:

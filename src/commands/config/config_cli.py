@@ -157,7 +157,7 @@ dbms_peer.*
         server_user = get_server_username()
         current_node = {
             "context": "default",
-            "ip": "host.docker.internal",
+            "ip": "localhost",
             "username": server_user,
         }
 
@@ -296,15 +296,10 @@ dbms_peer.*
         return {"loader.container_name": "das-cli-loader"}
 
     def _das_peer(self) -> dict:
-        database_adapter_server_port = self.prompt(
-            "Enter the port for the DAS Peer:",
-            default=self._settings.get("das_peer.port", 30100),
-            type=int,
-        )
+        database_adapter_server_port = 30100
 
         return {
             "das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
-            "das_peer.port": database_adapter_server_port,
         }
 
     def _dbms_peer(self) -> dict:

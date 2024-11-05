@@ -61,6 +61,8 @@ $redis_container_name is running on port $redis_port
 Starting DAS Peer server...
 DAS Peer is runnig on port $das_peer_port"
 
+    sleep 15s
+
     run is_service_up redis
     assert_success
 

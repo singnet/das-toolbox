@@ -68,7 +68,7 @@ class DasPeerModule(Module):
         redis_hostname = redis_nodes[0]["ip"] if redis_nodes else "host.docker.internal"
         redis_port = self._settings.get("redis.port")
 
-        adapter_server_port = self._settings.get("das_peer.port")
+        adapter_server_port = 30100
 
         return DasPeerContainerManager(
             container_name,

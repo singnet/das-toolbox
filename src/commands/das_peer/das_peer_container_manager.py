@@ -30,7 +30,7 @@ class DasPeerContainerManager(ContainerManager):
 
         command_params = [
             "--server-id",
-            "localhost:30100",
+            f"localhost:{self._container.port}",
             "--mongo-hostname",
             self._options.get("mongodb_hostname"),
             "--mongo-port",
@@ -47,6 +47,7 @@ class DasPeerContainerManager(ContainerManager):
 
         container = self._start_container(
             command=command_params,
+            network_mode="host",
             healthcheck={
                 "Test": [
                     "CMD-SHELL",
@@ -56,9 +57,9 @@ class DasPeerContainerManager(ContainerManager):
             extra_hosts={
                 "host.docker.internal": "172.17.0.1",  # docker interface
             },
-            ports={
-                "30100/tcp": self._container.port,
-            },
+            # ports={
+            #     "30100/tcp": self._container.port,
+            # },
         )
 
         return container
