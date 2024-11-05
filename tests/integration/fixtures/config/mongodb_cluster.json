@@ -49,8 +49,7 @@
     "container_name": "das-cli-jupyter-notebook-8888"
   },
   "das_peer": {
-    "container_name": "das-cli-das-peer-30100",
-    "port": 30100
+    "container_name": "das-cli-das-peer-30100"
   },
   "dbms_peer": {
     "container_name": "das-cli-dbms-peer"
