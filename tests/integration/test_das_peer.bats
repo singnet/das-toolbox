@@ -12,13 +12,13 @@ setup() {
     das-cli db stop
 }
 
-@test "Trying to start, stop and restart db with unset configuration file" {
+@test "Trying to start, stop and restart das-peer with unset configuration file" {
     local cmds=(start stop restart)
 
     unset_config
 
     for cmd in "${cmds[@]}"; do
-        run das-cli db $cmd
+        run das-cli das-peer $cmd
 
         assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
     done

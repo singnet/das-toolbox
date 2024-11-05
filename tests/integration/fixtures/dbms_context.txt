@@ -1,0 +1,1 @@
+table_name	columnB IN ('ABC', 'FGH'); is_analysis=false
