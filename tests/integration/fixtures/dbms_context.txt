@@ -1,1 +1,1 @@
-table_name	columnB IN ('ABC', 'FGH'); is_analysis=false
+public.atoms handle IN ('d0e88a51-b5dd-4000-a1c7-e55a7e12423a', '4ed34a99-120b-4c38-a1ab-348894e15d3f')

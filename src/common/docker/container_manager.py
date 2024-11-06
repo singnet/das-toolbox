@@ -118,8 +118,8 @@ class ContainerManager(DockerManager):
             )
 
             return len(result) > 0
-        except docker.errors.APIError:
-            raise DockerError()
+        except docker.errors.APIError as e:
+            raise DockerError(e.explanation)
 
     def get_label(self, label: str) -> Union[dict, None]:
         container_name = self.get_container().name
@@ -134,8 +134,8 @@ class ContainerManager(DockerManager):
                 label,
                 None,
             )
-        except docker.errors.APIError:
-            raise DockerContainerNotFoundError()
+        except docker.errors.APIError as e:
+            raise DockerContainerNotFoundError(e.explanation)
 
     def logs(self) -> None:
         container_name = self.get_container().name
@@ -194,8 +194,8 @@ class ContainerManager(DockerManager):
 
         try:
             container = self.get_docker_client().containers.get(container_name)
-        except docker.errors.APIError:
-            raise DockerContainerNotFoundError()
+        except docker.errors.APIError as e:
+            raise DockerContainerNotFoundError(e.explanation)
 
         try:
             container.kill()

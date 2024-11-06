@@ -86,6 +86,7 @@ class DbmsPeerContainerManager(ContainerManager):
 
             container = self._start_container(
                 command=command_params,
+                network_mode="host",
                 volumes={
                     file.name: {
                         "bind": secrets_target_path,
@@ -105,4 +106,4 @@ class DbmsPeerContainerManager(ContainerManager):
             self.stop()
 
             if exit_code != 0:
-                raise DockerError()
+                raise DockerError("DBMS peer could not be started")
