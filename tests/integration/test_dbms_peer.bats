@@ -85,7 +85,6 @@ setup() {
     local client_password="$postgres_password"
     local client_database="$postgres_database"
     local context="$test_fixtures_dir/dbms_context.txt"
-    local context_db="$(cat $context | cut -d " " -f 1)"
 
     run das-cli dbms-peer run \
         --client-hostname $client_hostname \
@@ -95,6 +94,6 @@ setup() {
         --client-database $client_database \
         --context "$context"
 
-    assert_line --partial "The '$(cat $context_db)' has been mapped"
+    assert_line --partial "The 'public.atoms' has been mapped"
     assert_line --partial "Done."
 }
