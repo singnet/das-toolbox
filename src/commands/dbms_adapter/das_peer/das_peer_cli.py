@@ -169,9 +169,9 @@ class DasPeerCli(CommandGroup):
     short_help = "Manage DAS peer server operations."
 
     help = """
-        'das-cli das-peer' commands provide control over the DAS peer server, 
+        'das-cli dbms-adapter das-peer' commands provide control over the DAS peer server, 
         which acts as the main server in the DAS setup. 
-        Using 'das-cli das-peer', you can start, stop, and restart the DAS peer 
+        Using 'das-cli dbms-adapter das-peer', you can start, stop, and restart the DAS peer 
         server container as needed to manage its operations and connectivity.
     """
 

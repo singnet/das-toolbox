@@ -14,7 +14,9 @@ from common import (
 
 from .dbms_peer_container_manager import DbmsPeerContainerManager
 
-from commands.das_peer.das_peer_container_manager import DasPeerContainerManager
+from commands.dbms_adapter.das_peer.das_peer_container_manager import (
+    DasPeerContainerManager,
+)
 
 
 class DbmsPeerRun(Command):
@@ -23,7 +25,7 @@ class DbmsPeerRun(Command):
     short_help = "Runs the DBMS peer client to connect with DAS peer server."
 
     help = """
-'das-cli dbms-peer run' starts the DBMS peer client, enabling it to connect 
+'das-cli dbms-adapter dbms-peer run' starts the DBMS peer client, enabling it to connect 
 to the DAS peer server and facilitate data synchronization. This command 
 establishes a link to the DAS peer using the provided client database credentials 
 and settings.
@@ -58,7 +60,7 @@ A context file with necessary configurations is also required.
 
 To run the DBMS peer client with specified database and context:
 
-$ das-cli dbms-peer run --client-hostname example.com --client-port 5432 \\
+$ das-cli dbms-adapter dbms-peer run --client-hostname example.com --client-port 5432 \\
     --client-username user --client-password pass --context /path/to/context.json
 """
 
@@ -85,6 +87,8 @@ $ das-cli dbms-peer run --client-hostname example.com --client-port 5432 \\
             ["--client-password"],
             help="The password for authenticating to the client database.",
             type=str,
+            prompt=True,
+            hide_input=True,
             required=True,
         ),
         CommandOption(

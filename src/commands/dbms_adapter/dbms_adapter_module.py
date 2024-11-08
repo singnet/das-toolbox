@@ -1,19 +1,17 @@
 from common import Module
 
-from .dbms_peer_cli import (
-    DbmsPeerCli,
-    DbmsPeerContainerManager,
-    Settings,
-)
+from .dbms_adapter_cli import DbmsAdapterCli
+from common import Module, Settings
+
+from .das_peer.das_peer_cli import DasPeerContainerManager
+from .dbms_peer.dbms_peer_cli import DbmsPeerContainerManager
 
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 
-from commands.das_peer.das_peer_container_manager import DasPeerContainerManager
 
-
-class DbmsPeerModule(Module):
-    _instance = DbmsPeerCli
+class DbmsAdapterModule(Module):
+    _instance = DbmsAdapterCli
 
     def __init__(self) -> None:
         super().__init__()
@@ -30,28 +28,38 @@ class DbmsPeerModule(Module):
                 self._mongodb_container_manager_factory,
             ),
             (
-                DbmsPeerContainerManager,
-                self._dbms_peer_container_manager_factory,
-            ),
-            (
                 DasPeerContainerManager,
                 self._das_peer_container_manager_factory,
+            ),
+            (
+                DbmsPeerContainerManager,
+                self._dbms_peer_container_manager_factory,
             ),
         ]
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
         container_name = self._settings.get("mongodb.container_name")
+        port = self._settings.get("mongodb.port")
 
-        return MongodbContainerManager(container_name)
+        return MongodbContainerManager(
+            container_name,
+            options={
+                "mongodb_port": port,
+            },
+        )
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("redis.container_name")
+        port = self._settings.get("redis.port")
 
-        return RedisContainerManager(container_name)
+        return RedisContainerManager(
+            container_name,
+            options={
+                "redis_port": port,
+            },
+        )
 
-    def _das_peer_container_manager_factory(
-        self,
-    ) -> DasPeerContainerManager:
+    def _das_peer_container_manager_factory(self) -> DasPeerContainerManager:
         container_name = self._settings.get("das_peer.container_name")
         mongodb_nodes = self._settings.get("mongodb.nodes")
         mongodb_hostname = (
@@ -64,7 +72,7 @@ class DbmsPeerModule(Module):
         redis_hostname = redis_nodes[0]["ip"] if redis_nodes else "host.docker.internal"
         redis_port = self._settings.get("redis.port")
 
-        adapter_server_port = self._settings.get("das_peer.port")
+        adapter_server_port = 30100
 
         return DasPeerContainerManager(
             container_name,
