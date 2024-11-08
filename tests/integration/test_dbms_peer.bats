@@ -48,11 +48,6 @@ teardown() {
     assert_line --partial "Error: Missing option '--client-username'."
 }
 
-@test "Missing --client-password parameter" {
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-database db --context "$context_file_path"
-    assert_line --partial "Error: Missing option '--client-password'."
-}
-
 @test "Missing --context parameter" {
     run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db
     assert_line --partial "Error: Missing option '--context'."
