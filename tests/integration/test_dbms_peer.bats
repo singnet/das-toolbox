@@ -12,6 +12,17 @@ setup() {
     das-cli das-peer restart
 
     context_file_path="$test_fixtures_dir/dbms_context.txt"
+    postgres_container_name="dbms_peer_postgres"
+    postgres_password="postgres"
+    postgres_username="postgres"
+    postgres_database="integration_db"
+    postgres_port="5432"
+    postgres_initdb="$test_fixtures_dir/sql/db-adapter.sql"
+}
+
+teardown() {
+    "$(dirname "${BATS_TEST_DIRNAME}")/../scripts/stop_postgres.sh" \
+        -n $postgres_container_name
 }
 
 @test "Trying run command with unset configuration file" {
@@ -59,13 +70,6 @@ setup() {
 }
 
 @test "Should run DBMS Peer successfuly" {
-    local postgres_container_name="dbms_peer_postgres"
-    local postgres_password="postgres"
-    local postgres_username="postgres"
-    local postgres_database="integration_db"
-    local postgres_port="5432"
-    local postgres_initdb="$test_fixtures_dir/sql/db-adapter.sql"
-
     "$(dirname "${BATS_TEST_DIRNAME}")/../scripts/start_postgres.sh" \
         -n $postgres_container_name \
         -p $postgres_password \
