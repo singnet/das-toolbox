@@ -8,7 +8,7 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
-    das-cli das-peer stop
+    das-cli dbms-adapter das-peer stop
     das-cli db stop
 }
 
@@ -18,7 +18,7 @@ setup() {
     unset_config
 
     for cmd in "${cmds[@]}"; do
-        run das-cli das-peer $cmd
+        run das-cli dbms-adapter das-peer $cmd
 
         assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
     done
@@ -28,7 +28,7 @@ setup() {
     local mongodb_container_name="$(get_config ".mongodb.container_name")"
     local redis_container_name="$(get_config ".redis.container_name")"
 
-    run das-cli das-peer start
+    run das-cli dbms-adapter das-peer start
 
     assert_output "$mongodb_container_name is not running
 $redis_container_name is not running
@@ -54,7 +54,7 @@ Please use 'db start' to start required services before running 'das-peer start'
 
     das-cli db start
 
-    run das-cli das-peer start
+    run das-cli dbms-adapter das-peer start
 
     assert_output "$mongodb_container_name is running on port $mongodb_port
 $redis_container_name is running on port $redis_port
@@ -86,7 +86,7 @@ DAS Peer is runnig on port $das_peer_port"
     run is_service_up mongodb
     assert_failure
 
-    run das-cli das-peer start
+    run das-cli dbms-adapter das-peer start
 
     assert_output "$mongodb_container_name is not running
 $redis_container_name is not running
@@ -111,12 +111,12 @@ Please use 'db start' to start required services before running 'das-peer start'
     run is_service_up mongodb
     assert_success
 
-    das-cli das-peer start
+    das-cli dbms-adapter das-peer start
 
     run is_service_up das_peer
     assert_success
 
-    run das-cli das-peer start
+    run das-cli dbms-adapter das-peer start
 
     assert_output "$mongodb_container_name is running on port $mongodb_port
 $redis_container_name is running on port $redis_port
@@ -134,14 +134,14 @@ Starting DAS Peer server...
     run is_service_up mongodb
     assert_success
 
-    das-cli das-peer start
+    das-cli dbms-adapter das-peer start
 
     sleep 15s
 
     run is_service_up das_peer
     assert_success
 
-    run das-cli das-peer stop
+    run das-cli dbms-adapter das-peer stop
 
     assert_output "Stopping DAS Peer service...
 The DAS Peer service has been stopped."
@@ -161,7 +161,7 @@ The DAS Peer service has been stopped."
     run is_service_up mongodb
     assert_success
 
-    run das-cli das-peer stop
+    run das-cli dbms-adapter das-peer stop
 
     assert_output "Stopping DAS Peer service...
 The DAS Peer service named $das_peer_container_name is already stopped."
