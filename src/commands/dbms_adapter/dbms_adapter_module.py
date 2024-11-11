@@ -61,15 +61,15 @@ class DbmsAdapterModule(Module):
 
     def _das_peer_container_manager_factory(self) -> DasPeerContainerManager:
         container_name = self._settings.get("das_peer.container_name")
-        mongodb_nodes = self._settings.get("mongodb.nodes")
+        mongodb_nodes = self._settings.get("mongodb.nodes", [])
         mongodb_hostname = (
-            mongodb_nodes[0]["ip"] if mongodb_nodes else "host.docker.internal"
+            mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else "localhost"
         )
         mongodb_username = self._settings.get("mongodb.username")
         mongodb_password = self._settings.get("mongodb.password")
         mongodb_port = self._settings.get("mongodb.port")
-        redis_nodes = self._settings.get("redis.nodes")
-        redis_hostname = redis_nodes[0]["ip"] if redis_nodes else "host.docker.internal"
+        redis_nodes = self._settings.get("redis.nodes", [])
+        redis_hostname = redis_nodes[0]["ip"] if len(redis_nodes) > 0 else "localhost"
         redis_port = self._settings.get("redis.port")
 
         adapter_server_port = 30100
