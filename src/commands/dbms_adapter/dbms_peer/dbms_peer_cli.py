@@ -61,7 +61,7 @@ A context file with necessary configurations is also required.
 To run the DBMS peer client with specified database and context:
 
 $ das-cli dbms-adapter dbms-peer run --client-hostname example.com --client-port 5432 \\
-    --client-username user --client-password pass --context /path/to/context.json
+    --client-username user --client-password pass --context /path/to/context.txt
 """
 
     params = [
