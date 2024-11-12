@@ -4,6 +4,7 @@ import os
 import secrets
 import string
 import sys
+import time
 
 
 def is_executable_bin():
@@ -40,3 +41,25 @@ def get_rand_token(num_bytes: int = 756, only_alpha: bool = True) -> str:
     random_bytes = secrets.token_bytes(num_bytes)
 
     return base64.b64encode(random_bytes).decode("utf-8")
+
+
+def retry(func: callable, max_retries=5, interval=2, *args, **kwargs):
+    attempts = 0
+    while attempts < max_retries:
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            attempts += 1
+            if attempts >= max_retries:
+                raise e
+            time.sleep(interval)
+
+
+def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
+    result = dict1.copy()
+    for key, value in dict2.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge_dicts(result[key], value)
+        else:
+            result[key] = value
+    return result

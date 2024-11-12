@@ -10,6 +10,7 @@ from commands.logs import LogsModule
 from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.release_notes import ReleaseNotesModule
+from commands.dbms_adapter import DbmsAdapterModule
 
 MODULES = [
     ConfigModule,
@@ -21,6 +22,7 @@ MODULES = [
     MettaModule,
     PythonLibraryModule,
     ReleaseNotesModule,
+    DbmsAdapterModule,
 ]
 
 

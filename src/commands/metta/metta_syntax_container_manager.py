@@ -12,9 +12,14 @@ class MettaSyntaxContainerManager(ContainerManager):
     def __init__(self) -> None:
         container = Container(
             "das-metta-parser",
-            METTA_PARSER_IMAGE_NAME,
-            METTA_PARSER_IMAGE_VERSION,
+            metadata={
+                "image": {
+                    "name": METTA_PARSER_IMAGE_NAME,
+                    "version": METTA_PARSER_IMAGE_VERSION,
+                },
+            },
         )
+
         super().__init__(container)
 
     def start_container(self, filepath):

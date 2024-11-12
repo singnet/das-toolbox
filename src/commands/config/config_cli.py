@@ -120,6 +120,21 @@ jupyter_notebook.*
 
     jupyter_notebook.container_name
         Specifies the name of the Docker container running the Jupyter Notebook server.
+
+das_peer.*
+    These variables configure settings for the DAS Peer, such as:
+
+    das_peer.container_name
+        Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
+
+    das_peer.port
+        Defines the port on which the DAS peer server listens for incoming connections from clients.
+
+dbms_peer.*
+    These variables configure settings for the DBMS Peer, such as:
+
+    dbms_peer.container_name
+        Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
 """
 
     @inject
@@ -280,6 +295,18 @@ jupyter_notebook.*
     def _loader(self) -> dict:
         return {"loader.container_name": "das-cli-loader"}
 
+    def _das_peer(self) -> dict:
+        database_adapter_server_port = 30100
+
+        return {
+            "das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
+        }
+
+    def _dbms_peer(self) -> dict:
+        return {
+            "dbms_peer.container_name": f"das-cli-dbms-peer",
+        }
+
     def _openfaas(self) -> dict:
         return {
             "openfaas.container_name": "das-cli-openfaas-8080",
@@ -310,6 +337,8 @@ jupyter_notebook.*
             self._redis,
             self._mongodb,
             self._loader,
+            self._das_peer,
+            self._dbms_peer,
             self._openfaas,
             self._jupyter_notebook,
         ]
@@ -357,7 +386,9 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    short_help = (
+        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    )
 
     @inject
     def __init__(

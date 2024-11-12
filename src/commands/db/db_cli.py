@@ -54,7 +54,7 @@ $ das-cli db stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = self._redis_container_manager.get_container().get_name()
+            container_name = self._redis_container_manager.get_container().name
             self.stdout(
                 f"The Redis service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
@@ -86,7 +86,7 @@ $ das-cli db stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = self._mongodb_container_manager.get_container().get_name()
+            container_name = self._mongodb_container_manager.get_container().name
             self.stdout(
                 f"The MongoDB service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,

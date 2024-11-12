@@ -1,5 +1,6 @@
 import docker
 import os
+from typing import Dict
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerError
@@ -7,11 +8,20 @@ from config import JUPYTER_NOTEBOOK_IMAGE_NAME, JUPYTER_NOTEBOOK_IMAGE_VERSION
 
 
 class JupyterNotebookContainerManager(ContainerManager):
-    def __init__(self, jupyter_container_name) -> None:
+    def __init__(
+        self,
+        jupyter_container_name: str,
+        options: Dict = {},
+    ) -> None:
         container = Container(
             jupyter_container_name,
-            JUPYTER_NOTEBOOK_IMAGE_NAME,
-            JUPYTER_NOTEBOOK_IMAGE_VERSION,
+            metadata={
+                "port": options.get("jupyter_notebook_port"),
+                "image": {
+                    "name": JUPYTER_NOTEBOOK_IMAGE_NAME,
+                    "version": JUPYTER_NOTEBOOK_IMAGE_VERSION,
+                },
+            },
         )
 
         super().__init__(container)
@@ -24,10 +34,7 @@ class JupyterNotebookContainerManager(ContainerManager):
         self.raise_running_container()
 
         volumes = {
-            (working_dir or os.getcwd()): {
-                "bind": "/home/jovyan/work",
-                "mode": "rw"
-            }
+            (working_dir or os.getcwd()): {"bind": "/home/jovyan/work", "mode": "rw"}
         }
 
         try:

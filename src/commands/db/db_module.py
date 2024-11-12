@@ -24,8 +24,21 @@ class DbModule(Module):
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("redis.container_name")
-        return RedisContainerManager(container_name)
+        redis_port = self._settings.get("redis.port")
+
+        return RedisContainerManager(
+            container_name,
+            options={
+                "redis_port": redis_port,
+            },
+        )
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
         container_name = self._settings.get("mongodb.container_name")
-        return MongodbContainerManager(container_name)
+        mongodb_port = self._settings.get("mongodb.port")
+        return MongodbContainerManager(
+            container_name,
+            options={
+                "mongodb_port": mongodb_port,
+            },
+        )

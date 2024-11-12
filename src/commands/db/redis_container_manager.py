@@ -7,13 +7,19 @@ from config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 class RedisContainerManager(ContainerManager):
     def __init__(
         self,
-        redis_container_name,
+        redis_container_name: str,
+        options: Dict = {},
         exec_context: Union[AnyStr, None] = None,
     ) -> None:
         container = Container(
             redis_container_name,
-            REDIS_IMAGE_NAME,
-            REDIS_IMAGE_VERSION,
+            metadata={
+                "port": options.get("redis_port"),
+                "image": {
+                    "name": REDIS_IMAGE_NAME,
+                    "version": REDIS_IMAGE_VERSION,
+                },
+            },
         )
 
         super().__init__(container, exec_context)
@@ -63,7 +69,9 @@ class RedisContainerManager(ContainerManager):
             server_ip = redis_node.get("ip")
             nodes_str += f"{server_ip}:{redis_port} "
 
-        cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0 --cluster-yes"
+        cmd = (
+            f"redis-cli --cluster create {nodes_str} --cluster-replicas 0 --cluster-yes"
+        )
 
         container_id = self._exec_container(cmd)
 

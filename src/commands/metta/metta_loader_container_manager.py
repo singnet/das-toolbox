@@ -1,6 +1,6 @@
 import os
-
 import docker
+from typing import Dict
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -8,14 +8,25 @@ from config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaLoaderContainerManager(ContainerManager):
-    def __init__(self, loader_container_name) -> None:
+    def __init__(
+        self,
+        loader_container_name: str,
+        options: Dict = {},
+    ) -> None:
+
         container = Container(
             loader_container_name,
-            METTA_PARSER_IMAGE_NAME,
-            METTA_PARSER_IMAGE_VERSION,
+            metadata={
+                "port": None,
+                "image": {
+                    "name": METTA_PARSER_IMAGE_NAME,
+                    "version": METTA_PARSER_IMAGE_VERSION,
+                },
+            },
         )
 
         super().__init__(container)
+        self._options = options
 
     def start_container(
         self,
@@ -67,7 +78,9 @@ class MettaLoaderContainerManager(ContainerManager):
             exit_code = self.get_container_exit_status(container)
 
             if exit_code != 0:
-                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
+                raise DockerError(
+                    f"File '{os.path.basename(path)}' could not be loaded."
+                )
 
             return None
         except docker.errors.APIError as e:

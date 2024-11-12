@@ -2,17 +2,25 @@
 
 openfaas_repository="trueagi/openfaas"
 
+function is_container_running() {
+    local container_name="$1"
+    if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}\$"; then
+        return 1
+    fi
+
+    return 0
+}
+
+
 function is_service_up() {
     local container_name
     local service_name="$1"
 
     container_name=$(get_config ".${service_name}.container_name")
 
-    if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}\$"; then
-        return 1
-    fi
-
-    return 0
+    is_container_running "$container_name"
+    
+    return $?
 }
 
 function service_stop() {
