@@ -2,6 +2,7 @@ from typing import AnyStr, Union
 
 from injector import inject
 
+from common.decorators import ensure_container_running
 from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -61,11 +62,14 @@ $ das-cli db count-atoms --verbose
 
     def _show_verbose_output(self) -> None:
         count_atoms = self._mongodb_container_manager.get_count_atoms()
-        redis_keys = self._redis_container_manager.get_count_keys()
+        redis_keys = self._redis_container_manager.get_count_keys().items()
 
         self.stdout(f"MongoDB atoms: {count_atoms}")
 
-        for redis_key, redis_count in redis_keys.items():
+        if len(redis_keys) < 1:
+            return self.stdout("Redis: No keys found (0)")
+
+        for redis_key, redis_count in redis_keys:
             self.stdout(f"Redis {redis_key}: {redis_count}")
 
     def _show_non_verbose_output(self) -> None:
@@ -73,9 +77,14 @@ $ das-cli db count-atoms --verbose
 
         self.stdout(count_atoms)
 
-    def _show_redis_patterns(self) -> int:
-        pass
-
+    @ensure_container_running(
+        [
+            "_mongodb_container_manager",
+            "_redis_container_manager",
+        ],
+        exception_text="\nPlease use 'db start' to start required services before running 'db count-atoms'.",
+        verbose=False,
+    )
     def run(self, verbose: bool) -> None:
         if verbose:
             return self._show_verbose_output()
