@@ -4,16 +4,20 @@ from typing import List, Callable
 from .docker.exceptions import DockerContainerNotFoundError
 
 from .command import Command, StdoutSeverity
+from .settings import Settings
 
 
 def ensure_container_running(
     cls_container_manager_attrs: List[str],
     exception_text: str = "",
+    verbose: bool = True,
 ):
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            self._settings.raise_on_missing_file()
+            settings = Settings()
+
+            settings.raise_on_missing_file()
 
             container_not_running = False
 
@@ -30,16 +34,18 @@ def ensure_container_running(
                 service_port = container_instance.port
 
                 if not container.is_running():
-                    Command.stdout(
-                        f"{service_name} is not running",
-                        severity=StdoutSeverity.ERROR,
-                    )
+                    if verbose:
+                        Command.stdout(
+                            f"{service_name} is not running",
+                            severity=StdoutSeverity.ERROR,
+                        )
                     container_not_running = True
                 else:
-                    Command.stdout(
-                        f"{service_name} is running on port {service_port}",
-                        severity=StdoutSeverity.WARNING,
-                    )
+                    if verbose:
+                        Command.stdout(
+                            f"{service_name} is running on port {service_port}",
+                            severity=StdoutSeverity.WARNING,
+                        )
 
             if container_not_running:
                 raise DockerContainerNotFoundError(exception_text)
