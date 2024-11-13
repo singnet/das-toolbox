@@ -76,3 +76,22 @@ class RedisContainerManager(ContainerManager):
         container_id = self._exec_container(cmd)
 
         return container_id
+
+    def get_count_keys(self) -> dict:
+        command = "sh -c \"redis-cli KEYS '*' | cut -d ' ' -f2\""
+
+        result = self._exec_container(command)
+
+        redis_keys = result.output.split(b"\r\n")
+
+        redis_keys_count = {}
+
+        for key in redis_keys:
+            prefix = key.decode().split(":")[0]
+
+            if not key:
+                continue
+
+            redis_keys_count[prefix] = redis_keys_count.get(prefix, 0) + 1
+
+        return redis_keys_count

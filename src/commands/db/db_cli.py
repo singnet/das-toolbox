@@ -2,7 +2,8 @@ from typing import AnyStr, Union
 
 from injector import inject
 
-from common import Command, CommandGroup, Settings, StdoutSeverity
+from common.decorators import ensure_container_running
+from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
@@ -11,6 +12,84 @@ from common.docker.exceptions import (
 
 from .mongodb_container_manager import MongodbContainerManager
 from .redis_container_manager import RedisContainerManager
+
+
+class DbCountAtoms(Command):
+    name = "count-atoms"
+
+    short_help = "Displays counts of MongoDB atoms and Redis key patterns."
+
+    help = """
+'das-cli db count-atoms' is a command that counts the atoms stored in MongoDB and shows counts of specific key patterns stored in Redis. This is useful for monitoring and understanding the distribution and number of records in your databases.
+
+.SH OPTIONS
+
+--verbose, -v
+    Displays detailed information, including the count of atoms in MongoDB and the counts for various Redis key patterns.
+
+.SH EXAMPLES
+
+Run the command to get only the count of MongoDB atoms:
+
+$ das-cli db count-atoms
+
+Run the command with verbose output to see the count of MongoDB atoms and the breakdown of Redis key patterns:
+
+$ das-cli db count-atoms --verbose
+
+"""
+
+    params = [
+        CommandOption(
+            ["--verbose", "-v"],
+            is_flag=True,
+            help="",
+            default=False,
+            required=False,
+        )
+    ]
+
+    @inject
+    def __init__(
+        self,
+        mongodb_container_manager: MongodbContainerManager,
+        redis_container_manager: RedisContainerManager,
+    ) -> None:
+        self._mongodb_container_manager = mongodb_container_manager
+        self._redis_container_manager = redis_container_manager
+
+        super().__init__()
+
+    def _show_verbose_output(self) -> None:
+        count_atoms = self._mongodb_container_manager.get_count_atoms()
+        redis_keys = self._redis_container_manager.get_count_keys().items()
+
+        self.stdout(f"MongoDB atoms: {count_atoms}")
+
+        if len(redis_keys) < 1:
+            return self.stdout("Redis: No keys found (0)")
+
+        for redis_key, redis_count in redis_keys:
+            self.stdout(f"Redis {redis_key}: {redis_count}")
+
+    def _show_non_verbose_output(self) -> None:
+        count_atoms = self._mongodb_container_manager.get_count_atoms()
+
+        self.stdout(count_atoms)
+
+    @ensure_container_running(
+        [
+            "_mongodb_container_manager",
+            "_redis_container_manager",
+        ],
+        exception_text="\nPlease use 'db start' to start required services before running 'db count-atoms'.",
+        verbose=False,
+    )
+    def run(self, verbose: bool) -> None:
+        if verbose:
+            return self._show_verbose_output()
+
+        return self._show_non_verbose_output()
 
 
 class DbStop(Command):
@@ -334,6 +413,7 @@ class DbCli(CommandGroup):
         db_start: DbStart,
         db_stop: DbStop,
         db_restart: DbRestart,
+        db_count_atoms: DbCountAtoms,
     ) -> None:
         super().__init__()
         self.add_commands(
@@ -341,5 +421,6 @@ class DbCli(CommandGroup):
                 db_start.command,
                 db_stop.command,
                 db_restart.command,
+                db_count_atoms.command,
             ]
         )

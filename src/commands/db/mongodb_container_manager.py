@@ -18,7 +18,7 @@ class MongodbContainerManager(ContainerManager):
         container = Container(
             mongodb_container_name,
             metadata={
-                "port": options.get('mongodb_port'),
+                "port": options.get("mongodb_port"),
                 "image": {
                     "name": MONGODB_IMAGE_NAME,
                     "version": MONGODB_IMAGE_VERSION,
@@ -27,6 +27,7 @@ class MongodbContainerManager(ContainerManager):
         )
 
         super().__init__(container)
+        self._options = options
 
     def _upload_key_to_server(self, cluster_node, mongodb_cluster_secret_key):
         keyfile_server_path = f"/tmp/{get_rand_token(num_bytes=5)}.txt"
@@ -141,3 +142,13 @@ class MongodbContainerManager(ContainerManager):
         self._exec_container(
             f"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'rs.initiate({rl_config_json})'"
         )
+
+    def get_count_atoms(self) -> int:
+        mongodb_username = self._options.get("mongodb_username")
+        mongodb_password = self._options.get("mongodb_password")
+
+        atoms = self._exec_container(
+            f"bash -c \"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'use das' --eval 'db.atoms.countDocuments()' | tail -n 1\""
+        )
+
+        return int(atoms.output)

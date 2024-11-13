@@ -36,9 +36,14 @@ class DbModule(Module):
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
         container_name = self._settings.get("mongodb.container_name")
         mongodb_port = self._settings.get("mongodb.port")
+        mongodb_username = self._settings.get("mongodb.username")
+        mongodb_password = self._settings.get("mongodb.password")
+
         return MongodbContainerManager(
             container_name,
             options={
                 "mongodb_port": mongodb_port,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
             },
         )
