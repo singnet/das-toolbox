@@ -29,60 +29,12 @@ jobs:
       - name: Push to DockerHub
         run: docker push trueagi/das:latest-jupyter-notebook
 
-  build-das-cli:
-    runs-on: ubuntu-22.04
+  build-and-run-tests:
     if: github.ref == 'refs/heads/master'
-    needs: build-jupyter-notebook
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build Dockerfile
-        run: docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
-
-      - name: Build das-cli binary
-        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{ github.event.inputs.version }} das-cli:latest
-
-      - name: Upload das-cli artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: das-cli
-          path: dist/*
-
-  integration-tests:
-    runs-on: ubuntu-22.04
-    needs:
-      - build-das-cli
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Install requirements
-        run: |-
-          sudo apt -y update && sudo apt -y install make
-          cd /tmp
-          git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
-          cd bats-core
-          sudo ./install.sh /usr/local
-          cd -
-
-      - name: Download das-cli artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: das-cli
-          path: packages
-
-      - name: Installing das-cli package
-        run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
-
-      - name: Runnign integration tests
-        run: make integration_tests
+    uses: ./.github/workflows/run-tests.yml
 
   tag:
-    needs:
-      - integration-tests
+    needs: build-and-run-tests
     if: github.ref == 'refs/heads/master'
     uses: singnet/das/.github/workflows/run-semver.yml@master
     with:
@@ -100,7 +52,7 @@ jobs:
   deploy-das-cli:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
-    needs: integration-tests
+    needs: build-and-run-tests
     steps:
       - name: Set up SSH
         run: |
