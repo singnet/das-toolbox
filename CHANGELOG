@@ -2,3 +2,4 @@
 [#119] Correct misleading message in das-cli faas update-version to accurately reflect the latest version. (PR: #121)
 [#125] Add commands for managing the client and server of the database wrapper (PR: #126)
 [#122] Add a das-cli command to print the total number of atoms in the AtomDB (PR: #131)
+[#133] Changed Redis connection configuration for count-atoms to use the correct port from config file (PR: #134)

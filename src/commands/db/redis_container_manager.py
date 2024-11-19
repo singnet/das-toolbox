@@ -23,6 +23,7 @@ class RedisContainerManager(ContainerManager):
         )
 
         super().__init__(container, exec_context)
+        self._options = options
 
     def start_container(
         self,
@@ -78,7 +79,8 @@ class RedisContainerManager(ContainerManager):
         return container_id
 
     def get_count_keys(self) -> dict:
-        command = "sh -c \"redis-cli KEYS '*' | cut -d ' ' -f2\""
+        redis_port = self._options.get('redis_port')
+        command = f"sh -c \"redis-cli -p {redis_port} KEYS '*' | cut -d ' ' -f2\""
 
         result = self._exec_container(command)
 
