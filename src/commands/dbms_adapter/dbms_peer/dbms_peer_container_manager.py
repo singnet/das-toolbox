@@ -62,6 +62,7 @@ class DbmsPeerContainerManager(ContainerManager):
         self.raise_running_container()
 
         secrets = self._get_secrets_file(username, password)
+        das_peer_port = self._options.get("das_peer_port")
 
         with self._store_secrets_file_temporarily(secrets) as file:
             secrets_target_path = "/tmp/secrets.ini"
@@ -69,9 +70,9 @@ class DbmsPeerContainerManager(ContainerManager):
 
             command_params = [
                 "--node-id",
-                "localhost:30200",
+                f"localhost:30200",
                 "--server-id",
-                "host.docker.internal:30100",
+                f"localhost:{das_peer_port}",
                 "--postgres-hostname",
                 hostname,
                 "--postgres-port",

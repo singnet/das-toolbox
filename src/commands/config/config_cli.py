@@ -127,9 +127,6 @@ das_peer.*
     das_peer.container_name
         Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
 
-    das_peer.port
-        Defines the port on which the DAS peer server listens for incoming connections from clients.
-
 dbms_peer.*
     These variables configure settings for the DBMS Peer, such as:
 
@@ -300,6 +297,7 @@ dbms_peer.*
 
         return {
             "das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
+            "das_peer.port": database_adapter_server_port,
         }
 
     def _dbms_peer(self) -> dict:
