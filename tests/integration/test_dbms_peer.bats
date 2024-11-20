@@ -65,6 +65,10 @@ teardown() {
 }
 
 @test "Should run DBMS Peer successfuly" {
+    run das-cli db count-atoms
+
+    [[ "$output" -eq 0 ]]
+
     "$(dirname "${BATS_TEST_DIRNAME}")/../scripts/start_postgres.sh" \
         -n $postgres_container_name \
         -p $postgres_password \
@@ -95,4 +99,8 @@ teardown() {
 
     assert_line --partial "The 'public.atoms' has been mapped"
     assert_line --partial "Done."
+
+    run das-cli db count-atoms
+
+    [[ "$output" -gt 0 ]]
 }
