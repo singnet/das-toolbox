@@ -85,19 +85,21 @@ class DbmsPeerContainerManager(ContainerManager):
                 context_target_path,
             ]
 
+            volumes = {
+                file.name: {
+                    "bind": secrets_target_path,
+                    "mode": "ro",
+                },
+                context: {
+                    "bind": context_target_path,
+                    "mode": "ro",
+                },
+            }
+
             container = self._start_container(
                 command=command_params,
                 network_mode="host",
-                volumes={
-                    file.name: {
-                        "bind": secrets_target_path,
-                        "mode": "ro",
-                    },
-                    context: {
-                        "bind": context_target_path,
-                        "mode": "ro",
-                    },
-                },
+                volumes=volumes,
             )
 
             self.logs()

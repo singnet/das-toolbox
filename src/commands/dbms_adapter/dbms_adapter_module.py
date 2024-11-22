@@ -91,5 +91,11 @@ class DbmsAdapterModule(Module):
         self,
     ) -> DbmsPeerContainerManager:
         container_name = self._settings.get("dbms_peer.container_name")
+        adapter_server_port = 30100
 
-        return DbmsPeerContainerManager(container_name)
+        return DbmsPeerContainerManager(
+            container_name,
+            options={
+                "das_peer_port": adapter_server_port,
+            },
+        )
