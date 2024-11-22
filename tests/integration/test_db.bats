@@ -170,8 +170,11 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
     run das-cli db count-atoms --verbose
 
     assert_success
-    assert_output --partial "MongoDB atoms: "
+    assert_regex "$output" '(MongoDB atoms:\s.*:\s[0-9]+)'
+    assert_regex "$output" '(MongoDB nodes:\s.*:\s[0-9]+)'
+    assert_regex "$output" '(MongoDB links:\s.*:\s[0-9]+)'
     assert_regex "$output" '(Redis\s.*:\s[0-9]+)'
+
     local count=$(grep -oE 'Redis\s.*:\s[0-9]+' <<<"$output" | wc -l)
 
     [ "$count" -gt 1 ]
@@ -195,6 +198,8 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
 
     assert_success
     assert_output "MongoDB atoms: 0
+MongoDB nodes: 0
+MongoDB links: 0
 Redis: No keys found (0)"
 }
 
