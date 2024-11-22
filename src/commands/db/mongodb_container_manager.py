@@ -1,5 +1,6 @@
 import io
 import json
+import json
 from typing import AnyStr, Dict, List, Union
 
 from common import Container, ContainerManager, get_rand_token, ssh
@@ -143,12 +144,19 @@ class MongodbContainerManager(ContainerManager):
             f"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'rs.initiate({rl_config_json})'"
         )
 
-    def get_count_atoms(self) -> int:
+    def get_collection_stats(self) -> dict:
         mongodb_username = self._options.get("mongodb_username")
         mongodb_password = self._options.get("mongodb_password")
 
-        atoms = self._exec_container(
-            f"bash -c \"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'use das' --eval 'db.atoms.countDocuments()' | tail -n 1\""
-        )
+        mongodb_command = "JSON.stringify({ atoms: db.atoms.countDocuments(), nodes: db.atoms.countDocuments({ composite_type: { $exists: false } }), links: db.atoms.countDocuments({ composite_type: { $exists: true } })})"
+        command = f"bash -c \"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'use das' --eval '{mongodb_command}' | tail -n 1\""
 
-        return int(atoms.output)
+        result = self._exec_container(command)
+
+        return json.loads(result.output)
+
+    def get_count_atoms(self) -> int:
+        collection_stats = self.get_collection_stats()
+        count_atoms = int(collection_stats.get("atoms", 0))
+
+        return count_atoms
