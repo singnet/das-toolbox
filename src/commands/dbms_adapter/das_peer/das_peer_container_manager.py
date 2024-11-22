@@ -28,9 +28,11 @@ class DasPeerContainerManager(ContainerManager):
     def start_container(self):
         self.raise_running_container()
 
+        container = self.get_container()
+
         command_params = [
             "--server-id",
-            f"localhost:{self._container.port}",
+            f"localhost:{container.port}",
             "--mongo-hostname",
             self._options.get("mongodb_hostname"),
             "--mongo-port",
@@ -54,12 +56,6 @@ class DasPeerContainerManager(ContainerManager):
                     "pgrep -f 'python /app/scripts/python/das_node_server.py' || exit 1",
                 ],
             },
-            extra_hosts={
-                "host.docker.internal": "172.17.0.1",  # docker interface
-            },
-            # ports={
-            #     "30100/tcp": self._container.port,
-            # },
         )
 
         return container
