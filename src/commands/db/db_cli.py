@@ -61,10 +61,11 @@ $ das-cli db count-atoms --verbose
         super().__init__()
 
     def _show_verbose_output(self) -> None:
-        count_atoms = self._mongodb_container_manager.get_count_atoms()
+        collection_stats = self._mongodb_container_manager.get_collection_stats()
         redis_keys = self._redis_container_manager.get_count_keys().items()
 
-        self.stdout(f"MongoDB atoms: {count_atoms}")
+        for key, count in collection_stats.items():
+            self.stdout(f"MongoDB {key}: {count}")
 
         if len(redis_keys) < 1:
             return self.stdout("Redis: No keys found (0)")
