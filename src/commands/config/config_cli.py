@@ -183,22 +183,36 @@ dbms_peer.*
         port: int,
         min_nodes: int = 3,
     ) -> List[Dict]:
+        current_nodes = self._settings.get("redis.nodes", [])
+        current_total_nodes = len(current_nodes)
+        total_nodes_default = current_total_nodes if current_total_nodes > 3 else 3
+
         total_nodes = self.prompt(
             f"Enter the total number of nodes for the cluster (>= {min_nodes})",
             hide_input=False,
             type=IntRange(min_nodes),
+            default=total_nodes_default,
         )
 
         servers = []
         for i in range(0, total_nodes - 1):
+            server_ip_default = (
+                current_nodes[i]["ip"] if i < len(current_nodes) else None
+            )
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
                 type=ReachableIpAddress(username, port),
+                default=server_ip_default,
+            )
+
+            server_username_default = (
+                current_nodes[i]["username"] if i < len(current_nodes) else None
             )
             server_username = self.prompt(
                 f"Enter the server username for the server-{i + 1}",
                 hide_input=False,
+                default=server_username_default,
             )
             servers.append(
                 {
