@@ -138,9 +138,11 @@ dbms_peer.*
     def __init__(
         self,
         settings: Settings,
+        remote_context_manager: RemoteContextManager,
     ) -> None:
         super().__init__()
         self._settings = settings
+        self._remote_context_manager = remote_context_manager
 
     def _set_config(self, config_dict):
         for key, value in config_dict.items():
@@ -149,16 +151,43 @@ dbms_peer.*
             else:
                 self._settings.set(key, value)
 
-    def _build_nodes(self, is_cluster: bool, port: int) -> List[Dict]:
-        nodes = []
+    def _build_localhost_node(
+        self,
+        ip: str = "localhost",
+        use_default_as_context: bool = True,
+    ) -> List[Dict]:
         server_user = get_server_username()
-        current_node = {
-            "context": "default",
-            "ip": "localhost",
+
+        node = {
+            "ip": ip,
             "username": server_user,
         }
 
-        if is_cluster:
+        if not use_default_as_context:
+            self._remote_context_manager.set_servers([node])
+            return self._remote_context_manager.create_context()
+
+        return [
+            {
+                "context": "default",
+                **node,
+            }
+        ]
+
+    def _build_nodes(self, is_cluster: bool, port: int) -> List[Dict]:
+        if not is_cluster:
+            return self._build_localhost_node()
+
+        nodes = []
+
+        join_current_server = self.prompt(
+            f"Do you want to join the current server as an actual node on the network?",
+            hide_input=False,
+            type=bool,
+            default=True,
+        )
+
+        if join_current_server:
             server_public_ip = get_public_ip()
 
             if server_public_ip is None:
@@ -166,20 +195,17 @@ dbms_peer.*
                     "The server's public ip could not be solved. Make sure it has internet access."
                 )
 
-            current_node["ip"] = server_public_ip
+            nodes += self._build_localhost_node(
+                server_public_ip,
+                use_default_as_context=False,
+            )
 
-            nodes = self._build_cluster(server_user, port)
-
-        nodes.insert(
-            0,
-            current_node,
-        )
+        nodes = self._build_cluster(port)
 
         return nodes
 
     def _build_cluster(
         self,
-        username: str,
         port: int,
         min_nodes: int = 3,
     ) -> List[Dict]:
@@ -196,16 +222,6 @@ dbms_peer.*
 
         servers = []
         for i in range(0, total_nodes - 1):
-            server_ip_default = (
-                current_nodes[i]["ip"] if i < len(current_nodes) else None
-            )
-            server_ip = self.prompt(
-                f"Enter the ip address for the server-{i + 1}",
-                hide_input=False,
-                type=ReachableIpAddress(username, port),
-                default=server_ip_default,
-            )
-
             server_username_default = (
                 current_nodes[i]["username"] if i < len(current_nodes) else None
             )
@@ -214,6 +230,17 @@ dbms_peer.*
                 hide_input=False,
                 default=server_username_default,
             )
+
+            server_ip_default = (
+                current_nodes[i]["ip"] if i < len(current_nodes) else None
+            )
+            server_ip = self.prompt(
+                f"Enter the ip address for the server-{i + 1}",
+                hide_input=False,
+                type=ReachableIpAddress(server_username, port),
+                default=server_ip_default,
+            )
+
             servers.append(
                 {
                     "ip": server_ip,
