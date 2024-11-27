@@ -1,84 +1,127 @@
 import subprocess
-from typing import AnyStr, Dict, List
+from enum import Enum
+from typing import Dict, List, TypedDict
 from uuid import uuid4
 
 
-class RemoteContextManager:
-    def __init__(
-        self,
-        servers: List[Dict] = [],
-    ) -> None:
-        self._servers = servers
+class Server(TypedDict):
+    ip: str
+    username: str
 
-    def _get_host(self, username: str, ip: str) -> str:
+
+class ServerContext(TypedDict):
+    name: str
+    description: str
+    docker_host: str
+    server_info: Server
+
+
+class ServerContextAction(Enum):
+    CREATE = "create"
+    REMOVE = "remove"
+
+
+class ServerContextEvent(TypedDict):
+    type: ServerContextAction
+    data: ServerContext | List[str]
+
+
+class RemoteContextManager:
+    _events: List[ServerContextEvent] = []
+
+    @staticmethod
+    def _get_host(username: str, ip: str) -> str:
         return "ssh://{username}@{ip}".format(username=username, ip=ip)
 
-    def _get_context(self, host: str) -> str:
+    @staticmethod
+    def _get_context(host: str) -> str:
         return f"host={host}"
 
-    def set_servers(self, servers: List[Dict]) -> None:
-        self._servers = servers
+    def commit(self) -> None:
+        for event in self._events:
+            if event["type"] == ServerContextAction.CREATE:
+                self._create_context(event["data"])
+            elif event["type"] == ServerContextAction.REMOVE:
+                self._remove_context(event["data"])
 
-    def remove_context(self) -> Dict:
-        failed = []
+        self._events.clear()
 
-        for server in self._servers:
-            server_context = server.get("context")
+    def _create_context(self, context: ServerContext) -> None:
+        status_code = subprocess.call(
+            [
+                "docker",
+                "context",
+                "create",
+                context["name"],
+                "--description",
+                context["description"],
+                "--docker",
+                context["docker_host"],
+            ],
+        )
 
-            if server_context and server_context != "default":
+        if status_code != 0:
+            raise Exception(
+                f"Could not create context for {context['server_info']['ip']}"
+            )
+
+    def _remove_context(self, context_names: List[str]) -> None:
+        for context_name in context_names:
+            if context_name and context_name != "default":
                 status_code = subprocess.call(
                     [
                         "docker",
                         "context",
                         "rm",
-                        server_context,
+                        context_name,
                     ],
                 )
 
                 if status_code != 0:
-                    failed.append(server_context)
-                    continue
+                    raise Exception(
+                        f"Context {context_name} could not be removed from docker"
+                    )
 
-        return failed
+    def remove_servers_context(self, server_contexts: List[str]):
+        self._events.append(
+            ServerContextEvent(
+                {"type": ServerContextAction.REMOVE, "data": server_contexts}
+            )
+        )
 
-    def create_context(self) -> List[AnyStr]:
+    def create_servers_context(self, servers: List[Server]) -> List[Dict]:
         contexts = []
 
-        for server in self._servers:
+        for server in servers:
             server_ip = server.get("ip")
             server_username = server.get("username")
-
             context_name = str(uuid4())
             context_description = (
                 f"This context connects to {server_ip} and managed by das-cli"
             )
-            context_host = self._get_host(server_username, server_ip)
-            context_docker = self._get_context(
-                host=context_host,
-            )
+            context_host = RemoteContextManager._get_host(server_username, server_ip)
+            context_docker = RemoteContextManager._get_context(host=context_host)
+            event = {
+                "type": ServerContextAction.CREATE,
+                "data": ServerContext(
+                    {
+                        "name": context_name,
+                        "description": context_description,
+                        "server_info": {
+                            "username": server_username,
+                            "ip": server_ip,
+                        },
+                        "docker_host": context_docker,
+                    }
+                ),
+            }
 
-            status_code = subprocess.call(
-                [
-                    "docker",
-                    "context",
-                    "create",
-                    context_name,
-                    "--description",
-                    context_description,
-                    "--docker",
-                    context_docker,
-                ],
-            )
-
-            if status_code != 0:
-                raise Exception(f"Could not create context for {server_ip}")
-
+            self._events.append(event)
             contexts.append(
                 {
                     "context": context_name,
-                    "ip": server_ip,
-                    "username": server_username,
-                }
+                    **event["data"]["server_info"],
+                },
             )
 
         return contexts
