@@ -164,8 +164,7 @@ dbms_peer.*
         }
 
         if not use_default_as_context:
-            self._remote_context_manager.set_servers([node])
-            return self._remote_context_manager.create_context()
+            return self._remote_context_manager.create_servers_context([node])
 
         return [
             {
@@ -246,12 +245,11 @@ dbms_peer.*
                 }
             )
 
-        self._remote_context_manager.set_servers(servers)
-        return self._remote_context_manager.create_context()
+        return self._remote_context_manager.create_servers_context(servers)
 
     def _destroy_contexts(self, servers: List[Dict]):
-        self._remote_context_manager.set_servers(servers)
-        self._remote_context_manager.remove_context()
+        server_contexts = [server.get("context", "") for server in servers]
+        self._remote_context_manager.remove_servers_context(server_contexts)
 
     def _redis_nodes(self, redis_cluster, redis_port) -> List[Dict]:
         redis_nodes = self._build_nodes(redis_cluster, redis_port)
@@ -361,6 +359,7 @@ dbms_peer.*
         }
 
     def _save(self) -> None:
+        self._remote_context_manager.commit()
         self._settings.save()
         self.stdout(
             f"Configuration file saved -> {self._settings.get_dir_path()}",
