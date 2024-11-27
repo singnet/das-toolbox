@@ -6,7 +6,7 @@ from uuid import uuid4
 class RemoteContextManager:
     def __init__(
         self,
-        servers: List[Dict],
+        servers: List[Dict] = [],
     ) -> None:
         self._servers = servers
 
@@ -49,7 +49,9 @@ class RemoteContextManager:
             server_username = server.get("username")
 
             context_name = str(uuid4())
-            context_description = f"This context connects to {server_ip} and managed by das-cli"
+            context_description = (
+                f"This context connects to {server_ip} and managed by das-cli"
+            )
             context_host = self._get_host(server_username, server_ip)
             context_docker = self._get_context(
                 host=context_host,

@@ -180,10 +180,8 @@ dbms_peer.*
 
         nodes = []
 
-        join_current_server = self.prompt(
+        join_current_server = self.confirm(
             f"Do you want to join the current server as an actual node on the network?",
-            hide_input=False,
-            type=bool,
             default=True,
         )
 
@@ -248,14 +246,12 @@ dbms_peer.*
                 }
             )
 
-        remote_context_manager = RemoteContextManager(servers)
-        cluster_contexts = remote_context_manager.create_context()
-
-        return cluster_contexts
+        self._remote_context_manager.set_servers(servers)
+        return self._remote_context_manager.create_context()
 
     def _destroy_contexts(self, servers: List[Dict]):
-        remote_context_manager = RemoteContextManager(servers)
-        remote_context_manager.remove_context()
+        self._remote_context_manager.set_servers(servers)
+        self._remote_context_manager.remove_context()
 
     def _redis_nodes(self, redis_cluster, redis_port) -> List[Dict]:
         redis_nodes = self._build_nodes(redis_cluster, redis_port)
