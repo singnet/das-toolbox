@@ -219,7 +219,7 @@ dbms_peer.*
         )
 
         servers = []
-        for i in range(0, total_nodes - 1):
+        for i in range(0, total_nodes):
             server_username_default = (
                 current_nodes[i]["username"] if i < len(current_nodes) else None
             )
