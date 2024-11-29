@@ -238,7 +238,12 @@ $ das-cli db start
 
         try:
             self._redis_container_manager.set_exec_context(node_context)
-            self._redis_container_manager.start_container(redis_port, redis_cluster)
+            self._redis_container_manager.start_container(
+                redis_port,
+                node_username,
+                node_ip,
+                redis_cluster,
+            )
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
