@@ -1,6 +1,7 @@
 from typing import AnyStr, Dict, List, Union
 
 from common import Container, ContainerManager
+from common.network import is_server_port_available
 from config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 
 
@@ -28,9 +29,18 @@ class RedisContainerManager(ContainerManager):
     def start_container(
         self,
         port: int,
+        username: str,
+        host: str,
         cluster: bool = False,
     ):
         self.raise_running_container()
+
+        is_server_port_available(
+            username,
+            host,
+            port,
+            port + 10000,
+        )
 
         command_params = [
             "redis-server",
@@ -79,7 +89,7 @@ class RedisContainerManager(ContainerManager):
         return container_id
 
     def get_count_keys(self) -> dict:
-        redis_port = self._options.get('redis_port')
+        redis_port = self._options.get("redis_port")
         command = f"sh -c \"redis-cli -p {redis_port} KEYS '*' | cut -d ' ' -f2\""
 
         result = self._exec_container(command)
