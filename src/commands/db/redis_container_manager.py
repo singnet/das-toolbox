@@ -26,6 +26,17 @@ class RedisContainerManager(ContainerManager):
         super().__init__(container, exec_context)
         self._options = options
 
+    @staticmethod
+    def get_cluster_command_params() -> List[str]:
+        return [
+            "--cluster-enabled",
+            "yes",
+            "--cluster-config-file",
+            "nodes.conf",
+            "--cluster-node-timeout",
+            "5000",
+        ]
+
     def start_container(
         self,
         port: int,
@@ -35,39 +46,31 @@ class RedisContainerManager(ContainerManager):
     ):
         self.raise_running_container()
 
-        is_server_port_available(
-            username,
-            host,
-            port,
-            port + 10000,
-        )
-
-        command_params = [
-            "redis-server",
-            "--port",
-            f"{port}",
-            "--appendonly",
-            "yes",
-            "--protected-mode",
-            "no",
-        ]
+        cluster_command_params = self.get_cluster_command_params() if cluster else []
 
         if cluster:
-            command_params += [
-                "--cluster-enabled",
-                "yes",
-                "--cluster-config-file",
-                "nodes.conf",
-                "--cluster-node-timeout",
-                "5000",
-            ]
+            is_server_port_available(
+                username,
+                host,
+                port,
+                port + 10000,
+            )
 
         container_id = self._start_container(
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
             },
-            command=command_params,
+            command=[
+                *cluster_command_params,
+                "redis-server",
+                "--port",
+                f"{port}",
+                "--appendonly",
+                "yes",
+                "--protected-mode",
+                "no",
+            ],
             network_mode="host",
         )
 
