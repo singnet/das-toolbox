@@ -44,9 +44,6 @@ def is_server_port_available(
         )
         return result == 0
 
-    if end_port is None:
-        end_port = start_port
-
     return server_range_up(host, start_port, end_port)
 
 
