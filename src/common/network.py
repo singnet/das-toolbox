@@ -32,26 +32,19 @@ def is_server_port_available(
     start_port: int,
     end_port: Union[int, None] = None,
 ):
-    def server_up(host, port):
+    def server_range_up(host, start_port, end_port):
+        port_range = f"{start_port}:{end_port}" if end_port else str(start_port)
+        command = f"ssh {username}@{host} \"ufw status | grep '{port_range}.*ALLOW'\""
 
-        command = f"ssh {username}@{host} \"ufw status | grep '{port}.*ALLOW'\""
         result = subprocess.call(
             command,
             shell=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-
         return result == 0
 
-    if end_port is None:
-        return server_up(host, port=start_port)
-
-    for port in range(start_port, end_port + 1):
-        if not server_up(host, port):
-            return False
-
-    return True
+    return server_range_up(host, start_port, end_port)
 
 
 def is_ssh_server_reachable(server: dict) -> bool:

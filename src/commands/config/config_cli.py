@@ -138,9 +138,11 @@ dbms_peer.*
     def __init__(
         self,
         settings: Settings,
+        remote_context_manager: RemoteContextManager,
     ) -> None:
         super().__init__()
         self._settings = settings
+        self._remote_context_manager = remote_context_manager
 
     def _set_config(self, config_dict):
         for key, value in config_dict.items():
@@ -149,16 +151,40 @@ dbms_peer.*
             else:
                 self._settings.set(key, value)
 
-    def _build_nodes(self, is_cluster: bool, port: int) -> List[Dict]:
-        nodes = []
+    def _build_localhost_node(
+        self,
+        ip: str = "localhost",
+        use_default_as_context: bool = True,
+    ) -> List[Dict]:
         server_user = get_server_username()
-        current_node = {
-            "context": "default",
-            "ip": "localhost",
+
+        node = {
+            "ip": ip,
             "username": server_user,
         }
 
-        if is_cluster:
+        if not use_default_as_context:
+            return self._remote_context_manager.create_servers_context([node])
+
+        return [
+            {
+                "context": "default",
+                **node,
+            }
+        ]
+
+    def _build_nodes(self, is_cluster: bool, port: int) -> List[Dict]:
+        if not is_cluster:
+            return self._build_localhost_node()
+
+        nodes = []
+
+        join_current_server = self.confirm(
+            f"Do you want to join the current server as an actual node on the network?",
+            default=True,
+        )
+
+        if join_current_server:
             server_public_ip = get_public_ip()
 
             if server_public_ip is None:
@@ -166,40 +192,52 @@ dbms_peer.*
                     "The server's public ip could not be solved. Make sure it has internet access."
                 )
 
-            current_node["ip"] = server_public_ip
+            nodes += self._build_localhost_node(
+                server_public_ip,
+                use_default_as_context=False,
+            )
 
-            nodes = self._build_cluster(server_user, port)
-
-        nodes.insert(
-            0,
-            current_node,
-        )
+        nodes = self._build_cluster(port)
 
         return nodes
 
     def _build_cluster(
         self,
-        username: str,
         port: int,
         min_nodes: int = 3,
     ) -> List[Dict]:
+        current_nodes = self._settings.get("redis.nodes", [])
+        current_total_nodes = len(current_nodes)
+        total_nodes_default = current_total_nodes if current_total_nodes > 3 else 3
+
         total_nodes = self.prompt(
             f"Enter the total number of nodes for the cluster (>= {min_nodes})",
             hide_input=False,
             type=IntRange(min_nodes),
+            default=total_nodes_default,
         )
 
         servers = []
-        for i in range(0, total_nodes - 1):
-            server_ip = self.prompt(
-                f"Enter the ip address for the server-{i + 1}",
-                hide_input=False,
-                type=ReachableIpAddress(username, port),
+        for i in range(0, total_nodes):
+            server_username_default = (
+                current_nodes[i]["username"] if i < len(current_nodes) else None
             )
             server_username = self.prompt(
                 f"Enter the server username for the server-{i + 1}",
                 hide_input=False,
+                default=server_username_default,
             )
+
+            server_ip_default = (
+                current_nodes[i]["ip"] if i < len(current_nodes) else None
+            )
+            server_ip = self.prompt(
+                f"Enter the ip address for the server-{i + 1}",
+                hide_input=False,
+                type=ReachableIpAddress(server_username, port),
+                default=server_ip_default,
+            )
+
             servers.append(
                 {
                     "ip": server_ip,
@@ -207,14 +245,11 @@ dbms_peer.*
                 }
             )
 
-        remote_context_manager = RemoteContextManager(servers)
-        cluster_contexts = remote_context_manager.create_context()
-
-        return cluster_contexts
+        return self._remote_context_manager.create_servers_context(servers)
 
     def _destroy_contexts(self, servers: List[Dict]):
-        remote_context_manager = RemoteContextManager(servers)
-        remote_context_manager.remove_context()
+        server_contexts = [server.get("context", "") for server in servers]
+        self._remote_context_manager.remove_servers_context(server_contexts)
 
     def _redis_nodes(self, redis_cluster, redis_port) -> List[Dict]:
         redis_nodes = self._build_nodes(redis_cluster, redis_port)
@@ -324,6 +359,7 @@ dbms_peer.*
         }
 
     def _save(self) -> None:
+        self._remote_context_manager.commit()
         self._settings.save()
         self.stdout(
             f"Configuration file saved -> {self._settings.get_dir_path()}",
