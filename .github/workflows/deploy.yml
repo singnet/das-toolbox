@@ -1,5 +1,5 @@
 ---
-name: DAS CLI Build
+name: DAS CLI Deployment
 
 on:
   workflow_dispatch:
@@ -31,7 +31,9 @@ jobs:
 
   build-and-run-tests:
     if: github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/run-tests.yml
+    uses: ./.github/workflows/build-and-run-tests.yml
+    with:
+      version: ${{github.event.inputs.version}}
 
   tag:
     needs: build-and-run-tests
