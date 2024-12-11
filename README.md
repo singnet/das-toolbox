@@ -6,26 +6,22 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Table of Contents](#table-of-contents)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-
-  - [Installation via APT](#installation-via-apt)
-  - [Installation via Repository](#installation-via-repository)
-  - [Installation via Binary](#installation-via-binary)
-
-- [Usage](#usage)
-
-  - [DAS Deployment Options](#das-deployment-options)
-  - [Synopsis](#synopsis)
-
-- [Examples](#examples)
-
-- [Getting Help](#getting-help)
-- [Integration Tests](#integration-tests)
-- [Troubleshooting](#troubleshooting)
-  - [Docker Permission Denied](#docker-permission-denied)
+- [DAS Toolbox](#das-toolbox)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+    - [Installation via APT](#installation-via-apt)
+    - [Installation via Repository](#installation-via-repository)
+    - [Installation via Binary](#installation-via-binary)
+  - [Usage](#usage)
+    - [DAS Deployment Options](#das-deployment-options)
+    - [Synopsis](#synopsis)
+  - [Examples](#examples)
+  - [Getting Help](#getting-help)
+  - [Integration Tests](#integration-tests)
+  - [Troubleshooting](#troubleshooting)
+    - [Docker Permission Denied](#docker-permission-denied)
 
 ## Prerequisites
 
@@ -157,6 +153,7 @@ python3 das_cli.py <command> <subcommand> [options]
 - `db start`: Start Redis and MongoDB containers.
 - `db stop`: Stop and remove Redis and MongoDB containers.
 - `db restart`: Restart Redis and MongoDB containers.
+- `db count-atoms`: Display the total Atoms within the databases.
 - `faas start`: Start an OpenFaaS service inside a docker container.
 - `faas stop`: Stop and remove the OpenFaaS container.
 - `faas restart`: Restart OpenFaaS container.
@@ -176,6 +173,10 @@ python3 das_cli.py <command> <subcommand> [options]
 - `python-library version`: Show currently installed and newest available versions of both, hyperon-das and hyperon-das-atomdb
 - `python-library update`: Update both hyperon-das and hyperon-das-atomdb to the newest available version.
 - `release-notes`: List available release notes versions.
+- `dbms-adapter das-peer start`: Start a DAS peer container as a server for Atoms collection and storage.
+- `dbms-adapter das-peer stop`: Stop and remove a DAS peer container.
+- `dbms-adapter das-peer restart`: Restart a DAS peer container.
+- `dbms-adapter dbms-peer run`: Start a DBMS peer client with specified database and context that connects to the DAS peer server.
 
 ## Examples
 
@@ -201,6 +202,12 @@ python3 das_cli.py metta load $PWD/examples/data/animals.metta
 
 # Start OpenFaaS Service
 python3 das_cli.py faas start
+
+# Start DAS peer server service
+python3 das_cli.py dbms_adapter das_peer start
+
+# Start DBMS peer client
+python3 das_cli.py dbms_adapter dbms_peer run --client-hostname example.io --client-port 1234 --client-database myDatabase --client-username John --context $(pwd)/context.txt
 ```
 
 ## Getting Help
