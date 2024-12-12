@@ -1,10 +1,20 @@
 ---
-name: Run DAS-CLI tests
+name: Build DAS-CLI and run tests
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        required: false
+        description: DAS-CLI version
+        type: string
 
   workflow_call:
+    inputs:
+      version:
+        required: false
+        description: DAS-CLI version
+        type: string
 
   pull_request:
     types:
@@ -24,7 +34,7 @@ jobs:
         run: docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
 
       - name: Build das-cli binary
-        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=0.1.0 das-cli:latest
+        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} das-cli:latest
 
       - name: Upload das-cli artifact
         uses: actions/upload-artifact@v4
