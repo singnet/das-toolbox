@@ -3,6 +3,7 @@ from injector import Injector
 from commands.config import ConfigModule
 from commands.das import DasModule
 from commands.db import DbModule
+from commands.dbms_adapter import DbmsAdapterModule
 from commands.example import ExampleModule
 from commands.faas import FaaSModule
 from commands.jupyter_notebook import JupyterNotebookModule
@@ -10,7 +11,6 @@ from commands.logs import LogsModule
 from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.release_notes import ReleaseNotesModule
-from commands.dbms_adapter import DbmsAdapterModule
 
 MODULES = [
     ConfigModule,

@@ -61,9 +61,7 @@ class RemoteContextManager:
         )
 
         if status_code != 0:
-            raise Exception(
-                f"Could not create context for {context['server_info']['ip']}"
-            )
+            raise Exception(f"Could not create context for {context['server_info']['ip']}")
 
     def _remove_context(self, context_names: List[str]) -> None:
         for context_name in context_names:
@@ -78,15 +76,11 @@ class RemoteContextManager:
                 )
 
                 if status_code != 0:
-                    raise Exception(
-                        f"Context {context_name} could not be removed from docker"
-                    )
+                    raise Exception(f"Context {context_name} could not be removed from docker")
 
     def remove_servers_context(self, server_contexts: List[str]):
         self._events.append(
-            ServerContextEvent(
-                {"type": ServerContextAction.REMOVE, "data": server_contexts}
-            )
+            ServerContextEvent({"type": ServerContextAction.REMOVE, "data": server_contexts})
         )
 
     def create_servers_context(self, servers: List[Server]) -> List[Dict]:
@@ -96,9 +90,7 @@ class RemoteContextManager:
             server_ip = server.get("ip")
             server_username = server.get("username")
             context_name = str(uuid4())
-            context_description = (
-                f"This context connects to {server_ip} and managed by das-cli"
-            )
+            context_description = f"This context connects to {server_ip} and managed by das-cli"
             context_host = RemoteContextManager._get_host(server_username, server_ip)
             context_docker = RemoteContextManager._get_context(host=context_host)
             event = {

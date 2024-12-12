@@ -1,6 +1,7 @@
 from injector import inject
 
 from common import CommandGroup
+
 from .das_peer.das_peer_cli import DasPeerCli
 from .dbms_peer.dbms_peer_cli import DbmsPeerCli
 
@@ -11,8 +12,8 @@ class DbmsAdapterCli(CommandGroup):
     short_help = "Groups DBMS and DAS peer server commands for easier management."
 
     help = """
-The 'dbms-adapter' command group provides functionalities for managing both the DAS peer server 
-and DBMS peer client commands. It allows for organizing and executing operations related to 
+The 'dbms-adapter' command group provides functionalities for managing both the DAS peer server
+and DBMS peer client commands. It allows for organizing and executing operations related to
 connecting a DBMS client to the DAS peer server.
 
 This command group includes:

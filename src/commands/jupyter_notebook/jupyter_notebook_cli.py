@@ -1,12 +1,13 @@
 from injector import inject
 
-from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
 from common.prompt_types import AbsolutePath
+
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
@@ -123,9 +124,7 @@ $ das-cli jupyter-notebook stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = (
-                self._jupyter_notebook_container_manager.get_container().name
-            )
+            container_name = self._jupyter_notebook_container_manager.get_container().name
             self.stdout(
                 f"The Jupyter Notebook service named {container_name} is already stopped.",
                 severity=StdoutSeverity.WARNING,

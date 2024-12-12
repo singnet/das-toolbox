@@ -1,14 +1,11 @@
-import os
 import configparser
+import os
 import tempfile
-
-from typing import AnyStr, Union, Dict
+from typing import AnyStr, Dict, Union
 
 from common import Container, ContainerManager
-from config import DBMS_PEER_IMAGE_VERSION, DBMS_PEER_IMAGE_NAME
-
-
 from common.docker.exceptions import DockerError
+from config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
 
 class DbmsPeerContainerManager(ContainerManager):
@@ -70,7 +67,7 @@ class DbmsPeerContainerManager(ContainerManager):
 
             command_params = [
                 "--node-id",
-                f"localhost:30200",
+                "localhost:30200",
                 "--server-id",
                 f"localhost:{das_peer_port}",
                 "--postgres-hostname",

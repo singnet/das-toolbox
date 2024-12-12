@@ -3,10 +3,12 @@ import subprocess
 from typing import Tuple, Union
 
 
-class DasError(Exception): ...  # noqa: E701
+class DasError(Exception):
+    ...  # noqa: E701
 
 
-class DasNotFoundError(DasError): ...  # noqa: E701
+class DasNotFoundError(DasError):
+    ...  # noqa: E701
 
 
 class DasUbuntuAdvancedPackagingTool:

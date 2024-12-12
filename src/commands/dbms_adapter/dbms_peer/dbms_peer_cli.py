@@ -1,22 +1,12 @@
 from injector import inject
 
-from common.prompt_types import AbsolutePath
+from commands.dbms_adapter.das_peer.das_peer_container_manager import DasPeerContainerManager
+from common import Command, CommandGroup, CommandOption, ImageManager, Settings
 from common.docker.exceptions import DockerError
-
+from common.prompt_types import AbsolutePath
 from config.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
-from common import (
-    Command,
-    CommandGroup,
-    Settings,
-    ImageManager,
-    CommandOption,
-)
 
 from .dbms_peer_container_manager import DbmsPeerContainerManager
-
-from commands.dbms_adapter.das_peer.das_peer_container_manager import (
-    DasPeerContainerManager,
-)
 
 
 class DbmsPeerRun(Command):
@@ -25,20 +15,20 @@ class DbmsPeerRun(Command):
     short_help = "Runs the DBMS peer client to connect with DAS peer server."
 
     help = """
-'das-cli dbms-adapter dbms-peer run' starts the DBMS peer client, enabling it to connect 
-to the DAS peer server and facilitate data synchronization. This command 
-establishes a link to the DAS peer using the provided client database credentials 
+'das-cli dbms-adapter dbms-peer run' starts the DBMS peer client, enabling it to connect
+to the DAS peer server and facilitate data synchronization. This command
+establishes a link to the DAS peer using the provided client database credentials
 and settings.
 
-To run the command, specify the database connection details including hostname, 
-port, username, password, and optionally, the database name (defaults to 'postgres'). 
+To run the command, specify the database connection details including hostname,
+port, username, password, and optionally, the database name (defaults to 'postgres').
 A context file with necessary configurations is also required.
 
 .SH PARAMETERS
 
 --client-hostname
     Required. Specifies the hostname of the client database to connect to.
-    
+
 --client-port
     Required. Defines the port number on which the client database is running.
 
@@ -52,8 +42,8 @@ A context file with necessary configurations is also required.
     Optional. Specifies the database name to connect to; defaults to 'postgres' if not provided.
 
 --context
-    Required. Path to the context configuration file, which provides additional settings 
-    necessary for running the DBMS peer client. Must be an absolute path to an existing, 
+    Required. Path to the context configuration file, which provides additional settings
+    necessary for running the DBMS peer client. Must be an absolute path to an existing,
     readable file.
 
 .SH EXAMPLES
@@ -188,10 +178,10 @@ class DbmsPeerCli(CommandGroup):
 
     help = """
         'das-cli dbms-peer' commands allow management of DBMS peer client operations.
-        The DBMS peer acts as a client that connects to the DAS peer server, enabling 
+        The DBMS peer acts as a client that connects to the DAS peer server, enabling
         data synchronization and transfer between the DAS peer and the database.
 
-        Using 'das-cli dbms-peer', you can initiate commands to run and configure 
+        Using 'das-cli dbms-peer', you can initiate commands to run and configure
         the DBMS peer client with specified connection details.
     """
 

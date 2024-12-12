@@ -1,6 +1,6 @@
 from common import Module
 
-from .metta_cli import MettaCli, Settings, MettaLoaderContainerManager
+from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
 
 
 class MettaModule(Module):

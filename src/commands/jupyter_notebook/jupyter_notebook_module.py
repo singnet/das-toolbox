@@ -1,8 +1,8 @@
+from commands.config.config_cli import Settings
 from common import Module
 
 from .jupyter_notebook_cli import JupyterNotebookCli
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
-from commands.config.config_cli import Settings
 
 
 class JupyterNotebookModule(Module):

@@ -1,9 +1,8 @@
 from functools import wraps
-from typing import List, Callable
-
-from .docker.exceptions import DockerContainerNotFoundError
+from typing import Callable, List
 
 from .command import Command, StdoutSeverity
+from .docker.exceptions import DockerContainerNotFoundError
 from .settings import Settings
 
 
