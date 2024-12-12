@@ -7,10 +7,12 @@ from common import remove_special_characters
 from config import RELEASE_NOTES_URL
 
 
-class ReleaseNoteError(Exception): ...  # noqa: E701
+class ReleaseNoteError(Exception):
+    ...  # noqa: E701
 
 
-class ReleaseNoteNotFound(ReleaseNoteError): ...  # noqa: E701
+class ReleaseNoteNotFound(ReleaseNoteError):
+    ...  # noqa: E701
 
 
 class Library:
@@ -84,7 +86,6 @@ class ReleaseNotesPackage:
                         release_notes[current_version].append(current_package)
                     current_package = package_info
                 elif current_package:
-
                     current_package.add_to_changelog(line.strip())
 
         if current_package:

@@ -1,6 +1,7 @@
 import os
-import docker
 from typing import Dict
+
+import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -13,7 +14,6 @@ class MettaLoaderContainerManager(ContainerManager):
         loader_container_name: str,
         options: Dict = {},
     ) -> None:
-
         container = Container(
             loader_container_name,
             metadata={
@@ -36,7 +36,6 @@ class MettaLoaderContainerManager(ContainerManager):
         mongodb_password,
         redis_port,
     ):
-
         if not os.path.exists(path):
             raise FileNotFoundError(f"The specified file path '{path}' does not exist.")
 
@@ -78,9 +77,7 @@ class MettaLoaderContainerManager(ContainerManager):
             exit_code = self.get_container_exit_status(container)
 
             if exit_code != 0:
-                raise DockerError(
-                    f"File '{os.path.basename(path)}' could not be loaded."
-                )
+                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
 
             return None
         except docker.errors.APIError as e:

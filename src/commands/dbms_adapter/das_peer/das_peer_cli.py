@@ -1,23 +1,13 @@
 from injector import inject
 
-from config.config import (
-    DAS_PEER_IMAGE_NAME,
-    DAS_PEER_IMAGE_VERSION,
-)
-from common import (
-    Command,
-    CommandGroup,
-    Settings,
-    ImageManager,
-    StdoutSeverity,
-)
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerNotFoundError, DockerError
+from common.docker.exceptions import DockerContainerNotFoundError
+from config.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 from .das_peer_container_manager import DasPeerContainerManager
-
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
 
 
 class DasPeerStop(Command):
@@ -56,7 +46,7 @@ $ das-cli das-peer stop
             self._das_peer_container_manager.stop()
 
             self.stdout(
-                f"The DAS Peer service has been stopped.",
+                "The DAS Peer service has been stopped.",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
@@ -169,9 +159,9 @@ class DasPeerCli(CommandGroup):
     short_help = "Manage DAS peer server operations."
 
     help = """
-        'das-cli dbms-adapter das-peer' commands provide control over the DAS peer server, 
-        which acts as the main server in the DAS setup. 
-        Using 'das-cli dbms-adapter das-peer', you can start, stop, and restart the DAS peer 
+        'das-cli dbms-adapter das-peer' commands provide control over the DAS peer server,
+        which acts as the main server in the DAS setup.
+        Using 'das-cli dbms-adapter das-peer', you can start, stop, and restart the DAS peer
         server container as needed to manage its operations and connectivity.
     """
 

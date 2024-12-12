@@ -2,8 +2,8 @@ from typing import AnyStr, Union
 
 from injector import inject
 
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
-from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,

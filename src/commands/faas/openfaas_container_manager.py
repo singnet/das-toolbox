@@ -1,5 +1,6 @@
-import docker
 from typing import Dict
+
+import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError

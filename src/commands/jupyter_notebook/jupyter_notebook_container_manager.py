@@ -1,6 +1,7 @@
-import docker
 import os
 from typing import Dict
+
+import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerError
@@ -33,9 +34,7 @@ class JupyterNotebookContainerManager(ContainerManager):
     ):
         self.raise_running_container()
 
-        volumes = {
-            (working_dir or os.getcwd()): {"bind": "/home/jovyan/work", "mode": "rw"}
-        }
+        volumes = {(working_dir or os.getcwd()): {"bind": "/home/jovyan/work", "mode": "rw"}}
 
         try:
             container = self._start_container(

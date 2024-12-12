@@ -1,4 +1,4 @@
-from typing import AnyStr, Union, Dict
+from typing import AnyStr, Dict, Union
 
 from common import Container, ContainerManager
 from config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
