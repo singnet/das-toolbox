@@ -1,6 +1,6 @@
 import logging
 
-from config.config import LOG_FILE_NAME
+from config.config import get_config
 
 
 class LoggerError(Exception):
@@ -21,7 +21,7 @@ class Logger:
             raise LoggerError("Invalid re-instantiation of Logger")
         else:
             logging.basicConfig(
-                filename=LOG_FILE_NAME,
+                filename=get_config("LOG_FILE_NAME"),
                 format="%(asctime)s %(levelname)-8s %(message)s",
                 datefmt="%Y-%m-%d %H:%M:%S",
             )

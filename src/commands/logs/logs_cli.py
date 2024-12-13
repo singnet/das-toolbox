@@ -7,7 +7,7 @@ from commands.db.redis_container_manager import RedisContainerManager
 from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.docker.exceptions import DockerError
-from config.config import LOG_FILE_NAME
+from config.config import get_config
 
 
 class LogsDas(Command):
@@ -32,7 +32,7 @@ $ das-cli logs das
 
     def run(self):
         try:
-            with open(LOG_FILE_NAME, "r") as file:
+            with open(get_config("LOG_FILE_NAME"), "r") as file:
                 while True:
                     line = file.readline()
                     if not line:
