@@ -1,10 +1,10 @@
 from setuptools import find_packages, setup
 
-from config.config import VERSION
+from config.config import get_config
 
 setup(
     name="das-cli",
-    version=VERSION,
+    version=get_config("VERSION"),
     packages=find_packages(),
     scripts=["das_cli.py"],
     entry_points={
