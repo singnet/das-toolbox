@@ -5,7 +5,7 @@ import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerError
-from config import JUPYTER_NOTEBOOK_IMAGE_NAME, JUPYTER_NOTEBOOK_IMAGE_VERSION
+from config.config import JUPYTER_NOTEBOOK_IMAGE_NAME, JUPYTER_NOTEBOOK_IMAGE_VERSION
 
 
 class JupyterNotebookContainerManager(ContainerManager):

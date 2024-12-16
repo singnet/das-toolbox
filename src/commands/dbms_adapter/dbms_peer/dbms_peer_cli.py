@@ -4,7 +4,7 @@ from commands.dbms_adapter.das_peer.das_peer_container_manager import DasPeerCon
 from common import Command, CommandGroup, CommandOption, ImageManager, Settings
 from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
-from config.config import get_config
+from config.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
 from .dbms_peer_container_manager import DbmsPeerContainerManager
 
@@ -157,8 +157,8 @@ $ das-cli dbms-adapter dbms-peer run --client-hostname example.com --client-port
         self._raise_on_server_not_running()
 
         self._image_manager.pull(
-            get_config("DBMS_PEER_IMAGE_NAME"),
-            get_config("DBMS_PEER_IMAGE_VERSION"),
+            DBMS_PEER_IMAGE_NAME,
+            DBMS_PEER_IMAGE_VERSION,
         )
 
         self._start_client(

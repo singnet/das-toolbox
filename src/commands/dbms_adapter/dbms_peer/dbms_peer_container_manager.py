@@ -5,7 +5,7 @@ from typing import AnyStr, Dict, Union
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerError
-from config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
+from config.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
 
 class DbmsPeerContainerManager(ContainerManager):

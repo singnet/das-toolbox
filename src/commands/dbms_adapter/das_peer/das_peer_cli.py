@@ -5,7 +5,7 @@ from commands.db.redis_container_manager import RedisContainerManager
 from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
-from config.config import get_config
+from config.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 from .das_peer_container_manager import DasPeerContainerManager
 
@@ -115,8 +115,8 @@ $ das-cli das-peer start
         self._settings.raise_on_missing_file()
 
         self._image_manager.pull(
-            get_config("DAS_PEER_IMAGE_NAME"),
-            get_config("DAS_PEER_IMAGE_VERSION"),
+            DAS_PEER_IMAGE_NAME,
+            DAS_PEER_IMAGE_VERSION,
         )
 
         self._start_server()

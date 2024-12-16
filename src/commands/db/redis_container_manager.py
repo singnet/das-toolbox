@@ -2,7 +2,7 @@ from typing import AnyStr, Dict, List, Union
 
 from common import Container, ContainerManager
 from common.network import is_server_port_available
-from config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
+from config.config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 
 
 class RedisContainerManager(ContainerManager):
