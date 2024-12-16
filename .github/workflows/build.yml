@@ -1,0 +1,29 @@
+---
+name: Build DAS-CLI
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: false
+        description: DAS-CLI version
+        type: string
+
+jobs:
+  build-das-cli:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Dockerfile
+        run: docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
+
+      - name: Build das-cli binary
+        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} das-cli:latest
+
+      - name: Upload das-cli artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: das-cli
+          path: dist/*
