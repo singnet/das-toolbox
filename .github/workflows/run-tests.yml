@@ -16,6 +16,12 @@ on:
         description: DAS-CLI version
         type: string
 
+      binary-artifact-name:
+        required: false
+        description: Specifies the name of the binary artifact to be generated or used. Default is 'das-cli'.
+        type: string
+        default: das-cli
+
   pull_request:
     types:
       - opened
@@ -29,7 +35,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
- 
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -38,12 +44,14 @@ jobs:
 
       - name: Install requirements
         run: pip install -r src/requirements.txt
-        
-      - name: 
+
+      - name:
         run: make lint
 
-  build:        
+  build:
     uses: ./.github/workflows/build.yml
+    with:
+      binary-artifact-name: ${{inputs.binary-artifact-name}}
 
   integration-tests:
     runs-on: ubuntu-22.04
@@ -66,7 +74,7 @@ jobs:
       - name: Download das-cli artifact
         uses: actions/download-artifact@v4
         with:
-          name: das-cli
+          name: ${{inputs.binary-artifact-name}}
           path: packages
 
       - name: Installing das-cli package
@@ -74,4 +82,3 @@ jobs:
 
       - name: Runnign integration tests
         run: make integration_tests
-

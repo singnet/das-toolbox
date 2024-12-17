@@ -9,6 +9,12 @@ on:
         description: DAS-CLI version
         type: string
 
+      binary-artifact-name:
+        required: false
+        description: Specifies the name of the binary artifact to be generated or used. Default is 'das-cli'.
+        type: string
+        default: das-cli
+
 jobs:
   build-das-cli:
     runs-on: ubuntu-22.04
@@ -22,8 +28,9 @@ jobs:
       - name: Build das-cli binary
         run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} das-cli:latest
 
-      - name: Upload das-cli artifact
+      - id: upload-artifact
+        name: Upload das-cli artifact
         uses: actions/upload-artifact@v4
         with:
-          name: das-cli
+          name: ${{inputs.binary-artifact-name}}
           path: dist/*

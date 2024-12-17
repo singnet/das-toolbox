@@ -34,9 +34,10 @@ jobs:
     uses: ./.github/workflows/run-tests.yml
     with:
       version: ${{github.event.inputs.version}}
+      binary-artifact-name: das-cli
 
   tag:
-    needs: code-quality 
+    needs: code-quality
     if: github.ref == 'refs/heads/master'
     uses: singnet/das/.github/workflows/run-semver.yml@master
     with:
