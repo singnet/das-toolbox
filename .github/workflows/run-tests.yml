@@ -1,5 +1,5 @@
 ---
-name: Build DAS-CLI and run tests
+name: Perform Lint and run tests
 
 on:
   workflow_dispatch:
@@ -24,28 +24,30 @@ on:
       - synchronize
 
 jobs:
-  build-das-cli:
+  lint:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Build Dockerfile
-        run: docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
-
-      - name: Build das-cli binary
-        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} das-cli:latest
-
-      - name: Upload das-cli artifact
-        uses: actions/upload-artifact@v4
+ 
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          name: das-cli
-          path: dist/*
+          python-version: ~3.10
+          cache: pip
+
+      - name: Install requirements
+        run: pip install -r src/requirements.txt
+        
+      - name: 
+        run: make lint
+
+  build:        
+    uses: ./.github/workflows/build.yml
 
   integration-tests:
     runs-on: ubuntu-22.04
-    needs:
-      - build-das-cli
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,3 +74,4 @@ jobs:
 
       - name: Runnign integration tests
         run: make integration_tests
+
