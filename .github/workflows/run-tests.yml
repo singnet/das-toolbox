@@ -63,6 +63,7 @@ jobs:
         with:
           name: ${{inputs.binary-artifact-name}}
           path: dist/*
+          if-no-files-found: "error"
 
   integration-tests:
     runs-on: ubuntu-22.04
