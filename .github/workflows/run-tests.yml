@@ -48,14 +48,25 @@ jobs:
       - name:
         run: make lint
 
-  build:
-    uses: ./.github/workflows/build.yml
-    with:
-      binary-artifact-name: ${{inputs.binary-artifact-name}}
+  build-das-cli:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build DAS-CLI
+        run: make build
+
+      - id: upload-artifact
+        name: Upload das-cli artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{inputs.binary-artifact-name}}
+          path: dist/*
 
   integration-tests:
     runs-on: ubuntu-22.04
-    needs: build
+    needs: build-das-cli
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -29,7 +29,7 @@ jobs:
       - name: Push to DockerHub
         run: docker push trueagi/das:latest-jupyter-notebook
 
-  code-quality:
+  build-with-code-quality:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/run-tests.yml
     with:
@@ -37,7 +37,7 @@ jobs:
       binary-artifact-name: das-cli
 
   tag:
-    needs: code-quality
+    needs: build-with-code-quality
     if: github.ref == 'refs/heads/master'
     uses: singnet/das/.github/workflows/run-semver.yml@master
     with:
@@ -55,7 +55,7 @@ jobs:
   deploy-das-cli:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
-    needs: code-quality
+    needs: build-with-code-quality
     steps:
       - name: Set up SSH
         run: |

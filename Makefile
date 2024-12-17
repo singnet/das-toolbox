@@ -11,8 +11,11 @@ endif
 build: docker-build
 	docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=$(DAS_CLI_VERSION) das-cli:latest
 
+docker-build-jupyter-notebook:
+	@docker build -f .docker/Dockerfile.jupyter-notebook -t trueagi/das:latest-jupyter-notebook .
+
 docker-build: 
-	docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
+	@docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
 
 local-build: debian_changelog
 	dpkg-buildpackage
