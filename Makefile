@@ -8,7 +8,13 @@ endif
 
 	./scripts/debian_changelog.sh "$(DAS_CLI_VERSION)"
 
-build: debian_changelog
+build: docker-build
+	docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=$(DAS_CLI_VERSION) das-cli:latest
+
+docker-build: 
+	docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
+
+local-build: debian_changelog
 	dpkg-buildpackage
 
 man_pages:

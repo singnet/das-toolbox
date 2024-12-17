@@ -1,6 +1,6 @@
-from common.utils import get_server_username
+import getpass
 
-VERSION = '0.4.8'
+VERSION = "0.4.8"
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 # PATHS
@@ -11,8 +11,7 @@ SECRETS_PATH = f"{USER_DAS_PATH}/config.json"
 
 # LOG
 
-LOG_FILE_DIR = get_server_username()
-LOG_FILE_NAME = f"/tmp/{LOG_FILE_DIR}-das-cli.log"
+LOG_FILE_NAME = f"/tmp/{getpass.getuser()}-das-cli.log"
 
 # SERVICES
 

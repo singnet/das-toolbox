@@ -1,13 +1,10 @@
-from common import Module
-
-from .dbms_adapter_cli import DbmsAdapterCli
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
 from common import Module, Settings
 
 from .das_peer.das_peer_cli import DasPeerContainerManager
+from .dbms_adapter_cli import DbmsAdapterCli
 from .dbms_peer.dbms_peer_cli import DbmsPeerContainerManager
-
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
 
 
 class DbmsAdapterModule(Module):
@@ -62,9 +59,7 @@ class DbmsAdapterModule(Module):
     def _das_peer_container_manager_factory(self) -> DasPeerContainerManager:
         container_name = self._settings.get("das_peer.container_name")
         mongodb_nodes = self._settings.get("mongodb.nodes", [])
-        mongodb_hostname = (
-            mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else "localhost"
-        )
+        mongodb_hostname = mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else "localhost"
         mongodb_username = self._settings.get("mongodb.username")
         mongodb_password = self._settings.get("mongodb.password")
         mongodb_port = self._settings.get("mongodb.port")

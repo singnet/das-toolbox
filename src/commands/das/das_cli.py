@@ -6,7 +6,7 @@ import distro
 from injector import inject
 
 from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
-from config import VERSION
+from config.config import VERSION
 
 from .das_ubuntu_advanced_packaging_tool import (
     DasError,
@@ -15,7 +15,8 @@ from .das_ubuntu_advanced_packaging_tool import (
 )
 
 
-class PermissionError(Exception): ...  # noqa: E701
+class PermissionError(Exception):
+    ...  # noqa: E701
 
 
 class DasCliUpdateVersion(Command):

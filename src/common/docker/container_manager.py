@@ -1,19 +1,14 @@
 import curses
-import time
-from typing import Any, AnyStr, Union, TypedDict, Optional, List
-
 import socket
-import docker
+import time
+from typing import Any, AnyStr, List, Optional, TypedDict, Union
 
+import docker
 import docker.errors
 
-from .docker_manager import DockerManager
-from .exceptions import (
-    DockerContainerDuplicateError,
-    DockerContainerNotFoundError,
-    DockerError,
-)
 from ..utils import deep_merge_dicts
+from .docker_manager import DockerManager
+from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
 
 
 class ContainerImageMetadata(TypedDict):
@@ -27,7 +22,6 @@ class ContainerMetadata(TypedDict):
 
 
 class Container:
-
     def __init__(self, name: str, metadata: ContainerMetadata) -> None:
         self._name = name
         self._metadata = metadata
@@ -233,9 +227,7 @@ class ContainerManager(DockerManager):
     def wait_for_container(self, container, timeout=60, interval=2) -> bool:
         elapsed_time = 0
         while elapsed_time < timeout:
-            if self.is_container_running(container) and self.is_container_healthy(
-                container
-            ):
+            if self.is_container_running(container) and self.is_container_healthy(container):
                 return True
 
             time.sleep(interval)

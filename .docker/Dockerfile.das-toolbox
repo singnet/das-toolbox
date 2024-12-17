@@ -10,5 +10,5 @@ WORKDIR /app/das
 
 COPY . .
 
-CMD ["make", "build"]
+CMD ["make", "local-build"]
 

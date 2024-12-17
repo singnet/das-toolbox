@@ -180,7 +180,7 @@ dbms_peer.*
         nodes = []
 
         join_current_server = self.confirm(
-            f"Do you want to join the current server as an actual node on the network?",
+            "Do you want to join the current server as an actual node on the network?",
             default=True,
         )
 
@@ -228,9 +228,7 @@ dbms_peer.*
                 default=server_username_default,
             )
 
-            server_ip_default = (
-                current_nodes[i]["ip"] if i < len(current_nodes) else None
-            )
+            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
@@ -337,7 +335,7 @@ dbms_peer.*
 
     def _dbms_peer(self) -> dict:
         return {
-            "dbms_peer.container_name": f"das-cli-dbms-peer",
+            "dbms_peer.container_name": "das-cli-dbms-peer",
         }
 
     def _openfaas(self) -> dict:
@@ -420,9 +418,7 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = (
-        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
-    )
+    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
 
     @inject
     def __init__(
