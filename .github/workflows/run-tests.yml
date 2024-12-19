@@ -1,5 +1,5 @@
 ---
-name: Build DAS-CLI and run tests
+name: Perform Lint and run tests
 
 on:
   workflow_dispatch:
@@ -16,6 +16,12 @@ on:
         description: DAS-CLI version
         type: string
 
+      binary-artifact-name:
+        required: false
+        description: Specifies the name of the binary artifact to be generated or used. Default is 'das-cli'.
+        type: string
+        default: das-cli
+
   pull_request:
     types:
       - opened
@@ -24,28 +30,44 @@ on:
       - synchronize
 
 jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ~3.10
+          cache: pip
+
+      - name: Install requirements
+        run: pip install -r src/requirements.txt
+
+      - name:
+        run: make lint
+
   build-das-cli:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Dockerfile
-        run: docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
+      - name: Build DAS-CLI
+        run: DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} make build
 
-      - name: Build das-cli binary
-        run: docker run --rm -v "$(pwd)/dist/":/app/das/dist -e DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} das-cli:latest
-
-      - name: Upload das-cli artifact
+      - id: upload-artifact
+        name: Upload das-cli artifact
         uses: actions/upload-artifact@v4
         with:
-          name: das-cli
+          name: ${{github.event.inputs.binary-artifact-name || 'das-cli' }}
           path: dist/*
+          if-no-files-found: "error"
 
   integration-tests:
     runs-on: ubuntu-22.04
-    needs:
-      - build-das-cli
+    needs: build-das-cli
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,7 +86,7 @@ jobs:
       - name: Download das-cli artifact
         uses: actions/download-artifact@v4
         with:
-          name: das-cli
+          name: ${{github.event.inputs.binary-artifact-name || 'das-cli'}}
           path: packages
 
       - name: Installing das-cli package
