@@ -22,6 +22,7 @@ This CLI provides a set of commands to manage containerized services, OpenFaaS f
   - [Integration Tests](#integration-tests)
   - [Troubleshooting](#troubleshooting)
     - [Docker Permission Denied](#docker-permission-denied)
+    - [Temporary Directory Creation Error](#temporary-directory-creation-error)
 
 ## Prerequisites
 
@@ -273,3 +274,19 @@ sudo usermod -aG docker $USER
 ```
 
 After adding your user to the `docker` group, it is necessary to start a new bash session for the changes to take effect.
+
+### Temporary Directory Creation Error
+
+This error occurs because the `das-cli` executable includes a compressed support file that is unpacked into a temporary directory during execution. When the storage is full, the extraction process fails.
+
+#### Solution
+
+1. **Check the disk space**:
+
+   - Run the `df -h` command in the terminal to check the available space.
+
+2. **Free up disk space**:
+
+   - Delete unnecessary files or move them to external storage to free up space on your disk.
+
+With sufficient free space, you should be able to execute the commands as expected.
