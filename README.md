@@ -277,16 +277,4 @@ After adding your user to the `docker` group, it is necessary to start a new bas
 
 ### Temporary Directory Creation Error
 
-This error occurs because the `das-cli` executable includes a compressed support file that is unpacked into a temporary directory during execution. When the storage is full, the extraction process fails.
-
-#### Solution
-
-1. **Check the disk space**:
-
-   - Run the `df -h` command in the terminal to check the available space.
-
-2. **Free up disk space**:
-
-   - Delete unnecessary files or move them to external storage to free up space on your disk.
-
-With sufficient free space, you should be able to execute the commands as expected.
+This error occurs because the `das-cli` executable includes a compressed support file that is unpacked into a temporary directory during execution. When the storage is full, the extraction process fails. Ensure you have at least 32 MB of free space in your disk. With sufficient free space, you should be able to execute the commands as expected.
