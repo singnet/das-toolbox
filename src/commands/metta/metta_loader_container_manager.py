@@ -5,7 +5,7 @@ import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from config.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
+from settings.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaLoaderContainerManager(ContainerManager):

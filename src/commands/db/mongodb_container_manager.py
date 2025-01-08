@@ -4,7 +4,7 @@ from typing import AnyStr, Dict, List, Union
 
 from common import Container, ContainerManager, get_rand_token, ssh
 from common.docker.exceptions import DockerError
-from config.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
+from settings.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
 
 
 class MongodbContainerManager(ContainerManager):

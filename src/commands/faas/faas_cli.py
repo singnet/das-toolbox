@@ -13,7 +13,7 @@ from common import (
     StdoutSeverity,
 )
 from common.docker.exceptions import DockerContainerNotFoundError
-from config.config import OPENFAAS_IMAGE_NAME
+from settings.config import OPENFAAS_IMAGE_NAME
 
 from .openfaas_container_manager import OpenFaaSContainerManager
 

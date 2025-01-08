@@ -1,7 +1,7 @@
 import os
 
 from common.json_handler import JsonHandler
-from config.config import SECRETS_PATH
+from settings.config import SECRETS_PATH
 
 
 class Settings(JsonHandler):

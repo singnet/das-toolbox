@@ -40,7 +40,7 @@ flake8:
 	@flake8 --config ./src/.flake8.cfg $(LINT_TARGETS)
 
 mypy:
-	@mypy --check-untyped-defs .
+	@mypy ./src
 
 lint: isort black flake8 mypy
 

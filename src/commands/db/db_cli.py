@@ -2,6 +2,8 @@ from typing import AnyStr, Union
 
 from injector import inject
 
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -9,9 +11,6 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
-
-from .mongodb_container_manager import MongodbContainerManager
-from .redis_container_manager import RedisContainerManager
 
 
 class DbCountAtoms(Command):

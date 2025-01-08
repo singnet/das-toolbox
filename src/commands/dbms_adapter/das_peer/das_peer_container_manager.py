@@ -1,7 +1,7 @@
 from typing import AnyStr, Dict, Union
 
 from common import Container, ContainerManager
-from config.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
+from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 
 class DasPeerContainerManager(ContainerManager):

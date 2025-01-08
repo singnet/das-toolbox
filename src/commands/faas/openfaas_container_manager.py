@@ -4,7 +4,7 @@ import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from config.config import OPENFAAS_IMAGE_NAME
+from settings.config import OPENFAAS_IMAGE_NAME
 
 
 class OpenFaaSContainerManager(ContainerManager):

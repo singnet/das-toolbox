@@ -4,7 +4,7 @@ from typing import Union
 import requests
 
 from common import remove_special_characters
-from config.config import RELEASE_NOTES_URL
+from settings.config import RELEASE_NOTES_URL
 
 
 class ReleaseNoteError(Exception):
