@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any
+from typing import Any, List
 
 import click
 from fabric import Connection
@@ -34,7 +34,7 @@ class Command:
     name = "unknown"
     help = ""
     short_help = ""
-    params = []
+    params: List = []
     # TODO: Add more ways to connect, example: ssh-key file, etc. Look at the fabric docs.
     remote_params = [
         CommandOption(

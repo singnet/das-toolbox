@@ -1,6 +1,6 @@
 import subprocess
 from enum import Enum
-from typing import Dict, List, TypedDict
+from typing import Dict, List, TypedDict, Union
 from uuid import uuid4
 
 
@@ -23,7 +23,7 @@ class ServerContextAction(Enum):
 
 class ServerContextEvent(TypedDict):
     type: ServerContextAction
-    data: ServerContext | List[str]
+    data: Union[ServerContext, List[str]]
 
 
 class RemoteContextManager:
@@ -40,9 +40,9 @@ class RemoteContextManager:
     def commit(self) -> None:
         for event in self._events:
             if event["type"] == ServerContextAction.CREATE:
-                self._create_context(event["data"])
+                self._create_context(ServerContext(event["data"]))
             elif event["type"] == ServerContextAction.REMOVE:
-                self._remove_context(event["data"])
+                self._remove_context(list(event["data"]))
 
         self._events.clear()
 
@@ -87,26 +87,28 @@ class RemoteContextManager:
         contexts = []
 
         for server in servers:
-            server_ip = server.get("ip")
-            server_username = server.get("username")
+            server_ip = server.get("ip", "")
+            server_username = server.get("username", "")
             context_name = str(uuid4())
             context_description = f"This context connects to {server_ip} and managed by das-cli"
             context_host = RemoteContextManager._get_host(server_username, server_ip)
             context_docker = RemoteContextManager._get_context(host=context_host)
-            event = {
-                "type": ServerContextAction.CREATE,
-                "data": ServerContext(
-                    {
-                        "name": context_name,
-                        "description": context_description,
-                        "server_info": {
-                            "username": server_username,
-                            "ip": server_ip,
-                        },
-                        "docker_host": context_docker,
-                    }
-                ),
-            }
+            event = ServerContextEvent(
+                {
+                    "type": ServerContextAction.CREATE,
+                    "data": ServerContext(
+                        {
+                            "name": context_name,
+                            "description": context_description,
+                            "server_info": {
+                                "username": server_username,
+                                "ip": server_ip,
+                            },
+                            "docker_host": context_docker,
+                        }
+                    ),
+                }
+            )
 
             self._events.append(event)
             contexts.append(

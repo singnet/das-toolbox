@@ -81,7 +81,7 @@ class RedisContainerManager(ContainerManager):
 
         for redis_node in redis_nodes:
             server_ip = redis_node.get("ip")
-            nodes_str += f"{server_ip}:{redis_port} "
+            nodes_str += "{}:{}".format(str(server_ip), str(redis_port))
 
         cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0 --cluster-yes"
 

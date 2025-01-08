@@ -1,3 +1,5 @@
+from typing import List
+
 from common import Module
 
 from .das_cli import DasCli
@@ -5,4 +7,4 @@ from .das_cli import DasCli
 
 class DasModule(Module):
     _instance = DasCli
-    _dependecy_injection = []
+    _dependecy_injection: List = []

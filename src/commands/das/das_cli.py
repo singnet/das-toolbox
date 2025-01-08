@@ -80,7 +80,7 @@ $ sudo das-cli update-version --version=1.2.3
             os.X_OK,
         )
 
-        current_version, _ = self._das_ubuntu_apt_tool.get_package_version()
+        current_version = self._das_ubuntu_apt_tool.get_package_version()
 
         if not is_binary and not current_version:
             raise DasNotFoundError(
