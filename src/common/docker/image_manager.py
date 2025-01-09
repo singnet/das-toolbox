@@ -21,7 +21,7 @@ class ImageManager(DockerManager):
 
             raise DockerError(e.explanation)
 
-    def get_label(self, repository, tag, label) -> Union[dict, None]:
+    def get_label(self, repository, tag, label) -> Union[str, None]:
         container = None
 
         image = f"{repository}:{tag}"

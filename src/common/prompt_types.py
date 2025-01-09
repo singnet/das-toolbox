@@ -1,6 +1,5 @@
 import os
 import re
-from typing import Union
 
 from click import ParamType
 from click import Path as ClickPath
@@ -24,7 +23,7 @@ class FunctionVersion(ParamType):
 class ReachableIpAddress(ParamType):
     name = "reachable ip address"
 
-    def __init__(self, username: str, port: Union[int, None] = None):
+    def __init__(self, username: str, port: int):
         self.port = port
         self.username = username
 

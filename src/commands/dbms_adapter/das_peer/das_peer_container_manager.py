@@ -1,4 +1,4 @@
-from typing import AnyStr, Dict, Union
+from typing import Dict, Union
 
 from common import Container, ContainerManager
 from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
@@ -9,7 +9,7 @@ class DasPeerContainerManager(ContainerManager):
         self,
         container_name,
         options: Dict,
-        exec_context: Union[AnyStr, None] = None,
+        exec_context: Union[str, None] = None,
     ) -> None:
         container = Container(
             container_name,

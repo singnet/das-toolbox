@@ -10,7 +10,7 @@ class RedisContainerManager(ContainerManager):
         self,
         redis_container_name: str,
         options: Dict = {},
-        exec_context: Union[AnyStr, None] = None,
+        exec_context: Union[str, None] = None,
     ) -> None:
         container = Container(
             redis_container_name,

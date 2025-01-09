@@ -128,4 +128,4 @@ class DasCli(CommandGroup):
         )
 
     def version(self) -> None:
-        self.group = click.version_option(VERSION, message="%(prog)s %(version)s")(self.group)  # type: ignore
+        self.group = click.version_option(VERSION, message="%(prog)s %(version)s")(self.group)

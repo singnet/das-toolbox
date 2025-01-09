@@ -187,7 +187,7 @@ class Command:
 
         log(message)
 
-    def run(self):
+    def run(self, *args, **kwargs):
         raise NotImplementedError(
             f"The 'run' method from the command '{self.name}' should be implemented."
         )

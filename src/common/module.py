@@ -1,13 +1,12 @@
-from typing import List
+from typing import Any, List
 
 from injector import Binder
 from injector import Module as InjectorModule
 
 
 class Module(InjectorModule):
-    # list<[tuple<(interface, instance)>]>
     _dependecy_injection: List = []
-    _instance = None
+    _instance: Any
 
     def __init__(self) -> None:
         super().__init__()

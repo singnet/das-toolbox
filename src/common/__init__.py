@@ -10,6 +10,7 @@ from .command import (
     StdoutType,
 )
 from .docker import Container, ContainerManager, ImageManager, RemoteContextManager
+from .docker.container_manager import ContainerImageMetadata, ContainerMetadata
 from .logger import logger
 from .module import Module
 from .network import get_public_ip
@@ -54,4 +55,6 @@ __all__ = [
     "remove_special_characters",
     "retry",
     "deep_merge_dicts",
+    "ContainerMetadata",
+    "ContainerImageMetadata",
 ]

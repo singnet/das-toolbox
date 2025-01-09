@@ -285,6 +285,8 @@ $ das-cli faas version
             label="fn.version",
         )
 
+        assert image_tag is not None, "Image tag is None"
+
         version = image_tag.split("-").pop()
 
         return function, version

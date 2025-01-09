@@ -11,12 +11,12 @@ from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
 
 
-class ContainerImageMetadata(TypedDict):
+class ContainerImageMetadata(TypedDict, total=False):
     name: str
     version: Optional[str]
 
 
-class ContainerMetadata(TypedDict):
+class ContainerMetadata(TypedDict, total=False):
     port: Optional[int]
     image: ContainerImageMetadata
 
@@ -182,9 +182,6 @@ class ContainerManager(DockerManager):
             stdscr.keypad(False)
             curses.echo()
             curses.endwin()
-
-    def start_container(self, **config):
-        pass
 
     def stop(self) -> None:
         container_name = self.get_container().name
