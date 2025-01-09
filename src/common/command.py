@@ -194,10 +194,12 @@ class Command:
 
 
 class CommandGroup(Command):
-    name = "unknown"
-    help = ""
-    short_help = ""
-    params = []
+    name: str = "unknown"
+    help: str = ""
+    short_help: str = ""
+    params: List = []
+
+    group: click.Group
 
     def __init__(self) -> None:
         self.group = click.Group(self.name)

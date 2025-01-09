@@ -54,8 +54,11 @@ class ReachableIpAddress(ParamType):
 
 
 class AbsolutePath(ClickPath):
-    def __init__(self, *args, **kwargs):
-        super().__init__(path_type=str, *args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        if "path_type" not in kwargs:
+            kwargs["path_type"] = str
+
+        super().__init__(*args, **kwargs)
 
     def convert(self, value, param, ctx):
         path = super().convert(value, param, ctx)

@@ -1,8 +1,10 @@
+from typing import List
+
 from injector import inject
 
 from common import CommandGroup, CommandOption, StdoutSeverity
 
-from .release_notes_package import ReleaseNotesPackage
+from .release_notes_package import Library, ReleaseNotesPackage
 
 
 class ReleaseNotesCli(CommandGroup):
@@ -59,7 +61,7 @@ $ das-cli release-notes --list
         module,
         list,
     ):
-        releases = []
+        releases: List[Library] = []
 
         if not module:
             releases = self._release_notes_package.get_latest_release_notes()

@@ -97,7 +97,7 @@ class RedisContainerManager(ContainerManager):
 
         redis_keys = result.output.split(b"\r\n")
 
-        redis_keys_count = {}
+        redis_keys_count: Dict = {}
 
         for key in redis_keys:
             prefix = key.decode().split(":")[0]

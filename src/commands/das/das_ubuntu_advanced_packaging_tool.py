@@ -51,7 +51,7 @@ class DasUbuntuAdvancedPackagingTool:
         except subprocess.CalledProcessError:
             return None
 
-    def install_package(self, version: Union[str, None]) -> None:
+    def install_package(self, version: Union[str, None]) -> Union[str, None]:
         self.update_repository()
 
         if version is None:

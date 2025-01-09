@@ -1,6 +1,6 @@
 import subprocess
 from enum import Enum
-from typing import Dict, List, TypedDict, Union
+from typing import Dict, List, TypedDict, Union, cast
 from uuid import uuid4
 
 
@@ -40,9 +40,9 @@ class RemoteContextManager:
     def commit(self) -> None:
         for event in self._events:
             if event["type"] == ServerContextAction.CREATE:
-                self._create_context(ServerContext(event["data"]))
+                self._create_context(cast(ServerContext, event["data"]))
             elif event["type"] == ServerContextAction.REMOVE:
-                self._remove_context(list(event["data"]))
+                self._remove_context(cast(List[str], event["data"]))
 
         self._events.clear()
 
@@ -84,7 +84,7 @@ class RemoteContextManager:
         )
 
     def create_servers_context(self, servers: List[Server]) -> List[Dict]:
-        contexts = []
+        contexts: List[Dict] = []
 
         for server in servers:
             server_ip = server.get("ip", "")
@@ -100,10 +100,12 @@ class RemoteContextManager:
                         {
                             "name": context_name,
                             "description": context_description,
-                            "server_info": {
-                                "username": server_username,
-                                "ip": server_ip,
-                            },
+                            "server_info": Server(
+                                {
+                                    "username": server_username,
+                                    "ip": server_ip,
+                                }
+                            ),
                             "docker_host": context_docker,
                         }
                     ),
@@ -111,10 +113,11 @@ class RemoteContextManager:
             )
 
             self._events.append(event)
+            server_info = cast(ServerContext, event["data"])["server_info"]
             contexts.append(
                 {
                     "context": context_name,
-                    **event["data"]["server_info"],
+                    **server_info,
                 },
             )
 
