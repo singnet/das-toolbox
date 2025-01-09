@@ -1,7 +1,7 @@
 import os
 import re
-
 from typing import Optional
+
 from click import ParamType
 from click import Path as ClickPath
 
@@ -13,9 +13,7 @@ class FunctionVersion(ParamType):
 
     def convert(self, value, param, ctx):
         if value != "latest" and not re.match(r"v?\d+\.\d+\.\d+", value):
-            self.fail(
-                "The version must follow the format x.x.x (e.g 1.10.9)", param, ctx
-            )
+            self.fail("The version must follow the format x.x.x (e.g 1.10.9)", param, ctx)
 
         return value
 

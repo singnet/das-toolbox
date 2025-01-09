@@ -7,10 +7,12 @@ from common import remove_special_characters
 from settings.config import RELEASE_NOTES_URL
 
 
-class ReleaseNoteError(Exception): ...  # noqa: E701
+class ReleaseNoteError(Exception):
+    ...  # noqa: E701
 
 
-class ReleaseNoteNotFound(ReleaseNoteError): ...  # noqa: E701
+class ReleaseNoteNotFound(ReleaseNoteError):
+    ...  # noqa: E701
 
 
 class Library:
@@ -66,9 +68,7 @@ class ReleaseNotesPackage:
             )
         return None
 
-    def parse_release_notes(
-        self, release_notes_content: str
-    ) -> Dict[str, List[Library]]:
+    def parse_release_notes(self, release_notes_content: str) -> Dict[str, List[Library]]:
         release_notes: Dict[str, List[Library]] = {}
         current_version: Union[str, None] = None
         current_package: Union[Library, None] = None
