@@ -1,6 +1,7 @@
 import os
 import re
 
+from typing import Optional
 from click import ParamType
 from click import Path as ClickPath
 
@@ -12,7 +13,9 @@ class FunctionVersion(ParamType):
 
     def convert(self, value, param, ctx):
         if value != "latest" and not re.match(r"v?\d+\.\d+\.\d+", value):
-            self.fail("The version must follow the format x.x.x (e.g 1.10.9)", param, ctx)
+            self.fail(
+                "The version must follow the format x.x.x (e.g 1.10.9)", param, ctx
+            )
 
         return value
 
@@ -64,3 +67,17 @@ class AbsolutePath(ClickPath):
         if not os.path.isabs(path):
             self.fail("The path must be absolute.", param, ctx)
         return path
+
+
+class RegexType(ParamType):
+    name = "regex"
+
+    def __init__(self, regex: str, error_message: Optional[str] = None):
+        self.regex = re.compile(regex)
+        self.error_message = error_message or f"Input does not match regex: {regex}"
+
+    def convert(self, value, param, ctx):
+        if not self.regex.match(value):
+            self.fail(self.error_message, param, ctx)
+
+        return value
