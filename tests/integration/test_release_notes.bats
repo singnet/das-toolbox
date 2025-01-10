@@ -39,7 +39,7 @@ setup() {
 
     run das-cli release-notes --module $module_name
 
-    assert_output "[31m[ReleaseNoteNotFound] Release note for $module_name not found[39m"
+    assert_line --partial "Error: Invalid value for '--module': Input does not match a valid module name"
 }
 
 @test "Show a module with changelog" {
