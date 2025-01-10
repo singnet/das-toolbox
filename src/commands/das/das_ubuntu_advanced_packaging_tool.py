@@ -1,6 +1,6 @@
 import re
 import subprocess
-from typing import Tuple, Union
+from typing import Union
 
 
 class DasError(Exception):
@@ -29,7 +29,7 @@ class DasUbuntuAdvancedPackagingTool:
         except subprocess.CalledProcessError:
             return False
 
-    def get_package_version(self) -> Tuple[Union[None, str]]:
+    def get_package_version(self) -> Union[None, str]:
         try:
             output = subprocess.check_output(
                 [
@@ -45,13 +45,13 @@ class DasUbuntuAdvancedPackagingTool:
             matches = re.findall(version_pattern, output.decode("utf-8"))
 
             if matches:
-                return matches[0]
+                return str(matches[0])
             else:
-                return None, None
+                return None
         except subprocess.CalledProcessError:
-            return None, None
+            return None
 
-    def install_package(self, version: Union[str, None]) -> None:
+    def install_package(self, version: Union[str, None]) -> Union[str, None]:
         self.update_repository()
 
         if version is None:
@@ -82,6 +82,6 @@ class DasUbuntuAdvancedPackagingTool:
                 stdout=subprocess.DEVNULL,
             )
 
-        newer_version, _ = self.get_package_version()
+        newer_version = self.get_package_version()
 
         return newer_version

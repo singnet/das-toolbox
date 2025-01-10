@@ -1,11 +1,11 @@
 import configparser
 import os
 import tempfile
-from typing import AnyStr, Dict, Union
+from typing import Dict, Union
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerError
-from config.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
+from settings.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
 
 class DbmsPeerContainerManager(ContainerManager):
@@ -13,7 +13,7 @@ class DbmsPeerContainerManager(ContainerManager):
         self,
         container_name,
         options: Dict = {},
-        exec_context: Union[AnyStr, None] = None,
+        exec_context: Union[str, None] = None,
     ) -> None:
         container = Container(
             container_name,

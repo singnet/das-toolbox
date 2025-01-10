@@ -7,7 +7,7 @@ from commands.db.redis_container_manager import RedisContainerManager
 from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.docker.exceptions import DockerError
-from config.config import LOG_FILE_NAME
+from settings.config import LOG_FILE_NAME
 
 
 class LogsDas(Command):

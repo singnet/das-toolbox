@@ -14,6 +14,7 @@ from common import (
     get_rand_token,
     get_server_username,
 )
+from common.docker.remote_context_manager import Server
 
 
 class ConfigSet(Command):
@@ -158,10 +159,12 @@ dbms_peer.*
     ) -> List[Dict]:
         server_user = get_server_username()
 
-        node = {
-            "ip": ip,
-            "username": server_user,
-        }
+        node = Server(
+            {
+                "ip": ip,
+                "username": server_user,
+            }
+        )
 
         if not use_default_as_context:
             return self._remote_context_manager.create_servers_context([node])
@@ -217,7 +220,7 @@ dbms_peer.*
             default=total_nodes_default,
         )
 
-        servers = []
+        servers: List[Server] = []
         for i in range(0, total_nodes):
             server_username_default = (
                 current_nodes[i]["username"] if i < len(current_nodes) else None

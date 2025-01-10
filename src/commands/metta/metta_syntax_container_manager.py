@@ -3,21 +3,25 @@ import os
 import docker
 import docker.errors
 
-from common import Container, ContainerManager
+from common import Container, ContainerImageMetadata, ContainerManager, ContainerMetadata
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from config.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
+from settings.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaSyntaxContainerManager(ContainerManager):
     def __init__(self) -> None:
         container = Container(
             "das-metta-parser",
-            metadata={
-                "image": {
-                    "name": METTA_PARSER_IMAGE_NAME,
-                    "version": METTA_PARSER_IMAGE_VERSION,
-                },
-            },
+            metadata=ContainerMetadata(
+                {
+                    "image": ContainerImageMetadata(
+                        {
+                            "name": METTA_PARSER_IMAGE_NAME,
+                            "version": METTA_PARSER_IMAGE_VERSION,
+                        }
+                    ),
+                }
+            ),
         )
 
         super().__init__(container)

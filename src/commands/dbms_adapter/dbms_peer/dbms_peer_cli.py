@@ -4,7 +4,7 @@ from commands.dbms_adapter.das_peer.das_peer_container_manager import DasPeerCon
 from common import Command, CommandGroup, CommandOption, ImageManager, Settings
 from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
-from config.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
+from settings.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
 from .dbms_peer_container_manager import DbmsPeerContainerManager
 

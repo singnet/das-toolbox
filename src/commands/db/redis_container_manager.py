@@ -2,7 +2,7 @@ from typing import AnyStr, Dict, List, Union
 
 from common import Container, ContainerManager
 from common.network import is_server_port_available
-from config.config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
+from settings.config import REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 
 
 class RedisContainerManager(ContainerManager):
@@ -10,7 +10,7 @@ class RedisContainerManager(ContainerManager):
         self,
         redis_container_name: str,
         options: Dict = {},
-        exec_context: Union[AnyStr, None] = None,
+        exec_context: Union[str, None] = None,
     ) -> None:
         container = Container(
             redis_container_name,
@@ -81,7 +81,7 @@ class RedisContainerManager(ContainerManager):
 
         for redis_node in redis_nodes:
             server_ip = redis_node.get("ip")
-            nodes_str += f"{server_ip}:{redis_port} "
+            nodes_str += "{}:{}".format(str(server_ip), str(redis_port))
 
         cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0 --cluster-yes"
 
@@ -97,7 +97,7 @@ class RedisContainerManager(ContainerManager):
 
         redis_keys = result.output.split(b"\r\n")
 
-        redis_keys_count = {}
+        redis_keys_count: Dict = {}
 
         for key in redis_keys:
             prefix = key.decode().split(":")[0]

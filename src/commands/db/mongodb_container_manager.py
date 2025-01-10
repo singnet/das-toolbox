@@ -1,10 +1,15 @@
 import io
 import json
-from typing import AnyStr, Dict, List, Union
+from typing import AnyStr, Dict, List, TypedDict, Union
 
 from common import Container, ContainerManager, get_rand_token, ssh
 from common.docker.exceptions import DockerError
-from config.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
+from settings.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION
+
+
+class RsConfig(TypedDict):
+    _id: str
+    members: List
 
 
 class MongodbContainerManager(ContainerManager):
@@ -110,11 +115,13 @@ class MongodbContainerManager(ContainerManager):
         self,
         mongodb_port: int,
         mongodb_nodes: List[Dict],
-    ) -> dict:
-        rs_config = {
-            "_id": self._repl_set,
-            "members": [],
-        }
+    ) -> RsConfig:
+        rs_config = RsConfig(
+            {
+                "_id": self._repl_set,
+                "members": [],
+            }
+        )
 
         for index, mongodb_node in enumerate(mongodb_nodes):
             mongodb_node_ip = mongodb_node["ip"]

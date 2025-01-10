@@ -1,4 +1,4 @@
-from typing import AnyStr, Union
+from typing import Union
 
 import docker
 
@@ -6,19 +6,21 @@ from .exceptions import DockerContextError, DockerDaemonConnectionError
 
 
 class DockerManager:
+    _exec_context: Union[str, None]
+
     def __init__(
         self,
-        exec_context: Union[AnyStr, None] = None,
+        exec_context: Union[str, None] = None,
     ) -> None:
         self.set_exec_context(exec_context)
 
     def unset_exec_context(self) -> None:
         self.set_exec_context(None)
 
-    def set_exec_context(self, exec_context: Union[AnyStr, None] = None):
+    def set_exec_context(self, exec_context: Union[str, None] = None):
         self._exec_context = exec_context
 
-    def _get_client(self, use: Union[AnyStr, None] = None) -> docker.DockerClient:
+    def _get_client(self, use: Union[str, None] = None) -> docker.DockerClient:
         context = docker.ContextAPI.get_context(use)
         if context is None:
             raise DockerContextError(f"Docker context {use!r} not found")

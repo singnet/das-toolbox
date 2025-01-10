@@ -5,6 +5,7 @@ import secrets
 import string
 import sys
 import time
+from typing import Callable
 
 
 def is_executable_bin():
@@ -43,7 +44,7 @@ def get_rand_token(num_bytes: int = 756, only_alpha: bool = True) -> str:
     return base64.b64encode(random_bytes).decode("utf-8")
 
 
-def retry(func: callable, max_retries=5, interval=2, *args, **kwargs):
+def retry(func: Callable, max_retries=5, interval=2, *args, **kwargs):
     attempts = 0
     while attempts < max_retries:
         try:

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any
+from typing import Any, List
 
 import click
 from fabric import Connection
@@ -34,7 +34,7 @@ class Command:
     name = "unknown"
     help = ""
     short_help = ""
-    params = []
+    params: List = []
     # TODO: Add more ways to connect, example: ssh-key file, etc. Look at the fabric docs.
     remote_params = [
         CommandOption(
@@ -187,17 +187,19 @@ class Command:
 
         log(message)
 
-    def run(self):
+    def run(self, *args, **kwargs):
         raise NotImplementedError(
             f"The 'run' method from the command '{self.name}' should be implemented."
         )
 
 
 class CommandGroup(Command):
-    name = "unknown"
-    help = ""
-    short_help = ""
-    params = []
+    name: str = "unknown"
+    help: str = ""
+    short_help: str = ""
+    params: List = []
+
+    group: click.Group
 
     def __init__(self) -> None:
         self.group = click.Group(self.name)

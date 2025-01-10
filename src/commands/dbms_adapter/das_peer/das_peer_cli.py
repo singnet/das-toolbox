@@ -5,7 +5,7 @@ from commands.db.redis_container_manager import RedisContainerManager
 from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
-from config.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
+from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 from .das_peer_container_manager import DasPeerContainerManager
 

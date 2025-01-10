@@ -39,6 +39,9 @@ black:
 flake8:
 	@flake8 --config ./src/.flake8.cfg $(LINT_TARGETS)
 
-lint: isort black flake8
+mypy:
+	@mypy --config-file src/mypy.ini ./src
+
+lint: isort black flake8 mypy
 
 pre-commit: lint

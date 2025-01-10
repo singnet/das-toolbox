@@ -1,10 +1,10 @@
 import re
-from typing import Union
+from typing import Dict, List, Union
 
 import requests
 
 from common import remove_special_characters
-from config.config import RELEASE_NOTES_URL
+from settings.config import RELEASE_NOTES_URL
 
 
 class ReleaseNoteError(Exception):
@@ -51,11 +51,11 @@ class ReleaseNotesPackage:
             return response.text
         return None
 
-    def _parse_version_line(self, line: str):
+    def _parse_version_line(self, line: str) -> Union[str, None]:
         version_pattern = r"## DAS Version (.+)"
         match = re.match(version_pattern, line)
         if match:
-            return match.group(1).strip()
+            return str(match.group(1).strip())
         return None
 
     def _parse_package_line(self, line: str):
@@ -68,10 +68,10 @@ class ReleaseNotesPackage:
             )
         return None
 
-    def parse_release_notes(self, release_notes_content):
-        release_notes = {}
-        current_version = None
-        current_package = None
+    def parse_release_notes(self, release_notes_content: str) -> Dict[str, List[Library]]:
+        release_notes: Dict[str, List[Library]] = {}
+        current_version: Union[str, None] = None
+        current_package: Union[Library, None] = None
 
         for line in release_notes_content.splitlines():
             if line.startswith("## DAS Version "):
@@ -88,12 +88,12 @@ class ReleaseNotesPackage:
                 elif current_package:
                     current_package.add_to_changelog(line.strip())
 
-        if current_package:
+        if current_package and current_version:
             release_notes[current_version].append(current_package)
 
         return release_notes
 
-    def get_latest_release_notes(self) -> Union[list, None]:
+    def get_latest_release_notes(self) -> List[Library]:
         release_notes_content = self.fetch_release_notes()
         if release_notes_content:
             parsed_release_notes = self.parse_release_notes(release_notes_content)
@@ -101,15 +101,16 @@ class ReleaseNotesPackage:
 
             return parsed_release_notes[latest_version]
         else:
-            return None
+            return []
 
-    def get_release_notes(self, module: str = None) -> Union[list, None]:
-        releases = []
-        try:
-            module_name, module_version = module.split("=")
-        except ValueError:
+    def get_release_notes(self, module: Union[str, None] = None) -> List[Library]:
+        releases: List[Library] = []
+
+        if module is None:
             module_name = module
             module_version = None
+        else:
+            module_name, module_version = module.split("=")
 
         release_notes_content = self.fetch_release_notes()
         if release_notes_content:
@@ -123,9 +124,6 @@ class ReleaseNotesPackage:
                                 releases.append(package)
                         else:
                             releases.append(package)
-        else:
-            return None
-
         if len(releases) < 1:
             raise ReleaseNoteNotFound(f"Release note for {module} not found")
 

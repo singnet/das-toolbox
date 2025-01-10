@@ -1,6 +1,6 @@
 import re
 import subprocess
-from typing import Union
+from typing import Tuple, Union
 
 import requests
 
@@ -14,12 +14,12 @@ def get_public_ip():
 
 
 # TODO: validate ip
-def get_ssh_user_and_ip(text: str) -> tuple:
+def get_ssh_user_and_ip(text: str) -> Union[Tuple[str, str], None]:
     match = re.search(r"ssh:\/\/(\w+)@(\d{1,3}(?:\.\d{1,3}){3})(?::(\d+))?", text)
 
     if match:
-        user = match.group(1)
-        ip = match.group(2)
+        user = str(match.group(1))
+        ip = str(match.group(2))
 
         return (user, ip)
     else:

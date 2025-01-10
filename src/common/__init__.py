@@ -10,10 +10,11 @@ from .command import (
     StdoutType,
 )
 from .docker import Container, ContainerManager, ImageManager, RemoteContextManager
+from .docker.container_manager import ContainerImageMetadata, ContainerMetadata
 from .logger import logger
 from .module import Module
 from .network import get_public_ip
-from .prompt_types import FunctionVersion, ReachableIpAddress
+from .prompt_types import FunctionVersion, ReachableIpAddress, RegexType
 from .settings import JsonHandler, Settings
 from .utils import (
     deep_merge_dicts,
@@ -45,6 +46,7 @@ __all__ = [
     "IntRange",
     "Path",
     "ReachableIpAddress",
+    "RegexType",
     "JsonHandler",
     "Settings",
     "get_rand_token",
@@ -54,4 +56,6 @@ __all__ = [
     "remove_special_characters",
     "retry",
     "deep_merge_dicts",
+    "ContainerMetadata",
+    "ContainerImageMetadata",
 ]

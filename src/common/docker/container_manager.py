@@ -1,7 +1,7 @@
 import curses
 import socket
 import time
-from typing import Any, AnyStr, List, Optional, TypedDict, Union
+from typing import Any, List, Optional, TypedDict, Union, cast
 
 import docker
 import docker.errors
@@ -11,12 +11,12 @@ from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
 
 
-class ContainerImageMetadata(TypedDict):
+class ContainerImageMetadata(TypedDict, total=False):
     name: str
     version: Optional[str]
 
 
-class ContainerMetadata(TypedDict):
+class ContainerMetadata(TypedDict, total=False):
     port: Optional[int]
     image: ContainerImageMetadata
 
@@ -43,14 +43,18 @@ class Container:
 
     def update_metadata(self, metadata: ContainerMetadata) -> None:
         merged_metadata = deep_merge_dicts(dict(self._metadata), dict(metadata))
-        self._metadata = ContainerMetadata(**merged_metadata)
+
+        if "port" not in merged_metadata or "image" not in merged_metadata:
+            raise ValueError("Merged metadata is missing required keys: 'port' and 'image'")
+
+        self._metadata = ContainerMetadata(**cast(ContainerMetadata, merged_metadata))
 
 
 class ContainerManager(DockerManager):
     def __init__(
         self,
         container: Container,
-        exec_context: Union[AnyStr, None] = None,
+        exec_context: Union[str, None] = None,
     ) -> None:
         super().__init__(exec_context)
         self._container = container
@@ -178,9 +182,6 @@ class ContainerManager(DockerManager):
             stdscr.keypad(False)
             curses.echo()
             curses.endwin()
-
-    def start_container(self, **config):
-        pass
 
     def stop(self) -> None:
         container_name = self.get_container().name

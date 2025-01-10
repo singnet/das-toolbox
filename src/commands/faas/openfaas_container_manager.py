@@ -2,9 +2,9 @@ from typing import Dict
 
 import docker
 
-from common import Container, ContainerManager
+from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from config.config import OPENFAAS_IMAGE_NAME
+from settings.config import OPENFAAS_IMAGE_NAME
 
 
 class OpenFaaSContainerManager(ContainerManager):
@@ -17,9 +17,11 @@ class OpenFaaSContainerManager(ContainerManager):
             openfaas_container_name,
             metadata={
                 "port": options.get("openfaas_port"),
-                "image": {
-                    "name": OPENFAAS_IMAGE_NAME,
-                },
+                "image": ContainerImageMetadata(
+                    {
+                        "name": OPENFAAS_IMAGE_NAME,
+                    }
+                ),
             },
         )
 
@@ -35,9 +37,11 @@ class OpenFaaSContainerManager(ContainerManager):
     ):
         self.get_container().update_metadata(
             {
-                "image": {
-                    "version": function_version,
-                }
+                "image": ContainerImageMetadata(
+                    {
+                        "version": function_version,
+                    }
+                ),
             }
         )
 
@@ -82,7 +86,7 @@ class OpenFaaSContainerManager(ContainerManager):
         except docker.errors.APIError as e:
             if e.response.reason == "Not Found":
                 raise DockerContainerNotFoundError(
-                    f"The image {self.get_container().get_image()} for the function was not found in the Docker Hub repository. Please verify the existence of the version or ensure the correct function name is used."
+                    f"The image {self.get_container().image} for the function was not found in the Docker Hub repository. Please verify the existence of the version or ensure the correct function name is used."
                 )
 
             raise DockerError(e.explanation)

@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Union
+from typing import Optional
 
 from click import ParamType
 from click import Path as ClickPath
@@ -24,7 +24,7 @@ class FunctionVersion(ParamType):
 class ReachableIpAddress(ParamType):
     name = "reachable ip address"
 
-    def __init__(self, username: str, port: Union[int, None] = None):
+    def __init__(self, username: str, port: int):
         self.port = port
         self.username = username
 
@@ -54,11 +54,28 @@ class ReachableIpAddress(ParamType):
 
 
 class AbsolutePath(ClickPath):
-    def __init__(self, *args, **kwargs):
-        super().__init__(path_type=str, *args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        if "path_type" not in kwargs:
+            kwargs["path_type"] = str
+
+        super().__init__(*args, **kwargs)
 
     def convert(self, value, param, ctx):
         path = super().convert(value, param, ctx)
         if not os.path.isabs(path):
             self.fail("The path must be absolute.", param, ctx)
         return path
+
+
+class RegexType(ParamType):
+    name = "regex"
+
+    def __init__(self, regex: str, error_message: Optional[str] = None):
+        self.regex = re.compile(regex)
+        self.error_message = error_message or f"Input does not match regex: {regex}"
+
+    def convert(self, value, param, ctx):
+        if not self.regex.match(value):
+            self.fail(self.error_message, param, ctx)
+
+        return value

@@ -1,6 +1,6 @@
 import logging
 
-from config.config import LOG_FILE_NAME
+from settings.config import LOG_FILE_NAME
 
 
 class LoggerError(Exception):

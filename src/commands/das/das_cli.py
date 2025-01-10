@@ -6,7 +6,7 @@ import distro
 from injector import inject
 
 from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
-from config.config import VERSION
+from settings.config import VERSION
 
 from .das_ubuntu_advanced_packaging_tool import (
     DasError,
@@ -80,7 +80,7 @@ $ sudo das-cli update-version --version=1.2.3
             os.X_OK,
         )
 
-        current_version, _ = self._das_ubuntu_apt_tool.get_package_version()
+        current_version = self._das_ubuntu_apt_tool.get_package_version()
 
         if not is_binary and not current_version:
             raise DasNotFoundError(
@@ -127,5 +127,5 @@ class DasCli(CommandGroup):
             ]
         )
 
-    def version(self):
+    def version(self) -> None:
         self.group = click.version_option(VERSION, message="%(prog)s %(version)s")(self.group)
