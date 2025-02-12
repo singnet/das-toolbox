@@ -16,9 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Dockerfile
-        run: docker build -f .docker/Dockerfile.jupyter-notebook -t trueagi/das:latest-jupyter-notebook .
-
       - name: Login to DockerHub
         if: success()
         uses: docker/login-action@v1
@@ -26,12 +23,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push to DockerHub
-        run: docker push trueagi/das:latest-jupyter-notebook
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: das-cli
+          file: .docker/Dockerfile.jupyter-notebook
+          push: true
+          tags: trueagi/das:latest-jupyter-notebook
 
   build-with-code-quality:
     if: github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/run-tests.yml
+    uses: ./.github/workflows/run-das-cli-tests.yml
     with:
       version: ${{github.event.inputs.version}}
       binary-artifact-name: das-cli

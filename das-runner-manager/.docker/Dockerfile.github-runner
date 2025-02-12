@@ -1,0 +1,40 @@
+FROM ubuntu:22.04
+
+ENV USER=ubuntu \
+  ROOT_USER=root
+
+RUN apt -y update && apt install -y \
+  sudo \
+  gh \
+  wget \
+  curl \
+  ca-certificates \
+  gnupg \
+  lsb-release && \
+  useradd -m -s /bin/bash ubuntu && \
+  echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+  mkdir -p /opt/actions-runner && chown ubuntu:ubuntu /opt/actions-runner && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN curl -fSs https://get.docker.com | bash && \
+  usermod -aG docker ubuntu
+
+WORKDIR /opt/actions-runner
+
+USER ${USER}
+
+RUN curl -o actions-runner-linux-x64-2.322.0.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v2.322.0/actions-runner-linux-x64-2.322.0.tar.gz && \
+  tar xzf actions-runner-linux-x64-2.322.0.tar.gz && \
+  rm actions-runner-linux-x64-2.322.0.tar.gz
+
+USER ${ROOT_USER}
+
+RUN ./bin/installdependencies.sh
+
+COPY scripts/*.sh /opt/actions-runner
+
+RUN chmod +x /opt/actions-runner/*.sh
+
+ENTRYPOINT ["/opt/actions-runner/entrypoint.sh"]
+
