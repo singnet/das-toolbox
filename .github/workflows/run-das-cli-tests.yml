@@ -44,9 +44,11 @@ jobs:
 
       - name: Install requirements
         run: pip install -r src/requirements.txt
+        working-directory: das-cli
 
-      - name:
+      - name: Run lint
         run: make lint
+        working-directory: das-cli
 
   build-das-cli:
     runs-on: ubuntu-22.04
@@ -56,13 +58,14 @@ jobs:
 
       - name: Build DAS-CLI
         run: DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} make build
+        working-directory: das-cli
 
       - id: upload-artifact
         name: Upload das-cli artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{github.event.inputs.binary-artifact-name || 'das-cli' }}
-          path: dist/*
+          path: das-cli/dist/*
           if-no-files-found: "error"
 
   integration-tests:
@@ -94,3 +97,4 @@ jobs:
 
       - name: Runnign integration tests
         run: make integration_tests
+        working-directory: das-cli
