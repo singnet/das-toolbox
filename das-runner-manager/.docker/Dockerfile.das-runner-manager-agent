@@ -14,5 +14,7 @@ RUN pip3 install -r ./src/requirements.txt
 
 COPY . .
 
+ENV PYTHONPATH=/app/das/src
+
 ENTRYPOINT [ "python3" ]
 CMD [ "src/api_server/main.py" ]
