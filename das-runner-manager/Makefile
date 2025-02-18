@@ -7,4 +7,6 @@ build: docker-build
 build-github-runner-image:
 	@docker build -f .docker/Dockerfile.github-runner -t levisingnet/github-runner:ubuntu-22.04 .
 
+build-das-runner-manager-agent-image:
+	@docker build -f .docker/Dockerfile.das-runner-manager-agent -t levisingnet/das-runner-manager-agent:latest .
 

@@ -1,7 +1,8 @@
 import argparse
-from commands.list_command import ListCommand
-from commands.start_command import StartCommand
-from commands.stop_command import StopCommand
+from cli.commands.list_command import ListCommand
+from cli.commands.start_command import StartCommand
+from cli.commands.stop_command import StopCommand
+from cli.commands.start_agent_command import StartAgentCommand
 
 class DasRunnerManager:
     def __init__(self):
@@ -11,6 +12,7 @@ class DasRunnerManager:
         self.list_command = ListCommand(self.subparsers)
         self.start_command = StartCommand(self.subparsers)
         self.stop_command = StopCommand(self.subparsers)
+        self.start_agent_command = StartAgentCommand(self.subparsers)
 
     def run(self):
         args = self.parser.parse_args()
