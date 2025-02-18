@@ -15,4 +15,4 @@ RUN pip3 install -r ./src/requirements.txt
 COPY . .
 
 ENTRYPOINT [ "python3" ]
-CMD [ "api_server.py" ]
+CMD [ "src/api_server/main.py" ]
