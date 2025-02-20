@@ -1,11 +1,11 @@
 import httpx
-from .config import BASE_URL
+from .config import BASE_URL, TIMEOUT
 from .exceptions import APIClientException
 
 class APIClient:
     def __init__(self, base_url: str = BASE_URL):
         self.base_url = base_url
-        self.client = httpx.Client(base_url=self.base_url)
+        self.client = httpx.Client(base_url=self.base_url, timeout=TIMEOUT)
 
     def get(self, endpoint: str, params: dict = None):
         try:
