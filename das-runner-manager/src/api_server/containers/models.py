@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Optional
 
 class DockerContainerRunRequest(BaseModel):
     image: str
@@ -8,5 +8,7 @@ class DockerContainerRunRequest(BaseModel):
     environment: Dict[str, str] = {}
     privileged: bool = False
     detach: bool = True
-    network_mode: str = "bridge"
-    network: str = None
+    network_mode: Optional[str] = None
+    network: Optional[str] = None
+    tmpfs: Optional[Dict[str, str]] = None
+    hostname: Optional[str] = None

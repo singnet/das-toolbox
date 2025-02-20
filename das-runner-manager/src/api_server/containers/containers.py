@@ -32,8 +32,10 @@ def run_container(
     environment: dict,
     privileged: bool,
     detach: bool,
-    network_mode: str,
+    network_mode: Union[str, None],
     network: Union[str, None],
+    tmpfs: Union[str, None],
+    hostname: Union[str, None],
 ):
     try:
         container = client.containers.run(
@@ -45,6 +47,8 @@ def run_container(
             detach=detach,
             network_mode=network_mode,
             network=network,
+            tmpfs=tmpfs,
+            hostname=hostname,
         )
         return {"message": "Container started", "container_id": container.id}
     except Exception as e:

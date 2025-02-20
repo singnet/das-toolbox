@@ -2,8 +2,15 @@ import uvicorn
 from fastapi import FastAPI
 from api_server.containers import containers, models as container_models
 from api_server.networks import networks, models as network_models
+from api_server.daemon import docker_daemon
 
 app = FastAPI()
+
+
+@app.get("/health")
+def health_check():
+    return docker_daemon.up()
+
 
 @app.get("/containers")
 def list_containers():
@@ -21,6 +28,8 @@ def run_container(request: container_models.DockerContainerRunRequest):
         detach=request.detach,
         network_mode=request.network_mode,
         network=request.network,
+        tmpfs=request.tmpfs,
+        hostname=request.hostname,
     )
 
 

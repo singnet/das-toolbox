@@ -24,12 +24,16 @@ class StartCommand:
                 sys.exit(1)
 
         for i in range(0, args.runners):
+            home_dir = os.path.expanduser("~")
             volume = {
-                f"{os.path.expanduser('~')}/.cache/docker/{args.repository}": {
-                    'bind': f'/home/ubuntu/.cache/{args.repository}',
-                    'mode': 'rw'
+                f"{home_dir}/.cache/docker/{args.repository}": {
+                    "bind": f"/home/ubuntu/.cache/{args.repository}",
+                    "mode": "rw",
                 },
             }
+
+            container_name = f"{args.repository}-github-runner-{i}"
+            network_name = "das-runner-network"
 
             env_vars = {
                 "REPO_URL": f"https://github.com/singnet/{args.repository}",
@@ -37,14 +41,24 @@ class StartCommand:
                 "USER": "ubuntu",
             }
 
+            tmpfs = {
+                "/var/lib/docker": "",
+                "/tmp": "",
+                "/var/tmp": "",
+                "/var/cache": "",
+                "/var/log": "",
+                "/home/ubuntu": "",
+            }
+
             container_data = {
                 "image": "levisingnet/github-runner:ubuntu-22.04",
-                "name": f"{args.repository}-github-runner-{i}",
+                "name": container_name,
                 "volumes": volume,
                 "detach": True,
                 "environment": env_vars,
                 "privileged": True,
-                "network_mode": "host",
+                "network": network_name,
+                "tmpfs": tmpfs,
             }
 
-            run_container_task(container_data)
+            print(run_container_task(container_data))
