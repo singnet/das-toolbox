@@ -3,6 +3,16 @@ set -e
 
 source ./gh-login.sh
 
+LOG_DIR="/tmp/"
+RUNNER_LOG="$LOG_DIR/runner_output.log"
+
+echo "Creating log file at '$RUNNER_LOG'..."
+
+touch $RUNNER_LOG
+chmod 644 $RUNNER_LOG
+
+echo "The log file permissions for '$RUNNER_LOG' have been updated to 644, allowing everyone to read it."
+
 if [ "$#" -ne 2 ]; then
     echo "Usage: $0 <REPO_URL> <GITHUB_TOKEN>"
     exit 1
@@ -22,7 +32,7 @@ echo "Configuring the GitHub Actions Runner..."
 ./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN"
 
 echo "Starting the runner..."
-./run.sh &
+Y | ./run.sh > "$RUNNER_LOG" 2>&1 &
 runner_pid=$!
 
 wait $runner_pid
