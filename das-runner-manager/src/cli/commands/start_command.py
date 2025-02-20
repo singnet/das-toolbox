@@ -1,6 +1,7 @@
 import getpass
 import os
 from agent_service.tasks import run_container_task
+from agent_service.utils import handle_connection_refused
 import sys
 
 class StartCommand:
@@ -11,6 +12,7 @@ class StartCommand:
         self.parser.add_argument("--runners", type=int, default=1, help="Number of runners (default: 1, between 1 and 15)")
         self.parser.set_defaults(func=self.run)
 
+    @handle_connection_refused
     def run(self, args):
         if args.runners < 1 or args.runners > 15:
             print("Error: The number of runners must be between 1 and 15.")
@@ -50,6 +52,8 @@ class StartCommand:
                 "/home/ubuntu": "",
             }
 
+            restart_policy = {"Name": "unless-stopped"}
+
             container_data = {
                 "image": "levisingnet/github-runner:ubuntu-22.04",
                 "name": container_name,
@@ -59,6 +63,7 @@ class StartCommand:
                 "privileged": True,
                 "network": network_name,
                 "tmpfs": tmpfs,
+                "restart_policy": restart_policy,
             }
 
-            print(run_container_task(container_data))
+            run_container_task(container_data)

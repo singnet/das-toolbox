@@ -12,3 +12,4 @@ class DockerContainerRunRequest(BaseModel):
     network: Optional[str] = None
     tmpfs: Optional[Dict[str, str]] = None
     hostname: Optional[str] = None
+    restart_policy: Optional[Dict[str, str]]

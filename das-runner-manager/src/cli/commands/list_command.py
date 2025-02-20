@@ -1,4 +1,5 @@
 from agent_service.tasks import list_containers_task
+from agent_service.utils import handle_connection_refused
 
 class ListCommand:
     def __init__(self, subparsers):
@@ -6,6 +7,7 @@ class ListCommand:
         self.parser.add_argument("--repository", required=True, help="Workspace name")
         self.parser.set_defaults(func=self.run)
 
+    @handle_connection_refused
     def run(self, args):
         prefix = f"{args.repository}-github-runner"
 

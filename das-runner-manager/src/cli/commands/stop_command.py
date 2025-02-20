@@ -1,4 +1,5 @@
 from agent_service.tasks import stop_container_task, delete_container_task, list_containers_task
+from agent_service.utils import handle_connection_refused
 
 class StopCommand:
     def __init__(self, subparsers):
@@ -6,6 +7,7 @@ class StopCommand:
         self.parser.add_argument("--repository", required=True, help="Repository name")
         self.parser.set_defaults(func=self.run)
 
+    @handle_connection_refused
     def run(self, args):
         prefix = f"{args.repository}-github-runner"
         print(f"Stopping containers for repository: {args.repository}")

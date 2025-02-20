@@ -51,7 +51,7 @@ class AgentService:
     def run_container(self, container_data: dict):
         try:
             response = self.client.post("/containers/run", json_data=container_data)
-            # log_agent_activity(f"Started container {response['container_id']}")
+            log_agent_activity(f"Started container {response['container_id']}")
             return response
         except APIClientException as e:
             log_agent_activity(f"Error starting container: {e}")

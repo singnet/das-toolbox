@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from docker import from_env
-from typing import Union
+from typing import Union, Dict
 
 client = from_env()
 
@@ -36,6 +36,7 @@ def run_container(
     network: Union[str, None],
     tmpfs: Union[str, None],
     hostname: Union[str, None],
+    restart_policy: Union[Dict[str, str], None],
 ):
     try:
         container = client.containers.run(
@@ -49,6 +50,7 @@ def run_container(
             network=network,
             tmpfs=tmpfs,
             hostname=hostname,
+            restart_policy=restart_policy,
         )
         return {"message": "Container started", "container_id": container.id}
     except Exception as e:

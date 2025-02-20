@@ -69,6 +69,8 @@ class StartAgentCommand:
                 "start_period": 10_000_000_000,
             }
 
+            restart_policy = {"Name": "always"}
+
             container = self.client.containers.run(
                 image="levisingnet/das-runner-manager-agent:latest",
                 name=container_name,
@@ -76,6 +78,7 @@ class StartAgentCommand:
                 ports=ports,
                 detach=True,
                 healthcheck=healthcheck,
+                restart_policy=restart_policy,
             )
             print(
                 f"The agent has been successfully started on port 3000 and is running in the container with ID {container.id}!"

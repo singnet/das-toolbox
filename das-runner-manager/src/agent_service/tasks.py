@@ -1,6 +1,5 @@
 from agent_service.service import AgentService
 
-
 def run_container_task(container_data: dict):
     agent_service = AgentService()
     return agent_service.run_container(container_data)
