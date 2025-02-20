@@ -1,6 +1,6 @@
 import getpass
 import os
-from agent_service.tasks import start_container_task
+from agent_service.tasks import run_container_task
 import sys
 
 class StartCommand:
@@ -44,6 +44,7 @@ class StartCommand:
                 "detach": True,
                 "environment": env_vars,
                 "privileged": True,
+                "network_mode": "host",
             }
 
-            start_container_task(container_data)
+            run_container_task(container_data)
