@@ -7,8 +7,6 @@ USERID=$(id -u "$USER")
 GROUPID=$(id -g "$USER")
 
 cleanup() {
-   pkill -9 dockerd
-
    RUNNER_TOKEN=$(get_github_runner_token "$REPO_URL" "$GH_TOKEN")
 
     echo "Removing the GitHub Actions runner..."
@@ -18,6 +16,14 @@ cleanup() {
 trap cleanup SIGINT SIGTERM EXIT
 
 echo "Running as user: $(whoami) on host: $(hostname)"
+
+if [ ! -d "/home/$USER" ]; then
+    echo "Creating /home/$USER directory..."
+    mkdir -p "/home/$USER"
+fi
+
+echo "Changing ownership of /home/$USER to $USER..."
+sudo chown "$USERID:$GROUPID" "/home/$USER"
 
 echo "Configuring permissions for the cache folder at /home/$USER/.cache..."
 echo "Current user: $USER, User ID: $USERID, Group ID: $GROUPID"
@@ -34,8 +40,10 @@ else
         rm -f /var/run/docker.pid
     fi
 
+    containerd --log-level debug &
+    sleep 10s
     dockerd &
-    sleep 10
+    sleep 10s
 
     if ! docker info > /dev/null 2>&1; then
         echo "ERROR: Docker is not running!"
