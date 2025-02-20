@@ -13,7 +13,7 @@ RUN apt -y update && apt install -y \
   gnupg \
   lsb-release && \
   useradd -m -s /bin/bash ${USER} && \
-  # echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+  echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
   mkdir -p /opt/actions-runner && chown ${USER}:${USER} /opt/actions-runner && \
   rm -rf /var/lib/apt/lists/*
 
