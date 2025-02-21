@@ -23,8 +23,8 @@ tail -f "$RUNNER_LOG" | while read line; do
             echo "Job failed."
         fi
 
-        echo "Initiating restart sequence for container $CONTAINER_NAME..."
-        curl -X POST "http://das-runner-manager-agent:3000/containers/$CONTAINER_NAME/restart-sequence" || true
+        # echo "Initiating restart sequence for container $CONTAINER_NAME..."
+        # curl -X POST "http://das-runner-manager-agent:3000/containers/$CONTAINER_NAME/restart-sequence" || true
 
         break
     fi
