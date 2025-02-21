@@ -77,24 +77,12 @@ jobs:
         with:
           submodules: true
 
-      - name: Install requirements
-        run: |-
-          sudo apt -y update && sudo apt -y install make
-          cd /tmp
-          git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
-          cd bats-core
-          sudo ./install.sh /usr/local
-          cd -
-
       - name: Download das-cli artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{github.event.inputs.binary-artifact-name || 'das-cli'}}
-          path: packages
-
-      - name: Installing das-cli package
-        run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
+          path: das-cli/dist
 
       - name: Runnign integration tests
-        run: make integration_tests
+        run: make tests-all
         working-directory: das-cli
