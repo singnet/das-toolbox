@@ -28,8 +28,13 @@ if [[ -z "$RUNNER_TOKEN" ]]; then
     exit 1
 fi
 
-echo "Configuring the GitHub Actions Runner..."
-./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN"
+echo "Checking if the runner is already configured..."
+if [ -f .runner ]; then
+  echo "Runner is already configured. Skipping configuration."
+else
+  echo "Configuring the GitHub Actions Runner..."
+  ./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN"
+fi
 
 echo "Starting the runner..."
 Y | ./run.sh > "$RUNNER_LOG" 2>&1 &
