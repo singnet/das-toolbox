@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - master
-      - feat/add-das-runner-manager-agent
 
 jobs:
   build-binary:
@@ -26,7 +25,7 @@ jobs:
           if-no-files-found: "error"
 
   build-github-runner:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +45,7 @@ jobs:
           tags: levisingnet/github-runner:ubuntu-22.04
 
   build-das-runner-manager-agent:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
