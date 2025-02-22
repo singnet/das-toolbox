@@ -1,5 +1,6 @@
 #!/usr/bin/make -f
 LINT_TARGETS=./src
+TEMP_DIR := /tmp
 
 debian_changelog:
 ifndef DAS_CLI_VERSION
@@ -9,7 +10,18 @@ endif
 	./scripts/debian_changelog.sh "$(DAS_CLI_VERSION)"
 
 build: docker-build
-	@docker run --rm -v "$(CURDIR)/dist/":/app/das/dist -e DAS_CLI_VERSION=$(DAS_CLI_VERSION) das-cli:latest
+	@docker run --rm \
+		-it \
+		--user "$(shell id -u):$(shell id -g)" \
+		-w /app/das \
+		-v "$(CURDIR)/dist:/app/das/dist" \
+		-v "$(CURDIR):/app/das" \
+		-v "/etc/passwd:/etc/passwd:ro" \
+		-v "/etc/group:/etc/group:ro" \
+		-v "/etc/shadow:/etc/shadow:ro" \
+		-v "/etc/gshadow:/etc/gshadow:ro" \
+		-e DAS_CLI_VERSION=$(DAS_CLI_VERSION) \
+		das-cli:latest
 
 docker-build-jupyter-notebook:
 	@docker build -f .docker/Dockerfile.jupyter-notebook -t trueagi/das:latest-jupyter-notebook .
@@ -18,8 +30,7 @@ docker-build:
 	@docker build -f .docker/Dockerfile.das-toolbox -t das-cli:latest .
 
 local-build: debian_changelog
-	dpkg-buildpackage
-
+	export TMPDIR=$(TEMP_DIR) && dpkg-buildpackage -us -uc -b -d
 man_pages:
 	@python3 src/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/man
 

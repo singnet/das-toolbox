@@ -14,8 +14,6 @@ COPY ./src/requirements.txt ./src/requirements.txt
 
 RUN pip3 install -r ./src/requirements.txt
 
-COPY . .
-
 ENV PYTHONPATH=/app/das/src
 
 ENTRYPOINT ["pyinstaller", "--paths", "/app/das/src", "./src/cli/main.py", "-y", "-F", "-n", "das-runner-manager", "--distpath", "/app/das/dist"]
