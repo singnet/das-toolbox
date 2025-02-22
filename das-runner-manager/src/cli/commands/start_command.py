@@ -50,7 +50,6 @@ class StartCommand:
                 "/var/cache": "",
                 "/var/log": "",
                 "/home/ubuntu": "",
-                "/opt/actions-runner/_work": "",
             }
 
             restart_policy = {"Name": "unless-stopped"}
