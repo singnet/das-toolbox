@@ -11,7 +11,6 @@ endif
 
 build: docker-build
 	@docker run --rm \
-		-it \
 		-e UID=$(shell id -u) \
 		-e GID=$(shell id -g) \
 		-v "$(CURDIR)/dist:/app/das/dist" \
