@@ -41,7 +41,6 @@ docker-build-ci:
 tests-all: docker-build-ci
 	@docker run --rm \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v "$(CURDIR)/dist/das-cli":/usr/local/bin/das-cli \
 		das-cli-runner:latest
 
 isort:
