@@ -4,6 +4,8 @@ load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 
+bats_require_minimum_version 1.5.0
+
 setup() {
     if [ "$current_user" == "root" ]; then
         apt -y update
@@ -18,66 +20,45 @@ teardown() {
 }
 
 @test "Trying to update package version without sudo" {
+    run das-cli update-version
 
-    if [ "$current_user" == "root" ]; then
-        skip
-    else
-        run das-cli update-version
-
-        assert_output "[31m[PermissionError] Requires 'root' permissions to execute[39m"
-    fi
+    assert_output "This command is not being executed with sudo."
 }
 
 @test "Update package version" {
     local expected_output
-    local new_version="0.2.19"
+    local new_version="0.4.7"
     local current_version="$(get_das_cli_version)"
 
-    run das-cli update-version --version $new_version
+    run sudo das-cli update-version --version $new_version
 
-    if [ "$current_user" == "root" ]; then
-        assert_output "Updating the package das-cli...
+    assert_output "Updating the package das-cli...
 Package version successfully updated  $current_version --> $new_version."
-    else
-        skip
-    fi
 }
 
 @test "Update package version to the latest" {
     local current_version="$(get_das_cli_version)"
     local latest_version="$(get_das_cli_latest_version das-cli)"
 
-    if [ "$current_user" == "root" ]; then
-        run das-cli update-version
+    run sudo das-cli update-version
 
-        assert_output "Updating the package das-cli...
+    assert_output "Updating the package das-cli...
 Package version successfully updated  $current_version --> $latest_version."
-    else
-        skip
-    fi
 }
 
 @test "Trying to install invalid version" {
     local version="invalid-version"
 
-    if [ "$current_user" == "root" ]; then
-        run das-cli update-version --version $version
+    run sudo das-cli update-version --version $version
 
-        assert_output "Updating the package das-cli...
+    assert_output "Updating the package das-cli...
 The das-cli could not be updated. Please check if the specified version exists."
-    else
-        skip
-    fi
 }
 
 @test "Trying to update das-cli before it's installed" {
-    if [ "$current_user" == "root" ]; then
-        apt -y remove --autoremove --purge das-cli
+    apt -y remove --autoremove --purge das-cli
 
-        run -127 das-cli update-version
+    run -127 das-cli update-version
 
-        assert_failure
-    else
-        skip
-    fi
+    assert_failure
 }
