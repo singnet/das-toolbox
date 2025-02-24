@@ -12,14 +12,9 @@ endif
 build: docker-build
 	@docker run --rm \
 		-it \
-		--user "$(shell id -u):$(shell id -g)" \
-		-w /app/das \
+		-e UID=$(shell id -u) \
+		-e GID=$(shell id -g) \
 		-v "$(CURDIR)/dist:/app/das/dist" \
-		-v "$(CURDIR):/app/das" \
-		-v "/etc/passwd:/etc/passwd:ro" \
-		-v "/etc/group:/etc/group:ro" \
-		-v "/etc/shadow:/etc/shadow:ro" \
-		-v "/etc/gshadow:/etc/gshadow:ro" \
 		-e DAS_CLI_VERSION=$(DAS_CLI_VERSION) \
 		das-cli:latest
 
