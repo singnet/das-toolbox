@@ -14,3 +14,10 @@ RUN cd /tmp && \
     rm -rf /tmp/bats-core
 
 WORKDIR /workspace
+
+COPY . .
+
+RUN apt install $(find ./dist -type f -name *.deb | head -n 1)
+
+ENTRYPOINT ["make"]
+CMD ["integration_tests"]
