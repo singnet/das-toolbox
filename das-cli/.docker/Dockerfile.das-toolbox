@@ -18,5 +18,5 @@ WORKDIR /app/das
 
 COPY . .
 
-CMD [ "scripts/entrypoint.sh" ]
+CMD [ "scripts/build_entrypoint.sh" ]
 
