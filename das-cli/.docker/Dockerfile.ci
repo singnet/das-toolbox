@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 RUN apt -y update && apt -y install \
-    make git jq curl python3 python3-pip wget sudo netcat-traditional \
+    make git jq curl python3 python3-pip wget sudo netcat-traditional lsof socat \
     && curl -fSs https://get.docker.com | bash \
     && pip3 install --upgrade pip setuptools wheel \
     && ln -s $(which python3) /usr/local/bin/python \
