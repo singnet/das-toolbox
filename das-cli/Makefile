@@ -39,9 +39,7 @@ docker-build-ci:
 	@docker build -f .docker/Dockerfile.ci -t das-cli-runner:latest .
 
 tests-all: docker-build-ci
-	@docker run --rm \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		das-cli-runner:latest
+	@docker run --privileged --rm das-cli-runner:latest integration_tests
 
 isort:
 	@isort --settings-path ./src/.isort.cfg $(LINT_TARGETS)
