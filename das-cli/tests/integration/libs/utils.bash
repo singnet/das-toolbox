@@ -134,7 +134,7 @@ function use_config() {
 function listen_port() {
     local port="$1"
     
-    nohup nc -lk "$port" > /dev/null 2>&1 &
+    nc -lk "$port" > /dev/null 2>&1 &
 
     local pid=$!
     disown $pid
