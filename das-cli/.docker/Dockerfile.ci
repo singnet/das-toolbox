@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 RUN apt -y update && apt -y install \
-    make git jq curl python3 python3-pip wget sudo \
+    make git jq curl python3 python3-pip wget sudo netcat-traditional \
     && curl -fSs https://get.docker.com | bash \
     && pip3 install --upgrade pip setuptools wheel \
     && ln -s $(which python3) /usr/local/bin/python \
@@ -17,9 +17,10 @@ RUN cd /tmp && \
 
 WORKDIR /workspace
 
-COPY . .
+COPY ./dist ./dist
 
 RUN apt install $(find ./dist -type f -name *.deb | head -n 1)
 
-ENTRYPOINT ["make"]
-CMD ["integration_tests"]
+COPY . .
+
+ENTRYPOINT [ "./scripts/start.sh" ]
