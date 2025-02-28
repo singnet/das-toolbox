@@ -33,7 +33,7 @@ if [ -f .runner ]; then
   echo "Runner is already configured. Skipping configuration."
 else
   echo "Configuring the GitHub Actions Runner..."
-  ./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN"
+  ./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN" --ephemeral
 fi
 
 echo "Starting the runner..."
