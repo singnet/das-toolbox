@@ -133,9 +133,8 @@ function use_config() {
 
 function listen_port() {
     local port="$1"
-    
-    nohup nc -lk "$port" > /dev/null 2>&1 &
 
+    socat TCP-LISTEN:"$port",fork,reuseaddr - > /dev/null 2>&1 &
     local pid=$!
     disown $pid
 
@@ -145,7 +144,9 @@ function listen_port() {
     else
         echo "Started listening on port $port with PID $pid"
     fi
+
 }
+
 
 function stop_listen_port() {
     local port="$1"

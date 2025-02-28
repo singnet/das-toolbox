@@ -38,16 +38,15 @@ class DasUbuntuAdvancedPackagingTool:
                     self.package_name,
                 ],
                 stderr=subprocess.DEVNULL,
-            )
+            ).decode("utf-8")
 
-            version_pattern = r"Installed:\s*(\d+\.\d+\.\d+)\n\s*Candidate:\s*(\d+\.\d+\.\d+)"
+            match = re.search(r"Installed:\s*([\w\d.+~-]+)", output)
 
-            matches = re.findall(version_pattern, output.decode("utf-8"))
+            if match:
+                installed_version = match.group(1)
+                return installed_version if installed_version != "(none)" else None
 
-            if matches:
-                return str(matches[0])
-            else:
-                return None
+            return None
         except subprocess.CalledProcessError:
             return None
 

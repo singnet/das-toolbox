@@ -1,0 +1,2 @@
+class APIClientException(Exception):
+    pass

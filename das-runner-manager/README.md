@@ -35,7 +35,7 @@ pip install -r src/requirements.txt
 Starts the specified number of runners for a given repository. If the GitHub token is not provided, the script will prompt for it interactively.
 
 ```bash
-python3 src/main.py start --repository das --runners 5
+python3 src/cli/main.py start --repository das --runners 5
 ```
 - **`--repository das`** → Specifies the repository name.
 - **`--runners 5`** → Defines the number of runners to start.
@@ -45,7 +45,7 @@ python3 src/main.py start --repository das --runners 5
 Lists all the runners that have been started for a specific repository.
 
 ```bash
-python3 src/main.py list --repository das
+python3 src/cli/main.py list --repository das
 ```
 - **`--repository das`** → Specifies the repository name.
 
@@ -53,7 +53,7 @@ python3 src/main.py list --repository das
 Stops all active runners for a given repository.
 
 ```bash
-python3 src/main.py stop --repository das
+python3 src/cli/main.py stop --repository das
 ```
 - **`--repository das`** → Specifies the repository whose runners should be stopped.
 
