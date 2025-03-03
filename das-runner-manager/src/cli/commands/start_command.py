@@ -43,15 +43,6 @@ class StartCommand:
                 "USER": "ubuntu",
             }
 
-            tmpfs = {
-                "/var/lib/docker": "",
-                "/tmp": "",
-                "/var/tmp": "",
-                "/var/cache": "",
-                "/var/log": "",
-                "/home/ubuntu": "",
-            }
-
             restart_policy = {"Name": "unless-stopped"}
 
             container_data = {
@@ -62,7 +53,6 @@ class StartCommand:
                 "environment": env_vars,
                 "privileged": True,
                 "network": network_name,
-                "tmpfs": tmpfs,
                 "restart_policy": restart_policy,
             }
 
