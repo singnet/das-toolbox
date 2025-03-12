@@ -32,6 +32,8 @@ JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
 DAS_PEER_IMAGE_NAME = "trueagi/das"
 DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 
-
 DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
+
+ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
+ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-poc"
