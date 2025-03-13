@@ -3,10 +3,11 @@ from injector import inject
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.docker.exceptions import (
-    DockerContainerNotFoundError,
     DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
     DockerError,
 )
+
 
 class AttentionBrokerStop(Command):
     name = "stop"
@@ -24,6 +25,7 @@ To stop a running Attention Broker service:
 
 $ das-cli attention-broker stop
 """
+
     @inject
     def __init__(
         self,
@@ -128,7 +130,11 @@ $ das-cli attention-broker restart
 """
 
     @inject
-    def __init__(self, attention_broker_start: AttentionBrokerStart, attention_broker_stop: AttentionBrokerStop) -> None:
+    def __init__(
+        self,
+        attention_broker_start: AttentionBrokerStart,
+        attention_broker_stop: AttentionBrokerStop,
+    ) -> None:
         super().__init__()
         self._attention_broker_start = attention_broker_start
         self._attention_broker_stop = attention_broker_stop

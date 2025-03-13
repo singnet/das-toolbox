@@ -383,7 +383,7 @@ dbms_peer.*
 
     def _link_creation_agent(self) -> dict:
         return {
-            "link_creation_agent.container_name": f"das-cli-link-creation-agent",
+            "link_creation_agent.container_name": "das-cli-link-creation-agent",
         }
 
     def _save(self) -> None:

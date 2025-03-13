@@ -1,18 +1,17 @@
 from injector import inject
 
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
+from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
-    DockerContainerNotFoundError,
     DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
     DockerError,
 )
+
 
 class QueryAgentStop(Command):
     name = "stop"
@@ -28,6 +27,7 @@ To stop a running Query Agent service:
 
 $ das-cli query-agent stop
 """
+
     @inject
     def __init__(
         self,
@@ -119,7 +119,7 @@ $ das-cli query-agent start
             "_attention_broker_container_manager",
         ],
         exception_text="\nPlease start the required services before running 'query-agent start'.\n"
-                  "Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.",
+        "Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
     def run(self):
@@ -146,7 +146,9 @@ $ das-cli query-agent restart
 """
 
     @inject
-    def __init__(self, query_agent_start: QueryAgentStart, query_agent_stop: QueryAgentStop) -> None:
+    def __init__(
+        self, query_agent_start: QueryAgentStart, query_agent_stop: QueryAgentStop
+    ) -> None:
         super().__init__()
         self._query_agent_start = query_agent_start
         self._query_agent_stop = query_agent_stop

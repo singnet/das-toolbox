@@ -1,7 +1,7 @@
 import tempfile
-import docker
-
 from typing import Dict
+
+import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -29,7 +29,11 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _create_temp_config_file(self, query_agent_hostname: str, query_agent_port: int) -> str:
+    def _create_temp_config_file(
+        self,
+        query_agent_hostname: str,
+        query_agent_port: str,
+    ) -> str:
         query_agent_address = f"{query_agent_hostname}:{query_agent_port}"
 
         config_data = f"""
@@ -49,19 +53,21 @@ requests_buffer_file = ./buffer
 
     def start_container(self):
         self.raise_running_container()
-        self.raise_on_port_in_use([
-            9080,
-            9001,
-            9090,
-        ])
+        self.raise_on_port_in_use(
+            [
+                9080,
+                9001,
+                9090,
+            ]
+        )
 
         try:
             self.stop()
         except (DockerContainerNotFoundError, DockerError):
             pass
 
-        query_agent_hostname = self._options.get("query_agent_hostname")
-        query_agent_port = self._options.get("query_agent_port")
+        query_agent_hostname = str(self._options.get("query_agent_hostname"))
+        query_agent_port = str(self._options.get("query_agent_port"))
 
         config_file_path = self._create_temp_config_file(
             query_agent_hostname,

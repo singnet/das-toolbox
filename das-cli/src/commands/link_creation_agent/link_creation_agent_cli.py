@@ -1,14 +1,17 @@
 from injector import inject
 
-from commands.link_creation_agent.link_creation_agent_container_manager import LinkCreationAgentContainerManager
+from commands.link_creation_agent.link_creation_agent_container_manager import (
+    LinkCreationAgentContainerManager,
+)
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
-    DockerContainerNotFoundError,
     DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
     DockerError,
 )
+
 
 class LinkCreationAgentStop(Command):
     name = "stop"
@@ -24,6 +27,7 @@ To stop a running Link Creation Agent service:
 
 $ das-cli link-creation-agent stop
 """
+
     @inject
     def __init__(
         self,
@@ -82,7 +86,6 @@ $ das-cli link-creation-agent start
         self._link_creation_agent_container_manager = link_creation_agent_container_manager
         self._query_agent_container_manager = query_agent_container_manager
 
-
     def _link_creation_agent(self) -> None:
         self.stdout("Starting Link Creation Agent service...")
 
@@ -90,25 +93,23 @@ $ das-cli link-creation-agent start
             self._link_creation_agent_container_manager.start_container()
 
             self.stdout(
-                f"Link Creation Agent started listening on the ports 9080, 9001 and 9090",
+                "Link Creation Agent started listening on the ports 9080, 9001 and 9090",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                f"Link Creation Agent is already running. It's listening on the ports 9080, 9001 and 9090",
+                "Link Creation Agent is already running. It's listening on the ports 9080, 9001 and 9090",
                 severity=StdoutSeverity.WARNING,
             )
         except DockerError:
-            raise DockerError(
-                f"\nError occurred while trying to start Link Creation Agent."
-            )
+            raise DockerError("\nError occurred while trying to start Link Creation Agent.")
 
     @ensure_container_running(
         [
             "_query_agent_container_manager",
         ],
         exception_text="\nPlease start the required services before running 'link-creation-agent start'.\n"
-                  "Run 'query-agent start' to start the Query Agent.",
+        "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
     def run(self):
@@ -135,7 +136,11 @@ $ das-cli link-creation-agent restart
 """
 
     @inject
-    def __init__(self, link_creation_agent_start: LinkCreationAgentStart, link_creation_agent_stop: LinkCreationAgentStop) -> None:
+    def __init__(
+        self,
+        link_creation_agent_start: LinkCreationAgentStart,
+        link_creation_agent_stop: LinkCreationAgentStop,
+    ) -> None:
         super().__init__()
         self._link_creation_agent_start = link_creation_agent_start
         self._link_creation_agent_stop = link_creation_agent_stop

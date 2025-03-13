@@ -1,9 +1,9 @@
+from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
 
 from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 
 
 class QueryAgentModule(Module):

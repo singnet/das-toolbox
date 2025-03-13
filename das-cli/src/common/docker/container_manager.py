@@ -94,7 +94,7 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
-    def raise_on_port_in_use(self, ports: List[int]) -> None:
+    def raise_on_port_in_use(self, ports: List) -> None:
         for port in ports:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 port_in_use = s.connect_ex(("localhost", port)) == 0

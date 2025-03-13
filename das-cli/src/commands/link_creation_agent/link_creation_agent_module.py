@@ -1,8 +1,11 @@
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
 
-from .link_creation_agent_cli import LinkCreationAgentCli, LinkCreationAgentContainerManager, Settings
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from .link_creation_agent_cli import (
+    LinkCreationAgentCli,
+    LinkCreationAgentContainerManager,
+    Settings,
+)
 
 
 class LinkCreationAgentModule(Module):
@@ -31,11 +34,11 @@ class LinkCreationAgentModule(Module):
         query_agent_port = self._settings.get("query_agent.port")
 
         return LinkCreationAgentContainerManager(
-            container_name, 
+            container_name,
             options={
                 "query_agent_hostname": query_agent_hostname,
                 "query_agent_port": query_agent_port,
-            }
+            },
         )
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
@@ -44,7 +47,6 @@ class LinkCreationAgentModule(Module):
         mongodb_port = self._settings.get("mongodb.port")
         mongodb_username = self._settings.get("mongodb.username")
         mongodb_password = self._settings.get("mongodb.password")
-
 
         redis_port = self._settings.get("redis.port")
         redis_hostname = "localhost"
@@ -68,4 +70,3 @@ class LinkCreationAgentModule(Module):
                 "attention_broker_port": attention_broker_port,
             },
         )
-
