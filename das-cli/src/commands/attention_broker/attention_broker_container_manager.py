@@ -30,6 +30,8 @@ class AttentionBrokerManager(ContainerManager):
         super().__init__(container)
 
     def start_container(self):
+        self.raise_running_container()
+
         try:
             self.stop()
         except (DockerContainerNotFoundError, DockerError):
@@ -41,16 +43,7 @@ class AttentionBrokerManager(ContainerManager):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                environment={
-                    "DAS_MONGODB_HOSTNAME": self._options.get('mongodb_hostname'),
-                    "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),
-                    "DAS_MONGODB_NAME": self._options.get('mongodb_name'),
-                    "DAS_MONGODB_PASSWORD": self._options.get('mongodb_password'),
-                    "DAS_MONGODB_PORT": self._options.get('mongodb_port'),
-                    "DAS_MONGODB_USERNAME": self._options.get('mongodb_username'),
-                    "DAS_REDIS_PORT": self._options.get('redis_port'),
-                    "DAS_ATTENTION_BROKER_PORT": self._options.get('attention_broker_port')
-                },
+                command=self._options.get("attention_broker_port"),
             )
 
             return container_id

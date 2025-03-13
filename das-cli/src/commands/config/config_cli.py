@@ -359,6 +359,17 @@ dbms_peer.*
             "jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{jupyter_notebook_port}",
         }
 
+    def _attention_broker(self):
+        attention_broker_port = self.prompt(
+            "Enter the Attention Broker port",
+            default=self._settings.get("attention_broker.port", 37007),
+        )
+
+        return {
+            "attention_broker.port": attention_broker_port,
+            "attention_broker.container_name": f"das-cli-attention-broker-{attention_broker_port}",
+        }
+
     def _save(self) -> None:
         self._remote_context_manager.commit()
         self._settings.save()
@@ -376,6 +387,7 @@ dbms_peer.*
             self._dbms_peer,
             self._openfaas,
             self._jupyter_notebook,
+            self._attention_broker,
         ]
 
         for config_step in config_steps:
