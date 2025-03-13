@@ -11,14 +11,19 @@ from common.docker.exceptions import (
 class AttentionBrokerStop(Command):
     name = "stop"
 
-    short_help = "Stops the Attention Broker service."
+    short_help = "Stop the Attention Broker service."
 
     help = """
-Stops the Attention Broker service.
+'das-cli attention-broker stop' stops the running Attention Broker service.
 
-This command stops the running Attention Broker container.
+This command ensures that no further messages are processed until the service is started again.
+
+.SH EXAMPLES
+
+To stop a running Attention Broker service:
+
+$ das-cli attention-broker stop
 """
-
     @inject
     def __init__(
         self,
@@ -53,12 +58,18 @@ This command stops the running Attention Broker container.
 class AttentionBrokerStart(Command):
     name = "start"
 
-    short_help = "Starts the Attention Broker service."
+    short_help = "Start the Attention Broker service."
 
     help = """
-Starts the Attention Broker service.
+'das-cli attention-broker start' initializes and runs the Attention Broker service.
 
-This command initializes and runs the Attention Broker container.
+This command starts the Attention Broker container, allowing it to begin processing messages.
+
+.SH EXAMPLES
+
+To start the Attention Broker service:
+
+$ das-cli attention-broker start
 """
 
     @inject
@@ -102,13 +113,18 @@ This command initializes and runs the Attention Broker container.
 class AttentionBrokerRestart(Command):
     name = "restart"
 
-    short_help = "Restarts the Attention Broker service."
+    short_help = "Restart the Attention Broker service."
 
     help = """
-Restarts the Attention Broker service.
+'das-cli attention-broker restart' stops and then starts the Attention Broker service.
 
-This command first stops the currently running Attention Broker container
-and then starts it again, ensuring a fresh instance is running.
+This command ensures a fresh instance of the Attention Broker is running.
+
+.SH EXAMPLES
+
+To restart the Attention Broker service:
+
+$ das-cli attention-broker restart
 """
 
     @inject
@@ -128,10 +144,15 @@ class AttentionBrokerCli(CommandGroup):
     short_help = "Manage the Attention Broker service."
 
     help = """
-Manage the Attention Broker service.
+'das-cli attention-broker' provides commands to control the Attention Broker service.
 
-This command group provides controls to start, stop, and restart 
-the Attention Broker service.
+Use this command group to start, stop, or restart the service.
+
+.SH COMMANDS
+
+- start: Start the Attention Broker service.
+- stop: Stop the Attention Broker service.
+- restart: Restart the Attention Broker service.
 """
 
     @inject
