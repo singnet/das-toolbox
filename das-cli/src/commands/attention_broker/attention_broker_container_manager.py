@@ -38,12 +38,16 @@ class AttentionBrokerManager(ContainerManager):
             pass
 
         try:
+            attention_broker_port = self._options.get("attention_broker_port")
             container_id = self._start_container(
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                command=self._options.get("attention_broker_port"),
+                command=attention_broker_port,
+                ports={
+                    attention_broker_port: attention_broker_port,
+                },
             )
 
             return container_id
