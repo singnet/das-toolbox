@@ -12,6 +12,7 @@ from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.release_notes import ReleaseNotesModule
 from commands.attention_broker import AttentionBrokerModule
+from commands.query_agent import QueryAgentModule
 
 MODULES = [
     ConfigModule,
@@ -25,6 +26,7 @@ MODULES = [
     ReleaseNotesModule,
     DbmsAdapterModule,
     AttentionBrokerModule,
+    QueryAgentModule,
 ]
 
 

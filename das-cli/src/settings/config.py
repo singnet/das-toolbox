@@ -37,3 +37,6 @@ DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
 ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-poc"
+
+QUERY_AGENT_IMAGE_NAME = "trueagi/das"
+QUERY_AGENT_IMAGE_VERSION = "query-agent-poc"

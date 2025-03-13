@@ -359,7 +359,7 @@ dbms_peer.*
             "jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{jupyter_notebook_port}",
         }
 
-    def _attention_broker(self):
+    def _attention_broker(self) -> dict:
         attention_broker_port = self.prompt(
             "Enter the Attention Broker port",
             default=self._settings.get("attention_broker.port", 37007),
@@ -368,6 +368,17 @@ dbms_peer.*
         return {
             "attention_broker.port": attention_broker_port,
             "attention_broker.container_name": f"das-cli-attention-broker-{attention_broker_port}",
+        }
+
+    def _query_agent(self) -> dict:
+        query_agent_port = self.prompt(
+            "Enter the Query Agent port",
+            default=self._settings.get("query_agent.port", 35700),
+        )
+
+        return {
+            "query_agent.port": query_agent_port,
+            "query_agent.container_name": f"das-cli-query-agent-{query_agent_port}",
         }
 
     def _save(self) -> None:
@@ -388,6 +399,7 @@ dbms_peer.*
             self._openfaas,
             self._jupyter_notebook,
             self._attention_broker,
+            self._query_agent,
         ]
 
         for config_step in config_steps:
