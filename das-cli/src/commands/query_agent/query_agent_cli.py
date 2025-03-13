@@ -1,6 +1,8 @@
 from injector import inject
 
-from commands.query_agent.query_agent_container_manager import QueryAgentManager
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
@@ -30,7 +32,7 @@ $ das-cli query-agent stop
     def __init__(
         self,
         settings: Settings,
-        query_agent_manager: QueryAgentManager,
+        query_agent_manager: QueryAgentContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -76,10 +78,10 @@ $ das-cli query-agent start
     def __init__(
         self,
         settings: Settings,
-        query_agent_container_manager: QueryAgentManager,
+        query_agent_container_manager: QueryAgentContainerManager,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
-        attention_broker_container_manager: AttentionBrokerManager
+        attention_broker_container_manager: AttentionBrokerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -87,7 +89,6 @@ $ das-cli query-agent start
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
         self._attention_broker_container_manager = attention_broker_container_manager
-
 
     def _query_agent(self) -> None:
         self.stdout("Starting Query Agent service...")

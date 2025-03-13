@@ -13,6 +13,7 @@ from commands.python_library import PythonLibraryModule
 from commands.release_notes import ReleaseNotesModule
 from commands.attention_broker import AttentionBrokerModule
 from commands.query_agent import QueryAgentModule
+from commands.link_creation_agent import LinkCreationAgentModule
 
 MODULES = [
     ConfigModule,
@@ -27,6 +28,7 @@ MODULES = [
     DbmsAdapterModule,
     AttentionBrokerModule,
     QueryAgentModule,
+    LinkCreationAgentModule,
 ]
 
 

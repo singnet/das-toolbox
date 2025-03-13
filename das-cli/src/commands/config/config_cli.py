@@ -381,6 +381,11 @@ dbms_peer.*
             "query_agent.container_name": f"das-cli-query-agent-{query_agent_port}",
         }
 
+    def _link_creation_agent(self) -> dict:
+        return {
+            "link_creation_agent.container_name": f"das-cli-link-creation-agent",
+        }
+
     def _save(self) -> None:
         self._remote_context_manager.commit()
         self._settings.save()
@@ -400,6 +405,7 @@ dbms_peer.*
             self._jupyter_notebook,
             self._attention_broker,
             self._query_agent,
+            self._link_creation_agent,
         ]
 
         for config_step in config_steps:

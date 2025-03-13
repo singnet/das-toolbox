@@ -40,3 +40,6 @@ ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-poc"
 
 QUERY_AGENT_IMAGE_NAME = "trueagi/das"
 QUERY_AGENT_IMAGE_VERSION = "query-agent-poc"
+
+LINK_CREATION_AGENT_IMAGE_NAME = "trueagi/das"
+LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-poc"

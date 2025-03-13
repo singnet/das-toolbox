@@ -1,6 +1,6 @@
 from common import Module
 
-from .query_agent_cli import QueryAgentCli, QueryAgentManager, Settings
+from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
@@ -16,7 +16,7 @@ class QueryAgentModule(Module):
 
         self._dependecy_injection = [
             (
-                QueryAgentManager,
+                QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
             ),
             (
@@ -33,13 +33,12 @@ class QueryAgentModule(Module):
             ),
         ]
 
-    def _query_agent_container_manager_factory(self) -> QueryAgentManager:
+    def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
         query_agent_port = str(self._settings.get("query_agent.port"))
         mongodb_hostname = "localhost"
         mongodb_port = self._settings.get("mongodb.port")
         mongodb_username = self._settings.get("mongodb.username")
         mongodb_password = self._settings.get("mongodb.password")
-
 
         redis_port = self._settings.get("redis.port")
         redis_hostname = "localhost"
@@ -49,7 +48,7 @@ class QueryAgentModule(Module):
 
         container_name = self._settings.get("query_agent.container_name")
 
-        return QueryAgentManager(
+        return QueryAgentContainerManager(
             container_name,
             options={
                 "query_agent_port": query_agent_port,
@@ -63,7 +62,6 @@ class QueryAgentModule(Module):
                 "attention_broker_port": attention_broker_port,
             },
         )
-
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("redis.container_name")

@@ -7,7 +7,7 @@ from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import QUERY_AGENT_IMAGE_NAME, QUERY_AGENT_IMAGE_VERSION
 
 
-class QueryAgentManager(ContainerManager):
+class QueryAgentContainerManager(ContainerManager):
     def __init__(
         self,
         query_agent_container_name: str,
