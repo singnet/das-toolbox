@@ -6,11 +6,7 @@ from commands.link_creation_agent.link_creation_agent_container_manager import (
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
-from common.docker.exceptions import (
-    DockerContainerDuplicateError,
-    DockerContainerNotFoundError,
-    DockerError,
-)
+from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 
 
 class LinkCreationAgentStop(Command):

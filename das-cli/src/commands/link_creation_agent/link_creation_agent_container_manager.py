@@ -5,10 +5,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import (
-    LINK_CREATION_AGENT_IMAGE_NAME,
-    LINK_CREATION_AGENT_IMAGE_VERSION,
-)
+from settings.config import LINK_CREATION_AGENT_IMAGE_NAME, LINK_CREATION_AGENT_IMAGE_VERSION
 
 
 class LinkCreationAgentContainerManager(ContainerManager):
@@ -36,31 +33,23 @@ class LinkCreationAgentContainerManager(ContainerManager):
     def _create_temp_config_file(
         self,
         query_agent_server_hostname: str,
-        query_agent_server_port: str,
+        query_agent_server_port: int,
         query_agent_client_hostname: str,
-        query_agent_client_port: str,
+        query_agent_client_port: int,
         link_creation_agent_server_hostname: str,
-        link_creation_agent_server_port: str,
+        link_creation_agent_server_port: int,
         das_agent_client_hostname: str,
-        das_agent_client_port: str,
+        das_agent_client_port: int,
         das_agent_server_hostname: str,
-        das_agent_server_port: str,
+        das_agent_server_port: int,
     ) -> str:
-        query_agent_server_address = (
-            f"{query_agent_server_hostname}:{query_agent_server_port}"
-        )
+        query_agent_server_address = f"{query_agent_server_hostname}:{query_agent_server_port}"
         link_creation_agent_server_address = (
             f"{link_creation_agent_server_hostname}:{link_creation_agent_server_port}"
         )
-        query_agent_client_address = (
-            f"{query_agent_client_hostname}:{query_agent_client_port}"
-        )
-        das_agent_client_address = (
-            f"{das_agent_client_hostname}:{das_agent_client_port}"
-        )
-        das_agent_server_address = (
-            f"{das_agent_server_hostname}:{das_agent_server_port}"
-        )
+        query_agent_client_address = f"{query_agent_client_hostname}:{query_agent_client_port}"
+        das_agent_client_address = f"{das_agent_client_hostname}:{das_agent_client_port}"
+        das_agent_server_address = f"{das_agent_server_hostname}:{das_agent_server_port}"
 
         config_data = f"""
 requests_interval_seconds = 10
@@ -74,9 +63,7 @@ das_agent_server_id = {das_agent_server_address}
 
 requests_buffer_file = ./buffer
 """
-        with tempfile.NamedTemporaryFile(
-            delete=False, mode="w", suffix=".conf"
-        ) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".conf") as temp_file:
             temp_file.write(config_data)
             return temp_file.name
 
@@ -97,23 +84,19 @@ requests_buffer_file = ./buffer
             pass
 
         config_file_path = self._create_temp_config_file(
-            query_agent_server_hostname=self._options.get(
-                "query_agent_server_hostname"
+            query_agent_server_hostname=str(self._options.get("query_agent_server_hostname", "")),
+            query_agent_server_port=int(self._options.get("query_agent_server_port", 0)),
+            query_agent_client_hostname=str(self._options.get("query_agent_client_hostname", "")),
+            query_agent_client_port=int(self._options.get("query_agent_client_port", 0)),
+            das_agent_client_hostname=str(self._options.get("das_agent_client_hostname", "")),
+            das_agent_client_port=int(self._options.get("das_agent_client_port", 0)),
+            das_agent_server_hostname=str(self._options.get("das_agent_server_hostname", "")),
+            das_agent_server_port=int(self._options.get("das_agent_server_port", 0)),
+            link_creation_agent_server_hostname=str(
+                self._options.get("link_creation_agent_server_hostname", "")
             ),
-            query_agent_server_port=self._options.get("query_agent_server_port"),
-            query_agent_client_hostname=self._options.get(
-                "query_agent_client_hostname"
-            ),
-            query_agent_client_port=self._options.get("query_agent_client_port"),
-            das_agent_client_hostname=self._options.get("das_agent_client_hostname"),
-            das_agent_client_port=self._options.get("das_agent_client_port"),
-            das_agent_server_hostname=self._options.get("das_agent_server_hostname"),
-            das_agent_server_port=self._options.get("das_agent_server_port"),
-            link_creation_agent_server_hostname=self._options.get(
-                "link_creation_agent_server_hostname"
-            ),
-            link_creation_agent_server_port=self._options.get(
-                "link_creation_agent_server_port"
+            link_creation_agent_server_port=int(
+                self._options.get("link_creation_agent_server_port", 0)
             ),
         )
 
