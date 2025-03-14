@@ -82,7 +82,6 @@ class ContainerManager(DockerManager):
         self.raise_running_container()
 
         try:
-            print(self.get_container().image)
             response = self.get_docker_client().containers.run(
                 **kwargs,
                 image=self.get_container().image,
