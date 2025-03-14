@@ -88,21 +88,25 @@ $ das-cli link-creation-agent start
 
     def _link_creation_agent(self) -> None:
         self.stdout("Starting Link Creation Agent service...")
+        ports_in_use = [
+            str(port)
+            for port in self._link_creation_agent_container_manager.get_ports_in_use()
+            if port
+        ]
+        ports_str = ", ".join(filter(None, ports_in_use))
 
         try:
             self._link_creation_agent_container_manager.start_container()
 
             self.stdout(
-                "Link Creation Agent started listening on the ports 9080, 9001 and 9090",
+                f"Link Creation Agent started listening on the ports {ports_str}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                "Link Creation Agent is already running. It's listening on the ports 9080, 9001 and 9090",
+                f"Link Creation Agent is already running. It's listening on the ports {ports_str}",
                 severity=StdoutSeverity.WARNING,
             )
-        except DockerError:
-            raise DockerError("\nError occurred while trying to start Link Creation Agent.")
 
     @ensure_container_running(
         [

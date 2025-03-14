@@ -30,14 +30,25 @@ class LinkCreationAgentModule(Module):
     def _link_creation_agent_container_manager_factory(self) -> LinkCreationAgentContainerManager:
         container_name = self._settings.get("link_creation_agent.container_name")
 
-        query_agent_hostname = "localhost"
-        query_agent_port = self._settings.get("query_agent.port")
+        query_agent_server_hostname = "localhost"
+        query_agent_server_port = self._settings.get("query_agent.port")
+
+        link_creation_agent_server_hostname = "localhost"
+        link_creation_agent_server_port = self._settings.get("link_creation_agent.port")
 
         return LinkCreationAgentContainerManager(
             container_name,
             options={
-                "query_agent_hostname": query_agent_hostname,
-                "query_agent_port": query_agent_port,
+                "query_agent_server_hostname": query_agent_server_hostname,
+                "query_agent_server_port": query_agent_server_port,
+                "link_creation_agent_server_hostname": link_creation_agent_server_hostname,
+                "link_creation_agent_server_port": link_creation_agent_server_port,
+                "query_agent_client_hostname": "localhost",
+                "query_agent_client_port": 9001,
+                "das_agent_client_hostname": "localhost",
+                "das_agent_client_port": 9090,
+                "das_agent_server_hostname": "localhost",
+                "das_agent_server_port": 9091,
             },
         )
 

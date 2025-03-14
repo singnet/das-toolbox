@@ -382,8 +382,14 @@ dbms_peer.*
         }
 
     def _link_creation_agent(self) -> dict:
+        link_creation_agent_port = self.prompt(
+            "Enter the Link Creation Agent Server port",
+            default=self._settings.get("link_creation_agent.port", 9080),
+        )
+
         return {
-            "link_creation_agent.container_name": "das-cli-link-creation-agent",
+            "link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
+            "link_creation_agent.port": link_creation_agent_port,
         }
 
     def _save(self) -> None:

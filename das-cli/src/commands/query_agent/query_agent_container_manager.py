@@ -31,7 +31,7 @@ class QueryAgentContainerManager(ContainerManager):
 
     def start_container(self):
         self.raise_running_container()
-        self.raise_on_port_in_use([self._options.get("query_agent_port")])
+        self.raise_on_port_in_use([int(self._options.get("query_agent_port", 0))])
 
         try:
             self.stop()
@@ -52,8 +52,12 @@ class QueryAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
                     "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
-                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get(
+                        "attention_broker_hostname"
+                    ),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get(
+                        "attention_broker_port"
+                    ),
                 },
                 command=self._options.get("query_agent_port"),
             )
