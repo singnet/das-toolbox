@@ -39,9 +39,22 @@
         "container_name": "das-cli-jupyter-notebook-8888"
     },
     "das_peer": {
-        "container_name": "das-cli-das-peer-30100"
+        "container_name": "das-cli-das-peer-30100",
+        "port": 30100
     },
     "dbms_peer": {
         "container_name": "das-cli-dbms-peer"
+    },
+    "attention_broker": {
+        "port": 37007,
+        "container_name": "das-cli-attention-broker-37007"
+    },
+    "query_agent": {
+        "port": 35700,
+        "container_name": "das-cli-query-agent-35700"
+    },
+    "link_creation_agent": {
+        "container_name": "das-cli-link-creation-agent-9080",
+        "port": 9080
     }
 }
