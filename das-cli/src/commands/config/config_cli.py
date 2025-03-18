@@ -133,6 +133,33 @@ dbms_peer.*
 
     dbms_peer.container_name
         Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
+
+attention_broker.*
+    These variables control the Attention Broker settings, such as:
+
+    attention_broker.port
+        Defines the port on which the Attention Broker is listening. The user must ensure this port is available on the server where DAS is running.
+
+    attention_broker.container_name
+        Specifies the name of the Docker container running the Attention Broker.
+
+query_agent.*
+    These variables control the Query Agent settings, such as:
+
+    query_agent.port
+        Defines the port on which the Query Agent is listening. The user must ensure this port is available on the server.
+
+    query_agent.container_name
+        Specifies the name of the Docker container running the Query Agent.
+
+link_creation_agent.*
+    These variables control the Link Creation settings, such as:
+
+link_creation_agent.port
+    Defines the port on which the Link Creation Agent is listening.
+
+link_creation_agent.container_name
+    Specifies the name of the Docker container running the Link Creation Agent.
 """
 
     @inject

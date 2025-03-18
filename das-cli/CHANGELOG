@@ -5,4 +5,4 @@
 [#133] Changed Redis connection configuration for count-atoms to use the correct port from config file (PR: #134)
 [#132] das-cli db count-atoms --verbose should details Node and Link counts (PR: #138)
 [#141] Validate Redis Cluster port range instead of a single port
-
+[das#190] Implement deployment scripts for system components in VULTR servers
