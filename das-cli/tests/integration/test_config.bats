@@ -50,6 +50,9 @@ setup() {
     local mongodb_password="admin"
     local mongodb_cluster="no"
     local jupyter_notebook_port="8888"
+    local attention_broker_port="37007"
+    local query_agent_port="35700"
+    local link_creation_agent_port="9080"
 
     run das-cli config set <<EOF
 $redis_port
@@ -59,6 +62,9 @@ $mongodb_username
 $mongodb_password
 $mongodb_cluster
 $jupyter_notebook_port
+$attention_broker_port
+$query_agent_port
+$link_creation_agent_port
 EOF
 
     assert_equal "$(get_config ".redis.port")" "$redis_port"
@@ -69,6 +75,9 @@ EOF
     assert_equal "$(get_config ".mongodb.password")" "$mongodb_password"
     assert_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
     assert_equal "$(get_config ".jupyter_notebook.port")" "$jupyter_notebook_port"
+    assert_equal "$(get_config ".attention_broker.port")" "$attention_broker_port"
+    assert_equal "$(get_config ".query_agent.port")" "$query_agent_port"
+    assert_equal "$(get_config ".link_creation_agent.port")" "$link_creation_agent_port"
 }
 
 @test "configuring settings with a previously set configuration file" {
@@ -81,6 +90,9 @@ EOF
     local old_mongodb_password="$(get_config ".mongodb.password")"
     local old_mongodb_cluster="$(get_config ".mongodb.cluster")"
     local old_jupyter_notebook_port="$(get_config ".jupyter_notebook.port")"
+    local old_attention_broker_port="$(get_config ".attention_broker.port")"
+    local old_query_agent_port="$(get_config ".query_agent.port")"
+    local old_link_creation_agent_port="$(get_config ".link_creation_agent.port")"
 
     local redis_port="7000"
     local redis_cluster="no"
@@ -89,6 +101,9 @@ EOF
     local mongodb_password="new_password"
     local mongodb_cluster="no"
     local jupyter_notebook_port="8000"
+    local attention_broker_port="38007"
+    local query_agent_port="36700"
+    local link_creation_agent_port="9180"
 
     run das-cli config set <<EOF
 $redis_port
@@ -98,6 +113,9 @@ $mongodb_username
 $mongodb_password
 $mongodb_cluster
 $jupyter_notebook_port
+$attention_broker_port
+$query_agent_port
+$link_creation_agent_port
 EOF
 
     assert_equal "$(get_config ".redis.port")" "$redis_port"
@@ -108,6 +126,9 @@ EOF
     assert_equal "$(get_config ".mongodb.password")" "$mongodb_password"
     assert_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
     assert_equal "$(get_config ".jupyter_notebook.port")" "$jupyter_notebook_port"
+    assert_equal "$(get_config ".attention_broker.port")" "$attention_broker_port"
+    assert_equal "$(get_config ".query_agent.port")" "$query_agent_port"
+    assert_equal "$(get_config ".link_creation_agent.port")" "$link_creation_agent_port"
 
     assert_not_equal "$redis_port" "$old_redis_port"
     assert_equal "$(human_to_boolean "$redis_cluster")" "$old_redis_cluster"
@@ -116,6 +137,9 @@ EOF
     assert_not_equal "$mongodb_password" "$old_mongodb_password"
     assert_equal "$(human_to_boolean "$mongodb_cluster")" "$old_mongodb_cluster"
     assert_not_equal "$jupyter_notebook_port" "$old_jupyter_notebook_port"
+    assert_not_equal "$attention_broker_port" "$old_attention_broker_port"
+    assert_not_equal "$query_agent_port" "$old_query_agent_port"
+    assert_not_equal "$link_creation_agent_port" "$old_link_creation_agent_port"
 
 }
 
@@ -129,6 +153,9 @@ EOF
     local old_mongodb_password="$(get_config ".mongodb.password")"
     local old_mongodb_cluster="$(get_config ".mongodb.cluster")"
     local old_jupyter_notebook_port="$(get_config ".jupyter_notebook.port")"
+    local old_attention_broker_port="$(get_config ".attention_broker.port")"
+    local old_query_agent_port="$(get_config ".query_agent.port")"
+    local old_link_creation_agent_port="$(get_config ".link_creation_agent.port")"
 
     local redis_port=""
     local redis_cluster=""
@@ -137,6 +164,9 @@ EOF
     local mongodb_password=""
     local mongodb_cluster=""
     local jupyter_notebook_port=""
+    local attention_broker_port=""
+    local query_agent_port=""
+    local link_creation_agent_port=""
 
     run das-cli config set <<EOF
 $redis_port
@@ -146,6 +176,9 @@ $mongodb_username
 $mongodb_password
 $mongodb_cluster
 $jupyter_notebook_port
+$attention_broker_port
+$query_agent_port
+$link_creation_agent_port
 EOF
 
     assert_not_equal "$(get_config ".redis.port")" "$redis_port"
@@ -155,6 +188,9 @@ EOF
     assert_not_equal "$(get_config ".mongodb.password")" "$mongodb_password"
     assert_not_equal "$(get_config ".mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
     assert_not_equal "$(get_config ".jupyter_notebook.port")" "$jupyter_notebook_port"
+    assert_not_equal "$(get_config ".attention_broker.port")" "$attention_broker_port"
+    assert_not_equal "$(get_config ".query_agent.port")" "$query_agent_port"
+    assert_not_equal "$(get_config ".link_creation_agent.port")" "$link_creation_agent_port"
 
     assert_equal "$old_redis_port" "$(get_config ".redis.port")"
     assert_equal "$old_redis_cluster" "$(get_config ".redis.cluster")"
@@ -163,4 +199,7 @@ EOF
     assert_equal "$old_mongodb_password" "$(get_config ".mongodb.password")"
     assert_equal "$old_mongodb_cluster" "$(get_config ".mongodb.cluster")"
     assert_equal "$old_jupyter_notebook_port" "$(get_config ".jupyter_notebook.port")"
+    assert_equal "$old_attention_broker_port" "$(get_config ".attention_broker.port")"
+    assert_equal "$old_query_agent_port" "$(get_config ".query_agent.port")"
+    assert_equal "$old_link_creation_agent_port" "$(get_config ".link_creation_agent.port")"
 }
