@@ -87,6 +87,14 @@ jobs:
         run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
         working-directory: das-cli
 
+      - name: Install requirements
+        run: |-
+          cd /tmp
+          git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
+          cd bats-core
+          sudo ./install.sh /usr/local
+          cd -
+
       - name: Runnign integration tests
         run: make integration_tests
         working-directory: das-cli
