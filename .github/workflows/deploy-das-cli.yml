@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: das-cli
-          file: .docker/Dockerfile.jupyter-notebook
+          file: das-cli/.docker/Dockerfile.jupyter-notebook
           push: true
           tags: trueagi/das:latest-jupyter-notebook
 
