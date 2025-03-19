@@ -89,6 +89,9 @@ jobs:
 
       - name: Install requirements
         run: |-
+          if [ -d "/tmp/bats-core" ]; then
+            sudo rm -rf /tmp/bats-core
+          fi
           cd /tmp
           git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
           cd bats-core
