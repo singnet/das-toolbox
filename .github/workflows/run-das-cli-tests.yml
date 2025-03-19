@@ -83,6 +83,10 @@ jobs:
           name: ${{github.event.inputs.binary-artifact-name || 'das-cli'}}
           path: das-cli/dist
 
+      - name: Installing das-cli package
+        run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
+        working-directory: das-cli
+
       - name: Runnign integration tests
-        run: make tests-all
+        run: make integration_tests
         working-directory: das-cli
