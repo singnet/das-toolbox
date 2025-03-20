@@ -12,6 +12,7 @@ RUN apt -y update && apt install -y \
   make \
   jq \
   socat \
+  lsof \
   gnupg \
   python3 \
   python3-pip \
