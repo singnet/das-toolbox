@@ -97,6 +97,7 @@ jobs:
           cd bats-core
           sudo ./install.sh /usr/local
           cd -
+          sudo apt -y update && sudo apt -y install socat lsof
 
       - name: Runnign integration tests
         run: make integration_tests
