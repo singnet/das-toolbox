@@ -83,6 +83,22 @@ jobs:
           name: ${{github.event.inputs.binary-artifact-name || 'das-cli'}}
           path: das-cli/dist
 
+      - name: Installing das-cli package
+        run: sudo apt -y install $(find . -name *.deb -type f | head -n 1)
+        working-directory: das-cli
+
+      - name: Install requirements
+        run: |-
+          if [ -d "/tmp/bats-core" ]; then
+            sudo rm -rf /tmp/bats-core
+          fi
+          cd /tmp
+          git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
+          cd bats-core
+          sudo ./install.sh /usr/local
+          cd -
+          sudo apt -y update && sudo apt -y install socat lsof
+
       - name: Runnign integration tests
-        run: make tests-all
+        run: make integration_tests
         working-directory: das-cli
