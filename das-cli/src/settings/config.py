@@ -1,6 +1,6 @@
 import getpass
 
-VERSION = '0.4.9'
+VERSION = '0.4.10'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 # PATHS
@@ -22,7 +22,7 @@ MONGODB_IMAGE_NAME = "mongo"
 MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.5.4-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "0.5.5-metta-parser"
 
 OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
