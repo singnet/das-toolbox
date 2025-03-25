@@ -1,10 +1,6 @@
 from common import Module
 
-from .inference_agent_cli import (
-    InferenceAgentCli,
-    InferenceAgentContainerManager,
-    Settings,
-)
+from .inference_agent_cli import InferenceAgentCli, InferenceAgentContainerManager, Settings
 
 
 class InferenceAgentModule(Module):

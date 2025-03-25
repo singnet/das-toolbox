@@ -31,8 +31,7 @@ class InferenceAgentContainerManager(ContainerManager):
         super().__init__(container)
 
     def _create_temp_config_file(self) -> str:
-
-        config_data = f"""
+        config_data = """
 inference_node_id = "localhost:8080"
 link_creation_agent_client_id = "localhost:8081"
 link_creation_agent_server_id = "localhost:8082"
@@ -80,7 +79,8 @@ distributed_inference_control_node_server_id = "localhost:8086"
             return container_id
         except docker.errors.APIError as e:
             if e.response.reason == "Not Found":
-                raise DockerContainerNotFoundError( f"The docker image {self.get_container().image} for the inference agent could not be found!"
+                raise DockerContainerNotFoundError(
+                    f"The docker image {self.get_container().image} for the inference agent could not be found!"
                 )
 
             raise DockerError(e.explanation)
