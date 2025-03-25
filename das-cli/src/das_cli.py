@@ -14,6 +14,7 @@ from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
+from commands.inference_agent import InferenceAgentModule
 
 MODULES = [
     ConfigModule,
@@ -29,6 +30,7 @@ MODULES = [
     AttentionBrokerModule,
     QueryAgentModule,
     LinkCreationAgentModule,
+    InferenceAgentModule,
 ]
 
 
