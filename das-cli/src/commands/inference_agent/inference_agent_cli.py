@@ -98,14 +98,14 @@ $ das-cli inference-agent start
                 severity=StdoutSeverity.WARNING,
             )
 
-    # @ensure_container_running(
-    #     [
-    #         "_link_creation_container_manager",
-    #     ],
-    #     exception_text="\nPlease start the required services before running 'inference-agent start'.\n"
-    #     "Run 'link-creation-agent start' to start the Link Creation Agent.",
-    #     verbose=False,
-    # )
+    @ensure_container_running(
+        [
+            "_link_creation_container_manager",
+        ],
+        exception_text="\nPlease start the required services before running 'inference-agent start'.\n"
+        "Run 'link-creation-agent start' to start the Link Creation Agent.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
 

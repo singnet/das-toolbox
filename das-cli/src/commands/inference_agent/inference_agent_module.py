@@ -18,7 +18,7 @@ class InferenceAgentModule(Module):
             ),
             (
                 LinkCreationAgentContainerManager,
-                self._inference_agent_container_manager_factory,
+                self._link_creation_agent_container_manager_factory,
             ),
         ]
 
