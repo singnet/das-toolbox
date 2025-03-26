@@ -419,6 +419,17 @@ link_creation_agent.container_name
             "link_creation_agent.port": link_creation_agent_port,
         }
 
+    def _inference_agent(self) -> dict:
+        inference_agent_port = self.prompt(
+            "Enter the Inference Agent port",
+            default=self._settings.get("inference_agent.port", 8080),
+        )
+
+        return {
+            "inference_agent.port": inference_agent_port,
+            "inference_agent.container_name": f"das-cli-inference-agent",
+        }
+
     def _save(self) -> None:
         self._remote_context_manager.commit()
         self._settings.save()
@@ -439,6 +450,7 @@ link_creation_agent.container_name
             self._attention_broker,
             self._query_agent,
             self._link_creation_agent,
+            self._inference_agent,
         ]
 
         for config_step in config_steps:

@@ -3,7 +3,7 @@ from injector import inject
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from commands.link_creation_agent.link_creation_agent_container_manager import LinkCreationAgentContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
@@ -75,12 +75,12 @@ $ das-cli inference-agent start
         self,
         settings: Settings,
         inference_agent_container_manager: InferenceAgentContainerManager,
-        query_agent_container_manager: QueryAgentContainerManager,
+        link_creation_container_manager: LinkCreationAgentContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._inference_agent_container_manager = inference_agent_container_manager
-        self._query_agent_container_manager = query_agent_container_manager
+        self._link_creation_container_manager = link_creation_container_manager
 
     def _inference_agent(self) -> None:
         self.stdout("Starting Inference Agent service...")
@@ -98,14 +98,14 @@ $ das-cli inference-agent start
                 severity=StdoutSeverity.WARNING,
             )
 
-    @ensure_container_running(
-        [
-            "_query_agent_container_manager",
-        ],
-        exception_text="\nPlease start the required services before running 'inference-agent start'.\n"
-        "Run 'query-agent start' to start the Query Agent.",
-        verbose=False,
-    )
+    # @ensure_container_running(
+    #     [
+    #         "_link_creation_container_manager",
+    #     ],
+    #     exception_text="\nPlease start the required services before running 'inference-agent start'.\n"
+    #     "Run 'link-creation-agent start' to start the Link Creation Agent.",
+    #     verbose=False,
+    # )
     def run(self):
         self._settings.raise_on_missing_file()
 
