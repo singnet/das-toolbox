@@ -30,9 +30,9 @@ class InferenceAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-
-    def _create_temp_config_file(self,
-        inference_agent_hostname: str,                         
+    def _create_temp_config_file(
+        self,
+        inference_agent_hostname: str,
         inference_agent_port: int,
         link_creation_agent_client_hostname: str,
         link_creation_agent_client_port: int,
@@ -45,7 +45,7 @@ class InferenceAgentContainerManager(ContainerManager):
         distributed_inference_control_node_hostname: str,
         distributed_inference_control_node_port: int,
         distributed_inference_control_node_server_hostname: str,
-        distributed_inference_control_node_server_port: int
+        distributed_inference_control_node_server_port: int,
     ) -> str:
         config_data = f"""
 inference_node_id = {inference_agent_hostname}:{inference_agent_port}
@@ -78,20 +78,36 @@ distributed_inference_control_node_server_id = {distributed_inference_control_no
             pass
 
         config_file_path = self._create_temp_config_file(
-            inference_agent_hostname=self._options.get('inference_agent_hostname'),
-            inference_agent_port=self._options.get('inference_agent_port'),
-            link_creation_agent_client_hostname=self._options.get('link_creation_agent_client_hostname'),
-            link_creation_agent_client_port=self._options.get('link_creation_agent_client_port'),
-            link_creation_agent_server_hostname=self._options.get('link_creation_agent_server_hostname'),
-            link_creation_agent_server_port=self._options.get('link_creation_agent_server_port'),
-            das_client_hostname=self._options.get('das_client_hostname'),
-            das_client_port=self._options.get('das_client_port'),
-            das_server_hostname=self._options.get('das_server_hostname'),
-            das_server_port=self._options.get('das_server_port'),
-            distributed_inference_control_node_hostname=self._options.get('distributed_inference_control_node_hostname'),
-            distributed_inference_control_node_port=self._options.get('distributed_inference_control_node_port'),
-            distributed_inference_control_node_server_hostname=self._options.get('distributed_inference_control_node_server_hostname'),
-            distributed_inference_control_node_server_port=self._options.get('distributed_inference_control_node_server_port'),
+            inference_agent_hostname=str(self._options.get('inference_agent_hostname', '')),
+            inference_agent_port=int(self._options.get('inference_agent_port', 0)),
+            link_creation_agent_client_hostname=str(
+                self._options.get('link_creation_agent_client_hostname', '')
+            ),
+            link_creation_agent_client_port=int(
+                self._options.get('link_creation_agent_client_port', 0)
+            ),
+            link_creation_agent_server_hostname=str(
+                self._options.get('link_creation_agent_server_hostname', '')
+            ),
+            link_creation_agent_server_port=int(
+                self._options.get('link_creation_agent_server_port', 0)
+            ),
+            das_client_hostname=str(self._options.get('das_client_hostname', '')),
+            das_client_port=int(self._options.get('das_client_port', 0)),
+            das_server_hostname=str(self._options.get('das_server_hostname', '')),
+            das_server_port=int(self._options.get('das_server_port', 0)),
+            distributed_inference_control_node_hostname=str(
+                self._options.get('distributed_inference_control_node_hostname', '')
+            ),
+            distributed_inference_control_node_port=int(
+                self._options.get('distributed_inference_control_node_port', 0)
+            ),
+            distributed_inference_control_node_server_hostname=str(
+                self._options.get('distributed_inference_control_node_server_hostname', '')
+            ),
+            distributed_inference_control_node_server_port=int(
+                self._options.get('distributed_inference_control_node_server_port', 0)
+            ),
         )
 
         try:

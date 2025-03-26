@@ -1,6 +1,11 @@
 from common import Module
 
-from .inference_agent_cli import InferenceAgentCli, InferenceAgentContainerManager, Settings, LinkCreationAgentContainerManager
+from .inference_agent_cli import (
+    InferenceAgentCli,
+    InferenceAgentContainerManager,
+    LinkCreationAgentContainerManager,
+    Settings,
+)
 
 
 class InferenceAgentModule(Module):
@@ -28,7 +33,7 @@ class InferenceAgentModule(Module):
         link_creation_agent_server_hostname = "localhost"
         link_creation_agent_server_port = self._settings.get("link_creation_agent.port")
 
-        inference_agent_hostname = "localhost" 
+        inference_agent_hostname = "localhost"
         inference_agent_port = self._settings.get("inference_agent.port")
 
         return InferenceAgentContainerManager(
@@ -50,9 +55,6 @@ class InferenceAgentModule(Module):
                 "distributed_inference_control_node_server_port": 8086,
             },
         )
-
-
-
 
     def _link_creation_agent_container_manager_factory(self) -> LinkCreationAgentContainerManager:
         container_name = self._settings.get("link_creation_agent.container_name")

@@ -427,7 +427,7 @@ link_creation_agent.container_name
 
         return {
             "inference_agent.port": inference_agent_port,
-            "inference_agent.container_name": f"das-cli-inference-agent",
+            "inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
         }
 
     def _save(self) -> None:

@@ -3,7 +3,9 @@ from injector import inject
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
 )
-from commands.link_creation_agent.link_creation_agent_container_manager import LinkCreationAgentContainerManager
+from commands.link_creation_agent.link_creation_agent_container_manager import (
+    LinkCreationAgentContainerManager,
+)
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
@@ -85,9 +87,7 @@ $ das-cli inference-agent start
     def _inference_agent(self) -> None:
         self.stdout("Starting Inference Agent service...")
         ports_in_use = [
-            str(port)
-            for port in self._inference_agent_container_manager.get_ports_in_use()
-            if port
+            str(port) for port in self._inference_agent_container_manager.get_ports_in_use() if port
         ]
         ports_str = ", ".join(filter(None, ports_in_use))
 
