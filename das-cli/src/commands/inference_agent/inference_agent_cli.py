@@ -84,17 +84,23 @@ $ das-cli inference-agent start
 
     def _inference_agent(self) -> None:
         self.stdout("Starting Inference Agent service...")
+        ports_in_use = [
+            str(port)
+            for port in self._inference_agent_container_manager.get_ports_in_use()
+            if port
+        ]
+        ports_str = ", ".join(filter(None, ports_in_use))
 
         try:
             self._inference_agent_container_manager.start_container()
 
             self.stdout(
-                "Inference Agent started listening on the ports ",
+                f"Inference Agent started listening on the ports {ports_str}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                "Inference Agent is already running. It's listening on the ports",
+                f"Inference Agent is already running. It's listening on the ports {ports_str}",
                 severity=StdoutSeverity.WARNING,
             )
 
