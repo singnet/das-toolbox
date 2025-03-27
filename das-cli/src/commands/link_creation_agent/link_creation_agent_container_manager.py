@@ -69,10 +69,9 @@ requests_buffer_file = ./buffer
 
     def get_ports_in_use(self):
         return [
-            self._options.get('inference_agent_port'),
-            self._options.get('link_creation_agent_client_port'),
-            self._options.get('das_client_port'),
-            self._options.get('distributed_inference_control_node_port'),
+            self._options.get("link_creation_agent_server_port"),
+            self._options.get("query_agent_client_port"),
+            self._options.get("das_agent_client_port"), 
         ]
 
     def start_container(self):
