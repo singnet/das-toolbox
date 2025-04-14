@@ -28,14 +28,7 @@ class MettaLoaderContainerManager(ContainerManager):
         super().__init__(container)
         self._options = options
 
-    def start_container(
-        self,
-        path,
-        mongodb_port,
-        mongodb_username,
-        mongodb_password,
-        redis_port,
-    ):
+    def start_container(self, path):
         if not os.path.exists(path):
             raise FileNotFoundError(f"The specified file path '{path}' does not exist.")
 
@@ -54,12 +47,12 @@ class MettaLoaderContainerManager(ContainerManager):
             container = self._start_container(
                 network_mode="host",
                 environment={
-                    "DAS_REDIS_HOSTNAME": "localhost",
-                    "DAS_REDIS_PORT": str(redis_port),
-                    "DAS_MONGODB_HOSTNAME": "localhost",
-                    "DAS_MONGODB_PORT": str(mongodb_port),
-                    "DAS_MONGODB_USERNAME": mongodb_username,
-                    "DAS_MONGODB_PASSWORD": mongodb_password,
+                    "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),
+                    "DAS_REDIS_PORT": self._options.get('redis_port'),
+                    "DAS_MONGODB_HOSTNAME": self._options.get('mongodb_hostname'),
+                    "DAS_MONGODB_PORT": self._options.get('mongodb_port'),
+                    "DAS_MONGODB_USERNAME": self._options.get('mongodb_username'),
+                    "DAS_MONGODB_PASSWORD": self._options.get('mongodb_password'),
                 },
                 command=exec_command,
                 volumes={
