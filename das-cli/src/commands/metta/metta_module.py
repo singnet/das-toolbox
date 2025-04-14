@@ -1,8 +1,8 @@
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
 
 from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
 
 
 class MettaModule(Module):
@@ -53,7 +53,6 @@ class MettaModule(Module):
                 "mongodb_password": mongodb_password,
             },
         )
-
 
     def _metta_loader_container_manager_factory(self) -> MettaLoaderContainerManager:
         container_name = self._settings.get("loader.container_name")

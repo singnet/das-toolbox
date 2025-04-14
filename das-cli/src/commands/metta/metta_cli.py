@@ -6,9 +6,9 @@ from injector import inject
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
+from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
-from common.decorators import ensure_container_running
 
 from .metta_loader_container_manager import MettaLoaderContainerManager
 from .metta_syntax_container_manager import MettaSyntaxContainerManager
@@ -47,11 +47,11 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
 
     @inject
     def __init__(
-        self, 
+        self,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
         metta_loader_container_manager: MettaLoaderContainerManager,
-        settings: Settings
+        settings: Settings,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -69,7 +69,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
         for file_path in files:
             try:
                 self._load_metta_from_file(file_path)
-            except:
+            except Exception:
                 pass
 
     def _load_metta(self, path: str):
@@ -77,7 +77,6 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
             self._load_metta_from_directory(path)
         else:
             self._load_metta_from_file(path)
-
 
     @ensure_container_running(
         [
@@ -93,6 +92,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
         self._load_metta(path)
 
         self.stdout("Done.")
+
 
 class MettaCheck(Command):
     name = "check"
