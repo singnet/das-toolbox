@@ -116,9 +116,27 @@ teardown() {
 
     assert_line --partial "Redis is running on port $redis_port"
     assert_line --partial "MongoDB is running on port $mongodb_port"
-    assert_line --partial "Loading metta file(s)..."
+    assert_line --partial "Loading metta file ${metta_file_path}..."
     assert_line --partial "Done."
     assert_success
+}
+
+@test "Loading directory with MeTTa files" {
+    local metta_file_path="$test_fixtures_dir/metta"
+    local mongodb_port="$(get_config .mongodb.port)"
+    local redis_port="$(get_config .redis.port)"
+
+    das-cli db start
+
+    sleep 20s
+
+    run das-cli metta load $metta_file_path
+
+    assert_line --partial "Redis is running on port $redis_port"
+    assert_line --partial "MongoDB is running on port $mongodb_port"
+    assert_line --partial "Loading metta file ${metta_file_path}/animals.metta..."
+    assert_line --partial "Loading metta file ${metta_file_path}/invalid.metta..."
+    assert_line --partial "Done."
 }
 
 @test "Trying to load a MeTTa file with an invalid path" {
