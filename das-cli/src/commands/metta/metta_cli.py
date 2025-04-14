@@ -6,8 +6,9 @@ from injector import inject
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
-from common.docker.exceptions import DockerContainerNotFoundError, DockerError
+from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
+from common.decorators import ensure_container_running
 
 from .metta_loader_container_manager import MettaLoaderContainerManager
 from .metta_syntax_container_manager import MettaSyntaxContainerManager
@@ -35,7 +36,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
         CommandArgument(
             ["path"],
             type=AbsolutePath(
-                dir_okay=False,
+                dir_okay=True,
                 file_okay=True,
                 exists=True,
                 writable=True,
@@ -45,63 +46,50 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
     ]
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self, 
+        redis_container_manager: RedisContainerManager,
+        mongodb_container_manager: MongodbContainerManager,
+        metta_loader_container_manager: MettaLoaderContainerManager,
+        settings: Settings
+    ) -> None:
         super().__init__()
         self._settings = settings
+        self._redis_container_manager = redis_container_manager
+        self._mongodb_container_manager = mongodb_container_manager
+        self._metta_loader_container_manager = metta_loader_container_manager
 
+    def _load_metta_from_file(self, file_path: str):
+        self.stdout(f"Loading metta file {file_path}...")
+
+        self._metta_loader_container_manager.start_container(file_path)
+
+    def _load_metta_from_directory(self, directory_path: str):
+        files = glob.glob(f"{directory_path}/*")
+        for file_path in files:
+            self._load_metta_from_file(file_path)
+
+    def _load_metta(self, path: str):
+        if os.path.isdir(path):
+            self._load_metta_from_directory(path)
+        else:
+            self._load_metta_from_file(path)
+
+
+    @ensure_container_running(
+        [
+            "_mongodb_container_manager",
+            "_redis_container_manager",
+        ],
+        exception_text="\nPlease use 'db start' to start required services before running 'metta load'.",
+        verbose=False,
+    )
     def run(self, path: str):
         self._settings.raise_on_missing_file()
 
-        redis_container_name = self._settings.get("redis.container_name")
-        redis_port = self._settings.get("redis.port")
+        self._load_metta(path)
 
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_container_name = self._settings.get("mongodb.container_name")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
-
-        metta_container_name = self._settings.get("loader.container_name")
-
-        services_not_running = False
-
-        metta_loader_container_manager = MettaLoaderContainerManager(metta_container_name)
-        redis_container_manager = RedisContainerManager(redis_container_name)
-        mongodb_container_manager = MongodbContainerManager(mongodb_container_name)
-
-        if not redis_container_manager.is_running():
-            self.stdout("Redis is not running", severity=StdoutSeverity.ERROR)
-            services_not_running = True
-        else:
-            self.stdout(
-                f"Redis is running on port {redis_port}",
-                severity=StdoutSeverity.WARNING,
-            )
-
-        if not mongodb_container_manager.is_running():
-            self.stdout("MongoDB is not running", severity=StdoutSeverity.ERROR)
-            services_not_running = True
-        else:
-            self.stdout(
-                f"MongoDB is running on port {mongodb_port}",
-                severity=StdoutSeverity.WARNING,
-            )
-
-        if services_not_running:
-            raise DockerContainerNotFoundError(
-                "\nPlease use 'db start' to start required services before running 'metta load'."
-            )
-
-        self.stdout("Loading metta file(s)...")
-
-        metta_loader_container_manager.start_container(
-            path,
-            mongodb_port=mongodb_port,
-            mongodb_username=mongodb_username,
-            mongodb_password=mongodb_password,
-            redis_port=redis_port,
-        )
         self.stdout("Done.")
-
 
 class MettaCheck(Command):
     name = "check"
