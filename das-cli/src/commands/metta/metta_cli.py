@@ -67,7 +67,10 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
     def _load_metta_from_directory(self, directory_path: str):
         files = glob.glob(f"{directory_path}/*")
         for file_path in files:
-            self._load_metta_from_file(file_path)
+            try:
+                self._load_metta_from_file(file_path)
+            except:
+                pass
 
     def _load_metta(self, path: str):
         if os.path.isdir(path):
@@ -82,7 +85,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
             "_redis_container_manager",
         ],
         exception_text="\nPlease use 'db start' to start required services before running 'metta load'.",
-        verbose=False,
+        verbose=True,
     )
     def run(self, path: str):
         self._settings.raise_on_missing_file()
