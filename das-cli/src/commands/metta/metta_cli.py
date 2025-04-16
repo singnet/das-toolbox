@@ -61,9 +61,11 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
 
     def _load_metta_from_file(self, file_path: str):
         if not file_path.endswith(".metta"):
-            self.stderr(f"Error: File '{file_path}' is not a .metta file.")
+            self.stdout(
+                f"Error: File '{file_path}' is not a .metta file.", severity=StdoutSeverity.ERROR
+            )
             return
-    
+
         self.stdout(f"Loading metta file {file_path}...")
 
         self._metta_loader_container_manager.start_container(file_path)
