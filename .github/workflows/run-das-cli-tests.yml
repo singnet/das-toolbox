@@ -85,7 +85,7 @@ jobs:
 
       - name: Installing das-cli package
         run: |-
-          sudo apt -y --autoremove --purge remove das-cli
+          sudo apt -y --autoremove --purge remove das-cli || true
           sudo apt -y --allow-downgrades install ./$(find . -name *.deb -type f | head -n 1)
         working-directory: das-cli
 
