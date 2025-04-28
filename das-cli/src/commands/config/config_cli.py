@@ -224,10 +224,10 @@ link_creation_agent.container_name
 
             nodes += self._build_localhost_node(
                 server_public_ip,
-                use_default_as_context=False,
+                use_default_as_context=True,
             )
 
-        nodes = self._build_cluster(port, min_nodes=3 - len(nodes))
+        nodes += self._build_cluster(port, min_nodes=3 - len(nodes))
 
         return nodes
 
