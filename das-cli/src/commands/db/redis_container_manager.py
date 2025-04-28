@@ -27,7 +27,7 @@ class RedisContainerManager(ContainerManager):
         self._options = options
 
     @staticmethod
-    def get_cluster_command_params() -> List[str]:
+    def get_cluster_command_params(port: int) -> List[str]:
         return [
             "--cluster-enabled",
             "yes",
@@ -35,6 +35,8 @@ class RedisContainerManager(ContainerManager):
             "nodes.conf",
             "--cluster-node-timeout",
             "5000",
+            "--bind",
+            "0.0.0.0",
         ]
 
     def start_container(
@@ -46,7 +48,7 @@ class RedisContainerManager(ContainerManager):
     ):
         self.raise_running_container()
 
-        cluster_command_params = self.get_cluster_command_params() if cluster else []
+        cluster_command_params = self.get_cluster_command_params(port) if cluster else []
 
         if cluster:
             is_server_port_available(
@@ -62,7 +64,6 @@ class RedisContainerManager(ContainerManager):
                 "MaximumRetryCount": 5,
             },
             command=[
-                *cluster_command_params,
                 "redis-server",
                 "--port",
                 f"{port}",
@@ -70,8 +71,12 @@ class RedisContainerManager(ContainerManager):
                 "yes",
                 "--protected-mode",
                 "no",
+                *cluster_command_params,
             ],
-            network_mode="host",
+            ports={
+                f"{port}/tcp": port,
+                f"{port + 10000}/tcp": port + 10000
+            },
         )
 
         return container_id
@@ -81,7 +86,7 @@ class RedisContainerManager(ContainerManager):
 
         for redis_node in redis_nodes:
             server_ip = redis_node.get("ip")
-            nodes_str += "{}:{}".format(str(server_ip), str(redis_port))
+            nodes_str += "{}:{} ".format(str(server_ip), str(redis_port))
 
         cmd = f"redis-cli --cluster create {nodes_str} --cluster-replicas 0 --cluster-yes"
 

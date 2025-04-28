@@ -227,7 +227,7 @@ link_creation_agent.container_name
                 use_default_as_context=False,
             )
 
-        nodes = self._build_cluster(port)
+        nodes = self._build_cluster(port, min_nodes=3 - len(nodes))
 
         return nodes
 
