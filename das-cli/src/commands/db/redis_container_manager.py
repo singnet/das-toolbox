@@ -49,13 +49,14 @@ class RedisContainerManager(ContainerManager):
         self.raise_running_container()
 
         cluster_command_params = self.get_cluster_command_params(port) if cluster else []
+        cluster_port = port + 10000
 
         if cluster:
             is_server_port_available(
                 username,
                 host,
                 port,
-                port + 10000,
+                cluster_port,
             )
 
         container_id = self._start_container(
@@ -75,7 +76,7 @@ class RedisContainerManager(ContainerManager):
             ],
             ports={
                 f"{port}/tcp": port,
-                f"{port + 10000}/tcp": port + 10000
+                f"{cluster_port}/tcp": cluster_port
             },
         )
 
