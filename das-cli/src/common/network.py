@@ -34,7 +34,7 @@ def is_server_port_available(
 ):
     def server_range_up(host, start_port, end_port):
         port_range = f"{start_port}:{end_port}" if end_port else str(start_port)
-        command = f"ssh {username}@{host} \"ufw status | grep '{port_range}.*ALLOW'\""
+        command = f"ssh {username}@{host} \"sudo ufw status | grep '{port_range}.*ALLOW'\""
 
         result = subprocess.call(
             command,

@@ -42,13 +42,53 @@ redis.*
     These variables control Redis settings, such as:
 
     redis.port
-        Defines the port number on which the Redis server is listening. The user must ensure this port is available on the server where das-cli is running and also on other nodes if a cluster is being used. If using a firewall like `ufw`, the user can allow the necessary ports for cluster communication using the command `ufw allow 7000:17000/tcp` to ensure proper communication within the cluster, assuming the Redis instance operates on port 7000. It's recommended to restrict access to specific IP addresses for each node. This practice enhances security and minimizes potential vulnerabilities.
+        Defines the port number on which the Redis server is listening.
+        The user must ensure this port is available on the server where das-cli
+        is running and also on other nodes if a cluster is being used.
+
+        If using a firewall like `ufw`, the user can allow the necessary ports
+        for cluster communication using the commands below, assuming the Redis
+        instance operates on port 7000:
+
+            sudo ufw allow 7000/tcp
+            sudo ufw allow 17000/tcp
+
+        The cluster bus uses port 10000 + redis.port, so for a Redis instance
+        running on port 7000, port 17000 must also be allowed.
+
+        It is recommended to restrict access to specific IP addresses for each
+        node. This practice enhances security and minimizes potential vulnerabilities.
 
     redis.container_name
         Specifies the name of the Docker container running the Redis server.
 
     redis.cluster
         Indicates whether a Redis cluster is being used (true/false).
+
+        To allow cluster setup and communication, passwordless SSH access must be configured:
+
+        - Generate an RSA key (on the first machine only):
+
+              ssh-keygen
+
+          Leave the password empty when prompted.
+
+        - Distribute the public key (~/.ssh/id_rsa.pub) to all other machines
+          in the cluster by adding it to their ~/.ssh/authorized_keys files.
+
+          This allows the first machine to SSH into all others without a
+          password, which is necessary for automated Redis cluster initialization.
+
+        All machines participating in the Redis cluster must:
+
+        - Use the default Docker context:
+
+              docker context use default
+
+        - Ensure that the current user has permission to run Docker commands
+          (e.g., is part of the `docker` group):
+
+              sudo usermod -aG docker $USER
 
     redis.nodes
         Receives a list of nodes for Redis configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with Redis. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
@@ -224,10 +264,10 @@ link_creation_agent.container_name
 
             nodes += self._build_localhost_node(
                 server_public_ip,
-                use_default_as_context=False,
+                use_default_as_context=True,
             )
 
-        nodes = self._build_cluster(port)
+        nodes += self._build_cluster(port, min_nodes=3 - len(nodes))
 
         return nodes
 
