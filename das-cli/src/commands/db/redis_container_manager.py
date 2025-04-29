@@ -71,7 +71,7 @@ class RedisContainerManager(ContainerManager):
                 "--appendonly",
                 "no",
                 "--save",
-                "\"\""
+                "",
                 "--protected-mode",
                 "no",
                 *cluster_command_params,
