@@ -1,36 +1,40 @@
 from flask import Blueprint, request, jsonify
-from database.db_connection import db
-from models.models import Instance
-from schemas.instance_schema import InstanceCreateSchema, InstanceResponseSchema, InstanceUpdateSchema
+from schemas.instance_schema import (
+    InstanceCreateSchema,
+    InstanceResponseSchema,
+    InstanceUpdateSchema,
+)
+from services.instance_service import (
+    list_instances_service,
+    create_instance_service,
+    get_instance_service,
+    update_instance_service,
+    delete_instance_service,
+)
 
-instances_bp = Blueprint('instances', __name__)
+instances_bp = Blueprint("instances", __name__)
 
 
-@instances_bp.route('/instances', methods=['GET'])
+@instances_bp.route("/instances", methods=["GET"])
 def list_instances():
-    instances = Instance.query.all()
-
+    instances = list_instances_service()
     return InstanceResponseSchema(many=True).jsonify(instances), 200
 
-@instances_bp.route('/instances', methods=['POST'])
+
+@instances_bp.route("/instances", methods=["POST"])
 def create_instance():
     data = request.get_json()
     errors = InstanceCreateSchema().validate(data)
     if errors:
         return jsonify(errors), 400
 
-    name = data['name']
-    metadata = data.get('metadata', {})
-
-    instance = Instance(name=name, meta=metadata)
-    db.session.add(instance)
-    db.session.commit()
-
+    instance = create_instance_service(data["name"], data.get("metadata"))
     return InstanceResponseSchema().jsonify(instance), 201
 
-@instances_bp.route('/instances/<int:instance_id>', methods=['PUT'])
+
+@instances_bp.route("/instances/<int:instance_id>", methods=["PUT"])
 def update_instance(instance_id):
-    instance = Instance.query.get(instance_id)
+    instance = get_instance_service(instance_id)
     if not instance:
         return jsonify({"error": "Instance not found"}), 404
 
@@ -39,21 +43,15 @@ def update_instance(instance_id):
     if errors:
         return jsonify(errors), 400
 
-    if 'name' in data:
-        instance.name = data['name']
-    if 'metadata' in data:
-        instance.meta = data['metadata']
-
-    db.session.commit()
-    return InstanceResponseSchema().jsonify(instance), 200
+    updated_instance = update_instance_service(instance, data)
+    return InstanceResponseSchema().jsonify(updated_instance), 200
 
 
-@instances_bp.route('/instances/<int:instance_id>', methods=['DELETE'])
+@instances_bp.route("/instances/<int:instance_id>", methods=["DELETE"])
 def delete_instance(instance_id):
-    instance = Instance.query.get(instance_id)
+    instance = get_instance_service(instance_id)
     if not instance:
         return jsonify({"error": "Instance not found"}), 404
 
-    db.session.delete(instance)
-    db.session.commit()
-    return InstanceResponseSchema().jsonify(instance), 200
+    deleted_instance = delete_instance_service(instance)
+    return InstanceResponseSchema().jsonify(deleted_instance), 200
