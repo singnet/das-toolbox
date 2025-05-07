@@ -1,19 +1,19 @@
 from flask import Flask
 from config import Config
-from database import db
-from routes import bp
-from seed import create_port_pool
+from routers import register_routes
+from database.db_connection import db
+from database.seed import run_seeder
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
     db.init_app(app)
-    app.register_blueprint(bp)
+    register_routes(app)
 
     with app.app_context():
         db.create_all()
-        create_port_pool(8000, 10000)
+        run_seeder()
 
     return app
 
