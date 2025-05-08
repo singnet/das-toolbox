@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 RUN pip3 install pyinstaller==6.3.0
 
-WORKDIR /app/
+WORKDIR /app/src
 
 COPY ./requirements.txt ./requirements.txt
 RUN pip3 install -r ./requirements.txt
