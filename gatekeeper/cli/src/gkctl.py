@@ -1,8 +1,11 @@
 from injector import Injector
 
 from commands.gkctl import GkCtlModule
+from commands.port import PortModule
 
-MODULES = []
+MODULES = [
+    PortModule,
+]
 
 
 def init_module(cli, module):
