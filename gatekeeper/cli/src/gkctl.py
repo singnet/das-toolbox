@@ -2,9 +2,11 @@ from injector import Injector
 
 from commands.gkctl import GkCtlModule
 from commands.port import PortModule
+from commands.instance import InstanceModule
 
 MODULES = [
     PortModule,
+    InstanceModule,
 ]
 
 
