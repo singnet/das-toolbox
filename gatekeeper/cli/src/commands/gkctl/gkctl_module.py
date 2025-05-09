@@ -2,9 +2,9 @@ from typing import List
 
 from common import Module
 
-from .config_cli import ConfigCli
+from .gkctl import GkCtl
 
 
-class ConfigModule(Module):
-    _instance = ConfigCli
+class GkCtlModule(Module):
+    _instance = GkCtl
     _dependecy_injection: List = []
