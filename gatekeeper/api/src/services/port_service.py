@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from database.db_connection import db
 from models.models import Port, PortBinding, Instance
+from sqlalchemy import select
 
 
 def get_instance(instance_id):
@@ -13,7 +14,7 @@ def reserve_free_port_for_instance(instance):
         .filter(PortBinding.released_at.is_(None))
         .subquery()
     )
-    free_port = Port.query.filter(Port.id.not_in(used_ports)).first()
+    free_port = Port.query.filter(Port.id.not_in(select(used_ports))).first()
 
     if not free_port:
         return None
