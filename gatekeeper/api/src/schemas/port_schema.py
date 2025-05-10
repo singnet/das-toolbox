@@ -26,7 +26,7 @@ class InstanceWithPortBindingSchema(Schema):
 
 
 class PortReserveSchema(Schema):
-    instance_id = fields.Int(required=True)
+    instance_id = fields.Str(required=True)
 
 
 class PortBindingWithInstanceSchema(Schema):
@@ -42,5 +42,5 @@ class PortWithBindingInstanceSchema(Schema):
 
 
 class ObserverRequestSchema(Schema):
-    instance_id = fields.Int(required=True)
+    instance_id = fields.Str(required=True)
     ports = fields.List(fields.Int(), required=True, validate=validate.Length(min=1))

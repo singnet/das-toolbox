@@ -32,7 +32,7 @@ def reserve_port():
     if not reserved_instance:
         return jsonify({"error": "No available ports"}), 409
 
-    return InstanceWithPortBindingSchema().jsonify(reserved_instance), 201
+    return InstanceWithPortBindingSchema().dump(reserved_instance), 201
 
 
 @ports_bp.route("/ports/<int:port_number>/release", methods=["POST"])
@@ -41,7 +41,7 @@ def release_port(port_number):
     if error:
         return jsonify({"error": error}), 404 if "not found" in error else 400
 
-    return InstanceWithPortBindingSchema().jsonify(instance), 200
+    return InstanceWithPortBindingSchema().dump(instance), 200
 
 
 @ports_bp.route("/ports", methods=["GET"])
@@ -61,4 +61,4 @@ def observe_ports():
     if ports is None:
         return jsonify({"error": "Instance not found"}), 404
 
-    return PortSchema(many=True).jsonify(ports)
+    return PortSchema(many=True).dump(ports)

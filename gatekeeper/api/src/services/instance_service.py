@@ -6,8 +6,8 @@ def list_instances_service():
     return Instance.query.all()
 
 
-def create_instance_service(name, metadata=None):
-    instance = Instance(name=name, meta=metadata or {})
+def create_instance_service(instance_id, name, metadata=None):
+    instance = Instance(id=instance_id, name=name, meta=metadata or {})
     db.session.add(instance)
     db.session.commit()
     return instance
