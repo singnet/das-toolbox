@@ -1,6 +1,8 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption
+from common import Command, CommandGroup, StdoutSeverity
+from common.exceptions import InstanceNotRegisteredError, InvalidRequestError
+from .port_service import PortService
 
 
 class PortRelease(Command):
@@ -28,25 +30,19 @@ class PortReserve(Command):
 
     help = ""
 
-    params = [
-        CommandOption(
-            ["--instance-id"],
-            help="",
-            required=True,
-            type=str,
-        ),
-    ]
-
     @inject
-    def __init__(self) -> None:
+    def __init__(self, port_service: PortService) -> None:
         super().__init__()
+        self._port_service = port_service
 
-    def _reserve(self, instance_id: str):
-        self.stdout("reserve")
-
-    def run(self, instance_id: str):
-        self._reserve(instance_id)
-
+    def run(self):
+        try:
+            self._port_service.reserve()
+        except (InstanceNotRegisteredError, InvalidRequestError) as e:
+            self.stdout(
+                e.message,
+                severity=StdoutSeverity.ERROR,
+            )
 
 class PortCli(CommandGroup):
     name = "port"
