@@ -3,6 +3,7 @@ from schemas.port_schema import (
     InstanceWithPortBindingSchema,
     PortReserveSchema,
     PortWithBindingInstanceSchema,
+    PortBindingWithInstanceSchema,
     PortSchema,
     ObserverRequestSchema,
 )
@@ -28,11 +29,11 @@ def reserve_port():
     if not instance:
         return jsonify({"error": "Instance not found"}), 404
 
-    reserved_instance = reserve_free_port_for_instance(instance)
-    if not reserved_instance:
+    reserved_port = reserve_free_port_for_instance(instance)
+    if not reserved_port:
         return jsonify({"error": "No available ports"}), 409
 
-    return InstanceWithPortBindingSchema().dump(reserved_instance), 201
+    return PortBindingWithInstanceSchema().dump(reserved_port), 201
 
 
 @ports_bp.route("/ports/<int:port_number>/release", methods=["POST"])

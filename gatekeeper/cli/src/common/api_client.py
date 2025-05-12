@@ -14,7 +14,7 @@ class APIClient:
     def create(
         self,
         endpoint: str,
-        data: dict,
+        data: dict = {},
     ) -> dict:
         with httpx.Client(timeout=self.timeout) as client:
             response = client.post(f"{self.base_url}/{endpoint}", json=data)

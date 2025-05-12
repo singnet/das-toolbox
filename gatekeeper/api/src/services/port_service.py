@@ -23,8 +23,7 @@ def reserve_free_port_for_instance(instance):
     free_port.is_reserved = True
     db.session.add(binding)
     db.session.commit()
-    instance.bindings = [binding]
-    return instance
+    return binding
 
 
 def release_port_by_number(port_number):

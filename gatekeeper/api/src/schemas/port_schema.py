@@ -7,7 +7,7 @@ class PortSchema(Schema):
 
 
 class InstanceSchema(Schema):
-    id = fields.Int()
+    id = fields.Str()
     name = fields.Str()
     meta = fields.Dict()
 
@@ -19,7 +19,7 @@ class PortBindingSchema(Schema):
 
 
 class InstanceWithPortBindingSchema(Schema):
-    id = fields.Int()
+    id = fields.Str()
     name = fields.Str()
     meta = fields.Dict()
     bindings = fields.Nested(PortBindingSchema, many=True)
@@ -33,6 +33,7 @@ class PortBindingWithInstanceSchema(Schema):
     id = fields.Int()
     released_at = fields.DateTime(allow_none=True)
     instance = fields.Nested(InstanceSchema)
+    port = fields.Nested(PortSchema)
 
 
 class PortWithBindingInstanceSchema(Schema):

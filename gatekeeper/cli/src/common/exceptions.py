@@ -6,7 +6,7 @@ class InstanceNotRegisteredError(Exception):
 
 
 class InvalidRequestError(Exception):
-    def __init__(self, message: str, payload: dict):
+    def __init__(self, message: str, payload: dict = {}):
         super().__init__(message)
         self.message = message
         self.payload = payload
