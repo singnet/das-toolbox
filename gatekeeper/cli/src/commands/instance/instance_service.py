@@ -1,7 +1,7 @@
 import httpx
 from common.api_client import APIClient
 from common.utils import get_hardware_fingerprint, get_machine_info
-from common.exceptions import InvalidRequestError
+from common.exceptions import InvalidRequestError, InstanceAlreadyJoinedError
 
 
 class InstanceService:
@@ -14,13 +14,16 @@ class InstanceService:
         payload = {
             "instance_id": instance_id,
             "name": machine_info['hostname'],
-            "metadata": machine_info,
+            "meta": machine_info,
         }
 
         try:
             return self._api_client.create("api/instances", payload)
         except httpx.HTTPStatusError as e:
-            if e.response.status_code == 400:
-                error_message = e.response.json()
-                raise InvalidRequestError(error_message, payload) from e
+            status = e.response.status_code
+            resp = e.response.json()
+            if status == 400:
+                raise InvalidRequestError(resp, payload) from e
+            elif status == 409:
+                raise InstanceAlreadyJoinedError(resp, payload) from e
             raise

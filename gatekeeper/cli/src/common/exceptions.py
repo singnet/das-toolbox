@@ -10,3 +10,9 @@ class InvalidRequestError(Exception):
         super().__init__(message)
         self.message = message
         self.payload = payload
+
+class InstanceAlreadyJoinedError(Exception):
+    def __init__(self, message: str, payload: dict):
+        super().__init__(message)
+        self.message = message
+        self.payload = payload

@@ -9,7 +9,7 @@ class PortSchema(Schema):
 class InstanceSchema(Schema):
     id = fields.Int()
     name = fields.Str()
-    metadata = fields.Dict()
+    meta = fields.Dict()
 
 
 class PortBindingSchema(Schema):
@@ -21,7 +21,7 @@ class PortBindingSchema(Schema):
 class InstanceWithPortBindingSchema(Schema):
     id = fields.Int()
     name = fields.Str()
-    metadata = fields.Dict()
+    meta = fields.Dict()
     bindings = fields.Nested(PortBindingSchema, many=True)
 
 

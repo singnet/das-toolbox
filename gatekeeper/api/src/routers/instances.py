@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from schemas.instance_schema import (
     InstanceCreateSchema,
     InstanceUpdateSchema,
+    InstanceResponseSchema,
 )
 from services.instance_service import (
     list_instances_service,
@@ -18,7 +19,7 @@ instances_bp = Blueprint("instances", __name__)
 def list_instances():
     instances = list_instances_service()
 
-    return jsonify(instances), 200
+    return InstanceResponseSchema(many=True).dump(instances), 200
 
 
 @instances_bp.route("/instances", methods=["POST"])
@@ -28,13 +29,24 @@ def create_instance():
     if errors:
         return jsonify(errors), 400
 
-    instance = create_instance_service(
-        data["instance_id"],
-        data["name"],
-        data.get("metadata"),
-    )
+    try:
+        instance = create_instance_service(
+            data["instance_id"],
+            data["name"],
+            data.get("meta"),
+        )
+        return InstanceResponseSchema().dump(instance), 201
 
-    return jsonify(instance), 201
+    except ValueError as e:
+        return jsonify({
+            "error": str(e)
+        }), 409
+
+    except Exception as e:
+        return jsonify({
+            "error": "An unexpected error occurred.",
+            "details": str(e)
+        }), 500
 
 
 @instances_bp.route("/instances/<int:instance_id>", methods=["PUT"])
@@ -49,7 +61,7 @@ def update_instance(instance_id):
         return jsonify(errors), 400
 
     updated_instance = update_instance_service(instance, data)
-    return jsonify(updated_instance), 200
+    return InstanceResponseSchema().dump(updated_instance), 200
 
 
 @instances_bp.route("/instances/<int:instance_id>", methods=["DELETE"])
@@ -59,4 +71,4 @@ def delete_instance(instance_id):
         return jsonify({"error": "Instance not found"}), 404
 
     deleted_instance = delete_instance_service(instance)
-    return jsonify(deleted_instance), 200
+    return InstanceResponseSchema().dump(deleted_instance), 200

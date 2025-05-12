@@ -21,8 +21,8 @@ class Instance(db.Model):
     __tablename__ = 'instance'
 
     id = db.Column(db.String(64), primary_key=True)
-    name = db.Column(db.String(255), unique=True, nullable=False)
-    meta = db.Column('metadata', db.JSON, nullable=True)
+    name = db.Column(db.String(255), nullable=False)
+    meta = db.Column(db.JSON, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
 
     bindings = db.relationship("PortBinding", back_populates="instance")
