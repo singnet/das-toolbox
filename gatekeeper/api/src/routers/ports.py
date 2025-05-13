@@ -62,7 +62,10 @@ def observe_ports():
     if errors:
         return jsonify(errors), 400
 
-    ports = observe_ports_for_instance(data["instance_id"], data["ports"])
+    ports = observe_ports_for_instance(
+        data["instance_id"],
+        data["ports"],
+    )
     if ports is None:
         return jsonify({"error": "Instance not found"}), 404
 

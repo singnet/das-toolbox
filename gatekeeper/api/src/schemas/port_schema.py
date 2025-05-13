@@ -40,4 +40,8 @@ class PortParamsSchema(Schema):
 
 class ObserverRequestSchema(Schema):
     instance_id = fields.Str(required=True)
-    ports = fields.List(fields.Int(), required=True, validate=validate.Length(min=1))
+    ports = fields.List(
+        fields.Int(),
+        required=True,
+        validate=validate.Length(min=0),
+    )

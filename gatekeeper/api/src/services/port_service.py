@@ -72,14 +72,32 @@ def observe_ports_for_instance(instance_id, used_ports):
     ports = Port.query.filter(Port.port_number.in_(used_ports)).all()
     port_ids = [port.id for port in ports]
 
-    db.session.query(PortBinding).filter(
-        PortBinding.instance_id == instance_id,
-        PortBinding.released_at.is_(None),
-        ~PortBinding.port_id.in_(port_ids),
-    ).update(
-        {PortBinding.released_at: now},
-        synchronize_session=False,
+    bindings_to_release = (
+        db.session.query(PortBinding)
+        .filter(
+            PortBinding.instance_id == instance_id,
+            PortBinding.released_at.is_(None),
+            ~PortBinding.port_id.in_(port_ids),
+        )
+        .all()
     )
+
+    for binding in bindings_to_release:
+        binding.released_at = now
+
+        has_other_active_bindings = (
+            db.session.query(PortBinding)
+            .filter(
+                PortBinding.port_id == binding.port_id,
+                PortBinding.released_at.is_(None),
+            )
+            .count()
+            > 0
+        )
+
+        if not has_other_active_bindings:
+            port = db.session.query(Port).get(binding.port_id)
+            port.is_reserved = False
 
     for port in ports:
         existing_binding = PortBinding.query.filter_by(
@@ -90,8 +108,12 @@ def observe_ports_for_instance(instance_id, used_ports):
 
         if not existing_binding:
             db.session.add(
-                PortBinding(port_id=port.id, instance_id=instance_id, observed_at=now)
+                PortBinding(
+                    port_id=port.id,
+                    instance_id=instance_id,
+                )
             )
+            port.is_reserved = True
 
     db.session.commit()
     return ports
