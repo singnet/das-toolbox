@@ -8,6 +8,12 @@ class InstanceService:
     def __init__(self, api_client: APIClient):
         self._api_client = api_client
 
+    def list(self, params: dict = {}) -> list:
+        try:
+            return self._api_client.read("api/instances", params=params)
+        except httpx.HTTPStatusError as e:
+            raise e
+
     def join(self) -> dict:
         instance_id = get_hardware_fingerprint()
         machine_info = get_machine_info()
