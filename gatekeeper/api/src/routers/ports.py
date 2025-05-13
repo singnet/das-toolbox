@@ -5,6 +5,7 @@ from schemas.port_schema import (
     PortBindingWithInstanceSchema,
     PortSchema,
     ObserverRequestSchema,
+    PortParamsSchema,
 )
 from services.port_service import (
     get_instance,
@@ -46,8 +47,12 @@ def release_port(port_number):
 
 @ports_bp.route("/ports", methods=["GET"])
 def list_ports():
-    result = list_ports_with_bindings()
-    return PortWithBindingInstanceSchema(many=True).jsonify(result)
+    params = request.args
+    errors = PortParamsSchema().validate(params)
+    if errors:
+        return jsonify(errors), 400
+    ports = list_ports_with_bindings(params)
+    return PortWithBindingInstanceSchema(many=True).dump(ports)
 
 
 @ports_bp.route("/ports/observe", methods=["POST"])

@@ -26,7 +26,16 @@ class PortBindingWithInstanceSchema(Schema):
 class PortWithBindingInstanceSchema(Schema):
     id = fields.Int()
     port_number = fields.Int()
-    binding = fields.Nested(PortBindingWithInstanceSchema, allow_none=True)
+    bindings = fields.Nested(
+        PortBindingWithInstanceSchema,
+        many=True,
+        allow_none=True,
+    )
+
+
+class PortParamsSchema(Schema):
+    instance_id = fields.Str(required=False)
+    is_reserved = fields.Boolean()
 
 
 class ObserverRequestSchema(Schema):

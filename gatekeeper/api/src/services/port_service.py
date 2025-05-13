@@ -42,19 +42,25 @@ def release_port_by_number(port_number):
     return binding, None
 
 
-def list_ports_with_bindings():
-    ports = Port.query.all()
-    result = []
+def list_ports_with_bindings(params=None):
+    if params is None:
+        params = {}
 
-    for port in ports:
-        binding = PortBinding.query.filter_by(port_id=port.id, released_at=None).first()
-        if binding:
-            db.session.refresh(binding)
-        result.append(
-            {"id": port.id, "port_number": port.port_number, "binding": binding}
+    query = Port.query
+
+    is_reserved = bool(params.get("is_reserved"))
+    if is_reserved is not None:
+        query = query.filter(Port.is_reserved == is_reserved)
+
+    instance_id = params.get("instance_id")
+    if instance_id is not None:
+        query = query.join(PortBinding).filter(
+            PortBinding.instance_id == instance_id,
+            PortBinding.released_at == None,
         )
 
-    return result
+    ports = query.all()
+    return ports
 
 
 def observe_ports_for_instance(instance_id, used_ports):
