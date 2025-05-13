@@ -20,6 +20,9 @@ Each machine (instance) can register itself through the CLI and interact with th
 
 In addition, the system includes an **Agent** that automatically monitors the local environment and keeps the system in sync.
 
+
+![Gatekeeper Design System](./docs/images/gatekeeper.jpg)
+
 ---
 
 ## Components
