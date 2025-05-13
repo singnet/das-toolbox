@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from schemas.port_schema import (
-    InstanceWithPortBindingSchema,
     PortReserveSchema,
     PortWithBindingInstanceSchema,
     PortBindingWithInstanceSchema,
@@ -42,7 +41,7 @@ def release_port(port_number):
     if error:
         return jsonify({"error": error}), 404 if "not found" in error else 400
 
-    return InstanceWithPortBindingSchema().dump(instance), 200
+    return PortBindingWithInstanceSchema().dump(instance), 200
 
 
 @ports_bp.route("/ports", methods=["GET"])

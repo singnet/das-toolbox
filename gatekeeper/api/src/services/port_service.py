@@ -39,9 +39,7 @@ def release_port_by_number(port_number):
     port.is_reserved = False
     db.session.commit()
 
-    instance = Instance.query.get(binding.instance_id)
-    instance.bindings = [binding]
-    return instance, None
+    return binding, None
 
 
 def list_ports_with_bindings():
