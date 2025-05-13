@@ -8,9 +8,14 @@ from .instance_service import InstanceService
 class InstanceJoin(Command):
     name = "join"
 
-    short_help = ""
+    short_help = "Join the current machine as a managed instance."
 
-    help = ""
+    help = (
+        "Registers the current machine as a managed instance in the system.\n\n"
+        "The instance will be uniquely identified by a generated ID and its system metadata.\n"
+        "After joining, this instance will be tracked by the API for port monitoring and management.\n\n"
+        "Use this command only once per environment. Attempting to join again will result in an error."
+    )
 
     @inject
     def __init__(self, instance_service: InstanceService) -> None:
@@ -50,9 +55,15 @@ class InstanceJoin(Command):
 class InstanceList(Command):
     name = "list"
 
-    short_help = ""
+    short_help = "List all registered instances."
 
-    help = ""
+    help = (
+        "Displays all instances that have previously joined the system.\n\n"
+        "Each instance will show:\n"
+        "- ID and name\n"
+        "- System metadata such as architecture, CPU count, OS, and hostname.\n\n"
+        "Useful for verifying registered nodes and their metadata."
+    )
 
     @inject
     def __init__(self, instance_service: InstanceService) -> None:
@@ -90,9 +101,15 @@ class InstanceList(Command):
 class InstanceCli(CommandGroup):
     name = "instance"
 
-    short_help = ""
+    short_help = "Manage machine instances connected to the port tracking system."
 
-    help = ""
+    help = (
+        "This command group contains commands to manage instances that are part of the system.\n\n"
+        "Available commands:\n"
+        "  join   - Register the current environment as an instance.\n"
+        "  list   - Show all registered instances and their metadata.\n\n"
+        "Use `--help` with each command to get more details."
+    )
 
     @inject
     def __init__(

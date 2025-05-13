@@ -10,9 +10,16 @@ from .port_service import PortService
 class PortRelease(Command):
     name = "release"
 
-    short_help = ""
+    short_help = "Release a previously reserved port."
 
-    help = ""
+    help = (
+        "Releases a port that was previously reserved by this instance.\n\n"
+        "This tells the API that the port is no longer in use and can be reused by other instances.\n"
+        "It is recommended to release ports once your application stops using them to maintain an accurate registry.\n\n"
+        "Required option:\n"
+        "  -p, --port  Port number to release\n\n"
+        "Note: The instance must be registered and own the port to successfully release it."
+    )
 
     params = [
         CommandOption(
@@ -48,9 +55,14 @@ class PortRelease(Command):
 class PortReserve(Command):
     name = "reserve"
 
-    short_help = ""
+    short_help = "Reserve a new available port for the current instance."
 
-    help = ""
+    help = (
+        "Requests and reserves a new available port for the current machine instance.\n\n"
+        "This command contacts the API to allocate an unused port and binds it to this instance.\n"
+        "It is useful when you want to ensure port exclusivity for an application or service running on this host.\n\n"
+        "Note: The instance must already be registered using the `instance join` command."
+    )
 
     @inject
     def __init__(self, port_service: PortService) -> None:
@@ -77,9 +89,15 @@ class PortReserve(Command):
 class PortHistory(Command):
     name = "history"
 
-    short_help = ""
+    short_help = "Show history of reserved or released ports."
 
-    help = ""
+    help = (
+        "Displays the history of ports that have been reserved by the current instance.\n\n"
+        "You can use the `--is-reserved` flag to filter by active (default) or released ports.\n\n"
+        "Output includes the port number, release status, and a grouping by instance for clarity.\n\n"
+        "Options:\n"
+        "  --is-reserved     Show only currently reserved ports (default: True)"
+    ) 
 
     params = [
         CommandOption(
@@ -130,9 +148,16 @@ class PortHistory(Command):
 class PortCli(CommandGroup):
     name = "port"
 
-    short_help = ""
+    short_help = "Manage reserved ports for the current machine instance."
 
-    help = ""
+    help = (
+        "This command group provides tools to manage port reservations linked to machine instances.\n\n"
+        "Available commands:\n"
+        "  reserve   - Reserve a new available port for the current instance.\n"
+        "  release   - Release a specific port no longer in use.\n"
+        "  history   - List all ports reserved (or released) by this instance.\n\n"
+        "Use `--help` with each command to get more detailed usage information."
+    )
 
     @inject
     def __init__(
