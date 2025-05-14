@@ -22,4 +22,14 @@ build-cli: cli-builder
 	-v "$(shell pwd)/cli:/app/" \
 	cli-builder:latest
 
-build: build-agent build-api build-cli
+deb-package-builder:
+	@docker build -f .docker/Dockerfile.package -t package-builder:latest .
+
+
+build: build-agent build-api build-cli deb-package-builder
+	@docker run --rm \
+	-v "$(shell pwd)/agent/bin/agent:/workspace/usr/bin/gk-port-watcher" \
+	-v "$(shell pwd)/api/bin/api:/workspace/usr/bin/gk-server" \
+	-v "$(shell pwd)/cli/bin/cli:/workspace/usr/bin/gkctl" \
+	-v "$(shell pwd)/build:/workspace/build" \
+	package-builder:latest
