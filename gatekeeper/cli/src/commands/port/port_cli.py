@@ -42,7 +42,7 @@ class PortRelease(Command):
             port_number = result["port"]["port_number"]
 
             self.stdout(
-                f"Successfully released port {port_number}",
+                port_number,
                 severity=StdoutSeverity.SUCCESS,
             )
         except (InstanceNotRegisteredError, InvalidRequestError) as e:
@@ -76,7 +76,7 @@ class PortReserve(Command):
             port_number = result["port"]["port_number"]
 
             self.stdout(
-                f"Reserved port {port_number}",
+                port_number,
                 severity=StdoutSeverity.SUCCESS,
             )
         except (InstanceNotRegisteredError, InvalidRequestError) as e:
