@@ -22,6 +22,15 @@ def list_instances():
     return InstanceResponseSchema(many=True).dump(instances), 200
 
 
+@instances_bp.route("/instances/<string:instance_id>", methods=["GET"])
+def get_instance_by_id(instance_id):
+    instance = get_instance_service(instance_id)
+    if not instance:
+        return {"error": "Instance not found"}, 404
+
+    return InstanceResponseSchema().dump(instance), 200
+
+
 @instances_bp.route("/instances", methods=["POST"])
 def create_instance():
     data = request.get_json()
@@ -38,15 +47,13 @@ def create_instance():
         return InstanceResponseSchema().dump(instance), 201
 
     except ValueError as e:
-        return jsonify({
-            "error": str(e)
-        }), 409
+        return jsonify({"error": str(e)}), 409
 
     except Exception as e:
-        return jsonify({
-            "error": "An unexpected error occurred.",
-            "details": str(e)
-        }), 500
+        return (
+            jsonify({"error": "An unexpected error occurred.", "details": str(e)}),
+            500,
+        )
 
 
 @instances_bp.route("/instances/<int:instance_id>", methods=["PUT"])
