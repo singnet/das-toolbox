@@ -1,0 +1,12 @@
+[Unit]
+Description=Gatekeeper Port Watcher
+After=network.target gk-server.service
+Requires=gk-server.service
+
+[Service]
+ExecStart=/usr/bin/gk-port-watcher
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, StdoutSeverity
+from common import Command, CommandGroup, StdoutSeverity, CommandOption
 from common.exceptions import InstanceAlreadyJoinedError
 from .instance_service import InstanceService
 
@@ -65,6 +65,16 @@ class InstanceList(Command):
         "Useful for verifying registered nodes and their metadata."
     )
 
+    params = [
+        CommandOption(
+            ["--current"],
+            help="Only display the instance registered on the current machine.",
+            required=False,
+            default=False,
+            is_flag=True,
+        )
+    ]
+
     @inject
     def __init__(self, instance_service: InstanceService) -> None:
         super().__init__()
@@ -91,8 +101,13 @@ class InstanceList(Command):
             self.stdout(f"  - Processor:      {meta.get('processor', 'N/A')}", severity=StdoutSeverity.INFO)
 
 
-    def run(self):
-        result = self._instance_service.list()
+    def run(self, current: bool):
+        result = []
+
+        if current:
+            result = [self._instance_service.get_current()]
+        else:
+            result = self._instance_service.list()
 
         self._display_instances(result)
 

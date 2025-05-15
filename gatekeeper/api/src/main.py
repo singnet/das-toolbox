@@ -2,7 +2,6 @@ from flask import Flask
 from config import Config
 from routers import register_routes
 from database.db_connection import db
-from database.seed import run_seeder
 
 def create_app():
     app = Flask(__name__)
@@ -13,7 +12,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        run_seeder()
 
     return app
 

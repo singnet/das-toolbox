@@ -37,7 +37,7 @@ The central service that stores and exposes data about:
 
 ### CLI
 
-A command-line interface (`gkctl`) that allows users to:
+A command-line interface (`main`) that allows users to:
 
 * Register a new instance (`join`)
 * Reserve or release ports
@@ -80,25 +80,25 @@ Example commands:
 
 ```bash
 # Register the current machine
-python cli/src/gkctl.py instance join
+python cli/src/main.py instance join
 
 # List registered instances
-python cli/src/gkctl.py instance list
+python cli/src/main.py instance list
 
 # Reserve a new available port
-python cli/src/gkctl.py port reserve
+python cli/src/main.py port reserve
 
 # Release a port that is no longer in use
-python cli/src/gkctl.py port release --port 8080
+python cli/src/main.py port release --port 8080
 
 # View the port usage history
-python cli/src/gkctl.py port history
+python cli/src/main.py port history
 ```
 
 To see full CLI options:
 
 ```bash
-python cli/src/gkctl.py --help
+python cli/src/main.py --help
 ```
 
 ---

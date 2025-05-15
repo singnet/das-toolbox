@@ -8,12 +8,13 @@ RUN apt-get update && \
 
 RUN pip3 install pyinstaller==6.3.0
 
-WORKDIR /app/src
-
 COPY ./requirements.txt ./requirements.txt
+
 RUN pip3 install -r ./requirements.txt
+
+WORKDIR /app/src
 
 ARG EXEC_NAME=main
 ENV EXEC_NAME=${EXEC_NAME}
 
-ENTRYPOINT ["sh", "-c", "pyinstaller --paths /app/ main.py -y -F -n $EXEC_NAME --distpath /app/bin"]
+ENTRYPOINT ["sh", "-c", "pyinstaller --paths /app/src main.py -y -F -n $EXEC_NAME --distpath /app/bin"]
