@@ -14,6 +14,7 @@ setup() {
 
 teardown() {
     das-cli db stop
+    das-cli faas stop
 }
 
 @test "Start FaaS when port is already in use" {
