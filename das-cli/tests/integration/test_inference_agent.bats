@@ -17,6 +17,7 @@ setup() {
 }
 
 teardown() {
+    das-cli inference-agent stop
     das-cli link-creation-agent stop
     das-cli attention-broker stop
     das-cli query-agent stop
