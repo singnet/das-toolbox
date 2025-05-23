@@ -225,7 +225,11 @@ class CommandGroup(Command):
     group: click.Group
 
     def __init__(self) -> None:
-        self.group = click.Group(self.name)
+        self.group = click.Group(
+            self.name,
+            help=self.help,
+            short_help=self.short_help,
+        )
         self.configure_params()
 
     def override_group_command(self):
