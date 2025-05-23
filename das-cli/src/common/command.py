@@ -35,7 +35,6 @@ class Command:
     help = ""
     short_help = ""
     params: List = []
-    # TODO: Add more ways to connect, example: ssh-key file, etc. Look at the fabric docs.
     remote_params = [
         CommandOption(
             ["--remote"],
@@ -62,6 +61,25 @@ class Command:
             help="the remote port",
             required=False,
         ),
+        CommandOption(
+            ["--key-file"],
+            type=str,
+            help="Path to the SSH private key file",
+            required=False,
+        ),
+        CommandOption(
+            ["--password"],
+            type=str,
+            help="Password for authentication",
+            required=False,
+        ),
+        CommandOption(
+            ["--connect-timeout"],
+            type=int,
+            help="Timeout for establishing the connection in seconds",
+            required=False,
+            default=10,
+        ),
     ]
 
     def __init__(self) -> None:
@@ -86,6 +104,11 @@ class Command:
             "user": kwargs.pop("user", ""),
             "port": kwargs.pop("port", 22),
             "host": kwargs.pop("host", ""),
+            "connect_kwargs": {
+                "key_filename": kwargs.pop("key_file", None),
+                "password": kwargs.pop("password", None),
+            },
+            "connect_timeout": kwargs.pop("connect_timeout", 10),
         }
         remote = kwargs.pop("remote", False)
 
@@ -202,7 +225,11 @@ class CommandGroup(Command):
     group: click.Group
 
     def __init__(self) -> None:
-        self.group = click.Group(self.name)
+        self.group = click.Group(
+            self.name,
+            help=self.help,
+            short_help=self.short_help,
+        )
         self.configure_params()
 
     def override_group_command(self):
