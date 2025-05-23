@@ -112,7 +112,29 @@ class DasCli(CommandGroup):
 
     short_help = "'das-cli' offers a suite of commands to efficiently manage a wide range of tasks including management of containerized services"
 
-    help = "'das-cli' offers a suite of commands to efficiently manage a wide range of tasks including management of containerized services, OpenFaaS functions, knowledge base operations, and more."
+    help = """
+das-cli' offers a suite of commands to efficiently manage a wide range of tasks including management of containerized services, OpenFaaS functions, knowledge base operations, and more.
+
+.SH REMOTE EXECUTION
+    You can run any command on a remote server using SSH by enabling the --remote flag and providing the connection parameters.
+
+.SH OPTIONS FOR REMOTE EXECUTION
+    --remote              Run the command on a remote server over SSH
+    --host, -H            Hostname or IP address of the remote server
+    --user, -H            SSH login user
+    --port, -H            SSH port (default: 22)
+    --key-file            Path to the SSH private key file (for key-based authentication)
+    --password            SSH password (not recommended for production)
+    --connect-timeout     SSH connection timeout in seconds (default: 10)
+
+.SH EXAMPLES
+    Run command remotely using SSH key:
+        das-cli deploy --remote --host 192.168.0.10 --user ubuntu --key-file ~/.ssh/id_rsa
+
+    Run command remotely using password:
+        das-cli update --remote --host 10.0.0.2 --user root --password yourpassword
+
+"""
 
     @inject
     def __init__(
