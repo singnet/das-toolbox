@@ -1,6 +1,6 @@
 # Gatekeeper
 
-**Gatekeeper** is a complete system for managing reserved network ports and registered instances in a distributed infrastructure. It consists of the following core components:
+**Gatekeeper** is a system for managing reserved network ports and registered instances in a distributed infrastructure. It consists of the following core components:
 
 * A **REST API** that centralizes data about ports and instances.
 * A **CLI** to register instances and manage port allocation.
