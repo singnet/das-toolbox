@@ -1,0 +1,11 @@
+Source: gatekeeper
+Section: utils
+Version: 0.1.0
+Priority: standard
+Maintainer: Rafael Levi <rafael.levi@singularitynet.io>
+Build-Depends: build-essential, zlib1g-dev, python3-pip, python3 (>=3.8.0), debhelper (>= 12.10ubuntu1), gzip
+Package: gatekeeper
+Architecture: amd64
+Description: Gatekeeper - Port and Instance Management System
+ A lightweight and extensible system for managing reserved ports
+ and registered instances across distributed infrastructure.

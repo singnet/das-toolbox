@@ -27,7 +27,13 @@ class APIClient:
         params: Optional[dict] = None,
     ) -> dict:
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.get(f"{self.base_url}/{endpoint}", params=params)
+            response = client.get(
+                f"{self.base_url}/{endpoint}",
+                params=params,
+                headers={
+                    "Content-Type": "application/json",
+                },
+            )
             response.raise_for_status()
             return response.json()
 

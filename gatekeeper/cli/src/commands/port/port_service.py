@@ -33,3 +33,9 @@ class PortService:
                 error_message = resp.get('error') or resp
                 raise InvalidRequestError(error_message) from e
             raise
+
+    def list(self, params: dict = {}):
+        try:
+            return self._api_client.read("api/ports", params=params)
+        except httpx.HTTPStatusError as e:
+            raise e
