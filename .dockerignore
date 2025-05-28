@@ -2,3 +2,5 @@ Dockerfile
 .git
 env
 dist/
+build/
+.venv
