@@ -12,6 +12,11 @@ setup() {
     das-cli faas stop
 }
 
+teardown() {
+    das-cli db stop
+    das-cli faas stop
+}
+
 @test "Show logs for MongoDB, Redis and FaaS with unset configuration file" {
     local services=(mongodb redis faas)
 
