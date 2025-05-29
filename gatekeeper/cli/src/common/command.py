@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, List
+from sys import exit
 
 import click
 
@@ -56,6 +57,7 @@ class Command:
             logger().exception(error_message)
 
             print(pretty_message)
+            exit(1)
 
     def prompt(
         self,
