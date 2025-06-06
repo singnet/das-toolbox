@@ -15,13 +15,24 @@ class LinkCreationAgentStop(Command):
     short_help = "Stop the Link Creation Agent service."
 
     help = """
-'das-cli link-creation-agent stop' stops the running Link Creation Agent service.
+NAME
 
-.SH EXAMPLES
+    link-creation-agent stop - Stop the Link Creation Agent service
 
-To stop a running Link Creation Agent service:
+SYNOPSIS
 
-$ das-cli link-creation-agent stop
+    das-cli link-creation-agent stop
+
+DESCRIPTION
+
+    Stops the running Link Creation Agent service container.
+    If the service is already stopped, a warning is shown.
+
+EXAMPLES
+
+    To stop a running Link Creation Agent service:
+
+        das-cli link-creation-agent stop
 """
 
     @inject
@@ -62,13 +73,25 @@ class LinkCreationAgentStart(Command):
     short_help = "Start the Link Creation Agent service."
 
     help = """
-'das-cli link-creation-agent start' initializes and runs the Link Creation Agent service.
+NAME
 
-.SH EXAMPLES
+    link-creation-agent start - Start the Link Creation Agent service
 
-To start the Link Creation Agent service:
+SYNOPSIS
 
-$ das-cli link-creation-agent start
+    das-cli link-creation-agent start
+
+DESCRIPTION
+
+    Initializes and runs the Link Creation Agent service.
+    This command starts the service container and reports the ports where it is listening.
+    Ensure the required dependent services (like Query Agent) are running before starting.
+
+EXAMPLES
+
+    To start the Link Creation Agent service:
+
+        das-cli link-creation-agent start
 """
 
     @inject
@@ -126,15 +149,24 @@ class LinkCreationAgentRestart(Command):
     short_help = "Restart the Link Creation Agent service."
 
     help = """
-'das-cli link-creation-agent restart' stops and then starts the Link Creation Agent service.
+NAME
 
-This command ensures a fresh instance of the Link Creation Agent is running.
+    link-creation-agent restart - Restart the Link Creation Agent service
 
-.SH EXAMPLES
+SYNOPSIS
 
-To restart the Link Creation Agent service:
+    das-cli link-creation-agent restart
 
-$ das-cli link-creation-agent restart
+DESCRIPTION
+
+    Stops the currently running Link Creation Agent service and then starts a fresh instance.
+    Useful for refreshing the service or applying configuration changes.
+
+EXAMPLES
+
+    To restart the Link Creation Agent service:
+
+        das-cli link-creation-agent restart
 """
 
     @inject
@@ -158,15 +190,38 @@ class LinkCreationAgentCli(CommandGroup):
     short_help = "Manage the Link Creation Agent service."
 
     help = """
-'das-cli link-creation-agent' provides commands to control the Link Creation Agent service.
+NAME
 
-Use this command group to start, stop, or restart the service.
+    link-creation-agent - Manage the Link Creation Agent service
 
-.SH COMMANDS
+SYNOPSIS
 
-- start: Start the Link Creation Agent service.
-- stop: Stop the Link Creation Agent service.
-- restart: Restart the Link Creation Agent service.
+    das-cli link-creation-agent <command> [options]
+
+DESCRIPTION
+
+    Provides commands to control the Link Creation Agent service lifecycle.
+    Use this command group to start, stop, or restart the service.
+
+COMMANDS
+
+    start       Start the Link Creation Agent service.
+    stop        Stop the Link Creation Agent service.
+    restart     Restart the Link Creation Agent service.
+
+EXAMPLES
+
+    Start the service:
+
+        das-cli link-creation-agent start
+
+    Stop the service:
+
+        das-cli link-creation-agent stop
+
+    Restart the service:
+
+        das-cli link-creation-agent restart
 """
 
     @inject

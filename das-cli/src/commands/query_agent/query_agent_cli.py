@@ -19,13 +19,23 @@ class QueryAgentStop(Command):
     short_help = "Stop the Query Agent service."
 
     help = """
-'das-cli query-agent stop' stops the running Query Agent service.
+NAME
 
-.SH EXAMPLES
+    stop - Stop the Query Agent service
 
-To stop a running Query Agent service:
+SYNOPSIS
 
-$ das-cli query-agent stop
+    das-cli query-agent stop
+
+DESCRIPTION
+
+    Stops the running Query Agent service.
+
+EXAMPLES
+
+    To stop a running Query Agent service:
+
+    $ das-cli query-agent stop
 """
 
     @inject
@@ -66,13 +76,23 @@ class QueryAgentStart(Command):
     short_help = "Start the Query Agent service."
 
     help = """
-'das-cli query-agent start' initializes and runs the Query Agent service.
+NAME
 
-.SH EXAMPLES
+    start - Start the Query Agent service
 
-To start the Query Agent service:
+SYNOPSIS
 
-$ das-cli query-agent start
+    das-cli query-agent start
+
+DESCRIPTION
+
+    Initializes and runs the Query Agent service.
+
+EXAMPLES
+
+    To start the Query Agent service:
+
+        $ das-cli query-agent start
 """
 
     @inject
@@ -136,15 +156,26 @@ class QueryAgentRestart(Command):
     short_help = "Restart the Query Agent service."
 
     help = """
-'das-cli query-agent restart' stops and then starts the Query Agent service.
+NAME
 
-This command ensures a fresh instance of the Query Agent is running.
+    restart - Restart the Query Agent service
 
-.SH EXAMPLES
+SYNOPSIS
 
-To restart the Query Agent service:
+    das-cli query-agent restart
 
-$ das-cli query-agent restart
+DESCRIPTION
+
+    Stops and then starts the Query Agent service.
+
+    This command ensures a frinstance of the Query Agent is running.
+
+EXAMPLES
+
+    To restart the Query Agent service:
+
+        $ das-cli query-agent restart
+
 """
 
     @inject
@@ -166,15 +197,47 @@ class QueryAgentCli(CommandGroup):
     short_help = "Manage the Query Agent service."
 
     help = """
-'das-cli query-agent' provides commands to control the Query Agent service.
+NAME
 
-Use this command group to start, stop, or restart the service.
+    query-agent - Manage the Query Agent service
 
-.SH COMMANDS
+SYNOPSIS
 
-- start: Start the Query Agent service.
-- stop: Stop the Query Agent service.
-- restart: Restart the Query Agent service.
+    das-cli query-agent <command> [options]
+
+DESCRIPTION
+
+    Provides commands to control the Query Agent service.
+
+    Use this command group to start, stop, or restart the service.
+
+COMMANDS
+
+    start
+
+        Start the Query Agent service.
+
+    stop
+
+        Stop the Query Agent service.
+
+    restart
+
+        Restart the Query Agent service.
+
+EXAMPLES
+
+    Start the Query Agent service:
+
+        $ das-cli query-agent start
+
+    Stop the Query Agent service:
+
+        $ das-cli query-agent stop
+
+    Restart the Query Agent service:
+
+        $ das-cli query-agent restart
 """
 
     @inject

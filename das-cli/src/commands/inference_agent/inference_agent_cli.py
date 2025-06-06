@@ -17,13 +17,24 @@ class InferenceAgentStop(Command):
     short_help = "Stop the Inference Agent service."
 
     help = """
-'das-cli inference-agent stop' stops the running Inference Agent service.
+NAME
 
-.SH EXAMPLES
+    inference-agent stop - Stop the Inference Agent service
 
-To stop a running Inference Agent service:
+SYNOPSIS
 
-$ das-cli inference-agent stop
+    das-cli inference-agent stop
+
+DESCRIPTION
+
+    Stops the running Inference Agent service.
+    If the service is not running, a warning is shown.
+
+EXAMPLES
+
+    To stop the Inference Agent service:
+
+        das-cli inference-agent stop
 """
 
     @inject
@@ -64,13 +75,25 @@ class InferenceAgentStart(Command):
     short_help = "Start the Inference Agent service."
 
     help = """
-'das-cli inference-agent start' initializes and runs the Inference Agent service.
+NAME
 
-.SH EXAMPLES
+    inference-agent start - Start the Inference Agent service
 
-To start the Inference Agent service:
+SYNOPSIS
 
-$ das-cli inference-agent start
+    das-cli inference-agent start
+
+DESCRIPTION
+
+    Starts the Inference Agent service, initializing the required containers and ports.
+    Checks that dependent services (e.g., Link Creation Agent) are running before starting.
+    Shows the ports on which the service is listening.
+
+EXAMPLES
+
+    To start the Inference Agent service:
+
+        das-cli inference-agent start
 """
 
     @inject
@@ -126,15 +149,24 @@ class InferenceAgentRestart(Command):
     short_help = "Restart the Inference Agent service."
 
     help = """
-'das-cli inference-agent restart' stops and then starts the Inference Agent service.
+NAME
 
-This command ensures a fresh instance of the Inference Agent is running.
+    inference-agent restart - Restart the Inference Agent service
 
-.SH EXAMPLES
+SYNOPSIS
 
-To restart the Inference Agent service:
+    das-cli inference-agent restart
 
-$ das-cli inference-agent restart
+DESCRIPTION
+
+    Stops the running Inference Agent service and then starts it again.
+    Useful for applying changes or recovering the service state.
+
+EXAMPLES
+
+    To restart the Inference Agent service:
+
+        das-cli inference-agent restart
 """
 
     @inject
@@ -158,15 +190,37 @@ class InferenceAgentCli(CommandGroup):
     short_help = "Manage the Inference Agent service."
 
     help = """
-'das-cli inference-agent' provides commands to control the Inference Agent service.
+NAME
 
-Use this command group to start, stop, or restart the service.
+    inference-agent - Commands to manage the Inference Agent service
 
-.SH COMMANDS
+SYNOPSIS
 
-- start: Start the Inference Agent service.
-- stop: Stop the Inference Agent service.
-- restart: Restart the Inference Agent service.
+    das-cli inference-agent <command>
+
+DESCRIPTION
+
+    Provides commands to start, stop, and restart the Inference Agent service.
+
+COMMANDS
+
+    start       Start the Inference Agent service.
+    stop        Stop the Inference Agent service.
+    restart     Restart the Inference Agent service.
+
+EXAMPLES
+
+    Start the service:
+
+        das-cli inference-agent start
+
+    Stop the service:
+
+        das-cli inference-agent stop
+
+    Restart the service:
+
+        das-cli inference-agent restart
 """
 
     @inject

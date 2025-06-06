@@ -16,16 +16,26 @@ class DasPeerStop(Command):
     short_help = "Stops the DAS peer server."
 
     help = """
-'das-cli das-peer stop' stops the DAS peer server.
-The DAS peer server will be shut down, halting any data receiving and processing.
+NAME
 
-After executing this command, the DAS peer server container will no longer be accessible until restarted with the 'das-cli das-peer start' command.
+    das-cli dbms-adapter das-peer stop - Stop the DAS peer server container.
 
-.SH EXAMPLES
+SYNOPSIS
 
-To stop the DAS peer server:
+    das-cli das-peer stop
 
-$ das-cli das-peer stop
+DESCRIPTION
+
+    Stop the running DAS peer server container. This will halt any data ingestion
+    and disable the peer server until it is manually restarted using the start command.
+
+    If the container is already stopped, a warning will be shown.
+
+EXAMPLES
+
+    das-cli dbms-adapter das-peer stop
+
+        Stop the DAS peer server container.
 """
 
     @inject
@@ -68,17 +78,31 @@ class DasPeerStart(Command):
     short_help = "Starts the DAS peer server."
 
     help = """
-'das-cli das-peer start' initializes the DAS peer server.
-The DAS peer server acts as the main server within this setup, receiving data and storing it in the AtomDB.
+NAME
 
-Upon starting, this command will display the port on which the DAS peer server is running.
-This port can be adjusted using the 'das-cli config set' command, allowing custom network configurations.
+    das-cli dbms-adapter das-peer start - Start the DAS peer server container.
 
-.SH EXAMPLES
+SYNOPSIS
 
-To start the DAS peer server for data collection and storage:
+    das-cli dbms-adapter das-peer start
 
-$ das-cli das-peer start
+DESCRIPTION
+
+    Start the DAS peer server, which acts as the main server within this setup,
+    responsible for receiving and storing data in the AtomDB.
+
+    This command will ensure that all required services (MongoDB, Redis) are running
+    before attempting to start the peer server. The port on which the server is running
+    will be displayed upon success.
+
+    Configuration for ports and other environment settings can be adjusted using
+    the 'das-cli config' command group.
+
+EXAMPLES
+
+    das-cli dbms-adapter das-peer start
+
+        Start the DAS peer server container locally.
 """
 
     @inject
@@ -130,14 +154,27 @@ class DasPeerRestart(Command):
     short_help = "Restarts the DAS peer server."
 
     help = """
-'das-cli das-peer restart' stops and then restarts the DAS peer server container.
-This command is useful for applying configuration changes or resolving issues without manually stopping and starting the server.
+NAME
 
-.SH EXAMPLES
+    das-cli dbms-adapter das-peer restart - Restart the DAS peer server container.
 
-To restart the DAS peer server:
+SYNOPSIS
 
-$ das-cli das-peer restart
+    das-cli dbms-adapter das-peer restart
+
+DESCRIPTION
+
+    Stop and then start the DAS peer server container. This is useful for applying
+    configuration changes, updating the environment, or recovering from unexpected issues.
+
+    This command is functionally equivalent to running 'das-cli das-peer stop' followed
+    by 'das-cli das-peer start'.
+
+EXAMPLES
+
+    das-cli dbms-adapter das-peer restart
+
+        Restart the DAS peer server container to apply new configuration.
 """
 
     @inject
@@ -161,11 +198,42 @@ class DasPeerCli(CommandGroup):
     short_help = "Manage DAS peer server operations."
 
     help = """
-        'das-cli dbms-adapter das-peer' commands provide control over the DAS peer server,
-        which acts as the main server in the DAS setup.
-        Using 'das-cli dbms-adapter das-peer', you can start, stop, and restart the DAS peer
-        server container as needed to manage its operations and connectivity.
-    """
+NAME
+
+    das-cli dbms-adapter das-peer - Manage operations of the DAS peer server.
+
+SYNOPSIS
+
+    das-cli dbms-adapter das-peer <command> [options]
+
+DESCRIPTION
+
+    Manage the DAS peer server container, which serves as the main component
+    in the DAS setup responsible for receiving and storing data in the AtomDB.
+
+    This command group allows you to start, stop, and restart the DAS peer
+    server container as part of managing the overall DAS infrastructure.
+
+COMMANDS
+
+    start       Start the DAS peer server container.
+    stop        Stop the DAS peer server container.
+    restart     Restart the DAS peer server container.
+
+EXAMPLES
+
+    das-cli dbms-adapter das-peer start
+
+        Start the DAS peer server to begin data ingestion and storage.
+
+    das-cli dbms-adapter das-peer stop
+
+        Stop the currently running DAS peer server container.
+
+    das-cli dbms-adapter das-peer restart
+
+        Restart the DAS peer server to reload configuration or recover from issues.       
+"""
 
     @inject
     def __init__(

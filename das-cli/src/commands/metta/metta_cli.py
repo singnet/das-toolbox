@@ -20,16 +20,41 @@ class MettaLoad(Command):
     short_help = "Load a MeTTa file into the databases."
 
     help = """
-'das-cli meta load' loads meta files into the database using the DAS CLI.
-The <path> argument specifies the absolute path (relative paths are not supported) to a MeTTa file to be loaded into the database.
-Depending on the size of the file and the configuration of your server, loading may take a considerable amount of time.
-Before using this command, make sure that the database is running using the 'das-cli db start' command.
+NAME
 
-.SH EXAMPLES
+    das-cli metta load - Load a MeTTa file or directory of files into the database.
 
-Load a meta file into the database.
+SYNOPSIS
 
-$ das-cli meta load /path/to/mettas-directory/animals.metta
+    das-cli metta load <path>
+
+DESCRIPTION
+
+    Loads MeTTa files into the configured database using DAS CLI.
+
+    The <path> argument must be an absolute path to a single `.metta` file or a directory
+    containing `.metta` files. If a directory is given, all `.metta` files in the directory 
+    will be loaded. Only files with the `.metta` extension are considered.
+
+    This operation requires that the MongoDB and Redis services are running.
+    Use 'das-cli db start' to start the necessary containers before loading.
+
+ARGUMENTS
+
+    <path>
+
+        Absolute path to a .metta file or directory containing .metta files.
+        Relative paths are not supported.
+
+EXAMPLES
+
+    Load a single MeTTa file into the database:
+
+        $ das-cli metta load /absolute/path/to/animals.metta
+
+    Load all MeTTa files in a directory:
+
+        $ das-cli metta load /absolute/path/to/mettas-directory
 """
 
     params = [
@@ -107,18 +132,38 @@ class MettaCheck(Command):
     short_help = "Validate syntax of MeTTa files used with the DAS CLI"
 
     help = """
-'das-cli metta check' just validates the syntax of a MeTTa file without actually loading it.
-The <path> argument specifies the absolute path (relative paths are not supported) to a MeTTa file.
+NAME
 
-.SH EXAMPLES
+    das-cli metta check - Validate the syntax of MeTTa files without loading them.
 
-Validate the syntax of a MeTTa files.
+SYNOPSIS
 
-$ das-cli metta check /path/to/mettas-directory
+    das-cli metta check <path>
 
-Validate the syntax of a specific metta file.
+DESCRIPTION
 
-$ das-cli metta check /path/to/mettas-directory/animals.metta
+    Validates the syntax of a .metta file or all .metta files in a directory.
+
+    This command checks that each MeTTa file is syntactically correct without 
+    inserting any data into the database. It is useful to catch errors before 
+    attempting a full load using 'das-cli metta load'.
+
+ARGUMENTS
+
+    <path>
+
+        Absolute path to a .metta file or a directory containing .metta files.
+        Relative paths are not supported.
+
+EXAMPLES
+
+    Validate the syntax of a single MeTTa file:
+
+        $ das-cli metta check /absolute/path/to/animals.metta
+
+    Validate the syntax of all files in a directory:
+
+        $ das-cli metta check /absolute/path/to/mettas-directory
 """
 
     params = [
@@ -176,7 +221,34 @@ class MettaCli(CommandGroup):
 
     short_help = "Manage operations related to the loading of MeTTa files."
 
-    help = "'das-cli metta' allows you to load or just validate the syntax of MeTTa files. Syntax check is a lot faster than actually loading the file so it may be useful to do it before loading very large files."
+    help = """
+NAME
+    das-cli metta - Manage operations related to MeTTa files.
+
+SYNOPSIS
+    das-cli metta <subcommand> [OPTIONS]
+
+DESCRIPTION
+    Provides a command group for managing MeTTa knowledge base files. This group
+    includes commands for syntax validation and database loading.
+
+    Available subcommands:
+
+        load    Load MeTTa files into the database
+        check   Validate syntax of MeTTa files
+
+    Use `das-cli metta check` to quickly check for syntax errors before running
+    `das-cli metta load`, which performs the actual data loading.
+
+EXAMPLES
+    Check MeTTa syntax before loading:
+
+        $ das-cli metta check /absolute/path/to/mettas-directory
+
+    Load MeTTa files into the database:
+
+        $ das-cli metta load /absolute/path/to/mettas-directory
+"""
 
     @inject
     def __init__(self, metta_load: MettaLoad, metta_check: MettaCheck) -> None:

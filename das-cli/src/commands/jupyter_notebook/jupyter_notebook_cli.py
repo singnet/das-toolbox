@@ -17,21 +17,36 @@ class JupyterNotebookStart(Command):
     short_help = "Start a Jupyter Notebook."
 
     help = """
-'das-cli jupyter-notebook start' starts a Jupyter Notebook environment.
-This command launches a Jupyter server on your local machine, allowing you to create, edit, and run Python notebooks interactively in your web browser.
-After starting the Jupyter Notebook environment, the command will display the port in your terminal.
-You can access the Jupyter Notebook by navigating to localhost using the displayed port number in your web browser.
-There is no token or password required for access.
+NAME
 
-.SH EXAMPLES
+    jupyter-notebook start - Start a Jupyter Notebook environment
 
-Start a Jupyter Notebook environment.
+SYNOPSIS
 
-$ das-cli jupyter-notebook start
+    das-cli jupyter-notebook start [--working-dir <directory>]
 
-Start a Jupyter Notebook environment with a custom working directory.
+DESCRIPTION
 
-$ das-cli jupyter-notebook start --working-dir /path/to/working/directory
+    Starts a Jupyter Notebook environment by launching a Jupyter server locally.
+    This allows you to create, edit, and run Python notebooks interactively via your web browser.
+    After starting, the command displays the port number where the server is listening.
+    Access the notebook by navigating to 'localhost:<port>' in your browser.
+    No token or password is required to access the notebook.
+
+OPTIONS
+
+    --working-dir, -w
+        Optional. Specify a custom working directory to bind to the Jupyter Notebook container.
+
+EXAMPLES
+
+    Start a Jupyter Notebook environment:
+
+        das-cli jupyter-notebook start
+
+    Start a Jupyter Notebook with a custom working directory:
+
+        das-cli jupyter-notebook start --working-dir /path/to/working/directory
 """
 
     params = [
@@ -94,13 +109,23 @@ class JupyterNotebookStop(Command):
     short_help = "Stop a Jupyter Notebook."
 
     help = """
-'das-cli jupyter-notebook stop' stops a running Jupyter Notebook environment.
+NAME
 
-.SH EXAMPLES
+    jupyter-notebook stop - Stop a running Jupyter Notebook environment
 
-Stop a running Jupyter Notebook environment.
+SYNOPSIS
 
-$ das-cli jupyter-notebook stop
+    das-cli jupyter-notebook stop
+
+DESCRIPTION
+
+    Stops the currently running Jupyter Notebook environment.
+
+EXAMPLES
+
+    Stop a running Jupyter Notebook environment:
+
+        das-cli jupyter-notebook stop
 """
 
     @inject
@@ -139,18 +164,33 @@ class JupyterNotebookRestart(Command):
     short_help = "Restart Jupyter Notebook."
 
     help = """
-'das-cli jupyter-notebook restart' restarts a Jupyter Notebook environment.
-This command stops the currently running Jupyter server, then starts a new instance of the server, effectively restarting the environment.
+NAME
 
-.SH EXAMPLES
+    jupyter-notebook restart - Restart a Jupyter Notebook environment
 
-Restart a Jupyter Notebook environment.
+SYNOPSIS
 
-$ das-cli jupyter-notebook restart
+    das-cli jupyter-notebook restart [--working-dir <directory>]
 
-Restart a Jupyter Notebook environment with a custom working directory.
+DESCRIPTION
 
-$ das-cli jupyter-notebook restart --working-dir /path/to/working/directory
+    Restarts the Jupyter Notebook environment by stopping the current instance and starting a new one.
+    Useful to refresh the environment or apply configuration changes.
+
+OPTIONS
+
+    --working-dir, -w
+        Optional. Specify a custom working directory to bind to the Jupyter Notebook container.
+
+EXAMPLES
+
+    Restart the Jupyter Notebook environment:
+
+        das-cli jupyter-notebook restart
+
+    Restart with a custom working directory:
+
+        das-cli jupyter-notebook restart --working-dir /path/to/working/directory
 """
 
     params = [
@@ -189,7 +229,40 @@ class JupyterNotebookCli(CommandGroup):
 
     short_help = "Manage Jupyter Notebook."
 
-    help = "'das-cli jupyter-notebook' allows you to manage Jupyter Notebook environments providing commands to start, stop, and restart Jupyter Notebook servers, enabling you to interactively create, edit, and run Python notebooks."
+    help = """
+NAME
+
+    jupyter-notebook - Manage Jupyter Notebook environments
+
+SYNOPSIS
+
+    das-cli jupyter-notebook <command> [options]
+
+DESCRIPTION
+
+    Provides commands to start, stop, and restart Jupyter Notebook environments.
+    Enables interactive creation, editing, and execution of Python notebooks.
+
+COMMANDS
+
+    start       Start a Jupyter Notebook environment.
+    stop        Stop a running Jupyter Notebook environment.
+    restart     Restart the Jupyter Notebook environment.
+
+EXAMPLES
+
+    Start the notebook:
+
+        das-cli jupyter-notebook start
+
+    Stop the notebook:
+
+        das-cli jupyter-notebook stop
+
+    Restart the notebook:
+
+        das-cli jupyter-notebook restart
+"""
 
     @inject
     def __init__(

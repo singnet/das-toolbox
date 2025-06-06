@@ -9,13 +9,23 @@ class ExampleLocal(Command):
     short_help = "Echo commands for local setup."
 
     help = """
-'das-cli example local' displays an example of the initial steps required to run DAS locally on your server.
+NAME
 
-.SH EXAMPLES
+    das-cli example local - Example commands for running DAS locally.
 
-Display an example of initial steps to run DAS locally.
+SYNOPSIS
 
-$ das-cli example local
+    das-cli example local
+
+DESCRIPTION
+
+    Displays an example of the initial steps required to run DAS locally on your server.
+
+EXAMPLES
+
+    Display example commands to set up DAS locally:
+
+        das-cli example local
 """
 
     def __init__(self, script_name) -> None:
@@ -48,13 +58,23 @@ class ExampleFaaS(Command):
     short_help = "Echo commands for OpenFaaS setup."
 
     help = """
-'das-cli example faas' displays an example of the initial steps required to connect to OpenFaaS functions using DAS.
+NAME
 
-.SH EXAMPLES
+    das-cli example faas - Example commands for connecting to OpenFaaS functions.
 
-Display an example of initial steps to connect to OpenFaaS functions.
+SYNOPSIS
 
-$ das-cli example faas
+    das-cli example faas
+
+DESCRIPTION
+
+    Displays an example of the initial steps required to connect to OpenFaaS functions using DAS.
+
+EXAMPLES
+
+    Display example commands to set up DAS with OpenFaaS functions:
+
+        das-cli example faas
 """
 
     def __init__(self, script_name) -> None:
@@ -87,9 +107,38 @@ class ExampleCli(CommandGroup):
     short_help = "'das-cli example' offers a step-by-step guide for using DAS."
 
     help = """
-'das-cli example' offers a step-by-step guide for using DAS.
+NAME
 
-This command provides various topics to choose from, each offering a step-by-step guide to help you set up and configure DAS for different scenarios, such as local, connecting to OpenFaaS functions, and more.
+    das-cli example - Step-by-step example commands for using DAS.
+
+SYNOPSIS
+
+    das-cli example <command>
+
+DESCRIPTION
+
+    'das-cli example' provides step-by-step guides for various DAS usage scenarios.
+    You can choose topics such as 'local' for running DAS locally, or 'faas' for
+    connecting to OpenFaaS functions.
+
+SUBCOMMANDS
+
+    local       Shows example commands for local DAS setup.
+    faas        Shows example commands for OpenFaaS setup.
+
+EXAMPLES
+
+    Display help for example commands:
+
+        das-cli example --help
+
+    Display local setup example:
+
+        das-cli example local
+
+    Display OpenFaaS setup example:
+
+        das-cli example faas
 """
 
     @inject
