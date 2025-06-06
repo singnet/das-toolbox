@@ -33,7 +33,7 @@ DESCRIPTION
     Loads MeTTa files into the configured database using DAS CLI.
 
     The <path> argument must be an absolute path to a single `.metta` file or a directory
-    containing `.metta` files. If a directory is given, all `.metta` files in the directory 
+    containing `.metta` files. If a directory is given, all `.metta` files in the directory
     will be loaded. Only files with the `.metta` extension are considered.
 
     This operation requires that the MongoDB and Redis services are running.
@@ -87,7 +87,8 @@ EXAMPLES
     def _load_metta_from_file(self, file_path: str):
         if not file_path.endswith(".metta"):
             self.stdout(
-                f"Error: File '{file_path}' is not a .metta file.", severity=StdoutSeverity.ERROR
+                f"Error: File '{file_path}' is not a .metta file.",
+                severity=StdoutSeverity.ERROR,
             )
             return
 
@@ -144,8 +145,8 @@ DESCRIPTION
 
     Validates the syntax of a .metta file or all .metta files in a directory.
 
-    This command checks that each MeTTa file is syntactically correct without 
-    inserting any data into the database. It is useful to catch errors before 
+    This command checks that each MeTTa file is syntactically correct without
+    inserting any data into the database. It is useful to catch errors before
     attempting a full load using 'das-cli metta load'.
 
 ARGUMENTS

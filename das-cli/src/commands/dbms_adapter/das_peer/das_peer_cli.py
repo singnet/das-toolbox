@@ -232,7 +232,7 @@ EXAMPLES
 
     das-cli dbms-adapter das-peer restart
 
-        Restart the DAS peer server to reload configuration or recover from issues.       
+        Restart the DAS peer server to reload configuration or recover from issues.
 """
 
     @inject

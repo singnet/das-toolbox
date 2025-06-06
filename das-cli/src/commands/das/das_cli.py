@@ -31,11 +31,11 @@ update-version - Update the DAS CLI version (Ubuntu only)
 
 DESCRIPTION
 
-This command updates the DAS CLI to the latest version available via the APT repository.  
+This command updates the DAS CLI to the latest version available via the APT repository.
 It is intended for Ubuntu Linux distributions only and must be run with sudo privileges.
 
 .SH OPTIONS
---version, -v     Specify the version of the package to install (format: x.y.z).  
+--version, -v     Specify the version of the package to install (format: x.y.z).
                   If omitted, the latest available version will be installed.
 
 REQUIREMENTS
@@ -148,12 +148,12 @@ Any command can be executed on a remote server via SSH by enabling the --remote 
 
 OPTIONS FOR REMOTE EXECUTION
 
---remote              Run the command on a remote server over SSH  
---host, -H            Hostname or IP address of the remote server  
---user, -H            SSH login user  
---port, -H            SSH port (default: 22)  
---key-file            Path to the SSH private key file (for key-based authentication)  
---password            SSH password (not recommended for production)  
+--remote              Run the command on a remote server over SSH
+--host, -H            Hostname or IP address of the remote server
+--user, -H            SSH login user
+--port, -H            SSH port (default: 22)
+--key-file            Path to the SSH private key file (for key-based authentication)
+--password            SSH password (not recommended for production)
 --connect-timeout     SSH connection timeout in seconds (default: 10)
 
 EXAMPLES
