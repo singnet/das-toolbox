@@ -13,23 +13,45 @@ class ReleaseNotesCli(CommandGroup):
     short_help = "Display available release notes."
 
     help = """
-'das-cli release-notes' allows you to view release notes for DAS.
-This command retrieves information from the release notes document hosted at https://github.com/singnet/das/blob/master/docs/release-notes.md.
-It displays the release notes for the latest DAS' version available.
+NAME
 
-.SH EXAMPLES
+    release-notes - Display available release notes for DAS
 
-View release notes for the latest DAS' version.
+SYNOPSIS
 
-$ das-cli release-notes
+    das-cli release-notes [--module=<module_name>] [--list]
 
-View release notes for the hyperon-das component.
+DESCRIPTION
 
-$ das-cli release-notes --module=hyperon-das
+    Allows you to view release notes for DAS.
+    This command retrieves information from the release notes document hosted at:
+    https://github.com/singnet/das/blob/master/docs/release-notes.md.
 
-View a list of available versions for each component without displaying the full changelog.
+    It displays the release notes for the latest DAS version available or for a specified module.
 
-$ das-cli release-notes --list
+OPTIONS
+
+    --module=<module_name>
+
+        Specify the name of the module to view release notes for a specific component of DAS.
+
+    --list
+
+        Display only a list of available versions for each component without showing the full changelog.
+
+EXAMPLES
+
+    View release notes for the latest DAS version:
+
+        $ das-cli release-notes
+
+    View release notes for the hyperon-das component:
+
+        $ das-cli release-notes --module=hyperon-das
+
+    View a list of available versions for each component without the full changelog:
+
+        $ das-cli release-notes --list
 """
 
     params = [
