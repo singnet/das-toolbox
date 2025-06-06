@@ -12,20 +12,45 @@ class DbmsAdapterCli(CommandGroup):
     short_help = "Groups DBMS and DAS peer server commands for easier management."
 
     help = """
-The 'dbms-adapter' command group provides functionalities for managing both the DAS peer server
-and DBMS peer client commands. It allows for organizing and executing operations related to
-connecting a DBMS client to the DAS peer server.
+NAME
 
-This command group includes:
-- 'das-peer': Manages DAS peer server operations.
-- 'dbms-peer': Manages DBMS peer client operations.
+    das-cli dbms-adapter - Group commands for managing the DAS peer server and DBMS peer client.
 
-.SH EXAMPLES
+SYNOPSIS
 
-To view all commands available in the dbms-adapter group:
+    das-cli dbms-adapter <command> [OPTIONS]
 
-$ das-cli dbms-adapter --help
+DESCRIPTION
 
+    The 'dbms-adapter' command group provides an organized interface for managing both the
+    DAS peer server and the DBMS peer client components. These commands facilitate the
+    setup and operation of the DAS peer-to-peer communication and database synchronization layer.
+
+    The group contains the following subcommands:
+
+COMMANDS
+
+    das-peer      Manage the DAS peer server operations, such as starting or stopping the container.
+    dbms-peer     Manage the DBMS peer client operations, such as connecting to the DAS peer.
+
+EXAMPLES
+
+    View available commands in the dbms-adapter group:
+
+        das-cli dbms-adapter --help
+
+    Run the DAS peer server:
+
+        das-cli dbms-adapter das-peer start --context /etc/das/context.txt
+
+    Run the DBMS peer client:
+
+        das-cli dbms-adapter dbms-peer run \\
+            --client-hostname db.example.org \\
+            --client-port 5432 \\
+            --client-username user \\
+            --client-password pass \\
+            --context /etc/das/context.txt
 """
 
     @inject
