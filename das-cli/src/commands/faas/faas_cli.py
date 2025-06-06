@@ -91,7 +91,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli faas start 
+    das-cli faas start
 
 DESCRIPTION
 
@@ -522,7 +522,7 @@ EXAMPLES
         das-cli faas restart
 
     Check the current function version:
-    
+
         das-cli faas version
 
     Update the function to version 1.2.0:

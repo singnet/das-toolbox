@@ -109,9 +109,9 @@ REDIS CONFIGURATION (redis.*)
 
     redis.nodes
         List of Redis nodes. Minimum 1 node (standalone), 3 nodes (cluster).
-        Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. 
-        This is essential because Docker communicates between nodes remotely to deploy images with Redis. 
-        To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. 
+        Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them.
+        This is essential because Docker communicates between nodes remotely to deploy images with Redis.
+        To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster.
         Ensure that port 22 is open on all servers to allow SSH connections.
 
     redis.nodes.[].context
@@ -146,8 +146,8 @@ MONGODB CONFIGURATION (mongodb.*)
 
     mongodb.nodes
         List of MongoDB nodes. Minimum 1 node (standalone), 3 nodes (cluster).
-        Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. 
-        This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. 
+        Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them.
+        This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster.
         Ensure that port 22 is open on all servers to allow SSH connections.
 
     mongodb.nodes.[].context
