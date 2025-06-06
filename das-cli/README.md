@@ -17,7 +17,7 @@
 * [Usage](#usage)
 
   * [Deployment Modes](#deployment-modes)
-  * [Available Commands](#available-commands)
+  * [General Syntax](#general-syntax)
 * [Examples](#examples)
 * [Help](#help)
 * [Integration Tests](#integration-tests)
@@ -123,11 +123,7 @@ Best suited for distributed environments with multiple clients.
 
 ---
 
-### Available Commands
-
-You don't need to memorize all commands. DAS Toolbox offers a structured help system that lets you explore everything interactively.
-
-#### General Syntax
+### General Syntax
 
 From source:
 
@@ -174,6 +170,8 @@ das-cli dbms-adapter dbms-peer run \
 ---
 
 ## Help
+
+You don't need to memorize all commands. DAS CLI offers a structured help system that lets you explore everything interactively.
 
 ### List All Command Groups
 
