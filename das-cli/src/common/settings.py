@@ -2,16 +2,30 @@ import os
 
 from common.json_handler import JsonHandler
 from settings.config import SECRETS_PATH
+from common.utils import get_schema_hash
 
 
 class Settings(JsonHandler):
     _default_config_path = os.path.expanduser(SECRETS_PATH)
 
-    def __init__(self, raise_on_missing_file=False):
+    def __init__(self, raise_on_missing_file=False, raise_on_schema_mismatch=False):
         super().__init__(self._default_config_path)
 
         if raise_on_missing_file:
             self.raise_on_missing_file()
+
+        if raise_on_schema_mismatch:
+            self.raise_on_schema_mismatch()
+
+    def raise_on_schema_mismatch(self):
+        settings = self.get_content()
+        schema_hash = get_schema_hash()
+
+        if settings.get("schema_hash") != schema_hash:
+            raise ValueError(
+            f"Schema mismatch detected. Expected schema hash: {schema_hash}, but found: {settings.get('schema_hash')}. Please update your configuration."
+        )
+
 
     def raise_on_missing_file(self):
         if not self.exists():

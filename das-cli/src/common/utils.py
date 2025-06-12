@@ -93,3 +93,17 @@ def calculate_file_hash(file_path: str) -> str:
     with open(file_path, "rb") as f:
         content = f.read()
     return hashlib.sha256(content).hexdigest()
+
+def get_schema_hash() -> str:
+    schema_path = resolve_file_path(
+        "/etc/das-cli/schema.json",
+        fallback_paths=[
+            "/settings/schema.json",
+            "../settings/schema.json",
+        ],
+    )
+
+    if schema_path is None:
+        raise FileNotFoundError("Schema file not found.")
+
+    return calculate_file_hash(schema_path)

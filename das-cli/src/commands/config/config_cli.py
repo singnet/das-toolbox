@@ -15,7 +15,7 @@ from common import (
     get_server_username,
 )
 from common.docker.remote_context_manager import Server
-from common.utils import calculate_file_hash, resolve_file_path
+from common.utils import get_schema_hash
 
 
 class ConfigSet(Command):
@@ -482,14 +482,7 @@ services.*
         }
 
     def _schema_hash(self) -> dict:
-        schema_path = resolve_file_path(
-            "/etc/das-cli/schema.json",
-            fallback_paths=[
-                "/settings/schema.json",
-                "../settings/schema.json",
-            ],
-        )
-        schema_hash = calculate_file_hash(schema_path)
+        schema_hash = get_schema_hash()
         return {"schema_hash": schema_hash}
 
     def _save(self) -> None:
