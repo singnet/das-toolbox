@@ -5,7 +5,9 @@ import secrets
 import string
 import sys
 import time
-from typing import Callable
+from typing import Callable, Optional
+import hashlib
+from pathlib import Path
 
 
 def is_executable_bin():
@@ -64,3 +66,30 @@ def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
         else:
             result[key] = value
     return result
+
+
+def resolve_file_path(relative_path: str, fallback_paths: list[str] = []) -> Optional[Path]:
+    candidates = []
+
+    candidates.extend(Path(p) for p in fallback_paths)
+
+    if hasattr(sys, "_MEIPASS"):
+        candidates.extend(Path(sys._MEIPASS) / p for p in fallback_paths)
+
+    base_dir = Path(__file__).parent.resolve()
+    candidates.extend(base_dir / p for p in fallback_paths)
+
+    if hasattr(sys, "_MEIPASS"):
+        candidates.append(Path(sys._MEIPASS) / relative_path)
+    candidates.append(base_dir / relative_path)
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return None
+
+def calculate_file_hash(file_path: str) -> str:
+    with open(file_path, "rb") as f:
+        content = f.read()
+    return hashlib.sha256(content).hexdigest()

@@ -15,6 +15,7 @@ from common import (
     get_server_username,
 )
 from common.docker.remote_context_manager import Server
+from common.utils import calculate_file_hash, resolve_file_path
 
 
 class ConfigSet(Command):
@@ -38,168 +39,174 @@ $ das-cli config set
 
 .SH VARIABLES
 
-redis.*
-    These variables control Redis settings, such as:
+schema_hash
+    This variable stores the hash of the schema file used by DAS CLI. It is used to verify the integrity of the schema file and ensure that the correct version is being used.
 
-    redis.port
-        Defines the port number on which the Redis server is listening.
-        The user must ensure this port is available on the server where das-cli
-        is running and also on other nodes if a cluster is being used.
+services.*
+    These variables control the services used by DAS CLI, such as:
 
-        If using a firewall like `ufw`, the user can allow the necessary ports
-        for cluster communication using the commands below, assuming the Redis
-        instance operates on port 7000:
+    redis.*
+        These variables control Redis settings, such as:
 
-            sudo ufw allow 7000/tcp
-            sudo ufw allow 17000/tcp
+        redis.port
+            Defines the port number on which the Redis server is listening.
+            The user must ensure this port is available on the server where das-cli
+            is running and also on other nodes if a cluster is being used.
 
-        The cluster bus uses port 10000 + redis.port, so for a Redis instance
-        running on port 7000, port 17000 must also be allowed.
+            If using a firewall like `ufw`, the user can allow the necessary ports
+            for cluster communication using the commands below, assuming the Redis
+            instance operates on port 7000:
 
-        It is recommended to restrict access to specific IP addresses for each
-        node. This practice enhances security and minimizes potential vulnerabilities.
+                sudo ufw allow 7000/tcp
+                sudo ufw allow 17000/tcp
 
-    redis.container_name
-        Specifies the name of the Docker container running the Redis server.
+            The cluster bus uses port 10000 + redis.port, so for a Redis instance
+            running on port 7000, port 17000 must also be allowed.
 
-    redis.cluster
-        Indicates whether a Redis cluster is being used (true/false).
+            It is recommended to restrict access to specific IP addresses for each
+            node. This practice enhances security and minimizes potential vulnerabilities.
 
-        To allow cluster setup and communication, passwordless SSH access must be configured:
+        redis.container_name
+            Specifies the name of the Docker container running the Redis server.
 
-        - Generate an RSA key (on the first machine only):
+        redis.cluster
+            Indicates whether a Redis cluster is being used (true/false).
 
-              ssh-keygen
+            To allow cluster setup and communication, passwordless SSH access must be configured:
 
-          Leave the password empty when prompted.
+            - Generate an RSA key (on the first machine only):
 
-        - Distribute the public key (~/.ssh/id_rsa.pub) to all other machines
-          in the cluster by adding it to their ~/.ssh/authorized_keys files.
+                ssh-keygen
 
-          This allows the first machine to SSH into all others without a
-          password, which is necessary for automated Redis cluster initialization.
+            Leave the password empty when prompted.
 
-        All machines participating in the Redis cluster must:
+            - Distribute the public key (~/.ssh/id_rsa.pub) to all other machines
+            in the cluster by adding it to their ~/.ssh/authorized_keys files.
 
-        - Use the default Docker context:
+            This allows the first machine to SSH into all others without a
+            password, which is necessary for automated Redis cluster initialization.
 
-              docker context use default
+            All machines participating in the Redis cluster must:
 
-        - Ensure that the current user has permission to run Docker commands
-          (e.g., is part of the `docker` group):
+            - Use the default Docker context:
 
-              sudo usermod -aG docker $USER
+                docker context use default
 
-    redis.nodes
-        Receives a list of nodes for Redis configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with Redis. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
+            - Ensure that the current user has permission to run Docker commands
+            (e.g., is part of the `docker` group):
 
-    redis.nodes.[].context
-        The name of the Docker context containing connection information for the remote Docker instances of other nodes.
+                sudo usermod -aG docker $USER
 
-    redis.nodes.[].ip
-        The IP address of the node.
+        redis.nodes
+            Receives a list of nodes for Redis configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with Redis. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
 
-    redis.nodes.[].username
-        The username for connecting to the node.
+        redis.nodes.[].context
+            The name of the Docker context containing connection information for the remote Docker instances of other nodes.
 
-mongodb.*
-    These variables control MongoDB settings, such as:
+        redis.nodes.[].ip
+            The IP address of the node.
 
-    mongodb.port
-        Defines the port number on which the MongoDB server is listening. The user must ensure this port is available on the server where das-cli is running.
+        redis.nodes.[].username
+            The username for connecting to the node.
 
-    mongodb.container_name
-        Specifies the name of the Docker container running the MongoDB server.
+    mongodb.*
+        These variables control MongoDB settings, such as:
 
-    mongodb.username
-        The username for connecting to the MongoDB server.
+        mongodb.port
+            Defines the port number on which the MongoDB server is listening. The user must ensure this port is available on the server where das-cli is running.
 
-    mongodb.password
-        The password for connecting to the MongoDB server.
+        mongodb.container_name
+            Specifies the name of the Docker container running the MongoDB server.
 
-    mongodb.cluster
-        Indicates whether a MongoDB cluster is being used (true/false).
+        mongodb.username
+            The username for connecting to the MongoDB server.
 
-    mongodb.cluster_secret_key
-        This key is uploaded to all nodes within the MongoDB cluster. It is used for mutual authentication between nodes, ensuring that only authorized nodes can communicate with each other.
+        mongodb.password
+            The password for connecting to the MongoDB server.
 
-    mongodb.nodes
-        Receives a list of nodes for MongoDB configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
+        mongodb.cluster
+            Indicates whether a MongoDB cluster is being used (true/false).
 
-    mongodb.nodes.[].context
-        The name of the Docker context containing connection information for the remote Docker instances of other nodes.
+        mongodb.cluster_secret_key
+            This key is uploaded to all nodes within the MongoDB cluster. It is used for mutual authentication between nodes, ensuring that only authorized nodes can communicate with each other.
 
-    mongodb.nodes.[].ip
-        The IP address of the node.
+        mongodb.nodes
+            Receives a list of nodes for MongoDB configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
 
-    mongodb.nodes.[].username
-        The username for connecting to the node.
+        mongodb.nodes.[].context
+            The name of the Docker context containing connection information for the remote Docker instances of other nodes.
 
-loader.*
-    These variables control the Loader settings, responsible for validating and loading meta files into the database, such as:
+        mongodb.nodes.[].ip
+            The IP address of the node.
 
-    loader.container_name
-        Specifies the name of the Docker container running the Loader.
+        mongodb.nodes.[].username
+            The username for connecting to the node.
 
-openfaas.*
-    These variables control OpenFaaS settings, such as:
+    loader.*
+        These variables control the Loader settings, responsible for validating and loading meta files into the database, such as:
 
-    openfaas.container_name
-        Specifies the name of the Docker container running OpenFaaS.
+        loader.container_name
+            Specifies the name of the Docker container running the Loader.
 
-    openfaas.version
-        Specifies the version of OpenFaaS function being used.
+    openfaas.*
+        These variables control OpenFaaS settings, such as:
 
-    openfaas.function
-        Specifies the name of the function to be executed within OpenFaaS.
+        openfaas.container_name
+            Specifies the name of the Docker container running OpenFaaS.
 
-jupyter_notebook.*
-    These variables control Jupyter Notebook settings, such as:
+        openfaas.version
+            Specifies the version of OpenFaaS function being used.
 
-    jupyter_notebook.port
-        Defines the port number on which the Jupyter Notebook server is listening.
+        openfaas.function
+            Specifies the name of the function to be executed within OpenFaaS.
 
-    jupyter_notebook.container_name
-        Specifies the name of the Docker container running the Jupyter Notebook server.
+    jupyter_notebook.*
+        These variables control Jupyter Notebook settings, such as:
 
-das_peer.*
-    These variables configure settings for the DAS Peer, such as:
+        jupyter_notebook.port
+            Defines the port number on which the Jupyter Notebook server is listening.
 
-    das_peer.container_name
-        Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
+        jupyter_notebook.container_name
+            Specifies the name of the Docker container running the Jupyter Notebook server.
 
-dbms_peer.*
-    These variables configure settings for the DBMS Peer, such as:
+    das_peer.*
+        These variables configure settings for the DAS Peer, such as:
 
-    dbms_peer.container_name
-        Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
+        das_peer.container_name
+            Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
 
-attention_broker.*
-    These variables control the Attention Broker settings, such as:
+    dbms_peer.*
+        These variables configure settings for the DBMS Peer, such as:
 
-    attention_broker.port
-        Defines the port on which the Attention Broker is listening. The user must ensure this port is available on the server where DAS is running.
+        dbms_peer.container_name
+            Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
 
-    attention_broker.container_name
-        Specifies the name of the Docker container running the Attention Broker.
+    attention_broker.*
+        These variables control the Attention Broker settings, such as:
 
-query_agent.*
-    These variables control the Query Agent settings, such as:
+        attention_broker.port
+            Defines the port on which the Attention Broker is listening. The user must ensure this port is available on the server where DAS is running.
 
-    query_agent.port
-        Defines the port on which the Query Agent is listening. The user must ensure this port is available on the server.
+        attention_broker.container_name
+            Specifies the name of the Docker container running the Attention Broker.
 
-    query_agent.container_name
-        Specifies the name of the Docker container running the Query Agent.
+    query_agent.*
+        These variables control the Query Agent settings, such as:
 
-link_creation_agent.*
-    These variables control the Link Creation settings, such as:
+        query_agent.port
+            Defines the port on which the Query Agent is listening. The user must ensure this port is available on the server.
 
-link_creation_agent.port
-    Defines the port on which the Link Creation Agent is listening.
+        query_agent.container_name
+            Specifies the name of the Docker container running the Query Agent.
 
-link_creation_agent.container_name
-    Specifies the name of the Docker container running the Link Creation Agent.
+    link_creation_agent.*
+        These variables control the Link Creation settings, such as:
+
+    link_creation_agent.port
+        Defines the port on which the Link Creation Agent is listening.
+
+    link_creation_agent.container_name
+        Specifies the name of the Docker container running the Link Creation Agent.
 """
 
     @inject
@@ -276,7 +283,7 @@ link_creation_agent.container_name
         port: int,
         min_nodes: int = 3,
     ) -> List[Dict]:
-        current_nodes = self._settings.get("redis.nodes", [])
+        current_nodes = self._settings.get("services.redis.nodes", [])
         current_total_nodes = len(current_nodes)
         total_nodes_default = current_total_nodes if current_total_nodes > 3 else 3
 
@@ -298,7 +305,9 @@ link_creation_agent.container_name
                 default=server_username_default,
             )
 
-            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
+            server_ip_default = (
+                current_nodes[i]["ip"] if i < len(current_nodes) else None
+            )
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
@@ -323,7 +332,7 @@ link_creation_agent.container_name
         redis_nodes = self._build_nodes(redis_cluster, redis_port)
 
         self._destroy_contexts(
-            servers=self._settings.get("redis.nodes", []),
+            servers=self._settings.get("services.redis.nodes", []),
         )
 
         return redis_nodes
@@ -331,26 +340,28 @@ link_creation_agent.container_name
     def _redis(self) -> Dict:
         redis_port = self.prompt(
             "Enter Redis port",
-            default=self._settings.get("redis.port", 6379),
+            default=self._settings.get("services.redis.port", 6379),
             type=int,
         )
-        cluster_default_value = self._settings.get("redis.cluster", False)
+        cluster_default_value = self._settings.get("services.redis.cluster", False)
         redis_cluster = self.confirm(
             "Is it a Redis cluster?",
             default=cluster_default_value,
         )
         return {
-            "redis.port": redis_port,
-            "redis.container_name": f"das-cli-redis-{redis_port}",
-            "redis.cluster": redis_cluster,
-            "redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
+            "services.redis.port": redis_port,
+            "services.redis.container_name": f"das-cli-redis-{redis_port}",
+            "services.redis.cluster": redis_cluster,
+            "services.redis.nodes": lambda: self._redis_nodes(
+                redis_cluster, redis_port
+            ),
         }
 
     def _mongodb_nodes(self, mongodb_cluster, mongodb_port) -> List[Dict]:
         mongodb_nodes = self._build_nodes(mongodb_cluster, mongodb_port)
 
         self._destroy_contexts(
-            servers=self._settings.get("mongodb.nodes", []),
+            servers=self._settings.get("services.mongodb.nodes", []),
         )
 
         return mongodb_nodes
@@ -358,117 +369,128 @@ link_creation_agent.container_name
     def _mongodb(self) -> dict:
         mongodb_port = self.prompt(
             "Enter MongoDB port",
-            default=self._settings.get("mongodb.port", 27017),
+            default=self._settings.get("services.mongodb.port", 27017),
             type=int,
         )
         mongodb_username = self.prompt(
             "Enter MongoDB username",
-            default=self._settings.get("mongodb.username", "admin"),
+            default=self._settings.get("services.mongodb.username", "admin"),
         )
         mongodb_password = self.prompt(
             "Enter MongoDB password",
             # hide_input=True, # When hide_input is set I cannot set the answers based on a text file making impossible to test this command
-            default=self._settings.get("mongodb.password", "admin"),
+            default=self._settings.get("services.mongodb.password", "admin"),
         )
-        cluster_default_value = self._settings.get("mongodb.cluster", False)
+        cluster_default_value = self._settings.get("services.mongodb.cluster", False)
         is_mongodb_cluster = self.confirm(
             "Is it a MongoDB cluster?",
             default=cluster_default_value,
         )
         cluster_secret_key = self._settings.get(
-            "mongodb.cluster_secret_key",
+            "services.mongodb.cluster_secret_key",
             get_rand_token(num_bytes=15),
         )
         return {
-            "mongodb.port": mongodb_port,
-            "mongodb.container_name": f"das-cli-mongodb-{mongodb_port}",
-            "mongodb.username": mongodb_username,
-            "mongodb.password": mongodb_password,
-            "mongodb.cluster": is_mongodb_cluster,
-            "mongodb.nodes": lambda: self._mongodb_nodes(
+            "services.mongodb.port": mongodb_port,
+            "services.mongodb.container_name": f"das-cli-mongodb-{mongodb_port}",
+            "services.mongodb.username": mongodb_username,
+            "services.mongodb.password": mongodb_password,
+            "services.mongodb.cluster": is_mongodb_cluster,
+            "services.mongodb.nodes": lambda: self._mongodb_nodes(
                 is_mongodb_cluster,
                 mongodb_port,
             ),
-            "mongodb.cluster_secret_key": cluster_secret_key,
+            "services.mongodb.cluster_secret_key": cluster_secret_key,
         }
 
     def _loader(self) -> dict:
-        return {"loader.container_name": "das-cli-loader"}
+        return {"services.loader.container_name": "das-cli-loader"}
 
     def _das_peer(self) -> dict:
         database_adapter_server_port = 30100
 
         return {
-            "das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
-            "das_peer.port": database_adapter_server_port,
+            "services.das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
+            "services.das_peer.port": database_adapter_server_port,
         }
 
     def _dbms_peer(self) -> dict:
         return {
-            "dbms_peer.container_name": "das-cli-dbms-peer",
+            "services.dbms_peer.container_name": "das-cli-dbms-peer",
         }
 
     def _openfaas(self) -> dict:
         return {
-            "openfaas.container_name": "das-cli-openfaas-8080",
-            "openfaas.version": "latest",
-            "openfaas.function": "query-engine",  # TODO: CHANGE TO ENUM
+            "services.openfaas.container_name": "das-cli-openfaas-8080",
+            "services.openfaas.version": "latest",
+            "services.openfaas.function": "query-engine",  # TODO: CHANGE TO ENUM
         }
 
     def _jupyter_notebook(self) -> dict:
         jupyter_notebook_port = self.prompt(
             "Enter Jupyter Notebook port",
-            default=self._settings.get("jupyter.port", 8888),
+            default=self._settings.get("services.jupyter.port", 8888),
         )
 
         return {
-            "jupyter_notebook.port": jupyter_notebook_port,
-            "jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{jupyter_notebook_port}",
+            "services.jupyter_notebook.port": jupyter_notebook_port,
+            "services.jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{jupyter_notebook_port}",
         }
 
     def _attention_broker(self) -> dict:
         attention_broker_port = self.prompt(
             "Enter the Attention Broker port",
-            default=self._settings.get("attention_broker.port", 37007),
+            default=self._settings.get("services.attention_broker.port", 37007),
         )
 
         return {
-            "attention_broker.port": attention_broker_port,
-            "attention_broker.container_name": f"das-cli-attention-broker-{attention_broker_port}",
+            "services.attention_broker.port": attention_broker_port,
+            "services.attention_broker.container_name": f"das-cli-attention-broker-{attention_broker_port}",
         }
 
     def _query_agent(self) -> dict:
         query_agent_port = self.prompt(
             "Enter the Query Agent port",
-            default=self._settings.get("query_agent.port", 35700),
+            default=self._settings.get("services.query_agent.port", 35700),
         )
 
         return {
-            "query_agent.port": query_agent_port,
-            "query_agent.container_name": f"das-cli-query-agent-{query_agent_port}",
+            "services.query_agent.port": query_agent_port,
+            "services.query_agent.container_name": f"das-cli-query-agent-{query_agent_port}",
         }
 
     def _link_creation_agent(self) -> dict:
         link_creation_agent_port = self.prompt(
             "Enter the Link Creation Agent Server port",
-            default=self._settings.get("link_creation_agent.port", 9080),
+            default=self._settings.get("services.link_creation_agent.port", 9080),
         )
 
         return {
-            "link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
-            "link_creation_agent.port": link_creation_agent_port,
+            "services.link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
+            "services.link_creation_agent.port": link_creation_agent_port,
         }
 
     def _inference_agent(self) -> dict:
         inference_agent_port = self.prompt(
             "Enter the Inference Agent port",
-            default=self._settings.get("inference_agent.port", 8080),
+            default=self._settings.get("services.inference_agent.port", 8080),
         )
 
         return {
-            "inference_agent.port": inference_agent_port,
-            "inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
+            "services.inference_agent.port": inference_agent_port,
+            "services.inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
         }
+
+    def _schema_hash(self) -> dict:
+        schema_path = resolve_file_path(
+            "/etc/das-cli/schema.json",
+            fallback_paths=[
+                "/settings/schema.json",
+                "../settings/schema.json",
+            ],
+        )
+        schema_hash = calculate_file_hash(schema_path)
+        return {"schema_hash": schema_hash}
 
     def _save(self) -> None:
         self._remote_context_manager.commit()
@@ -480,6 +502,7 @@ link_creation_agent.container_name
 
     def run(self):
         config_steps = [
+            self._schema_hash,
             self._redis,
             self._mongodb,
             self._loader,
@@ -536,7 +559,9 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    short_help = (
+        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    )
 
     @inject
     def __init__(
