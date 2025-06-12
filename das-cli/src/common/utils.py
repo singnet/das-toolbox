@@ -1,13 +1,14 @@
 import base64
 import getpass
+import hashlib
 import os
 import secrets
 import string
 import sys
 import time
-from typing import Callable, Optional
-import hashlib
 from pathlib import Path
+from typing import Callable, Optional
+
 from common.logger import logger
 
 
@@ -73,7 +74,7 @@ def resolve_file_path(
     relative_path: str,
     fallback_paths: list[str] = [],
 ) -> Optional[Path]:
-    candidates = []
+    candidates: list[Path] = []
 
     candidates.extend(Path(p) for p in fallback_paths)
 
@@ -94,7 +95,7 @@ def resolve_file_path(
     return None
 
 
-def calculate_file_hash(file_path: str) -> str:
+def calculate_file_hash(file_path: Path) -> str:
     with open(file_path, "rb") as f:
         content = f.read()
     return hashlib.sha256(content).hexdigest()

@@ -76,10 +76,7 @@ class RedisContainerManager(ContainerManager):
                 "no",
                 *cluster_command_params,
             ],
-            ports={
-                f"{port}/tcp": port,
-                f"{cluster_port}/tcp": cluster_port
-            },
+            ports={f"{port}/tcp": port, f"{cluster_port}/tcp": cluster_port},
         )
 
         return container_id

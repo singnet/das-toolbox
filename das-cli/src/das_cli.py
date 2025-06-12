@@ -1,5 +1,4 @@
 from injector import Injector
-from common.utils import log_exception
 
 from commands.attention_broker import AttentionBrokerModule
 from commands.config import ConfigModule
@@ -16,6 +15,7 @@ from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
+from common.utils import log_exception
 
 MODULES = [
     ConfigModule,

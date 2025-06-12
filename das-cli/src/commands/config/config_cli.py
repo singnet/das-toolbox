@@ -305,9 +305,7 @@ services.*
                 default=server_username_default,
             )
 
-            server_ip_default = (
-                current_nodes[i]["ip"] if i < len(current_nodes) else None
-            )
+            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
@@ -352,9 +350,7 @@ services.*
             "services.redis.port": redis_port,
             "services.redis.container_name": f"das-cli-redis-{redis_port}",
             "services.redis.cluster": redis_cluster,
-            "services.redis.nodes": lambda: self._redis_nodes(
-                redis_cluster, redis_port
-            ),
+            "services.redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
         }
 
     def _mongodb_nodes(self, mongodb_cluster, mongodb_port) -> List[Dict]:
@@ -553,9 +549,7 @@ class ConfigCli(CommandGroup):
 parameters such as port numbers, usernames and other configuration settings required by various DAS components.
     """
 
-    short_help = (
-        "'das-cli config' allows you to manage configuration settings for the DAS CLI"
-    )
+    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
 
     @inject
     def __init__(
