@@ -8,6 +8,7 @@ import time
 from typing import Callable, Optional
 import hashlib
 from pathlib import Path
+from common.logger import logger
 
 
 def is_executable_bin():
@@ -68,7 +69,10 @@ def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
     return result
 
 
-def resolve_file_path(relative_path: str, fallback_paths: list[str] = []) -> Optional[Path]:
+def resolve_file_path(
+    relative_path: str,
+    fallback_paths: list[str] = [],
+) -> Optional[Path]:
     candidates = []
 
     candidates.extend(Path(p) for p in fallback_paths)
@@ -89,10 +93,12 @@ def resolve_file_path(relative_path: str, fallback_paths: list[str] = []) -> Opt
 
     return None
 
+
 def calculate_file_hash(file_path: str) -> str:
     with open(file_path, "rb") as f:
         content = f.read()
     return hashlib.sha256(content).hexdigest()
+
 
 def get_schema_hash() -> str:
     schema_path = resolve_file_path(
@@ -107,3 +113,13 @@ def get_schema_hash() -> str:
         raise FileNotFoundError("Schema file not found.")
 
     return calculate_file_hash(schema_path)
+
+
+def log_exception(e: Exception) -> None:
+    error_type = e.__class__.__name__
+    error_message = str(e)
+    pretty_message = f"\033[31m[{error_type}] {error_message}\033[39m"
+
+    logger().exception(error_message)
+
+    print(pretty_message)

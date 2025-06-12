@@ -51,6 +51,7 @@ $ das-cli link-creation-agent stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._link_creation_agent()
 
@@ -114,6 +115,7 @@ $ das-cli link-creation-agent start
     )
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._link_creation_agent()
 

@@ -189,6 +189,7 @@ $ das-cli db stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._redis()
         self._mongodb()
@@ -366,6 +367,7 @@ $ das-cli db start
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._redis()
         self._mongodb()

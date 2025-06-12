@@ -1,4 +1,5 @@
 from injector import Injector
+from common.utils import log_exception
 
 from commands.attention_broker import AttentionBrokerModule
 from commands.config import ConfigModule
@@ -42,16 +43,24 @@ def init_module(cli, module):
 
 
 def init_modules(cli):
-    for module in MODULES:
-        init_module(cli, module)
+    try:
+        for module in MODULES:
+            init_module(cli, module)
+    except Exception as e:
+        log_exception(e)
+        exit(1)
 
 
 def init_cli(module):
-    m = module()
-    container = Injector([m])
-    instance = container.get(m.get_instance())
+    try:
+        m = module()
+        container = Injector([m])
+        instance = container.get(m.get_instance())
 
-    return instance.group
+        return instance.group
+    except Exception as e:
+        log_exception(e)
+        exit(1)
 
 
 das_cli = init_cli(DasModule)

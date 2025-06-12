@@ -53,6 +53,7 @@ $ das-cli attention-broker stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._attention_broker()
 
@@ -108,6 +109,7 @@ $ das-cli attention-broker start
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._attention_broker()
 

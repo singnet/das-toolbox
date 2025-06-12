@@ -23,8 +23,8 @@ class DbModule(Module):
         ]
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
-        container_name = self._settings.get("redis.container_name")
-        redis_port = self._settings.get("redis.port")
+        container_name = self._settings.get("service.redis.container_name")
+        redis_port = self._settings.get("service.redis.port")
 
         return RedisContainerManager(
             container_name,
@@ -34,10 +34,10 @@ class DbModule(Module):
         )
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
-        container_name = self._settings.get("mongodb.container_name")
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
+        container_name = self._settings.get("service.mongodb.container_name")
+        mongodb_port = self._settings.get("service.mongodb.port")
+        mongodb_username = self._settings.get("service.mongodb.username")
+        mongodb_password = self._settings.get("service.mongodb.password")
 
         return MongodbContainerManager(
             container_name,

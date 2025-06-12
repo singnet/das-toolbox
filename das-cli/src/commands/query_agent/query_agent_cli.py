@@ -55,6 +55,7 @@ $ das-cli query-agent stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._query_agent()
 
@@ -124,6 +125,7 @@ $ das-cli query-agent start
     )
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._query_agent()
 

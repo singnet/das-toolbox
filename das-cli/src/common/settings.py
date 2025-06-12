@@ -23,9 +23,8 @@ class Settings(JsonHandler):
 
         if settings.get("schema_hash") != schema_hash:
             raise ValueError(
-            f"Schema mismatch detected. Expected schema hash: {schema_hash}, but found: {settings.get('schema_hash')}. Please update your configuration."
-        )
-
+                f"Schema mismatch detected. Expected schema hash: {schema_hash}, but found: {settings.get('schema_hash')}. Please update your configuration."
+            )
 
     def raise_on_missing_file(self):
         if not self.exists():
@@ -48,9 +47,13 @@ class Settings(JsonHandler):
                 else:
                     name = key if service else key
                     service = service.strip(".")
-                    column_widths["Service"] = max(column_widths["Service"], len(service))
+                    column_widths["Service"] = max(
+                        column_widths["Service"], len(service)
+                    )
                     column_widths["Name"] = max(column_widths["Name"], len(name))
-                    column_widths["Value"] = max(column_widths["Value"], len(str(value)))
+                    column_widths["Value"] = max(
+                        column_widths["Value"], len(str(value))
+                    )
 
         calculate_column_widths(obj)
 

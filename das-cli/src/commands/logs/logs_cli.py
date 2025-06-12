@@ -68,6 +68,7 @@ $ das-cli logs faas
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         openfaas_container_name = self._settings.get("openfaas.container_name")
 
@@ -105,6 +106,7 @@ $ das-cli logs mongodb
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         mongodb_container_name = self._settings.get("mongodb.container_name")
 
@@ -139,6 +141,7 @@ $ das-cli logs redis
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         redis_container_name = self._settings.get("redis.container_name")
 

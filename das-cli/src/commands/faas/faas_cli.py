@@ -57,6 +57,7 @@ $ das-cli faas stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self.stdout("Stopping OpenFaaS service...")
 
@@ -154,6 +155,7 @@ $ das-cli faas start
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         redis_container_name = self._settings.get("redis.container_name")
         redis_port = self._settings.get("redis.port")
@@ -293,6 +295,7 @@ $ das-cli faas version
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         function, version = self.get_current_function_version()
 
@@ -370,6 +373,7 @@ $ das-cli update-version --version 1.0.0
         function: str,
     ) -> None:
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         (
             current_function_name,

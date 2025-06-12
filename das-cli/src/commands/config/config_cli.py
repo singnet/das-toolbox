@@ -538,6 +538,7 @@ $ das-cli config list
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         settings_table = self._settings.pretty()
 
