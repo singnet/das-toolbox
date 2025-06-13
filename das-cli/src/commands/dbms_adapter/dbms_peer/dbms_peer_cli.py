@@ -154,6 +154,7 @@ $ das-cli dbms-adapter dbms-peer run --client-hostname example.com --client-port
         client_database: str,
     ) -> None:
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
         self._raise_on_server_not_running()
 
         self._image_manager.pull(

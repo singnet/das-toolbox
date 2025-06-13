@@ -62,10 +62,11 @@ $ das-cli jupyter-notebook start --working-dir /path/to/working/directory
 
     def run(self, working_dir: str | None = None):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self.stdout("Starting Jupyter Notebook...")
 
-        jupyter_notebook_port = self._settings.get("jupyter_notebook.port")
+        jupyter_notebook_port = self._settings.get("services.jupyter_notebook.port")
 
         try:
             self._jupyter_notebook_container_manager.start_container(
@@ -114,6 +115,7 @@ $ das-cli jupyter-notebook stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self.stdout("Stopping jupyter notebook...")
 

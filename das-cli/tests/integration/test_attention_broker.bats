@@ -24,14 +24,14 @@ setup() {
 }
 
 @test "Start Attention Broker when port is already in use" {
-    local attention_broker_port="$(get_config .attention_broker.port)"
+    local attention_broker_port="$(get_config .services.attention_broker.port)"
 
     run listen_port "${attention_broker_port}"
     assert_success
 
     run das-cli attention-broker start
     assert_output "Starting Attention Broker service...
-[31m[DockerError] 
+[31m[DockerError]
 Error occurred while trying to start Attention Broker on port ${attention_broker_port}
 [39m"
 
@@ -43,7 +43,7 @@ Error occurred while trying to start Attention Broker on port ${attention_broker
 }
 
 @test "Starting the Attention Broker when it's already up" {
-    local attention_broker_port="$(get_config .attention_broker.port)"
+    local attention_broker_port="$(get_config .services.attention_broker.port)"
 
     das-cli attention-broker start
 
@@ -58,7 +58,7 @@ Attention Broker is already running. It's listening on port ${attention_broker_p
 }
 
 @test "Starting the Attention Broker" {
-    local attention_broker_port="$(get_config .attention_broker.port)"
+    local attention_broker_port="$(get_config .services.attention_broker.port)"
 
     run das-cli attention-broker start
 
@@ -71,7 +71,7 @@ Attention Broker started on port ${attention_broker_port}"
 }
 
 @test "Stopping the Attention Broker when it's up-and-running" {
-    local attention_broker_port="$(get_config .attention_broker.port)"
+    local attention_broker_port="$(get_config .services.attention_broker.port)"
 
     das-cli attention-broker start
 
@@ -86,7 +86,7 @@ Attention Broker service stopped"
 }
 
 @test "Stopping the Attention Broker when it's already stopped" {
-    local attention_broker_container_name="$(get_config .attention_broker.container_name)"
+    local attention_broker_container_name="$(get_config .services.attention_broker.container_name)"
 
     run das-cli attention-broker stop
 
@@ -99,7 +99,7 @@ The Attention Broker service named ${attention_broker_container_name} is already
 }
 
 @test "Restarting the Attention Broker when it's up-and-running" {
-    local attention_broker_port="$(get_config .attention_broker.port)"
+    local attention_broker_port="$(get_config .services.attention_broker.port)"
 
     das-cli attention-broker start
 
@@ -116,8 +116,8 @@ Attention Broker started on port ${attention_broker_port}"
 }
 
 @test "Restarting the Attention Broker when it's not up" {
-    local attention_broker_container_name="$(get_config .attention_broker.container_name)"
-    local attention_broker_port="$(get_config .attention_broker.port)"
+    local attention_broker_container_name="$(get_config .services.attention_broker.container_name)"
+    local attention_broker_port="$(get_config .services.attention_broker.port)"
 
     run das-cli attention-broker restart
 

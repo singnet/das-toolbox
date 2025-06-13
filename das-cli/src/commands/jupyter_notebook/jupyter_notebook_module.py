@@ -23,8 +23,8 @@ class JupyterNotebookModule(Module):
     def _jupyter_notebook_container_manager_factory(
         self,
     ) -> JupyterNotebookContainerManager:
-        container_name = self._settings.get("jupyter_notebook.container_name")
-        jupyter_notebook_port = self._settings.get("jupyter_notebook.port")
+        container_name = self._settings.get("services.jupyter_notebook.container_name")
+        jupyter_notebook_port = self._settings.get("services.jupyter_notebook.port")
 
         return JupyterNotebookContainerManager(
             container_name,

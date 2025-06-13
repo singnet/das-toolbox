@@ -94,6 +94,7 @@ $ das-cli meta load /path/to/mettas-directory/animals.metta
     )
     def run(self, path: str):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._load_metta(path)
 
@@ -160,6 +161,7 @@ $ das-cli metta check /path/to/mettas-directory/animals.metta
 
     def run(self, path: str):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         if os.path.isdir(path):
             self.validate_directory(

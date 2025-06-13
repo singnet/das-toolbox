@@ -58,6 +58,7 @@ $ das-cli das-peer stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
         self._server()
 
 
@@ -113,6 +114,7 @@ $ das-cli das-peer start
     )
     def run(self) -> None:
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._image_manager.pull(
             DAS_PEER_IMAGE_NAME,

@@ -53,6 +53,7 @@ $ das-cli inference-agent stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._inference_agent()
 
@@ -114,6 +115,7 @@ $ das-cli inference-agent start
     )
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._inference_agent()
 

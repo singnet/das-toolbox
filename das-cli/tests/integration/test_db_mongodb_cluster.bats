@@ -28,21 +28,21 @@ teardown() {
 
 # bats test_tags=cluster
 @test "Starting db with mongodb cluster" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_username="$(get_config ".mongodb.username")"
-    local mongodb_password="$(get_config ".mongodb.password")"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
+    local mongodb_username="$(get_config ".services.mongodb.username")"
+    local mongodb_password="$(get_config ".services.mongodb.password")"
 
-    local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
+    local mongodb_node1_context="$(get_config ".services.mongodb.nodes[0].context")"
+    local mongodb_node1_ip="$(get_config ".services.mongodb.nodes[0].ip")"
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
 
-    local mongodb_node2_context="$(get_config ".mongodb.nodes[1].context")"
-    local mongodb_node2_ip="$(get_config ".mongodb.nodes[1].ip")"
-    local mongodb_node2_username="$(get_config ".mongodb.nodes[1].username")"
+    local mongodb_node2_context="$(get_config ".services.mongodb.nodes[1].context")"
+    local mongodb_node2_ip="$(get_config ".services.mongodb.nodes[1].ip")"
+    local mongodb_node2_username="$(get_config ".services.mongodb.nodes[1].username")"
 
-    local mongodb_node3_context="$(get_config ".mongodb.nodes[2].context")"
-    local mongodb_node3_ip="$(get_config ".mongodb.nodes[2].ip")"
-    local mongodb_node3_username="$(get_config ".mongodb.nodes[2].username")"
+    local mongodb_node3_context="$(get_config ".services.mongodb.nodes[2].context")"
+    local mongodb_node3_ip="$(get_config ".services.mongodb.nodes[2].ip")"
+    local mongodb_node3_username="$(get_config ".services.mongodb.nodes[2].username")"
 
     run timeout 5m das-cli db start
 
@@ -66,19 +66,19 @@ teardown() {
 
 # bats test_tags=cluster
 @test "Stopping db with mongodb cluster" {
-    local mongodb_port="$(get_config ".mongodb.port")"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
 
-    local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
+    local mongodb_node1_context="$(get_config ".services.mongodb.nodes[0].context")"
+    local mongodb_node1_ip="$(get_config ".services.mongodb.nodes[0].ip")"
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
 
-    local mongodb_node2_context="$(get_config ".mongodb.nodes[1].context")"
-    local mongodb_node2_ip="$(get_config ".mongodb.nodes[1].ip")"
-    local mongodb_node2_username="$(get_config ".mongodb.nodes[1].username")"
+    local mongodb_node2_context="$(get_config ".services.mongodb.nodes[1].context")"
+    local mongodb_node2_ip="$(get_config ".services.mongodb.nodes[1].ip")"
+    local mongodb_node2_username="$(get_config ".services.mongodb.nodes[1].username")"
 
-    local mongodb_node3_context="$(get_config ".mongodb.nodes[2].context")"
-    local mongodb_node3_ip="$(get_config ".mongodb.nodes[2].ip")"
-    local mongodb_node3_username="$(get_config ".mongodb.nodes[2].username")"
+    local mongodb_node3_context="$(get_config ".services.mongodb.nodes[2].context")"
+    local mongodb_node3_ip="$(get_config ".services.mongodb.nodes[2].ip")"
+    local mongodb_node3_username="$(get_config ".services.mongodb.nodes[2].username")"
 
     das-cli db start
 
@@ -102,21 +102,21 @@ teardown() {
 
 # bats test_tags=cluster
 @test "Restarting db with mongodb cluster after cluster is up" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_username="$(get_config ".mongodb.username")"
-    local mongodb_password="$(get_config ".mongodb.password")"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
+    local mongodb_username="$(get_config ".services.mongodb.username")"
+    local mongodb_password="$(get_config ".services.mongodb.password")"
 
-    local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
+    local mongodb_node1_context="$(get_config ".services.mongodb.nodes[0].context")"
+    local mongodb_node1_ip="$(get_config ".services.mongodb.nodes[0].ip")"
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
 
-    local mongodb_node2_context="$(get_config ".mongodb.nodes[1].context")"
-    local mongodb_node2_ip="$(get_config ".mongodb.nodes[1].ip")"
-    local mongodb_node2_username="$(get_config ".mongodb.nodes[1].username")"
+    local mongodb_node2_context="$(get_config ".services.mongodb.nodes[1].context")"
+    local mongodb_node2_ip="$(get_config ".services.mongodb.nodes[1].ip")"
+    local mongodb_node2_username="$(get_config ".services.mongodb.nodes[1].username")"
 
-    local mongodb_node3_context="$(get_config ".mongodb.nodes[2].context")"
-    local mongodb_node3_ip="$(get_config ".mongodb.nodes[2].ip")"
-    local mongodb_node3_username="$(get_config ".mongodb.nodes[2].username")"
+    local mongodb_node3_context="$(get_config ".services.mongodb.nodes[2].context")"
+    local mongodb_node3_ip="$(get_config ".services.mongodb.nodes[2].ip")"
+    local mongodb_node3_username="$(get_config ".services.mongodb.nodes[2].username")"
 
     das-cli db start
 
@@ -147,23 +147,23 @@ teardown() {
 
 # bats test_tags=cluster
 @test "Restarting db with mongodb cluster before cluster is up" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_username="$(get_config ".mongodb.username")"
-    local mongodb_password="$(get_config ".mongodb.password")"
-    local mongodb_container_name="$(get_config ".mongodb.container_name")"
-    local mongodb_container_name="$(get_config ".mongodb.container_name")"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
+    local mongodb_username="$(get_config ".services.mongodb.username")"
+    local mongodb_password="$(get_config ".services.mongodb.password")"
+    local mongodb_container_name="$(get_config ".services.mongodb.container_name")"
+    local mongodb_container_name="$(get_config ".services.mongodb.container_name")"
 
-    local mongodb_node1_context="$(get_config ".mongodb.nodes[0].context")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
+    local mongodb_node1_context="$(get_config ".services.mongodb.nodes[0].context")"
+    local mongodb_node1_ip="$(get_config ".services.mongodb.nodes[0].ip")"
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
 
-    local mongodb_node2_context="$(get_config ".mongodb.nodes[1].context")"
-    local mongodb_node2_ip="$(get_config ".mongodb.nodes[1].ip")"
-    local mongodb_node2_username="$(get_config ".mongodb.nodes[1].username")"
+    local mongodb_node2_context="$(get_config ".services.mongodb.nodes[1].context")"
+    local mongodb_node2_ip="$(get_config ".services.mongodb.nodes[1].ip")"
+    local mongodb_node2_username="$(get_config ".services.mongodb.nodes[1].username")"
 
-    local mongodb_node3_context="$(get_config ".mongodb.nodes[2].context")"
-    local mongodb_node3_ip="$(get_config ".mongodb.nodes[2].ip")"
-    local mongodb_node3_username="$(get_config ".mongodb.nodes[2].username")"
+    local mongodb_node3_context="$(get_config ".services.mongodb.nodes[2].context")"
+    local mongodb_node3_ip="$(get_config ".services.mongodb.nodes[2].ip")"
+    local mongodb_node3_username="$(get_config ".services.mongodb.nodes[2].username")"
 
     run timeout 5m das-cli db restart
 

@@ -5,6 +5,7 @@ import click
 from fabric import Connection
 
 from common.logger import logger
+from common.utils import log_exception
 
 
 class StdoutType(Enum):
@@ -152,13 +153,7 @@ class Command:
                 return self._remote_run(kwargs, remote_kwargs)
             return self.run(**kwargs)
         except Exception as e:
-            error_type = e.__class__.__name__
-            error_message = str(e)
-            pretty_message = f"\033[31m[{error_type}] {error_message}\033[39m"
-
-            logger().exception(error_message)
-
-            print(pretty_message)
+            log_exception(e)
 
     def prompt(
         self,

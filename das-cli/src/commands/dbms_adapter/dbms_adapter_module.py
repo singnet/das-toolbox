@@ -35,8 +35,8 @@ class DbmsAdapterModule(Module):
         ]
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
-        container_name = self._settings.get("mongodb.container_name")
-        port = self._settings.get("mongodb.port")
+        container_name = self._settings.get("services.mongodb.container_name")
+        port = self._settings.get("services.mongodb.port")
 
         return MongodbContainerManager(
             container_name,
@@ -46,8 +46,8 @@ class DbmsAdapterModule(Module):
         )
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
-        container_name = self._settings.get("redis.container_name")
-        port = self._settings.get("redis.port")
+        container_name = self._settings.get("services.redis.container_name")
+        port = self._settings.get("services.redis.port")
 
         return RedisContainerManager(
             container_name,
@@ -57,15 +57,15 @@ class DbmsAdapterModule(Module):
         )
 
     def _das_peer_container_manager_factory(self) -> DasPeerContainerManager:
-        container_name = self._settings.get("das_peer.container_name")
-        mongodb_nodes = self._settings.get("mongodb.nodes", [])
+        container_name = self._settings.get("services.das_peer.container_name")
+        mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_hostname = mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else "localhost"
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
-        mongodb_port = self._settings.get("mongodb.port")
-        redis_nodes = self._settings.get("redis.nodes", [])
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        redis_nodes = self._settings.get("services.redis.nodes", [])
         redis_hostname = redis_nodes[0]["ip"] if len(redis_nodes) > 0 else "localhost"
-        redis_port = self._settings.get("redis.port")
+        redis_port = self._settings.get("services.redis.port")
 
         adapter_server_port = 30100
 
@@ -85,7 +85,7 @@ class DbmsAdapterModule(Module):
     def _dbms_peer_container_manager_factory(
         self,
     ) -> DbmsPeerContainerManager:
-        container_name = self._settings.get("dbms_peer.container_name")
+        container_name = self._settings.get("services.dbms_peer.container_name")
         adapter_server_port = 30100
 
         return DbmsPeerContainerManager(

@@ -73,8 +73,8 @@ teardown() {
 
 @test "Loading a MeTTa file with a relative path" {
     local metta_file_path="$(realpath --relative-to="$BATS_TEST_DIRNAME/../.." "$test_fixtures_dir/metta/animals.metta")"
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
 
     das-cli db start
 
@@ -88,8 +88,8 @@ teardown() {
 
 @test "Loading an invalid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
 
     das-cli db start
 
@@ -106,8 +106,8 @@ teardown() {
 
 @test "Loading a valid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
 
     das-cli db start
 
@@ -124,8 +124,8 @@ teardown() {
 
 @test "Loading directory with MeTTa files" {
     local metta_file_path="$test_fixtures_dir/metta"
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
 
     das-cli db start
 
@@ -157,8 +157,8 @@ teardown() {
 
 @test "Loading MeTTa file before db has being started" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
 
     das-cli db stop
 

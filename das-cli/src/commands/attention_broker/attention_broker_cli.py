@@ -53,6 +53,7 @@ $ das-cli attention-broker stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._attention_broker()
 
@@ -87,7 +88,7 @@ $ das-cli attention-broker start
     def _attention_broker(self) -> None:
         self.stdout("Starting Attention Broker service...")
 
-        attention_broker_port = self._settings.get("attention_broker.port")
+        attention_broker_port = self._attention_broker_container_manager.get_container().port
 
         try:
             self._attention_broker_container_manager.start_container()
@@ -108,6 +109,7 @@ $ das-cli attention-broker start
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._attention_broker()
 

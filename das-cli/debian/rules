@@ -19,7 +19,8 @@ override_dh_builddeb: build_man_pages
 override_dh_auto_install:
 	pip3 install pyinstaller==6.3.0
 	pip3 install -r $(CURDIR)/src/requirements.txt
-	pyinstaller $(CURDIR)/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR)
+	pyinstaller $(CURDIR)/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR) \
+	--add-data "$(CURDIR)/src/settings/schema.json:settings"
 	mkdir -p $(USR_BIN_DIR)
 	cp -r $(ARTIFACTS_DIR)/das-cli $(USR_BIN_DIR)
 

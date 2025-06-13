@@ -52,7 +52,7 @@ teardown() {
 }
 
 @test "Trying to show logs for FaaS before db is running" {
-    local openfaas_container_name="$(get_config .openfaas.container_name)"
+    local openfaas_container_name="$(get_config .services.openfaas.container_name)"
 
     run das-cli logs faas
 
