@@ -66,7 +66,7 @@ $ das-cli jupyter-notebook start --working-dir /path/to/working/directory
 
         self.stdout("Starting Jupyter Notebook...")
 
-        jupyter_notebook_port = self._settings.get("jupyter_notebook.port")
+        jupyter_notebook_port = self._settings.get("services.jupyter_notebook.port")
 
         try:
             self._jupyter_notebook_container_manager.start_container(

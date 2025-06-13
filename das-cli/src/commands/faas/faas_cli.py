@@ -61,7 +61,7 @@ $ das-cli faas stop
 
         self.stdout("Stopping OpenFaaS service...")
 
-        openfaas_container_name = self._settings.get("openfaas.container_name")
+        openfaas_container_name = self._settings.get("services.openfaas.container_name")
 
         try:
             openfaas_container_service = OpenFaaSContainerManager(openfaas_container_name)
@@ -157,13 +157,13 @@ $ das-cli faas start
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        redis_container_name = self._settings.get("redis.container_name")
-        redis_port = self._settings.get("redis.port")
+        redis_container_name = self._settings.get("services.redis.container_name")
+        redis_port = self._settings.get("services.redis.port")
 
-        mongodb_container_name = self._settings.get("mongodb.container_name")
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
+        mongodb_container_name = self._settings.get("services.mongodb.container_name")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
 
         self._is_required_services_running(
             [
@@ -182,8 +182,8 @@ $ das-cli faas start
 
         self.stdout("Starting OpenFaaS...")
 
-        function = self._settings.get("openfaas.function")
-        version = self._settings.get("openfaas.version")
+        function = self._settings.get("services.openfaas.function")
+        version = self._settings.get("services.openfaas.version")
 
         pull_function_version(
             self._image_manager,
@@ -192,7 +192,7 @@ $ das-cli faas start
             version,
         )
 
-        openfaas_container_name = self._settings.get("openfaas.container_name")
+        openfaas_container_name = self._settings.get("services.openfaas.container_name")
 
         openfaas_container_manager = OpenFaaSContainerManager(openfaas_container_name)
 
@@ -276,13 +276,13 @@ $ das-cli faas version
 
     def get_current_function_version(self) -> tuple:
         self._settings.rewind()  # Ensure we are getting the latest setting content
-        function = self._settings.get("openfaas.function", "query-engine")
+        function = self._settings.get("services.openfaas.function", "query-engine")
 
         image_tag = self._image_manager.get_label(
             repository=OPENFAAS_IMAGE_NAME,
             tag=self._image_manager.format_function_tag(
                 function,
-                version=self._settings.get("openfaas.version", "latest"),
+                version=self._settings.get("services.openfaas.version", "latest"),
             ),
             label="fn.version",
         )

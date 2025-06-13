@@ -88,7 +88,7 @@ $ das-cli attention-broker start
     def _attention_broker(self) -> None:
         self.stdout("Starting Attention Broker service...")
 
-        attention_broker_port = self._settings.get("attention_broker.port")
+        attention_broker_port = self._attention_broker_container_manager.get_container().port
 
         try:
             self._attention_broker_container_manager.start_container()

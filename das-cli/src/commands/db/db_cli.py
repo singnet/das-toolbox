@@ -142,7 +142,7 @@ $ das-cli db stop
     def _redis(self):
         self.stdout("Stopping Redis service...")
 
-        redis_nodes = self._settings.get("redis.nodes", [])
+        redis_nodes = self._settings.get("services.redis.nodes", [])
 
         try:
             for redis_node in redis_nodes:
@@ -174,7 +174,7 @@ $ das-cli db stop
     def _mongodb(self):
         self.stdout("Stopping MongoDB service...")
 
-        mongodb_nodes = self._settings.get("mongodb.nodes", [])
+        mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
 
         try:
             for mongodb_node in mongodb_nodes:
@@ -264,9 +264,9 @@ $ das-cli db start
     def _redis(self) -> None:
         self.stdout("Starting Redis service...")
 
-        redis_port = self._settings.get("redis.port")
-        redis_nodes = self._settings.get("redis.nodes", [])
-        redis_cluster = self._settings.get("redis.cluster", False)
+        redis_port = self._settings.get("services.redis.port")
+        redis_nodes = self._settings.get("services.redis.nodes", [])
+        redis_cluster = self._settings.get("services.redis.cluster", False)
 
         for redis_node in redis_nodes:
             self._redis_node(redis_node, redis_port, redis_cluster)
@@ -333,12 +333,12 @@ $ das-cli db start
     def _mongodb(self) -> None:
         self.stdout("Starting MongoDB service...")
 
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
-        mongodb_nodes = self._settings.get("mongodb.nodes", [])
-        mongodb_cluster = self._settings.get("mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get("mongodb.cluster_secret_key")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+        mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
+        mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
+        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
