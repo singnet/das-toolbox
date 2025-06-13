@@ -25,14 +25,14 @@ setup() {
 }
 
 @test "Starting DAS Peer when db is not up" {
-    local mongodb_container_name="$(get_config ".mongodb.container_name")"
-    local redis_container_name="$(get_config ".redis.container_name")"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
 
     run das-cli dbms-adapter das-peer start
 
     assert_output "$mongodb_container_name is not running
 $redis_container_name is not running
-[31m[DockerContainerNotFoundError] 
+[31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'das-peer start'.[39m"
 
     run is_service_up redis
@@ -46,10 +46,10 @@ Please use 'db start' to start required services before running 'das-peer start'
 }
 
 @test "Starting DAS Peer command" {
-    local mongodb_container_name="$(get_config ".mongodb.container_name")"
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local redis_container_name="$(get_config ".redis.container_name")"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
+    local redis_port="$(get_config .services.redis.port)"
     local das_peer_port=30100
 
     das-cli db start
@@ -74,11 +74,11 @@ DAS Peer is runnig on port $das_peer_port"
 }
 
 @test "Should display an error message if the database is unavailable when attempting to start das-peer" {
-    local mongodb_container_name="$(get_config ".mongodb.container_name")"
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local redis_container_name="$(get_config ".redis.container_name")"
-    local redis_port="$(get_config .redis.port)"
-    local das_peer_port="$(get_config .das_peer.port)"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
+    local redis_port="$(get_config .services.redis.port)"
+    local das_peer_port="$(get_config .services.das_peer.port)"
 
     run is_service_up redis
     assert_failure
@@ -90,7 +90,7 @@ DAS Peer is runnig on port $das_peer_port"
 
     assert_output "$mongodb_container_name is not running
 $redis_container_name is not running
-[31m[DockerContainerNotFoundError] 
+[31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'das-peer start'.[39m"
 
     run is_service_up das_peer
@@ -98,10 +98,10 @@ Please use 'db start' to start required services before running 'das-peer start'
 }
 
 @test "Should display an error message if containers are already running when attempting to start das-peer" {
-    local mongodb_container_name="$(get_config ".mongodb.container_name")"
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local redis_container_name="$(get_config ".redis.container_name")"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
+    local redis_port="$(get_config .services.redis.port)"
 
     das-cli db start
 
@@ -151,7 +151,7 @@ The DAS Peer service has been stopped."
 }
 
 @test "Should display a warning when das-peer is already stopped" {
-    local das_peer_container_name="$(get_config ".das_peer.container_name")"
+    local das_peer_container_name="$(get_config .services.das_peer.container_name)"
 
     das-cli db start
 

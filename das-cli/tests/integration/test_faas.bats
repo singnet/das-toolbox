@@ -18,8 +18,8 @@ teardown() {
 }
 
 @test "Start FaaS when port is already in use" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
     local faas_port=8080
 
 
@@ -40,8 +40,8 @@ Starting OpenFaaS...
 }
 
 @test "Start FaaS when metric port is already in use" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
     local metric_port=8081
 
     run listen_port "${metric_port}"
@@ -61,8 +61,8 @@ Starting OpenFaaS...
 }
 
 @test "Start FaaS when datadog port is already in use" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
     local datadog_port=5000
 
     run listen_port "${datadog_port}"
@@ -100,7 +100,7 @@ Starting OpenFaaS...
 
     assert_output "MongoDB is not running
 Redis is not running
-[31m[DockerContainerNotFoundError] 
+[31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'faas start'.[39m"
 
     run is_service_up openfaas
@@ -113,11 +113,11 @@ Please use 'db start' to start required services before running 'faas start'.[3
 
     run das-cli faas start
 
-    local redis_port="$(get_config ".redis.port")"
+    local redis_port="$(get_config .services.redis.port)"
 
     assert_output "MongoDB is not running
 Redis is running on port $redis_port
-[31m[DockerContainerNotFoundError] 
+[31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'faas start'.[39m"
 
     run is_service_up openfaas
@@ -130,11 +130,11 @@ Please use 'db start' to start required services before running 'faas start'.[3
 
     run das-cli faas start
 
-    local mongodb_port="$(get_config ".mongodb.port")"
+    local mongodb_port="$(get_config .services.mongodb.port)"
 
     assert_output "MongoDB is running on port $mongodb_port
 Redis is not running
-[31m[DockerContainerNotFoundError] 
+[31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'faas start'.[39m"
 
     run is_service_up openfaas
@@ -143,9 +143,9 @@ Please use 'db start' to start required services before running 'faas start'.[3
 }
 
 @test "Starting the FaaS function" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
-    local openfaas_version="$(get_config .openfaas.version)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
+    local openfaas_version="$(get_config .services.openfaas.version)"
     local openfaas_resolved_version="$(resolve_openfaas_version $openfaas_version)"
 
     run das-cli faas start
@@ -162,9 +162,9 @@ OpenFaaS running on port 8080"
 }
 
 @test "Starting the FaaS function when function is already up" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
-    local openfaas_version="$(get_config .openfaas.version)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
+    local openfaas_version="$(get_config .services.openfaas.version)"
     local openfaas_resolved_version="$(resolve_openfaas_version $openfaas_version)"
 
     das-cli faas start
@@ -207,9 +207,9 @@ FaaS is not running..."
 }
 
 @test "Restart the FaaS function once it has been initiated" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
-    local openfaas_version="$(get_config .openfaas.version)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
+    local openfaas_version="$(get_config .services.openfaas.version)"
     local openfaas_resolved_version="$(resolve_openfaas_version $openfaas_version)"
 
     das-cli faas start
@@ -230,9 +230,9 @@ OpenFaaS running on port 8080"
 }
 
 @test "Restart the FaaS function even if it has not been previously initiated" {
-    local mongodb_port="$(get_config .mongodb.port)"
-    local redis_port="$(get_config .redis.port)"
-    local openfaas_version="$(get_config .openfaas.version)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local redis_port="$(get_config .services.redis.port)"
+    local openfaas_version="$(get_config .services.openfaas.version)"
     local openfaas_resolved_version="$(resolve_openfaas_version $openfaas_version)"
 
     run das-cli faas restart
@@ -252,7 +252,7 @@ OpenFaaS running on port 8080"
 
 @test "Update FaaS to a non-existent version" {
     local inexistente_version="0.0.0"
-    local openfaas_function="$(get_config .openfaas.function)"
+    local openfaas_function="$(get_config .services.openfaas.function)"
 
     run das-cli faas update-version --version "${inexistente_version}"
 
@@ -272,8 +272,8 @@ OpenFaaS running on port 8080"
     local new_function="query-engine"
     local new_version="1.12.0"
 
-    local old_version="$(get_config .openfaas.version)"
-    local old_function="$(get_config .openfaas.function)"
+    local old_version="$(get_config .services.openfaas.version)"
+    local old_function="$(get_config .services.openfaas.function)"
 
     run das-cli faas update-version --function "${new_function}" --version "${new_version}"
 
@@ -288,8 +288,8 @@ Function version successfully updated $old_function $old_version --> $new_functi
 }
 
 @test "Update FaaS to the latest available version" {
-    local old_version="$(get_config .openfaas.version)"
-    local function="$(get_config .openfaas.function)"
+    local old_version="$(get_config .services.openfaas.version)"
+    local function="$(get_config .services.openfaas.function)"
     local latest_version="$(get_latest_image_tag $openfaas_repository)"
 
     run das-cli faas update-version
@@ -299,7 +299,7 @@ Function version successfully updated $function $old_version --> $function $late
 
     local image_version_digest="$(get_disgest_local_image "$openfaas_repository:query-engine-latest")"
 
-    run is_digest_same_as_remote_faas_latest_function "$image_version_digest" 
+    run is_digest_same_as_remote_faas_latest_function "$image_version_digest"
     assert_success
 
     run das-cli faas start

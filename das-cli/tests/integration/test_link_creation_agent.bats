@@ -33,12 +33,12 @@ teardown() {
 }
 
 @test "Start Link Creation Agent when Query Agent is not up" {
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     das-cli query-agent stop
 
     run das-cli link-creation-agent start
-    assert_output "[31m[DockerContainerNotFoundError] 
+    assert_output "[31m[DockerContainerNotFoundError]
 Please start the required services before running 'link-creation-agent start'.
 Run 'query-agent start' to start the Query Agent.[39m"
 
@@ -50,7 +50,7 @@ Run 'query-agent start' to start the Query Agent.[39m"
 }
 
 @test "Start Link Creation Agent when port is already in use" {
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     run listen_port "${link_creation_agent_port}"
     assert_success
@@ -67,7 +67,7 @@ Run 'query-agent start' to start the Query Agent.[39m"
 }
 
 @test "Starting the Link Creation Agent when it's already up" {
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     das-cli link-creation-agent start
 
@@ -82,7 +82,7 @@ Link Creation Agent is already running. It's listening on the ports ${link_creat
 }
 
 @test "Starting the Link Creation Agent" {
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     run das-cli link-creation-agent start
 
@@ -94,7 +94,7 @@ Link Creation Agent started listening on the ports ${link_creation_agent_port}, 
 }
 
 @test "Stopping the Link Creation Agent when it's up-and-running" {
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     das-cli link-creation-agent start
 
@@ -108,7 +108,7 @@ Link Creation Agent service stopped"
 }
 
 @test "Stopping the Link Creation Agent when it's already stopped" {
-    local link_creation_agent_container_name="$(get_config .link_creation_agent.container_name)"
+    local link_creation_agent_container_name="$(get_config .services.link_creation_agent.container_name)"
 
     run das-cli link-creation-agent stop
 
@@ -120,7 +120,7 @@ The Link Creation Agent service named ${link_creation_agent_container_name} is a
 }
 
 @test "Restarting the Link Creation Agent when it's up-and-running" {
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     das-cli link-creation-agent start
 
@@ -136,8 +136,8 @@ Link Creation Agent started listening on the ports ${link_creation_agent_port}, 
 }
 
 @test "Restarting the Link Creation Agent when it's not up" {
-    local link_creation_agent_container_name="$(get_config .link_creation_agent.container_name)"
-    local link_creation_agent_port="$(get_config .link_creation_agent.port)"
+    local link_creation_agent_container_name="$(get_config .services.link_creation_agent.container_name)"
+    local link_creation_agent_port="$(get_config .services.link_creation_agent.port)"
 
     run das-cli link-creation-agent restart
 

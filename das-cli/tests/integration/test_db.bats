@@ -24,12 +24,12 @@ setup() {
 }
 
 @test "Starting mongodb and redis standalone" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local redis_port="$(get_config .redis.port)"
-    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
-    local redis_node1_ip="$(get_config ".redis.nodes[0].ip")"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local mongodb_node1_username="$(get_config .services.mongodb.nodes[0].username)"
+    local mongodb_node1_ip="$(get_config .services.mongodb.nodes[0].ip)"
+    local redis_port="$(get_config .services.redis.port)"
+    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
+    local redis_node1_ip="$(get_config .services.redis.nodes[0].ip)"
 
     run das-cli db start
 
@@ -46,12 +46,12 @@ MongoDB has started successfully on port ${mongodb_port} at localhost, operating
 }
 
 @test "It should gives up a warning when db is already up" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local redis_port="$(get_config .redis.port)"
-    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
-    local redis_node1_ip="$(get_config ".redis.nodes[0].ip")"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local mongodb_node1_username="$(get_config .services.mongodb.nodes[0].username)"
+    local mongodb_node1_ip="$(get_config .services.mongodb.nodes[0].ip)"
+    local redis_port="$(get_config .services.redis.port)"
+    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
+    local redis_node1_ip="$(get_config .services.redis.nodes[0].ip)"
 
     das-cli db start
 
@@ -70,15 +70,15 @@ MongoDB is already running. It is currently listening on port ${mongodb_port} at
 }
 
 @test "It should restart even though services are stopped" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
-    local mongodb_node1_ip="$(get_config ".mongodb.nodes[0].ip")"
-    local mongodb_container_name="$(get_config .mongodb.container_name)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local mongodb_node1_username="$(get_config .services.mogodb.nodes[0].username)"
+    local mongodb_node1_ip="$(get_config .services.mongodb.nodes[0].ip)"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
 
-    local redis_port="$(get_config .redis.port)"
-    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
-    local redis_node1_ip="$(get_config ".redis.nodes[0].ip")"
-    local redis_container_name="$(get_config .redis.container_name)"
+    local redis_port="$(get_config .services.redis.port)"
+    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
+    local redis_node1_ip="$(get_config .services.redis.nodes[0].ip)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
 
     run das-cli db restart
 
@@ -99,10 +99,10 @@ MongoDB has started successfully on port ${mongodb_port} at localhost, operating
 }
 
 @test "It should restart db successfully when db is already up" {
-    local mongodb_port="$(get_config ".mongodb.port")"
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
-    local redis_port="$(get_config .redis.port)"
-    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local mongodb_node1_username="$(get_config .services.mongodb.nodes[0].username)"
+    local redis_port="$(get_config .services.redis.port)"
+    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
 
     das-cli db start
 
@@ -125,8 +125,8 @@ MongoDB has started successfully on port ${mongodb_port} at localhost, operating
 }
 
 @test "It should stop db successfully" {
-    local mongodb_node1_username="$(get_config ".mongodb.nodes[0].username")"
-    local redis_node1_username="$(get_config ".redis.nodes[0].username")"
+    local mongodb_node1_username="$(get_config .services.mongodb.nodes[0].userame)"
+    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
 
     das-cli db start &>/dev/null
 
@@ -145,8 +145,8 @@ The MongoDB service at localhost has been stopped by the server user ${mongodb_n
 }
 
 @test "It should warns up when db is already stopped" {
-    local redis_container_name="$(get_config .redis.container_name)"
-    local mongodb_container_name="$(get_config .mongodb.container_name)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
 
     run das-cli db stop
 
@@ -213,13 +213,13 @@ Redis: No keys found (0)"
 }
 
 @test "Should count atoms with database disabled" {
-    local redis_container_name="$(get_config .redis.container_name)"
-    local mongodb_container_name="$(get_config .mongodb.container_name)"
+    local redis_container_name="$(get_config .services.redis.container_name)"
+    local mongodb_container_name="$(get_config .services.mongodb.container_name)"
 
     run das-cli db count-atoms
 
     assert_success "${mongodb_container_name} is not running
 ${redis_container_name} is not running
-[31m[DockerContainerNotFoundError] 
+[31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'db count-atoms'.[39m"
 }

@@ -105,7 +105,7 @@ def get_schema_hash() -> str:
     schema_path = resolve_file_path(
         "/etc/das-cli/schema.json",
         fallback_paths=[
-            "/settings/schema.json",
+            "settings/schema.json",
             "../settings/schema.json",
         ],
     )

@@ -24,7 +24,7 @@ setup() {
 }
 
 @test "Starting Jupyter notebook server" {
-    local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
+    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
 
     run das-cli jupyter-notebook start
 
@@ -54,7 +54,7 @@ Jupyter Notebook started on port $jupyter_notebook_port"
 
 @test "Starting Jupyter notebook server with working directory" {
     local jupyter_dir="$(mktemp -d)"
-    local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
+    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
 
     run das-cli jupyter-notebook start --working-dir $jupyter_dir
 
@@ -67,7 +67,7 @@ Jupyter Notebook started on port $jupyter_notebook_port"
 }
 
 @test "Trying to start Jupyter notebook server after it has being started" {
-    local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
+    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
 
     das-cli jupyter-notebook start
 
@@ -95,7 +95,7 @@ Jupyter Notebook service stopped"
 }
 
 @test "Trying to stop Jupyter notebook server after has already being stopped" {
-    local jupyter_notebook_container_name="$(get_config .jupyter_notebook.container_name)"
+    local jupyter_notebook_container_name="$(get_config .services.jupyter_notebook.container_name)"
 
     run das-cli jupyter-notebook stop
 
@@ -108,7 +108,7 @@ The Jupyter Notebook service named $jupyter_notebook_container_name is already s
 }
 
 @test "Restarting Jupyter notebook server" {
-    local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
+    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
 
     das-cli jupyter-notebook start
 
@@ -125,8 +125,8 @@ Jupyter Notebook started on port $jupyter_notebook_port"
 }
 
 @test "Trying to restart Jupyter notebook server before start server" {
-    local jupyter_notebook_port="$(get_config .jupyter_notebook.port)"
-    local jupyter_notebook_container_name="$(get_config .jupyter_notebook.container_name)"
+    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
+    local jupyter_notebook_container_name="$(get_config .services.jupyter_notebook.container_name)"
 
     run das-cli jupyter-notebook restart
 

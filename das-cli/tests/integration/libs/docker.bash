@@ -16,10 +16,10 @@ function is_service_up() {
     local container_name
     local service_name="$1"
 
-    container_name=$(get_config ".${service_name}.container_name")
+    container_name=$(get_config ".services.${service_name}.container_name")
 
     is_container_running "$container_name"
-    
+
     return $?
 }
 
@@ -27,7 +27,7 @@ function service_stop() {
     local container_name
     local service_name="$1"
 
-    container_name=$(get_config ".${service_name}.container_name")
+    container_name=$(get_config ".services.${service_name}.container_name")
 
     docker container rm -f "$container_name" &>/dev/null
 }
@@ -41,7 +41,7 @@ function exec_cmd_on_service() {
         return 1
     fi
 
-    container_name=$(get_config ".${service_name}.container_name")
+    container_name=$(get_config ".services.${service_name}.container_name")
 
     docker container exec -it "$container_name" sh -c "$cmd"
 
