@@ -36,7 +36,7 @@ teardown() {
     das-cli db stop
 
     run das-cli query-agent start
-    assert_output "[31m[DockerContainerNotFoundError]
+    assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'query-agent start'.
 Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.[39m"
 
@@ -59,7 +59,7 @@ Run 'db start' to start the databases and 'attention-broker start' to start the 
     das-cli attention-broker stop
 
     run das-cli query-agent start
-    assert_output "[31m[DockerContainerNotFoundError]
+    assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'query-agent start'.
 Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.[39m"
 
@@ -84,7 +84,7 @@ Run 'db start' to start the databases and 'attention-broker start' to start the 
 
     run das-cli query-agent start
     assert_output "Starting Query Agent service...
-[31m[DockerError]
+[31m[DockerError] 
 Error occurred while trying to start Query Agent on port ${query_agent_port}
 [39m"
 

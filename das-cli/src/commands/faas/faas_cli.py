@@ -362,8 +362,8 @@ $ das-cli update-version --version 1.0.0
         self._faas_version = faas_version
 
     def _set_version(self, function: str, version: str) -> None:
-        self._settings.set("openfaas.version", version)
-        self._settings.set("openfaas.function", function)
+        self._settings.set("services.openfaas.version", version)
+        self._settings.set("services.openfaas.function", function)
         self._settings.save()
         self._settings.rewind()
 

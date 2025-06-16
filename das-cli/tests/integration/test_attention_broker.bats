@@ -31,7 +31,7 @@ setup() {
 
     run das-cli attention-broker start
     assert_output "Starting Attention Broker service...
-[31m[DockerError]
+[31m[DockerError] 
 Error occurred while trying to start Attention Broker on port ${attention_broker_port}
 [39m"
 

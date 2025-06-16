@@ -38,7 +38,7 @@ teardown() {
     das-cli query-agent stop
 
     run das-cli link-creation-agent start
-    assert_output "[31m[DockerContainerNotFoundError]
+    assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'link-creation-agent start'.
 Run 'query-agent start' to start the Query Agent.[39m"
 

@@ -100,7 +100,7 @@ Starting OpenFaaS...
 
     assert_output "MongoDB is not running
 Redis is not running
-[31m[DockerContainerNotFoundError]
+[31m[DockerContainerNotFoundError] 
 Please use 'db start' to start required services before running 'faas start'.[39m"
 
     run is_service_up openfaas
@@ -113,11 +113,11 @@ Please use 'db start' to start required services before running 'faas start'.[3
 
     run das-cli faas start
 
-    local redis_port="$(get_config .services.redis.port)"
+    local redis_port="$(get_config ".services.redis.port")"
 
     assert_output "MongoDB is not running
 Redis is running on port $redis_port
-[31m[DockerContainerNotFoundError]
+[31m[DockerContainerNotFoundError] 
 Please use 'db start' to start required services before running 'faas start'.[39m"
 
     run is_service_up openfaas
@@ -130,11 +130,11 @@ Please use 'db start' to start required services before running 'faas start'.[3
 
     run das-cli faas start
 
-    local mongodb_port="$(get_config .services.mongodb.port)"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
 
     assert_output "MongoDB is running on port $mongodb_port
 Redis is not running
-[31m[DockerContainerNotFoundError]
+[31m[DockerContainerNotFoundError] 
 Please use 'db start' to start required services before running 'faas start'.[39m"
 
     run is_service_up openfaas

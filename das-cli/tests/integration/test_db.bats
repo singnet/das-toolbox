@@ -70,14 +70,14 @@ MongoDB is already running. It is currently listening on port ${mongodb_port} at
 }
 
 @test "It should restart even though services are stopped" {
-    local mongodb_port="$(get_config .services.mongodb.port)"
-    local mongodb_node1_username="$(get_config .services.mogodb.nodes[0].username)"
-    local mongodb_node1_ip="$(get_config .services.mongodb.nodes[0].ip)"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
+    local mongodb_node1_ip="$(get_config ".services.mongodb.nodes[0].ip")"
     local mongodb_container_name="$(get_config .services.mongodb.container_name)"
 
     local redis_port="$(get_config .services.redis.port)"
-    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
-    local redis_node1_ip="$(get_config .services.redis.nodes[0].ip)"
+    local redis_node1_username="$(get_config ".services.redis.nodes[0].username")"
+    local redis_node1_ip="$(get_config ".services.redis.nodes[0].ip")"
     local redis_container_name="$(get_config .services.redis.container_name)"
 
     run das-cli db restart
@@ -125,8 +125,8 @@ MongoDB has started successfully on port ${mongodb_port} at localhost, operating
 }
 
 @test "It should stop db successfully" {
-    local mongodb_node1_username="$(get_config .services.mongodb.nodes[0].userame)"
-    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
+    local redis_node1_username="$(get_config ".services.redis.nodes[0].username")"
 
     das-cli db start &>/dev/null
 

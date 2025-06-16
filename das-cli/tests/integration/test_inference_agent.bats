@@ -39,7 +39,7 @@ teardown() {
     das-cli link-creation-agent stop
 
     run das-cli inference-agent start
-    assert_output "[31m[DockerContainerNotFoundError]
+    assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'inference-agent start'.
 Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
 
