@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["schema_hash", "services"],
+  "properties": {
+    "schema_hash": {
+      "type": "string",
+      "description": "SHA256 hash of the schema file"
+    },
+    "services": {
+      "type": "object",
+      "properties": {
+        "redis": {
+          "type": "object",
+          "properties": {
+            "port": { "type": "integer" },
+            "container_name": { "type": "string" },
+            "cluster": { "type": "boolean" },
+            "nodes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["context", "ip", "username"],
+                "properties": {
+                  "context": { "type": "string" },
+                  "ip": { "type": "string" },
+                  "username": { "type": "string" }
+                }
+              }
+            }
+          },
+          "required": ["port", "container_name", "nodes"]
+        },
+        "mongodb": {
+          "type": "object",
+          "properties": {
+            "port": { "type": "integer" },
+            "container_name": { "type": "string" },
+            "username": { "type": "string" },
+            "password": { "type": "string" },
+            "cluster": { "type": "boolean" },
+            "cluster_secret_key": { "type": "string" },
+            "nodes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["context", "ip", "username"],
+                "properties": {
+                  "context": { "type": "string" },
+                  "ip": { "type": "string" },
+                  "username": { "type": "string" }
+                }
+              }
+            }
+          },
+          "required": ["port", "container_name", "username", "password", "nodes"]
+        },
+        "loader": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" }
+          }
+        },
+        "das_peer": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        },
+        "dbms_peer": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" }
+          }
+        },
+        "openfaas": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "version": { "type": "string" },
+            "function": { "type": "string" }
+          }
+        },
+        "jupyter_notebook": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        },
+        "attention_broker": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        },
+        "query_agent": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        },
+        "link_creation_agent": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        },
+        "inference_agent": {
+          "type": "object",
+          "properties": {
+            "container_name": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        }
+      }
+    }
+  }
+}

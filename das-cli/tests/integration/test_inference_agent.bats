@@ -1,4 +1,3 @@
-
 #!/usr/local/bin/bats
 
 load 'libs/bats-support/load'
@@ -52,7 +51,7 @@ Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
 }
 
 @test "Start Inference Agent when port is already in use" {
-    local inference_agent_port="$(get_config .inference_agent.port)"
+    local inference_agent_port="$(get_config .services.inference_agent.port)"
 
     run listen_port "${inference_agent_port}"
     assert_success
@@ -69,7 +68,7 @@ Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
 }
 
 @test "Starting the Inference Agent when it's already up" {
-    local inference_agent_port="$(get_config .inference_agent.port)"
+    local inference_agent_port="$(get_config .services.inference_agent.port)"
 
     das-cli inference-agent start
 
@@ -84,7 +83,7 @@ Inference Agent is already running. It's listening on the ports ${inference_agen
 }
 
 @test "Starting the Inference Agent" {
-    local inference_agent_port="$(get_config .inference_agent.port)"
+    local inference_agent_port="$(get_config .services.inference_agent.port)"
 
     run das-cli inference-agent start
 
@@ -96,7 +95,7 @@ Inference Agent started listening on the ports ${inference_agent_port}, 8081, 80
 }
 
 @test "Stopping the Inference Agent when it's up-and-running" {
-    local inference_agent_port="$(get_config .inference_agent.port)"
+    local inference_agent_port="$(get_config .services.inference_agent.port)"
 
     das-cli inference-agent start
 
@@ -110,7 +109,7 @@ Inference Agent service stopped"
 }
 
 @test "Stopping the Inference Agent when it's already stopped" {
-    local inference_agent_container_name="$(get_config .inference_agent.container_name)"
+    local inference_agent_container_name="$(get_config .services.inference_agent.container_name)"
 
     run das-cli inference-agent stop
 
@@ -122,7 +121,7 @@ The Inference Agent service named ${inference_agent_container_name} is already s
 }
 
 @test "Restarting the Inference Agent when it's up-and-running" {
-    local inference_agent_port="$(get_config .inference_agent.port)"
+    local inference_agent_port="$(get_config .services.inference_agent.port)"
 
     das-cli inference-agent start
 
@@ -138,8 +137,8 @@ Inference Agent started listening on the ports ${inference_agent_port}, 8081, 80
 }
 
 @test "Restarting the Inference Agent when it's not up" {
-    local inference_agent_container_name="$(get_config .inference_agent.container_name)"
-    local inference_agent_port="$(get_config .inference_agent.port)"
+    local inference_agent_container_name="$(get_config .services.inference_agent.container_name)"
+    local inference_agent_port="$(get_config .services.inference_agent.port)"
 
     run das-cli inference-agent restart
 

@@ -1,11 +1,15 @@
 import base64
 import getpass
+import hashlib
 import os
 import secrets
 import string
 import sys
 import time
-from typing import Callable
+from pathlib import Path
+from typing import Callable, Optional
+
+from common.logger import logger
 
 
 def is_executable_bin():
@@ -64,3 +68,59 @@ def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
         else:
             result[key] = value
     return result
+
+
+def resolve_file_path(
+    relative_path: str,
+    fallback_paths: list[str] = [],
+) -> Optional[Path]:
+    candidates: list[Path] = []
+
+    candidates.extend(Path(p) for p in fallback_paths)
+
+    if hasattr(sys, "_MEIPASS"):
+        candidates.extend(Path(sys._MEIPASS) / p for p in fallback_paths)
+
+    base_dir = Path(__file__).parent.resolve()
+    candidates.extend(base_dir / p for p in fallback_paths)
+
+    if hasattr(sys, "_MEIPASS"):
+        candidates.append(Path(sys._MEIPASS) / relative_path)
+    candidates.append(base_dir / relative_path)
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return None
+
+
+def calculate_file_hash(file_path: Path) -> str:
+    with open(file_path, "rb") as f:
+        content = f.read()
+    return hashlib.sha256(content).hexdigest()
+
+
+def get_schema_hash() -> str:
+    schema_path = resolve_file_path(
+        "/etc/das-cli/schema.json",
+        fallback_paths=[
+            "settings/schema.json",
+            "../settings/schema.json",
+        ],
+    )
+
+    if schema_path is None:
+        raise FileNotFoundError("Schema file not found.")
+
+    return calculate_file_hash(schema_path)
+
+
+def log_exception(e: Exception) -> None:
+    error_type = e.__class__.__name__
+    error_message = str(e)
+    pretty_message = f"\033[31m[{error_type}] {error_message}\033[39m"
+
+    logger().exception(error_message)
+
+    print(pretty_message)

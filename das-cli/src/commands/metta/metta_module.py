@@ -29,8 +29,8 @@ class MettaModule(Module):
         ]
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
-        container_name = self._settings.get("redis.container_name")
-        redis_port = self._settings.get("redis.port")
+        container_name = self._settings.get("services.redis.container_name")
+        redis_port = self._settings.get("services.redis.port")
 
         return RedisContainerManager(
             container_name,
@@ -40,10 +40,10 @@ class MettaModule(Module):
         )
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
-        container_name = self._settings.get("mongodb.container_name")
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
+        container_name = self._settings.get("services.mongodb.container_name")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
 
         return MongodbContainerManager(
             container_name,
@@ -55,11 +55,11 @@ class MettaModule(Module):
         )
 
     def _metta_loader_container_manager_factory(self) -> MettaLoaderContainerManager:
-        container_name = self._settings.get("loader.container_name")
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
-        redis_port = self._settings.get("redis.port")
+        container_name = self._settings.get("services.loader.container_name")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+        redis_port = self._settings.get("services.redis.port")
 
         return MettaLoaderContainerManager(
             container_name,

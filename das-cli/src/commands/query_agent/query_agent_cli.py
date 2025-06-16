@@ -55,6 +55,7 @@ $ das-cli query-agent stop
 
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._query_agent()
 
@@ -93,7 +94,7 @@ $ das-cli query-agent start
     def _query_agent(self) -> None:
         self.stdout("Starting Query Agent service...")
 
-        query_agent_port = self._settings.get("query_agent.port")
+        query_agent_port = self._settings.get("services.query_agent.port")
 
         try:
             self._query_agent_container_manager.start_container()
@@ -124,6 +125,7 @@ $ das-cli query-agent start
     )
     def run(self):
         self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
 
         self._query_agent()
 

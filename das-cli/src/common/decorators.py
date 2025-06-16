@@ -17,6 +17,7 @@ def ensure_container_running(
             settings = Settings()
 
             settings.raise_on_missing_file()
+            settings.raise_on_schema_mismatch()
 
             container_not_running = False
 

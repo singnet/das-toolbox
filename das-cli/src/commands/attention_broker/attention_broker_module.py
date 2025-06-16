@@ -19,9 +19,9 @@ class AttentionBrokerModule(Module):
         ]
 
     def _attention_broker_container_manager_factory(self) -> AttentionBrokerManager:
-        attention_broker_port = str(self._settings.get("attention_broker.port"))
+        attention_broker_port = str(self._settings.get("services.attention_broker.port"))
 
-        container_name = self._settings.get("attention_broker.container_name")
+        container_name = self._settings.get("services.attention_broker.container_name")
 
         return AttentionBrokerManager(
             container_name,

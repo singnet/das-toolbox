@@ -28,13 +28,13 @@ class LinkCreationAgentModule(Module):
         ]
 
     def _link_creation_agent_container_manager_factory(self) -> LinkCreationAgentContainerManager:
-        container_name = self._settings.get("link_creation_agent.container_name")
+        container_name = self._settings.get("services.link_creation_agent.container_name")
 
         query_agent_server_hostname = "localhost"
-        query_agent_server_port = self._settings.get("query_agent.port")
+        query_agent_server_port = self._settings.get("services.query_agent.port")
 
         link_creation_agent_server_hostname = "localhost"
-        link_creation_agent_server_port = self._settings.get("link_creation_agent.port")
+        link_creation_agent_server_port = self._settings.get("services.link_creation_agent.port")
 
         return LinkCreationAgentContainerManager(
             container_name,
@@ -53,19 +53,19 @@ class LinkCreationAgentModule(Module):
         )
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
-        query_agent_port = str(self._settings.get("query_agent.port"))
+        query_agent_port = str(self._settings.get("services.query_agent.port"))
         mongodb_hostname = "localhost"
-        mongodb_port = self._settings.get("mongodb.port")
-        mongodb_username = self._settings.get("mongodb.username")
-        mongodb_password = self._settings.get("mongodb.password")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
 
-        redis_port = self._settings.get("redis.port")
+        redis_port = self._settings.get("services.redis.port")
         redis_hostname = "localhost"
 
         attention_broker_hostname = "localhost"
-        attention_broker_port = self._settings.get("attention_broker.port")
+        attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        container_name = self._settings.get("query_agent.container_name")
+        container_name = self._settings.get("services.query_agent.container_name")
 
         return QueryAgentContainerManager(
             container_name,
