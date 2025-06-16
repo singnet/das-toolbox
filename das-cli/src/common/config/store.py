@@ -1,9 +1,52 @@
 import json
 import os
+from abc import ABC, abstractmethod
 from typing import Any
 
 
-class JsonHandler:
+class ConfigStore(ABC):
+    @abstractmethod
+    def get(self, key: str, default: Any = None) -> Any:
+        """Retrieve a value from the configuration by dotted key path."""
+        pass
+
+    @abstractmethod
+    def set(self, key: str, value: Any):
+        """Set a value in the configuration by dotted key path."""
+        pass
+
+    @abstractmethod
+    def save(self):
+        """Persist the current configuration to disk (or storage)."""
+        pass
+
+    @abstractmethod
+    def rewind(self):
+        """Reload configuration content from the source (e.g., file)."""
+        pass
+
+    @abstractmethod
+    def exists(self) -> bool:
+        """Check if configuration exists (has content)."""
+        pass
+
+    @abstractmethod
+    def get_content(self) -> dict:
+        """Get the entire configuration content as a dict."""
+        pass
+
+    @abstractmethod
+    def get_path(self) -> str:
+        """Get the configuration file path or storage identifier."""
+        pass
+
+    @abstractmethod
+    def get_dir_path(self) -> str:
+        """Get the directory path where the configuration is stored."""
+        pass
+
+
+class JsonConfigStore(ConfigStore):
     def __init__(self, file_path):
         self._content = {}
         self._file_path = file_path
@@ -54,29 +97,5 @@ class JsonHandler:
             current_dict = current_dict.setdefault(k, {})
 
         current_dict[keys[-1]] = value
-
-        return self
-
-    def append_to_array(self, key: str, value: Any):
-        array = self.get(key, [])
-        if not isinstance(array, list):
-            raise ValueError(f"The key '{key}' does not correspond to an array.")
-
-        array.append(value)
-
-        self.set(key, array)
-
-        return self
-
-    def remove_from_array(self, key: str, value: Any):
-        array = self.get(key, [])
-        if not isinstance(array, list):
-            raise ValueError(f"The key '{key}' does not correspond to an array.")
-
-        try:
-            array.remove(value)
-            self.set(key, array)
-        except ValueError:
-            pass
 
         return self

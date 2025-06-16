@@ -1,6 +1,9 @@
-from common import Module
+import os
 
+from common import Module
 from .db_cli import DbCli, MongodbContainerManager, RedisContainerManager, Settings
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 
 class DbModule(Module):
@@ -9,7 +12,7 @@ class DbModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings()
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (
@@ -20,6 +23,10 @@ class DbModule(Module):
                 MongodbContainerManager,
                 self._mongodb_container_manager_factory,
             ),
+            (
+                Settings,
+                self._settings,
+            )
         ]
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:

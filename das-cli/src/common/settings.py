@@ -1,15 +1,19 @@
-import os
-
-from common.json_handler import JsonHandler
 from common.utils import get_schema_hash
-from settings.config import SECRETS_PATH
+from typing import Any, Optional
+from .config.store import ConfigStore
+from .config.loader import ConfigLoader
 
 
-class Settings(JsonHandler):
-    _default_config_path = os.path.expanduser(SECRETS_PATH)
-
-    def __init__(self, raise_on_missing_file=False, raise_on_schema_mismatch=False):
-        super().__init__(self._default_config_path)
+class Settings:
+    def __init__(
+        self,
+        store: ConfigStore,
+        default_loader: Optional[ConfigLoader] = None,
+        raise_on_missing_file=False,
+        raise_on_schema_mismatch=False,
+    ):
+        self._store = store
+        self._default_loader = default_loader
 
         if raise_on_missing_file:
             self.raise_on_missing_file()
@@ -17,13 +21,57 @@ class Settings(JsonHandler):
         if raise_on_schema_mismatch:
             self.raise_on_schema_mismatch()
 
-    def raise_on_schema_mismatch(self):
-        settings = self.get_content()
-        schema_hash = get_schema_hash()
+    def replace_loader(self, loader: ConfigLoader) -> None:
+        self._default_loader = loader
 
-        if settings.get("schema_hash") != schema_hash:
+    def exists(self) -> bool:
+        return self._store.exists()
+
+    def rewind(self):
+        return self._store.rewind()
+
+    def get_content(self):
+        return self._store.get_content()
+
+    def get_path(self):
+        return self._store.get_path()
+
+    def get_dir_path(self):
+        return self._store.get_dir_path()
+
+    def get(self, key: str, fallback: Any = None) -> Any:
+        value = self._store.get(key, None)
+        if value is not None:
+            return value
+
+        if self._default_loader:
+            default = self._default_loader.load().get(
+                key.upper().replace(".", "_").replace("SERVICES", "DAS"),
+                fallback,
+            )
+            return self._cast_type(default, type(fallback))
+
+        return fallback
+
+    def set(self, key: str, value: Any):
+        self._store.set(key, value)
+
+    def save(self):
+        self._store.save()
+
+    def _cast_type(self, value, to_type):
+        try:
+            if to_type is bool:
+                return str(value).lower() in ("true", "1", "yes")
+            return to_type(value)
+        except Exception:
+            return value
+
+    def raise_on_schema_mismatch(self):
+        expected_hash = get_schema_hash()
+        if self._store.get("schema_hash") != expected_hash:
             raise ValueError(
-                f"Schema mismatch detected. Expected schema hash: {schema_hash}, but found: {settings.get('schema_hash')}. Please update your configuration."
+                f"Schema mismatch. Expected {expected_hash}, got {self._store.get('schema_hash')}"
             )
 
     def raise_on_missing_file(self):
@@ -47,9 +95,13 @@ class Settings(JsonHandler):
                 else:
                     name = key if service else key
                     service = service.strip(".")
-                    column_widths["Service"] = max(column_widths["Service"], len(service))
+                    column_widths["Service"] = max(
+                        column_widths["Service"], len(service)
+                    )
                     column_widths["Name"] = max(column_widths["Name"], len(name))
-                    column_widths["Value"] = max(column_widths["Value"], len(str(value)))
+                    column_widths["Value"] = max(
+                        column_widths["Value"], len(str(value))
+                    )
 
         calculate_column_widths(obj)
 
