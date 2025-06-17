@@ -3,6 +3,7 @@ import os
 from common import Module, Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+
 from .config_cli import ConfigCli
 
 

@@ -1,9 +1,10 @@
 import os
 
 from common import Module
-from .db_cli import DbCli, MongodbContainerManager, RedisContainerManager, Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+
+from .db_cli import DbCli, MongodbContainerManager, RedisContainerManager, Settings
 
 
 class DbModule(Module):
@@ -26,7 +27,7 @@ class DbModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:

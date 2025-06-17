@@ -2,15 +2,14 @@ import os
 
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .link_creation_agent_cli import (
     LinkCreationAgentCli,
     LinkCreationAgentContainerManager,
     Settings,
 )
-
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
 
 
 class LinkCreationAgentModule(Module):
@@ -33,7 +32,7 @@ class LinkCreationAgentModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _link_creation_agent_container_manager_factory(self) -> LinkCreationAgentContainerManager:

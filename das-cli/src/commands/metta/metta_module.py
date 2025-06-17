@@ -1,11 +1,13 @@
 import os
+
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
-
-from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+
+from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
+
 
 class MettaModule(Module):
     _instance = MettaCli
@@ -31,7 +33,7 @@ class MettaModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:

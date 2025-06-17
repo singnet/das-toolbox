@@ -1,9 +1,11 @@
 import os
-from common import Module
 
-from .attention_broker_cli import AttentionBrokerCli, AttentionBrokerManager, Settings
+from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+
+from .attention_broker_cli import AttentionBrokerCli, AttentionBrokerManager, Settings
+
 
 class AttentionBrokerModule(Module):
     _instance = AttentionBrokerCli
@@ -21,7 +23,7 @@ class AttentionBrokerModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _attention_broker_container_manager_factory(self) -> AttentionBrokerManager:

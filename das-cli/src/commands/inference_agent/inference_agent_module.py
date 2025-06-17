@@ -1,5 +1,8 @@
 import os
+
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .inference_agent_cli import (
     InferenceAgentCli,
@@ -7,9 +10,6 @@ from .inference_agent_cli import (
     LinkCreationAgentContainerManager,
     Settings,
 )
-
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
 
 
 class InferenceAgentModule(Module):
@@ -32,7 +32,7 @@ class InferenceAgentModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _inference_agent_container_manager_factory(self) -> InferenceAgentContainerManager:

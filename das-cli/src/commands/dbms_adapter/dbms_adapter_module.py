@@ -1,13 +1,14 @@
 import os
+
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module, Settings
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .das_peer.das_peer_cli import DasPeerContainerManager
 from .dbms_adapter_cli import DbmsAdapterCli
 from .dbms_peer.dbms_peer_cli import DbmsPeerContainerManager
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
 
 
 class DbmsAdapterModule(Module):
@@ -38,7 +39,7 @@ class DbmsAdapterModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:

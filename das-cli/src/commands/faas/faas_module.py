@@ -1,10 +1,10 @@
 import os
+
 from common import Module
-
-from .faas_cli import FaaSCli, Settings
-
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+
+from .faas_cli import FaaSCli, Settings
 
 
 class FaaSModule(Module):

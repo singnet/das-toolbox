@@ -1,5 +1,9 @@
+import os
 from functools import wraps
 from typing import Callable, List
+
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .command import Command, StdoutSeverity
 from .docker.exceptions import DockerContainerNotFoundError
@@ -14,7 +18,7 @@ def ensure_container_running(
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            settings = Settings()
+            settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
             settings.raise_on_missing_file()
             settings.raise_on_schema_mismatch()

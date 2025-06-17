@@ -1,11 +1,13 @@
 import os
+
 from commands.config.config_cli import Settings
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .jupyter_notebook_cli import JupyterNotebookCli
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
+
 
 class JupyterNotebookModule(Module):
     _instance = JupyterNotebookCli
@@ -23,7 +25,7 @@ class JupyterNotebookModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _jupyter_notebook_container_manager_factory(

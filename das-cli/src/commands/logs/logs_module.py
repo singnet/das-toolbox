@@ -1,14 +1,14 @@
 import os
-from common import Module
 
-from .logs_cli import LogsCli, Settings
+from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+
+from .logs_cli import LogsCli, Settings
 
 
 class LogsModule(Module):
     _instance = LogsCli
-
 
     def __init__(self):
         super().__init__()

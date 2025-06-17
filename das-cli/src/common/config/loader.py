@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
 import os
+from abc import ABC, abstractmethod
+from typing import Dict
 
 
 class ConfigLoader(ABC):
@@ -31,7 +32,7 @@ class EnvFileLoader(ConfigLoader):
         return value.strip().strip('"').strip("'")
 
     def load(self):
-        data = {}
+        data: Dict[str, str] = {}
         if not self._path or not os.path.exists(self._path):
             return data
         with open(self._path) as f:

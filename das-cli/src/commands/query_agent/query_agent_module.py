@@ -1,13 +1,14 @@
 import os
+
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
 
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
 
 class QueryAgentModule(Module):
     _instance = QueryAgentCli
@@ -37,7 +38,7 @@ class QueryAgentModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
