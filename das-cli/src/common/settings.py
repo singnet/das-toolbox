@@ -40,18 +40,13 @@ class Settings:
         return self._store.get_dir_path()
 
     def get(self, key: str, fallback: Any = None) -> Any:
-        value = self._store.get(key, None)
-        if value is not None:
-            return value
-
         if self._default_loader:
-            default = self._default_loader.load().get(
-                key.upper().replace(".", "_").replace("SERVICES", "DAS"),
-                fallback,
-            )
-            return self._cast_type(default, type(fallback))
+            default = self._default_loader.load().get(key, None)
 
-        return fallback
+            if default:
+                return self._cast_type(default, type(fallback))
+
+        return self._store.get(key, fallback)
 
     def set(self, key: str, value: Any):
         self._store.set(key, value)

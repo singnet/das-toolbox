@@ -24,9 +24,15 @@ class EnvFileLoader(ConfigLoader):
     def __init__(self, path: str):
         self._path = path
 
+    def _format_key(self, key: str) -> str:
+        return key.strip().lower().replace("_", ".").replace("das", "services")
+
+    def _format_value(self, value: str) -> str:
+        return value.strip().strip('"').strip("'")
+
     def load(self):
         data = {}
-        if not os.path.exists(self._path):
+        if not self._path or not os.path.exists(self._path):
             return data
         with open(self._path) as f:
             for line in f:
@@ -35,10 +41,26 @@ class EnvFileLoader(ConfigLoader):
                     continue
                 if "=" in line:
                     key, value = line.split("=", 1)
-                    data[key.strip()] = value.strip().strip('"').strip("'")
+                    f_key = self._format_key(key)
+                    f_value = self._format_value(value)
+
+                    data[f_key] = f_value
         return data
 
 
 class EnvVarLoader(ConfigLoader):
+    def _format_key(self, key: str) -> str:
+        return key.strip().lower().replace("_", ".").replace("das", "services")
+
+    def _format_value(self, value: str) -> str:
+        return value.strip().strip('"').strip("'")
+
     def load(self):
-        return dict(os.environ)
+        data = {}
+        for key, value in dict(os.environ).items():
+            if key.startswith("DAS"):
+                f_key = self._format_key(key)
+                f_value = self._format_value(value)
+                data[f_key] = f_value
+
+        return data
