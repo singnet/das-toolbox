@@ -11,6 +11,9 @@ from commands.attention_broker.attention_broker_container_manager import (
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
+from commands.inference_agent.inference_agent_container_manager import (
+    InferenceAgentContainerManager,
+)
 from settings.config import SECRETS_PATH
 
 from .logs_cli import LogsCli, Settings
@@ -45,7 +48,26 @@ class LogsModule(Module):
                 LinkCreationAgentContainerManager,
                 self._link_creation_agent_container_manager_factory,
             ),
+            (
+                InferenceAgentContainerManager,
+                self._inference_agent_container_manager_factory,
+            ),
         ]
+
+    def _inference_agent_container_manager_factory(self) -> InferenceAgentContainerManager:
+        inference_agent_container_name = self._settings.get(
+            "services.inference_agent.container_name"
+        )
+        inference_agent_port = self._settings.get(
+            "services.inference_agent.port"
+        )
+
+        return InferenceAgentContainerManager(
+            inference_agent_container_name,
+            options={
+                "inference_agent_port": inference_agent_port,
+            },
+        )
 
     def _link_creation_agent_container_manager_factory(
         self,
