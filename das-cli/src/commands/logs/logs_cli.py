@@ -75,25 +75,21 @@ $ das-cli logs faas
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        openfaas_container_manager: OpenFaaSContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
+        self._openfaas_container_manager = openfaas_container_manager
 
+    @ensure_container_running(["_openfaas_container_manager"])
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        openfaas_container_name = self._settings.get("services.openfaas.container_name")
-
-        try:
-            openfaas_service = OpenFaaSContainerManager(openfaas_container_name)
-            openfaas_service.logs()
-        except DockerError as e:
-            self.stdout(
-                "You need to run the server with command 'faas start'",
-                severity=StdoutSeverity.ERROR,
-            )
-            raise e
+        self._openfaas_container_manager.logs()
 
 
 class LogsMongoDb(Command):
@@ -113,22 +109,20 @@ $ das-cli logs mongodb
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        mongodb_container_manager: MongodbContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
+        self._mongodb_container_manager = mongodb_container_manager
 
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        mongodb_container_name = self._settings.get("services.mongodb.container_name")
-
-        try:
-            mongodb_service = MongodbContainerManager(mongodb_container_name)
-
-            mongodb_service.logs()
-        except DockerError:
-            raise DockerError("You need to run the server with command 'db start'")
+        self._mongodb_container_manager.logs()
 
 
 class LogsRedis(Command):
@@ -148,22 +142,21 @@ $ das-cli logs redis
 """
 
     @inject
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        redis_container_manager: RedisContainerManager,
+    ) -> None:
         super().__init__()
         self._settings = settings
+        self._redis_container_manager = redis_container_manager
 
+    @ensure_container_running(["_redis_container_manager"])
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        redis_container_name = self._settings.get("services.redis.container_name")
-
-        try:
-            redis_service = RedisContainerManager(redis_container_name)
-
-            redis_service.logs()
-        except DockerError:
-            raise DockerError("You need to run the server with command 'db start'")
+        self._redis_container_manager.logs()
 
 
 class LogsAttentionBroker(Command):
@@ -283,7 +276,6 @@ Display logs of the Inference Agent service.
 
 $ das-cli logs inference-agent
 """
-
 
     @inject
     def __init__(

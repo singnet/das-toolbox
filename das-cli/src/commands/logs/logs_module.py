@@ -2,6 +2,15 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
+from commands.db.redis_container_manager import (
+    RedisContainerManager,
+)
+from commands.faas.openfaas_container_manager import (
+    OpenFaaSContainerManager,
+)
+from commands.db.mongodb_container_manager import (
+    MongodbContainerManager,
+)
 from commands.query_agent.query_agent_container_manager import (
     QueryAgentContainerManager,
 )
@@ -37,6 +46,18 @@ class LogsModule(Module):
                 self._settings,
             ),
             (
+                OpenFaaSContainerManager,
+                self._openfaas_container_manager_factory,
+            ),
+            (
+                RedisContainerManager,
+                self._redis_container_manager_factory,
+            ),
+            (
+                MongodbContainerManager,
+                self._mongodb_container_manager_factory,
+            ),
+            (
                 AttentionBrokerManager,
                 self._attention_broker_manager_factory,
             ),
@@ -54,13 +75,39 @@ class LogsModule(Module):
             ),
         ]
 
-    def _inference_agent_container_manager_factory(self) -> InferenceAgentContainerManager:
+    def _openfaas_container_manager_factory(self) -> OpenFaaSContainerManager:
+        openfaas_container_name = self._settings.get("services.openfaas.container_name")
+        return OpenFaaSContainerManager(openfaas_container_name)
+
+    def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
+        mongodb_container_name = self._settings.get("services.mongodb.container_name")
+        mongodb_port = self._settings.get("services.mongodb.port")
+
+        return MongodbContainerManager(
+            mongodb_container_name,
+            options={
+                "mongodb_port": mongodb_port,
+            },
+        )
+
+    def _redis_container_manager_factory(self) -> RedisContainerManager:
+        redis_container_name = self._settings.get("services.redis.container_name")
+        redis_port = self._settings.get("services.redis.port")
+
+        return RedisContainerManager(
+            redis_container_name,
+            options={
+                "redis_port": redis_port,
+            },
+        )
+
+    def _inference_agent_container_manager_factory(
+        self,
+    ) -> InferenceAgentContainerManager:
         inference_agent_container_name = self._settings.get(
             "services.inference_agent.container_name"
         )
-        inference_agent_port = self._settings.get(
-            "services.inference_agent.port"
-        )
+        inference_agent_port = self._settings.get("services.inference_agent.port")
 
         return InferenceAgentContainerManager(
             inference_agent_container_name,
