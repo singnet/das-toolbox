@@ -1,28 +1,18 @@
 import os
 
-from common import Module
-from common.config.store import JsonConfigStore
-from commands.db.redis_container_manager import (
-    RedisContainerManager,
-)
-from commands.faas.openfaas_container_manager import (
-    OpenFaaSContainerManager,
-)
-from commands.db.mongodb_container_manager import (
-    MongodbContainerManager,
-)
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
-from commands.attention_broker.attention_broker_container_manager import (
-    AttentionBrokerManager,
+from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
+from commands.inference_agent.inference_agent_container_manager import (
+    InferenceAgentContainerManager,
 )
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.inference_agent.inference_agent_container_manager import (
-    InferenceAgentContainerManager,
-)
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from common import Module
+from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .logs_cli import LogsCli, Settings
@@ -122,9 +112,7 @@ class LogsModule(Module):
         link_creation_agent_container_name = self._settings.get(
             "services.link_creation_agent.container_name"
         )
-        link_creation_agent_port = self._settings.get(
-            "services.link_creation_agent.port"
-        )
+        link_creation_agent_port = self._settings.get("services.link_creation_agent.port")
 
         return LinkCreationAgentContainerManager(
             link_creation_agent_container_name,
@@ -134,9 +122,7 @@ class LogsModule(Module):
         )
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
-        query_agent_container_name = self._settings.get(
-            "services.query_agent.container_name"
-        )
+        query_agent_container_name = self._settings.get("services.query_agent.container_name")
         query_agent_port = self._settings.get("services.query_agent.port")
 
         return QueryAgentContainerManager(
@@ -147,9 +133,7 @@ class LogsModule(Module):
         )
 
     def _attention_broker_manager_factory(self) -> AttentionBrokerManager:
-        attention_broker_container = self._settings.get(
-            "services.attention_broker.container_name"
-        )
+        attention_broker_container = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         return AttentionBrokerManager(
