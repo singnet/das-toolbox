@@ -1,0 +1,27 @@
+Source: das-toolbox
+Section: utils
+Priority: standard
+Maintainer: rafael.levi@singularitynet.io
+Build-Depends: build-essential, zlib1g-dev, python3-pip, python3 (>=3.8.0), debhelper (>=12.10ubuntu1), gzip
+Standards-Version: 4.5.0
+
+Package: das-toolbox
+Architecture: any
+Depends: docker.io | docker-ce, ${misc:Depends}, ${shlibs:Depends}
+Description: |
+ This CLI provides a unified set of tools to manage the DAS ecosystem.
+ This package bundles the das-cli, das-runner-manager, and gatekeeper tools.
+
+ das-cli:
+  Manage containerized services.
+  Control OpenFaaS functions.
+  Perform Metta operations (load and validate Metta files).
+
+ das-runner-manager:
+  Manage GitHub Actions self-hosted runners using Docker.
+  Start, list, and stop runners for specific repositories.
+  Includes tools to build runner manager binaries using Docker.
+
+ gatekeeper:
+  A lightweight and extensible system for managing reserved ports
+  and registered instances across distributed infrastructure.

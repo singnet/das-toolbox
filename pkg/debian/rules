@@ -1,0 +1,47 @@
+#!/usr/bin/make -f
+
+ARTIFACTS_DIR := $(CURDIR)/dist
+DEB_SOURCE := das-toolbox
+USR_BIN_DIR := $(CURDIR)/debian/$(DEB_SOURCE)/usr/bin
+TEMP_DIR := $(shell mktemp -d)
+
+ifeq ($(DAS_CLI_VERSION),)
+$(error The DAS_CLI_VERSION environment variable is not defined. Please define it before continuing.)
+endif
+
+%:
+	dh $@
+
+override_dh_builddeb: build_man_pages
+	dh_builddeb
+	cp ../*.deb $(ARTIFACTS_DIR)
+
+override_dh_auto_install:
+	pip3 install pyinstaller==6.3.0
+	pip3 install -r $(CURDIR)/das-cli/src/requirements.txt
+	pip3 install -r $(CURDIR)/das-runner-manager/src/requirements.txt
+	pip3 install -r $(CURDIR)/gatekeeper/src/requirements.txt
+
+	# Build das-cli
+	pyinstaller $(CURDIR)/das-cli/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR) \
+		--add-data "$(CURDIR)/das-cli/src/settings/schema.json:settings"
+
+	# Build das-runner-manager
+	pyinstaller $(CURDIR)/das-runner-manager/src/main.py -y -F -n das-runner-manager --distpath $(ARTIFACTS_DIR)
+
+	# Build gatekeeper
+	pyinstaller $(CURDIR)/gatekeeper/src/gatekeeper.py -y -F -n gatekeeper --distpath $(ARTIFACTS_DIR)
+
+	# Copy all binaries
+	mkdir -p $(USR_BIN_DIR)
+	cp -r $(ARTIFACTS_DIR)/das-cli $(USR_BIN_DIR)
+	cp -r $(ARTIFACTS_DIR)/das-runner-manager $(USR_BIN_DIR)
+	cp -r $(ARTIFACTS_DIR)/gatekeeper $(USR_BIN_DIR)
+
+build_man_pages:
+	# Only das-cli for now, add others if needed
+	python3 $(CURDIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/
+	@for file in $(CURDIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
+		gzip -c $$file > $$file.gz; \
+		rm $$file; \
+	done
