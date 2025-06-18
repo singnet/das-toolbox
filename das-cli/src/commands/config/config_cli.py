@@ -5,6 +5,7 @@ from injector import inject
 from common import (
     Command,
     CommandGroup,
+    CommandOption,
     IntRange,
     ReachableIpAddress,
     RemoteContextManager,
@@ -14,7 +15,9 @@ from common import (
     get_rand_token,
     get_server_username,
 )
+from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
 from common.docker.remote_context_manager import Server
+from common.prompt_types import AbsolutePath
 from common.utils import get_schema_hash
 
 
@@ -208,6 +211,21 @@ services.*
     link_creation_agent.container_name
         Specifies the name of the Docker container running the Link Creation Agent.
 """
+
+    params = [
+        CommandOption(
+            ["--from-env"],
+            help="",
+            required=False,
+            type=AbsolutePath(
+                file_okay=True,
+                dir_okay=False,
+                exists=True,
+                writable=True,
+                readable=True,
+            ),
+        ),
+    ]
 
     @inject
     def __init__(
@@ -489,7 +507,16 @@ services.*
             severity=StdoutSeverity.SUCCESS,
         )
 
-    def run(self):
+    def run(self, from_env: str):
+        self._settings.replace_loader(
+            loader=CompositeLoader(
+                [
+                    EnvFileLoader(from_env),
+                    EnvVarLoader(),
+                ]
+            )
+        )
+
         config_steps = [
             self._schema_hash,
             self._redis,

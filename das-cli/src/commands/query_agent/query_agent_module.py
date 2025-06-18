@@ -1,7 +1,11 @@
+import os
+
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
 
@@ -12,7 +16,7 @@ class QueryAgentModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings()
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (
@@ -30,6 +34,10 @@ class QueryAgentModule(Module):
             (
                 AttentionBrokerManager,
                 self._attention_broker_container_manager_factory,
+            ),
+            (
+                Settings,
+                self._settings,
             ),
         ]
 

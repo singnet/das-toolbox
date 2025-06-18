@@ -15,7 +15,7 @@ from .logger import logger
 from .module import Module
 from .network import get_public_ip
 from .prompt_types import FunctionVersion, ReachableIpAddress, RegexType
-from .settings import JsonHandler, Settings
+from .settings import Settings
 from .utils import (
     deep_merge_dicts,
     get_rand_token,
@@ -47,7 +47,6 @@ __all__ = [
     "Path",
     "ReachableIpAddress",
     "RegexType",
-    "JsonHandler",
     "Settings",
     "get_rand_token",
     "get_script_name",

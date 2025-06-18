@@ -1,5 +1,9 @@
+import os
+
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .link_creation_agent_cli import (
     LinkCreationAgentCli,
@@ -14,7 +18,7 @@ class LinkCreationAgentModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings()
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (
@@ -24,6 +28,10 @@ class LinkCreationAgentModule(Module):
             (
                 QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
+            ),
+            (
+                Settings,
+                self._settings,
             ),
         ]
 

@@ -1,5 +1,9 @@
+import os
+
 from commands.config.config_cli import Settings
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .jupyter_notebook_cli import JupyterNotebookCli
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
@@ -11,13 +15,17 @@ class JupyterNotebookModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings()
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (
                 JupyterNotebookContainerManager,
                 self._jupyter_notebook_container_manager_factory,
-            )
+            ),
+            (
+                Settings,
+                self._settings,
+            ),
         ]
 
     def _jupyter_notebook_container_manager_factory(

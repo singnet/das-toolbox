@@ -1,4 +1,8 @@
+import os
+
 from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .inference_agent_cli import (
     InferenceAgentCli,
@@ -14,7 +18,7 @@ class InferenceAgentModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings()
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (
@@ -24,6 +28,10 @@ class InferenceAgentModule(Module):
             (
                 LinkCreationAgentContainerManager,
                 self._link_creation_agent_container_manager_factory,
+            ),
+            (
+                Settings,
+                self._settings,
             ),
         ]
 
