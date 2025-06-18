@@ -2,9 +2,14 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
 from commands.attention_broker.attention_broker_container_manager import (
     AttentionBrokerManager,
+)
+from commands.link_creation_agent.link_creation_agent_container_manager import (
+    LinkCreationAgentContainerManager,
 )
 from settings.config import SECRETS_PATH
 
@@ -36,7 +41,28 @@ class LogsModule(Module):
                 QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
             ),
+            (
+                LinkCreationAgentContainerManager,
+                self._link_creation_agent_container_manager_factory,
+            ),
         ]
+
+    def _link_creation_agent_container_manager_factory(
+        self,
+    ) -> LinkCreationAgentContainerManager:
+        link_creation_agent_container_name = self._settings.get(
+            "services.link_creation_agent.container_name"
+        )
+        link_creation_agent_port = self._settings.get(
+            "services.link_creation_agent.port"
+        )
+
+        return LinkCreationAgentContainerManager(
+            link_creation_agent_container_name,
+            options={
+                "link_creation_agent_server_port": link_creation_agent_port,
+            },
+        )
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
         query_agent_container_name = self._settings.get(
@@ -47,7 +73,7 @@ class LogsModule(Module):
         return QueryAgentContainerManager(
             query_agent_container_name,
             options={
-                'query_agent_port': query_agent_port,
+                "query_agent_port": query_agent_port,
             },
         )
 
