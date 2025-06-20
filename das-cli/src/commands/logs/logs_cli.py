@@ -2,7 +2,9 @@ from time import sleep
 
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.attention_broker.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
@@ -12,7 +14,9 @@ from commands.inference_agent.inference_agent_container_manager import (
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from settings.config import LOG_FILE_NAME
@@ -79,7 +83,11 @@ $ das-cli logs faas
         self._settings = settings
         self._openfaas_container_manager = openfaas_container_manager
 
-    @ensure_container_running(["_openfaas_container_manager"])
+    @ensure_container_running(
+        ["_openfaas_container_manager"],
+        exception_text="OpenFaaS is not running. Please start it with 'das-cli faas start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -113,6 +121,11 @@ $ das-cli logs mongodb
         self._settings = settings
         self._mongodb_container_manager = mongodb_container_manager
 
+    @ensure_container_running(
+        ["_mongodb_container_manager"],
+        exception_text="MongoDB is not running. Please start it with 'das-cli db start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -146,7 +159,11 @@ $ das-cli logs redis
         self._settings = settings
         self._redis_container_manager = redis_container_manager
 
-    @ensure_container_running(["_redis_container_manager"])
+    @ensure_container_running(
+        ["_redis_container_manager"],
+        exception_text="Redis is not running. Please start it with 'das-cli db start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -180,7 +197,11 @@ $ das-cli logs attention-broker
         self._settings = settings
         self._attention_broker_manager = attention_broker_manager
 
-    @ensure_container_running(["_attention_broker_manager"])
+    @ensure_container_running(
+        ["_attention_broker_manager"],
+        exception_text="Attention broker is not running. Please start it with 'das-cli attention-broker start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -214,7 +235,11 @@ $ das-cli logs query-agent
         self._settings = settings
         self._query_agent_container_manager = query_agent_container_manager
 
-    @ensure_container_running(["_query_agent_container_manager"])
+    @ensure_container_running(
+        ["_query_agent_container_manager"],
+        exception_text="Query agent is not running. Please start it with 'das-cli query-agent start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -248,7 +273,11 @@ $ das-cli logs link-creation-agent
         self._settings = settings
         self._link_creation_container_manager = link_creation_container_manager
 
-    @ensure_container_running(["_link_creation_container_manager"])
+    @ensure_container_running(
+        ["_link_creation_container_manager"],
+        exception_text="Link creation agent is not running. Please start it with 'das-cli link-creation-agent start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -282,7 +311,10 @@ $ das-cli logs inference-agent
         self._settings = settings
         self._inference_agent_container_manager = inference_agent_container_manager
 
-    @ensure_container_running(["_inference_agent_container_manager"])
+    @ensure_container_running(["_inference_agent_container_manager"],
+        exception_text="Inference agent is not running. Please start it with 'das-cli inference-agent start' before viewing logs.",
+        verbose=False,
+    )
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
