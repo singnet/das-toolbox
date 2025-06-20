@@ -10,11 +10,19 @@ setup() {
 
     das-cli db stop
     das-cli faas stop
+    das-cli attention-broker stop
+    das-cli query-agent stop
+    das-cli link-creation-agent stop
+    das-cli inference-agent stop
 }
 
 teardown() {
     das-cli db stop
     das-cli faas stop
+    das-cli attention-broker stop
+    das-cli query-agent stop
+    das-cli link-creation-agent stop
+    das-cli inference-agent stop
 }
 
 @test "Show logs for MongoDB, Redis and FaaS with unset configuration file" {
@@ -33,7 +41,7 @@ teardown() {
 
     run das-cli logs mongodb
 
-    assert_output "[31m[DockerError] You need to run the server with command 'db start'[39m"
+    assert_output "[31m[DockerContainerNotFoundError] MongoDB is not running. Please start it with 'das-cli db start' before viewing logs.[39m"
 
     run is_service_up mongodb
 
@@ -44,7 +52,7 @@ teardown() {
 
     run das-cli logs redis
 
-    assert_output "[31m[DockerError] You need to run the server with command 'db start'[39m"
+    assert_output "[31m[DockerContainerNotFoundError] Redis is not running. Please start it with 'das-cli db start' before viewing logs.[39m"
 
     run is_service_up redis
 
@@ -56,8 +64,7 @@ teardown() {
 
     run das-cli logs faas
 
-    assert_output "You need to run the server with command 'faas start'
-[31m[DockerError] Service $openfaas_container_name is not running[39m"
+    assert_output "[31m[DockerContainerNotFoundError] OpenFaaS is not running. Please start it with 'das-cli faas start' before viewing logs.[39m"
 
     run is_service_up faas
 
@@ -75,6 +82,95 @@ teardown() {
 
         assert_failure 124
     done
+}
+
+@test "Trying to show logs for attention broker before it is running" {
+    local attention_broker_container_name="$(get_config .services.attention_broker.container_name)"
+
+    run das-cli logs attention-broker
+
+    assert_output "[31m[DockerContainerNotFoundError] Attention broker is not running. Please start it with 'das-cli attention-broker start' before viewing logs.[39m"
+
+    run is_service_up attention-broker
+
+    assert_failure
+}
+
+@test "Show logs for attention broker" {
+    das-cli attention-broker start
+    run timeout 5s das-cli logs attention-broker
+
+    assert_failure 124
+}
+
+
+@test "Trying to show logs for query agent before it is running" {
+    local query_agent_container_name="$(get_config .services.query_agent.container_name)"
+
+    run das-cli logs query-agent
+
+    assert_output "[31m[DockerContainerNotFoundError] Query agent is not running. Please start it with 'das-cli query-agent start' before viewing logs.[39m"
+
+    run is_service_up query-agent
+
+    assert_failure
+}
+
+@test "Show logs for query agent" {
+    das-cli attention-broker start
+    das-cli db start
+    das-cli query-agent start
+
+    run timeout 5s das-cli logs query-agent
+
+    assert_failure 124
+}
+
+@test "Trying to show logs for link creation agent before it is running" {
+    local link_creation_agent_container_name="$(get_config .services.link_creation_agent.container_name)"
+
+    run das-cli logs link-creation-agent
+
+    assert_output "[31m[DockerContainerNotFoundError] Link creation agent is not running. Please start it with 'das-cli link-creation-agent start' before viewing logs.[39m"
+
+    run is_service_up link-creation-agent
+
+    assert_failure
+}
+
+@test "Show logs for link creation agent" {
+    das-cli attention-broker start
+    das-cli db start
+    das-cli query-agent start
+    das-cli link-creation-agent start
+
+    run timeout 5s das-cli logs link-creation-agent
+
+    assert_failure 124
+}
+
+@test "Trying to show logs for inference agent before it is running" {
+    local inference_agent_container_name="$(get_config .services.inference_agent.container_name)"
+
+    run das-cli logs inference-agent
+
+    assert_output "[31m[DockerContainerNotFoundError] Inference agent is not running. Please start it with 'das-cli inference-agent start' before viewing logs.[39m"
+
+    run is_service_up inference-agent
+
+    assert_failure
+}
+
+@test "Show logs for inference agent" {
+    das-cli attention-broker start
+    das-cli db start
+    das-cli query-agent start
+    das-cli link-creation-agent start
+    das-cli inference-agent start
+
+    run timeout 5s das-cli logs inference-agent
+
+    assert_failure 124
 }
 
 @test "Show DAS logs when the log file does not exist" {
