@@ -10,18 +10,4 @@ Architecture: any
 Depends: docker.io | docker-ce, ${misc:Depends}, ${shlibs:Depends}
 Description: |
  This CLI provides a unified set of tools to manage the DAS ecosystem.
- This package bundles the das-cli, das-runner-manager, and gatekeeper tools.
-
- das-cli:
-  Manage containerized services.
-  Control OpenFaaS functions.
-  Perform Metta operations (load and validate Metta files).
-
- das-runner-manager:
-  Manage GitHub Actions self-hosted runners using Docker.
-  Start, list, and stop runners for specific repositories.
-  Includes tools to build runner manager binaries using Docker.
-
- gatekeeper:
-  A lightweight and extensible system for managing reserved ports
-  and registered instances across distributed infrastructure.
+ This package bundles the das-cli, gatekeeper tools and the dynamic library das.os.

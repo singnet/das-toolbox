@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build DAS-CLI
-        run: DAS_CLI_VERSION=${{github.event.inputs.version || '0.1.0'}} make build
+        run: PACKAGE_VERSION=${{github.event.inputs.version || '0.1.0'}} make build
         working-directory: das-cli
 
       - id: upload-artifact
