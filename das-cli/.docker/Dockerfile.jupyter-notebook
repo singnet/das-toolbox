@@ -1,7 +1,0 @@
-FROM jupyter/base-notebook:python-3.10.11
-
-RUN pip install hyperon-das
-
-WORKDIR /home/jovyan
-
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--allow-root", "--NotebookApp.token=''"]
