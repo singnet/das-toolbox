@@ -42,7 +42,7 @@ override_dh_auto_install:
 	cp -r $(ARTIFACTS_DIR)/ $(USR_BIN_DIR)
 
 build_man_pages:
-	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/debian/$(DEB_SOURCE)/usr/share/man/man1/
+	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
 	@for file in $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
 		gzip -c $$file > $$file.gz; \
 		rm $$file; \
