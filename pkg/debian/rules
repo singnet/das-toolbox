@@ -2,8 +2,10 @@
 
 ROOT_DIR := $(patsubst %/,%,$(dir $(CURDIR)))
 ARTIFACTS_DIR := $(ROOT_DIR)/dist
+LIBS_DIR := $(ROOT_DIR)/libs
 DEB_SOURCE := das-toolbox
 USR_BIN_DIR := $(ROOT_DIR)/debian/$(DEB_SOURCE)/usr/bin
+USER_LIBS_DIR := $(ROOT_DIR)/debian/$(DEB_SOURCE)/usr/lib
 TEMP_DIR := $(shell mktemp -d)
 
 ifeq ($(PACKAGE_VERSION),)
@@ -37,9 +39,17 @@ override_dh_auto_install:
 	pyinstaller $(ROOT_DIR)/gatekeeper/api/src/main.py -y -F -n api --distpath $(ARTIFACTS_DIR)
 	pyinstaller $(ROOT_DIR)/gatekeeper/cli/src/main.py -y -F -n cli --distpath $(ARTIFACTS_DIR)
 
-	# Copy all binaries
-	mkdir -p $(USR_BIN_DIR)
+	# Build hyperon_das.so
+	git config --global http.version HTTP/1.1
+	git config --global http.postBuffer 157286400
+	git clone --depth 1 --branch master https://github.com/singnet/das.git
+	cd das && make build-all
+	cp libs/*.so $(LIBS_DIR)
+
+	# Copy all binaries and libs
+	mkdir -p $(USR_BIN_DIR) $(USER_LIBS_DIR)
 	cp -r $(ARTIFACTS_DIR)/ $(USR_BIN_DIR)
+	cp -r $(LIBS_DIR)/ $(USER_LIBS_DIR)
 
 build_man_pages:
 	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
