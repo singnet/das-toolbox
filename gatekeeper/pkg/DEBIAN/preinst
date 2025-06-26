@@ -1,5 +1,0 @@
-#!/bin/bash
-set -e
-
-systemctl stop gk-port-watcher || true
-systemctl stop gk-server || true
