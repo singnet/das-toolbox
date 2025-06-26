@@ -2,9 +2,8 @@
 
 ROOT_DIR := $(patsubst %/,%,$(dir $(CURDIR)))
 ARTIFACTS_DIR := $(ROOT_DIR)/dist
-LIBS_DIR := $(ROOT_DIR)/libs
-USR_BIN_DIR := $(ROOT_DIR)/debian/usr/bin
-USR_LIBS_DIR := $(ROOT_DIR)/debian/usr/lib
+USR_BIN_DIR := $(ROOT_DIR)/pkg/usr/bin
+USR_LIBS_DIR := $(ROOT_DIR)/pkg/usr/lib
 TEMP_DIR := $(shell mktemp -d)
 
 ifeq ($(PACKAGE_VERSION),)
