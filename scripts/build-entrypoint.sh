@@ -13,7 +13,5 @@ chown -R "$USER_ID:$GROUP_ID" /app
 
 git config --global http.version HTTP/1.1
 git config --global http.postBuffer 157286400
-git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das || true
-cd /tmp/das && tree && make build-all
 
 exec gosu ${USER} make build-local
