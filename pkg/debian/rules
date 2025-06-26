@@ -3,9 +3,8 @@
 ROOT_DIR := $(patsubst %/,%,$(dir $(CURDIR)))
 ARTIFACTS_DIR := $(ROOT_DIR)/dist
 LIBS_DIR := $(ROOT_DIR)/libs
-DEB_SOURCE := das-toolbox
-USR_BIN_DIR := $(ROOT_DIR)/debian/$(DEB_SOURCE)/usr/bin
-USER_LIBS_DIR := $(ROOT_DIR)/debian/$(DEB_SOURCE)/usr/lib
+USR_BIN_DIR := $(ROOT_DIR)/debian/usr/bin
+USR_LIBS_DIR := $(ROOT_DIR)/debian/usr/lib
 TEMP_DIR := $(shell mktemp -d)
 
 ifeq ($(PACKAGE_VERSION),)
@@ -41,18 +40,17 @@ override_dh_auto_install:
 
 	# Build das
 	git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das
-	cd /tmp/das && make build-all
+	cd /tmp/das && make build-all && cd $(ROOT_DIR)
 
 	# Copy all binaries and libs
-	mkdir -p $(USR_BIN_DIR) $(USER_LIBS_DIR)
+	mkdir -p $(USR_BIN_DIR) $(USR_LIBS_DIR)
 	cp -r $(ARTIFACTS_DIR)/ $(USR_BIN_DIR)
-	cp -r /tmp/das/lib/*.so $(USER_LIBS_DIR)
-
+	cp -r /tmp/das/lib/*.so $(USR_LIBS_DIR)
 	rm -rf /tmp/das	
 
 build_man_pages:
-	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
-	@for file in $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
+	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/usr/share/man/man1/
+	@for file in $(ROOT_DIR)/pkg/debian/usr/share/man/man1/*; do \
 		gzip -c $$file > $$file.gz; \
 		rm $$file; \
 	done
