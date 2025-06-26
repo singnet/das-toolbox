@@ -40,13 +40,13 @@ override_dh_auto_install:
 	pyinstaller $(ROOT_DIR)/gatekeeper/cli/src/main.py -y -F -n cli --distpath $(ARTIFACTS_DIR)
 
 	# Build das
-	git clone --depth 1 --branch master https://github.com/singnet/das.git
-	cd ./das && make build-all && cd -
+	git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das
+	cd /tmp/das && make build-all
 
 	# Copy all binaries and libs
 	mkdir -p $(USR_BIN_DIR) $(USER_LIBS_DIR)
 	cp -r $(ARTIFACTS_DIR)/ $(USR_BIN_DIR)
-	cp -r ./das/lib/*.so $(USER_LIBS_DIR)
+	cp -r /tmp/das/lib/*.so $(USER_LIBS_DIR)
 
 build_man_pages:
 	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
