@@ -4,3 +4,5 @@ env
 dist/
 build/
 .venv
+.github
+

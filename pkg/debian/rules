@@ -1,0 +1,50 @@
+#!/usr/bin/make -f
+
+ROOT_DIR := $(patsubst %/,%,$(dir $(CURDIR)))
+DEB_SOURCE := das-toolbox
+ARTIFACTS_DIR := $(ROOT_DIR)/dist
+USR_BIN_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/bin
+USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib
+TEMP_DIR := $(shell mktemp -d)
+
+ifeq ($(PACKAGE_VERSION),)
+$(error The PACKAGE_VERSION environment variable is not defined. Please define it before continuing.)
+endif
+
+%:
+	dh $@
+
+override_dh_builddeb: build_man_pages
+	dh_builddeb
+	cp ../*.deb $(ARTIFACTS_DIR)
+
+override_dh_auto_install:
+	pip3 install pyinstaller==6.3.0
+
+	# Install dependencies for das-cli
+	pip3 install -r $(ROOT_DIR)/das-cli/src/requirements.txt
+
+	# Install gatekeeper dependencies
+	pip3 install -r $(ROOT_DIR)/gatekeeper/agent/requirements.txt
+	pip3 install -r $(ROOT_DIR)/gatekeeper/api/requirements.txt
+	pip3 install -r $(ROOT_DIR)/gatekeeper/cli/requirements.txt
+
+	# Build das-cli
+	pyinstaller $(ROOT_DIR)/das-cli/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR) \
+		--add-data "$(ROOT_DIR)/das-cli/src/settings/schema.json:settings"
+
+	# Build gatekeeper
+	pyinstaller $(ROOT_DIR)/gatekeeper/agent/src/main.py -y -F -n gk-port-watcher --distpath $(ARTIFACTS_DIR)
+	pyinstaller $(ROOT_DIR)/gatekeeper/api/src/main.py -y -F -n gk-server --distpath $(ARTIFACTS_DIR)
+	pyinstaller $(ROOT_DIR)/gatekeeper/cli/src/main.py -y -F -n gkctl --distpath $(ARTIFACTS_DIR)
+
+	# Copy all binaries and libs
+	mkdir -p $(USR_BIN_DIR) $(USR_LIBS_DIR)
+	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
+
+build_man_pages:
+	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
+	@for file in $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
+		gzip -c $$file > $$file.gz; \
+		rm $$file; \
+	done

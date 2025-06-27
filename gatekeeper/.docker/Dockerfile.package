@@ -1,7 +1,0 @@
-FROM ubuntu:22.04
-
-WORKDIR /workspace
-
-COPY ./pkg ./
-
-ENTRYPOINT ["dpkg-deb", "--build", ".", "build/gatekeeper.deb"]

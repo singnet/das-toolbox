@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <version>"
+    echo "Usage: $0 <version> [context]"
     exit 1
 fi
 
@@ -13,7 +13,11 @@ if [ ! -f "$changelog_file" ]; then
 fi
 
 version=$1
-package="das-cli"
+context=${2:-.}
+
+echo "Generating Debian changelog for version: $version in context: $context"
+
+package="das-toolbox"
 date=$(date -R)
 maintainer_name="Rafael Levi"
 maintainer_email="rafael.levi@singularitynet.io"
@@ -24,4 +28,4 @@ changelog+=$(sed -n '1,$p' $changelog_file | sed 's/^\[#.*\] //')
 
 changelog="${changelog}\n\n -- ${maintainer_name} <${maintainer_email}>  ${date}\n"
 
-echo -e "$changelog" >debian/changelog
+echo -e "$changelog" >$context/debian/changelog
