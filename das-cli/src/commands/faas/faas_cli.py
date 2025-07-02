@@ -35,19 +35,27 @@ def pull_function_version(
 class FaaSStop(Command):
     name = "stop"
 
-    short_help = "Stop the running OpenFaaS service.."
+    short_help = "Stop the running OpenFaaS service."
 
     help = """
-'das-cli faas stop' allows you to stop the execution of the DAS function in
-OpenFaaS. This is useful for terminating the function's operation when it's no
-longer needed. After stopping the faas, the function will no longer be
-available and cannot be used with the DAS.
+NAME
 
-.SH EXAMPLES
+    faas stop - Stop the running OpenFaaS service
 
-This is an example of how to stop the function
+SYNOPSIS
 
-$ das-cli faas stop
+    das-cli faas stop
+
+DESCRIPTION
+
+    Stops the execution of the DAS function running on OpenFaaS.
+    After stopping, the function will no longer be available or usable until restarted.
+
+EXAMPLES
+
+    Stop the running OpenFaaS function:
+
+        das-cli faas stop
 """
 
     @inject
@@ -78,6 +86,16 @@ class FaaSStart(Command):
     short_help = "Start OpenFaaS service."
 
     help = r"""
+NAME
+
+    faas start - Start the DAS function in OpenFaaS
+
+SYNOPSIS
+
+    das-cli faas start
+
+DESCRIPTION
+
 OpenFaaS, an open-source serverless computing platform, makes running functions
 in containers fast and simple. With this command, you can initialize the DAS
 remotely through a function in OpenFaaS, which can be run on your server or
@@ -96,26 +114,17 @@ version and set everything up for you. Subsequent initializations will be
 faster unless you change the version, which will require the same process again
 to set everything up.
 
-.B
-Ensure that the following ports are open:
-
-.IP \[bu] 2
-Port 8080: For the function
-
-.IP \[bu] 2
-Port 8081: For metrics
-
-.IP \[bu] 2
-Port 5000: For the watchdog
+Ensure ports 8080 (function), 8081 (metrics), and 5000 (watchdog) are open before running.
 
 After starting the function, you will receive a message on the screen with the
 function version and the port on which the function is being executed.
 
-.SH EXAMPLES
+EXAMPLES
 
 This is an example of how to start the function.
 
-$ das-cli faas start
+    $ das-cli faas start
+
 """
 
     @inject
@@ -221,18 +230,25 @@ class FaaSRestart(Command):
     short_help = "Restart OpenFaaS service."
 
     help = """
-'das-cli faas restart' restarts OpenFaaS server container. This is useful when
-you want to restart the function to apply configuration changes. During this
-process, there is typically a downtime until the function is running again and
-deemed healthy. This downtime occurs because the existing instance of the
-function needs to be stopped, and then a new instance needs to be started with
-the updated configuration or changes.
+NAME
 
-.SH EXAMPLES
+    faas restart - Restart the running OpenFaaS service
 
-This is an example of how to restart the execution of the faas function.
+SYNOPSIS
 
-$ das-cli faas restart
+    das-cli faas restart
+
+DESCRIPTION
+
+    Stops and then starts the DAS function container in OpenFaaS.
+    Useful to apply configuration changes or updates.
+    The service will be temporarily unavailable during the restart.
+
+EXAMPLES
+
+    Restart the OpenFaaS DAS function:
+
+        das-cli faas restart
 """
 
     @inject
@@ -252,16 +268,24 @@ class FaaSVersion(Command):
     short_help = "Get OpenFaaS function version."
 
     help = """
-'das-cli faas version' is used to display the current version of the DAS
-function in OpenFaaS. This command is particularly useful for checking the
-version of the deployed function, which can be helpful troubleshooting issues,
-or ensuring compatibility.
+NAME
 
-.SH EXAMPLES
+    faas version - Show the current DAS function version running on OpenFaaS
 
-This is an example illustrating how to retrieve the version of the function.
+SYNOPSIS
 
-$ das-cli faas version
+    das-cli faas version
+
+DESCRIPTION
+
+    Displays the version of the currently deployed DAS function container
+    running in the OpenFaaS environment.
+
+EXAMPLES
+
+    Show the current function version:
+
+        das-cli faas version
 """
 
     @inject
@@ -308,6 +332,16 @@ class FaaSUpdateVersion(Command):
     short_help = "Update an OpenFaaS service to a newer version."
 
     help = """
+NAME
+
+    faas update-version - Update the DAS function version in OpenFaaS
+
+SYNOPSIS
+
+    das-cli faas update-version [--version <version>] [--function <function>]
+
+DESCRIPTION
+
 'das-cli update-version' allows you to update the version of your function in
 OpenFaaS. All available versions can be found at
 https://github.com/singnet/das-serverless-functions/releases. This command has
@@ -317,19 +351,28 @@ server if a newer version is found. You can also specify the function you want
 to update in OpenFaaS (currently only 'query-engine' is available), and define
 the version of the function you want to use, as mentioned earlier.
 
-.SH EXAMPLES
 
-This is an example of how to update to the latest available function version.
+OPTIONS
 
-$ das-cli update-version
+    --version, -v
+        Specify the version to update to (format: x.x.x). Default is 'latest'.
 
-This is an example of how to update the function you want to use (currently only `query-engine` is available).
+    --function, -fn
+        Specify the OpenFaaS function to update (default: 'query-engine').
 
-$ das-cli update-version --function query-engine
+EXAMPLES
 
-This demonstrates updating the function version to a specific release. You need to specify the version in the semver format
+    Update to the latest version:
 
-$ das-cli update-version --version 1.0.0
+        das-cli faas update-version
+
+    Update to a specific version:
+
+        das-cli faas update-version --version 1.0.0
+
+    Update a specific function:
+
+        das-cli faas update-version --function query-engine
 """
 
     params = [
@@ -416,7 +459,80 @@ class FaaSCli(CommandGroup):
 
     short_help = "Manage OpenFaaS services."
 
-    help = "'das-cli faas' provides management commands for OpenFaaS using the DAS CLI including deployment of latest or specific versions, service start/stop/restart, among others."
+    help = """
+NAME
+
+    faas - Manage OpenFaaS serverless functions for the Distributed Atomspace (DAS) platform
+
+SYNOPSIS
+
+    das-cli faas <command> [options]
+
+DESCRIPTION
+
+    The 'faas' command group provides comprehensive management of OpenFaaS functions used within the
+    Distributed Atomspace (DAS) infrastructure. OpenFaaS is a serverless framework that allows
+    functions to run as lightweight containers, facilitating scalable and event-driven computing.
+
+    This tool enables users to start, stop, restart, inspect versions, and update DAS functions
+    running on an OpenFaaS instance, ensuring streamlined deployment and operational efficiency.
+
+COMMANDS
+
+    start
+
+        Initialize and start the DAS function container on OpenFaaS. This command checks if
+        all required backend services, such as MongoDB and Redis, are running before launching
+        the function. It pulls the configured image version and exposes necessary ports for
+        operation and metrics.
+
+    stop
+
+        Gracefully stop the DAS function container, releasing resources and making the
+        function unavailable until restarted.
+
+    restart
+
+        Restart the DAS function container to apply updates or configuration changes.
+        This operation temporarily interrupts service availability.
+
+    version
+
+        Display the currently deployed DAS function image version running in OpenFaaS.
+        Useful for auditing and troubleshooting purposes.
+
+    update-version
+
+        Update the DAS function container image to a specified newer version or the latest
+        available release. Note that a restart is required after updating to apply changes.
+
+OPTIONS
+
+    --version <version>
+        Specify the target version when using the 'update-version' command.
+
+EXAMPLES
+
+    Start the DAS function:
+
+        das-cli faas start
+
+    Stop the DAS function:
+
+        das-cli faas stop
+
+    Restart the DAS function:
+
+        das-cli faas restart
+
+    Check the current function version:
+
+        das-cli faas version
+
+    Update the function to version 1.2.0:
+
+        das-cli faas update-version --version 1.2.0
+"""
 
     @inject
     def __init__(

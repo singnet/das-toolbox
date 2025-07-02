@@ -15,43 +15,50 @@ class DbmsPeerRun(Command):
     short_help = "Runs the DBMS peer client to connect with DAS peer server."
 
     help = """
-'das-cli dbms-adapter dbms-peer run' starts the DBMS peer client, enabling it to connect
-to the DAS peer server and facilitate data synchronization. This command
-establishes a link to the DAS peer using the provided client database credentials
-and settings.
+NAME
 
-To run the command, specify the database connection details including hostname,
-port, username, password, and optionally, the database name (defaults to 'postgres').
-A context file with necessary configurations is also required.
+    das-cli dbms-adapter dbms-peer run - Run the DBMS peer client to connect with DAS peer server.
 
-.SH PARAMETERS
+SYNOPSIS
 
---client-hostname
-    Required. Specifies the hostname of the client database to connect to.
+    das-cli dbms-adapter dbms-peer run [OPTIONS]
 
---client-port
-    Required. Defines the port number on which the client database is running.
+DESCRIPTION
 
---client-username
-    Required. The username for authenticating to the client database.
+    Start the DBMS peer client, which connects to the DAS peer server to facilitate
+    data synchronization between a client-side PostgreSQL database and the DAS Atomspace.
 
---client-password
-    Required. The password for authenticating to the client database.
+    This command initializes a containerized DBMS peer using the given database
+    credentials and a context configuration file. The context file must be an existing,
+    readable file that contains all necessary runtime parameters.
 
---client-database
-    Optional. Specifies the database name to connect to; defaults to 'postgres' if not provided.
+OPTIONS
 
---context
-    Required. Path to the context configuration file, which provides additional settings
-    necessary for running the DBMS peer client. Must be an absolute path to an existing,
-    readable file.
+    --client-hostname TEXT     Required. Hostname of the client PostgreSQL database.
+    --client-port INTEGER      Required. Port of the client PostgreSQL database.
+    --client-username TEXT     Required. Username to authenticate with the database.
+    --client-password TEXT     Required. Password to authenticate with the database (prompted securely).
+    --client-database TEXT     Optional. Defaults to 'postgres' if not specified.
+    --context PATH             Required. Absolute path to the context configuration file.
 
-.SH EXAMPLES
+NOTES
 
-To run the DBMS peer client with specified database and context:
+    - The DAS peer server must be running before this command can be executed.
+      If it is not running, an error will be raised.
 
-$ das-cli dbms-adapter dbms-peer run --client-hostname example.com --client-port 5432 \\
-    --client-username user --client-password pass --context /path/to/context.txt
+    - The Docker image for the DBMS peer will be pulled if not already available.
+
+EXAMPLES
+
+    Run the DBMS peer to sync data from a PostgreSQL database:
+
+        das-cli dbms-adapter dbms-peer run \\
+            --client-hostname db.internal \\
+            --client-port 5432 \\
+            --client-username admin \\
+            --client-password secret \\
+            --client-database das_data \\
+            --context /etc/das/context.txt
 """
 
     params = [
@@ -178,13 +185,41 @@ class DbmsPeerCli(CommandGroup):
     short_help = "Manage DBMS peer client operations."
 
     help = """
-        'das-cli dbms-peer' commands allow management of DBMS peer client operations.
-        The DBMS peer acts as a client that connects to the DAS peer server, enabling
-        data synchronization and transfer between the DAS peer and the database.
+NAME
 
-        Using 'das-cli dbms-peer', you can initiate commands to run and configure
-        the DBMS peer client with specified connection details.
-    """
+    das-cli dbms-adapter dbms-peer - Manage DBMS peer client operations.
+
+SYNOPSIS
+
+    das-cli dbms-adapter dbms-peer <command> [OPTIONS]
+
+DESCRIPTION
+
+    Commands under 'das-cli dbms-adapter dbms-peer' allow you to manage and
+    execute DBMS peer client operations.
+
+    The DBMS peer acts as a client component that connects to the DAS peer server,
+    enabling data synchronization and communication between an external PostgreSQL
+    database and the Distributed Atomspace (DAS).
+
+    Use this command group to run and configure the DBMS peer client with the
+    appropriate connection parameters and context file.
+
+SUBCOMMANDS
+
+    run     Start the DBMS peer client using specified database and context options.
+
+EXAMPLES
+
+    Run the DBMS peer client:
+
+        das-cli dbms-adapter dbms-peer run \\
+            --client-hostname localhost \\
+            --client-port 5432 \\
+            --client-username das \\
+            --client-password secret \\
+            --context /etc/das/context.txt
+"""
 
     @inject
     def __init__(

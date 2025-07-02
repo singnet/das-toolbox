@@ -24,32 +24,51 @@ from common.utils import get_schema_hash
 class ConfigSet(Command):
     name = "set"
 
-    short_help = "'das-cli config set' Sets configuration parameters for DAS CLI."
+    short_help = "Interactively set DAS CLI configuration parameters."
 
     help = """
-'das-cli config set' prompts the user for configuration settings for the DAS CLI.
-These settings include parameters such as port numbers, usernames, and other relevant information required by various DAS components.
-The command displays prompts for each configuration option, suggesting default values when available.
-If the user has already configured a setting, the default value will be the previously set value, allowing for quick modifications.
-Once all configurations are provided, the command will also inform the user about the location where the configuration file was created.
-This file contains several variables that influence the behavior of DAS commands based on the user's provided parameters.
+NAME
+    das-cli config set - Interactively set configuration parameters for the DAS CLI.
 
-.SH EXAMPLES
+SYNOPSIS
+    das-cli config set
 
-Set configuration settings for the DAS CLI.
 
-$ das-cli config set
+DESCRIPTION
+    The 'config set' command prompts the user to configure various DAS CLI components,
+    such as ports, container names, and cluster settings.
 
-.SH VARIABLES
+    For each configuration option, a prompt is displayed with a suggested default value
+    (if available). If a value has been set previously, it is shown as the default.
 
-schema_hash
+SECTIONS
+
+    ┌────────────────────┐
+    │ 1. schema_hash     │
+    │ 2. Redis           │
+    │ 3. MongoDB         │
+    │ 4. Loader          │
+    │ 5. OpenFaaS        │
+    │ 6. Jupyter         │
+    │ 7. DAS Peer        │
+    │ 8. DBMS Peer       │
+    │ 9. AttentionBroker │
+    │ 10. Query Agent    │
+    │ 11. Link Agent     │
+    └────────────────────┘
+
+OPTIONS AND VARIABLES
+
+SCHEMA HASH CONFIGURATION (schema_hash)
+
     This variable stores the hash of the schema file used by DAS CLI. It is used to verify the integrity of the schema file and ensure that the correct version is being used.
+    After completion, the path to the generated configuration file will be shown. This file
+    governs how DAS commands interact with services such as Redis, MongoDB, OpenFaaS, etc.
 
-services.*
-    These variables control the services used by DAS CLI, such as:
 
-    redis.*
-        These variables control Redis settings, such as:
+SERVICES CONFIGURATION (services.*)
+
+    REDIS CONFIGURATION (redis.*)
 
         redis.port
             Defines the port number on which the Redis server is listening.
@@ -101,22 +120,26 @@ services.*
                 sudo usermod -aG docker $USER
 
         redis.nodes
-            Receives a list of nodes for Redis configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with Redis. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
+            List of Redis nodes. Minimum 1 node (standalone), 3 nodes (cluster).
+            Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them.
+            This is essential because Docker communicates between nodes remotely to deploy images with Redis.
+            To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster.
+            Ensure that port 22 is open on all servers to allow SSH connections.
 
         redis.nodes.[].context
             The name of the Docker context containing connection information for the remote Docker instances of other nodes.
 
         redis.nodes.[].ip
-            The IP address of the node.
+            IP address of the node.
 
         redis.nodes.[].username
-            The username for connecting to the node.
+            SSH username to connect to the node.
 
-    mongodb.*
-        These variables control MongoDB settings, such as:
+    MONGODB CONFIGURATION (mongodb.*)
 
         mongodb.port
-            Defines the port number on which the MongoDB server is listening. The user must ensure this port is available on the server where das-cli is running.
+            Port where the MongoDB server listens.
+            The user must ensure this port is available on the server where das-cli is running.
 
         mongodb.container_name
             Specifies the name of the Docker container running the MongoDB server.
@@ -128,31 +151,32 @@ services.*
             The password for connecting to the MongoDB server.
 
         mongodb.cluster
-            Indicates whether a MongoDB cluster is being used (true/false).
+            Enable MongoDB clustering (true/false).
 
         mongodb.cluster_secret_key
-            This key is uploaded to all nodes within the MongoDB cluster. It is used for mutual authentication between nodes, ensuring that only authorized nodes can communicate with each other.
+            Secret key shared among cluster nodes for authentication.
 
         mongodb.nodes
-            Receives a list of nodes for MongoDB configuration. For a single-node setup, there must be at least one node specified with the default context. For a cluster setup, there must be at least three nodes specified. Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them. This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster. Ensure that port 22 is open on all servers to allow SSH connections.
+            List of MongoDB nodes. Minimum 1 node (standalone), 3 nodes (cluster).
+            Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them.
+            This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster.
+            Ensure that port 22 is open on all servers to allow SSH connections.
 
         mongodb.nodes.[].context
             The name of the Docker context containing connection information for the remote Docker instances of other nodes.
 
         mongodb.nodes.[].ip
-            The IP address of the node.
+            IP address of the node.
 
         mongodb.nodes.[].username
-            The username for connecting to the node.
+            SSH username to connect to the node.
 
-    loader.*
-        These variables control the Loader settings, responsible for validating and loading meta files into the database, such as:
+    LOADER CONFIGURATION (loader.*)
 
         loader.container_name
             Specifies the name of the Docker container running the Loader.
 
-    openfaas.*
-        These variables control OpenFaaS settings, such as:
+    OPENFAAS CONFIGURATION (openfaas.*)
 
         openfaas.container_name
             Specifies the name of the Docker container running OpenFaaS.
@@ -163,53 +187,56 @@ services.*
         openfaas.function
             Specifies the name of the function to be executed within OpenFaaS.
 
-    jupyter_notebook.*
-        These variables control Jupyter Notebook settings, such as:
+    JUPYTER NOTEBOOK CONFIGURATION (jupyter_notebook.*)
 
         jupyter_notebook.port
-            Defines the port number on which the Jupyter Notebook server is listening.
+            Port where the Jupyter Notebook server listens.
 
         jupyter_notebook.container_name
-            Specifies the name of the Docker container running the Jupyter Notebook server.
+            specifies the name of the Docker container running the Jupyter Notebook server.
 
-    das_peer.*
-        These variables configure settings for the DAS Peer, such as:
+    DAS PEER CONFIGURATION (das_peer.*)
 
         das_peer.container_name
             Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
 
-    dbms_peer.*
-        These variables configure settings for the DBMS Peer, such as:
+    DBMS PEER CONFIGURATION (dbms_peer.*)
 
         dbms_peer.container_name
             Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
 
-    attention_broker.*
-        These variables control the Attention Broker settings, such as:
+    ATTENTION BROKER CONFIGURATION (attention_broker.*)
 
         attention_broker.port
-            Defines the port on which the Attention Broker is listening. The user must ensure this port is available on the server where DAS is running.
+            Listening port for the Attention Broker.
+            The user must ensure this port is available on the server where DAS is running.
 
         attention_broker.container_name
             Specifies the name of the Docker container running the Attention Broker.
 
-    query_agent.*
-        These variables control the Query Agent settings, such as:
+    QUERY AGENT CONFIGURATION (query_agent.*)
 
         query_agent.port
-            Defines the port on which the Query Agent is listening. The user must ensure this port is available on the server.
+            Listening port for the Query Agent.
+            The user must ensure this port is available on the server.
 
         query_agent.container_name
             Specifies the name of the Docker container running the Query Agent.
 
-    link_creation_agent.*
-        These variables control the Link Creation settings, such as:
+    LINK CREATION AGENT CONFIGURATION (link_creation_agent.*)
 
-    link_creation_agent.port
-        Defines the port on which the Link Creation Agent is listening.
+        link_creation_agent.port
+            Listening port for the Link Creation Agent.
 
-    link_creation_agent.container_name
-        Specifies the name of the Docker container running the Link Creation Agent.
+        link_creation_agent.container_name
+            Specifies the name of the Docker container running the Link Creation Agent.
+
+EXAMPLES
+
+    Set all configuration options interactively:
+        $ das-cli config set
+
+
 """
 
     params = [
@@ -542,16 +569,30 @@ services.*
 class ConfigList(Command):
     name = "list"
 
-    short_help = "'das-cli config list' displays current configuration settings."
+    short_help = "Display all current configuration values used by the DAS CLI."
 
     help = """
-'das-cli config list' displays current configuration settings.
+NAME
 
-.SH EXAMPLES
+    das-cli config list - Display current configuration settings
 
-Display current configuration settings
+SYNOPSIS
 
-$ das-cli config list
+    das-cli config list
+
+DESCRIPTION
+
+    The 'das-cli config list' command prints all the current configuration settings
+    that have been applied to the DAS CLI. The output is presented in a structured
+    table format, which includes settings for various DAS components such as Redis,
+    MongoDB, OpenFaaS, and others.
+
+EXAMPLES
+
+    To display the current configuration values, run:
+
+        $ das-cli config list
+
 """
 
     @inject
@@ -572,11 +613,43 @@ class ConfigCli(CommandGroup):
     name = "config"
 
     help = """
-'das-cli config' allows you to manage configuration settings for the DAS CLI, with commands to set, list, and modify
-parameters such as port numbers, usernames and other configuration settings required by various DAS components.
+NAME
+
+    das-cli config - Manage configuration settings
+
+SYNOPSIS
+
+    das-cli config [subcommand]
+
+DESCRIPTION
+
+    The 'das-cli config' command group provides a unified interface for managing
+    the configuration settings of the DAS CLI. The configuration parameters include
+    settings such as port numbers, usernames, container names, and clustering options
+    for various services such as Redis, MongoDB, OpenFaaS, Jupyter Notebook, and more.
+
+SUBCOMMANDS
+
+    set
+        Interactively set or update configuration parameters.
+        See "das-cli config set" for more details.
+
+    list
+        Display the current configuration settings.
+        See "das-cli config list" for more details.
+
+USAGE
+
+    To set the configuration values interactively:
+
+        $ das-cli config set
+
+    To list the current configuration settings:
+
+        $ das-cli config list
     """
 
-    short_help = "'das-cli config' allows you to manage configuration settings for the DAS CLI"
+    short_help = "Manage configuration settings for services used by the DAS CLI."
 
     @inject
     def __init__(

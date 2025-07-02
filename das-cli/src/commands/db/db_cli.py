@@ -19,7 +19,14 @@ class DbCountAtoms(Command):
     short_help = "Displays counts of MongoDB atoms and Redis key patterns."
 
     help = """
-'das-cli db count-atoms' is a command that counts the atoms stored in MongoDB and shows counts of specific key patterns stored in Redis. This is useful for monitoring and understanding the distribution and number of records in your databases.
+.SH NAME
+
+count-atoms - Displays counts of MongoDB atoms and Redis key patterns.
+
+.SH DESCRIPTION
+
+'das-cli db count-atoms' counts the atoms stored in MongoDB and shows counts of specific key patterns stored in Redis.
+This is useful for monitoring and understanding the distribution and number of records in your databases.
 
 .SH OPTIONS
 
@@ -98,7 +105,13 @@ class DbStop(Command):
     short_help = "Stops all DBMS containers."
 
     help = """
-'das-cli db stop' stops the DBMS containers that were previously started with the 'das-cli db start'.
+.SH NAME
+
+stop - Stops all DBMS containers.
+
+.SH DESCRIPTION
+
+'das-cli db stop' stops the DBMS containers that were previously started with 'das-cli db start'.
 This command is useful for shutting down the databases when they are no longer needed.
 
 IMPORTANT NOTE: After stopping the databases, all data will be lost.
@@ -108,6 +121,7 @@ IMPORTANT NOTE: After stopping the databases, all data will be lost.
 Stop DBMS containers previously started with 'das-cli db start'.
 
 $ das-cli db stop
+
 """
 
     @inject
@@ -201,6 +215,12 @@ class DbStart(Command):
     short_help = "Starts all DBMS containers."
 
     help = """
+.SH NAME
+
+start - Starts all DBMS containers.
+
+.SH DESCRIPTION
+
 'das-cli db start' initiates all databases.
 These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
 
@@ -379,15 +399,20 @@ class DbRestart(Command):
     short_help = "Restart all DBMS containers."
 
     help = """
-'das-cli db restart' restarts all database containers previously started with
-'das-cli start'. If no database have been started, 'das-cli db restart' just
-start them.
+.SH NAME
 
-IMPORTANTE NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
+restart - Restart all DBMS containers.
+
+.SH DESCRIPTION
+
+'das-cli db restart' restarts all database containers previously started with 'das-cli db start'.
+If no databases have been started, 'das-cli db restart' will simply start them.
+
+IMPORTANT NOTE: Restarting the databases will result in all data being lost. Databases are started empty.
 
 .SH EXAMPLES
 
-Restart DBMS containers previously started with the 'das-cli db start'.
+Restart DBMS containers previously started with 'das-cli db start'.
 
 $ das-cli db restart
 """
@@ -409,10 +434,46 @@ class DbCli(CommandGroup):
     short_help = "Manage db-related operations."
 
     help = """
-        'das-cli db' commands allow you to manage DAS backend DBMSs for use
-        with the DAS CLI. 'das-cli db' provides commands to start, stop, and
-        restart the databases as needed.
-        """
+NAME
+
+    das-cli db - Manage database-related operations for DAS.
+
+SYNOPSIS
+
+    das-cli db <command> [options]
+
+DESCRIPTION
+
+    Manage DAS backend DBMS required for for use with the DAS CLI.
+
+    This command group allows you to control the lifecycle of local databases used by
+    DAS components. It provides utilities to start, stop, and restart supported DBMSs.
+
+COMMANDS
+
+    start               Start the DAS database containers.
+    stop                Stop the DAS database containers.
+    restart             Restart the DAS database containers.
+    count-atoms         Count the number of atoms currently stored in the database
+
+EXAMPLES
+
+    das-cli db start
+
+        Start all DAS-related databases locally.
+
+    das-cli db stop
+
+        Stop all running DAS-related database containers.
+
+    das-cli db restart
+
+        Restart the DAS database services.
+
+    das-cli db count-atoms
+
+        Return the number of atoms currently stored in the database.
+"""
 
     @inject
     def __init__(

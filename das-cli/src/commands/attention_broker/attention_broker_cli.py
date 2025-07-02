@@ -12,18 +12,29 @@ from common.docker.exceptions import (
 class AttentionBrokerStop(Command):
     name = "stop"
 
-    short_help = "Stop the Attention Broker service."
+    short_help = "Stop the running Attention Broker service"
 
     help = """
-'das-cli attention-broker stop' stops the running Attention Broker service.
+NAME
 
-This command ensures that no further messages are processed until the service is started again.
+    das-cli attention-broker stop - Stop the running Attention Broker service
 
-.SH EXAMPLES
+SYNOPSIS
 
-To stop a running Attention Broker service:
+    das-cli attention-broker stop
 
-$ das-cli attention-broker stop
+DESCRIPTION
+
+    Stops the currently running Attention Broker container. This halts the processing of messages
+    and deactivates the broker until it is explicitly started again.
+
+    If the service is already stopped, a warning message is displayed.
+
+EXAMPLES
+
+    Stop the running Attention Broker service:
+
+        $ das-cli attention-broker stop
 """
 
     @inject
@@ -64,15 +75,26 @@ class AttentionBrokerStart(Command):
     short_help = "Start the Attention Broker service."
 
     help = """
-'das-cli attention-broker start' initializes and runs the Attention Broker service.
+NAME
 
-This command starts the Attention Broker container, allowing it to begin processing messages.
+    das-cli attention-broker start - Start the Attention Broker service
 
-.SH EXAMPLES
+SYNOPSIS
 
-To start the Attention Broker service:
+    das-cli attention-broker start
 
-$ das-cli attention-broker start
+DESCRIPTION
+
+    Starts the Attention Broker service in a Docker container. If the service is already running,
+    a warning will be shown.
+
+    The broker begins listening on the configured port and processes messages accordingly.
+
+EXAMPLES
+
+    Start the Attention Broker service:
+
+        $ das-cli attention-broker start
 """
 
     @inject
@@ -120,15 +142,26 @@ class AttentionBrokerRestart(Command):
     short_help = "Restart the Attention Broker service."
 
     help = """
-'das-cli attention-broker restart' stops and then starts the Attention Broker service.
+NAME
 
-This command ensures a fresh instance of the Attention Broker is running.
+    das-cli attention-broker restart - Restart the Attention Broker service
 
-.SH EXAMPLES
+SYNOPSIS
 
-To restart the Attention Broker service:
+    das-cli attention-broker restart
 
-$ das-cli attention-broker restart
+DESCRIPTION
+
+    This command combines a stop and a start operation to ensure that the
+    Attention Broker is restarted cleanly.
+
+    Useful for refreshing configurations or recovering from faults.
+
+EXAMPLES
+
+    Restart the Attention Broker service:
+
+        $ das-cli attention-broker restart
 """
 
     @inject
@@ -149,18 +182,44 @@ $ das-cli attention-broker restart
 class AttentionBrokerCli(CommandGroup):
     name = "attention-broker"
 
-    short_help = "Manage the Attention Broker service."
+    short_help = "Control the lifecycle of the Attention Broker service."
 
     help = """
-'das-cli attention-broker' provides commands to control the Attention Broker service.
+NAME
 
-Use this command group to start, stop, or restart the service.
+    das-cli attention-broker - Manage the Attention Broker service
 
-.SH COMMANDS
+SYNOPSIS
 
-- start: Start the Attention Broker service.
-- stop: Stop the Attention Broker service.
-- restart: Restart the Attention Broker service.
+    das-cli attention-broker [COMMAND]
+
+DESCRIPTION
+
+    This command group allows you to manage the lifecycle of the Attention Broker service,
+    which is responsible for  tracks atom importance values in different contexts and updates those values based on user queries using context-specific Hebbian networks.
+
+COMMANDS
+    start
+        Start the Attention Broker service and begin message processing.
+
+    stop
+        Stop the currently running Attention Broker container.
+
+    restart
+        Restart the Attention Broker container (stop followed by start).
+
+EXAMPLES
+    Start the broker:
+
+        $ das-cli attention-broker start
+
+    Stop the broker:
+
+        $ das-cli attention-broker stop
+
+    Restart the broker:
+
+        $ das-cli attention-broker restart
 """
 
     @inject
