@@ -49,7 +49,12 @@ override_dh_auto_install:
 	git clone --depth 1 --branch das-435 https://github.com/singnet/das.git /tmp/das
 	cd /tmp/das && make bazel build //:das && find ./lib -maxdepth 1 -type f -name "*.so" -exec cp {} $(USR_LIBS_DIR) \;
 
-	cp -r /tmp/das/lib/* $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libhiredis_cluster.so.0.12 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libhiredis.so.1.1.0 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libmongoc2.so.2 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libmongocxx.so._noabi $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libbson2.so.2 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libbsoncxx.so._noabi $(USR_LIBS_DIR)
 
 	@find $(USR_LIBS_DIR) -type f -name "*.so*" | while read lib; do \
 		echo "Patching: $$lib"; \
