@@ -9,6 +9,58 @@ def get_instance(instance_id):
     return Instance.query.get(instance_id)
 
 
+def reserve_port_range_for_instance(instance, size):
+    size = int(size)
+
+    used_ports_subquery = (
+        db.session.query(PortBinding.port_id)
+        .filter(PortBinding.released_at.is_(None))
+        .subquery()
+    )
+
+    free_ports = (
+        Port.query
+        .filter(Port.id.not_in(select(used_ports_subquery)), Port.is_reserved == False)
+        .order_by(Port.port_number)
+        .all()
+    )
+
+    start_index = 0
+    while start_index + size <= len(free_ports):
+        window = free_ports[start_index:start_index + size]
+        expected = window[0].port_number + size - 1
+        if window[-1].port_number == expected:
+            reserved_ports = []
+            for port in window:
+                binding = PortBinding(port_id=port.id, instance_id=instance.id)
+                port.is_reserved = True
+                db.session.add(binding)
+                reserved_ports.append(port)
+            db.session.commit()
+            return reserved_ports
+        start_index += 1
+
+    highest_port = db.session.query(Port.port_number).order_by(Port.port_number.desc()).first()
+    next_port_number = Config.PORT_RANGE_START if highest_port is None else highest_port[0] + 1
+
+    if next_port_number + size - 1 >= Config.PORT_RANGE_END:
+        return None
+
+    reserved_ports = []
+    for i in range(size):
+        port_number = next_port_number + i
+        new_port = Port(port_number=port_number, is_reserved=True)
+        db.session.add(new_port)
+        db.session.flush()
+
+        binding = PortBinding(port_id=new_port.id, instance_id=instance.id)
+        db.session.add(binding)
+        reserved_ports.append(new_port)
+
+    db.session.commit()
+    return reserved_ports
+
+
 def reserve_free_port_for_instance(instance):
     used_ports = (
         db.session.query(PortBinding.port_id)

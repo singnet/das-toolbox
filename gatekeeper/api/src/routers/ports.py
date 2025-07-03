@@ -10,6 +10,7 @@ from schemas.port_schema import (
 from services.port_service import (
     get_instance,
     reserve_free_port_for_instance,
+    reserve_port_range_for_instance,
     release_port_by_number,
     list_ports_with_bindings,
     observe_ports_for_instance,
@@ -29,11 +30,20 @@ def reserve_port():
     if not instance:
         return jsonify({"error": "Instance not found"}), 404
 
-    reserved_port = reserve_free_port_for_instance(instance)
-    if not reserved_port:
-        return jsonify({"error": "No available ports"}), 409
+    port_range = data.get("range")
+    if port_range:
+        reserved_ports = reserve_port_range_for_instance(instance, port_range)
+        if not reserved_ports:
+            return jsonify({"error": "No available port range"}), 409
 
-    return PortBindingWithInstanceSchema().dump(reserved_port), 201
+        start_port = reserved_ports[0].port_number
+        end_port = reserved_ports[-1].port_number
+        return jsonify({"range": f"{start_port}:{end_port}"}), 201
+    else:
+        reserved_port = reserve_free_port_for_instance(instance)
+        if not reserved_port:
+            return jsonify({"error": "No available ports"}), 409
+        return PortBindingWithInstanceSchema().dump(reserved_port), 201
 
 
 @ports_bp.route("/ports/<int:port_number>/release", methods=["POST"])
