@@ -46,20 +46,10 @@ override_dh_auto_install:
 	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
 
 	# Build hyperon_das.so
-	git clone --depth 1 --branch das-435 https://github.com/singnet/das.git /tmp/das
+	git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das
 	cd /tmp/das && make bazel build //:das && find ./lib -maxdepth 1 -type f -name "*.so" -exec cp {} $(USR_LIBS_DIR) \;
 
-	cp -f /tmp/das/lib/libhiredis_cluster.so.0.12 $(USR_LIBS_DIR)
-	cp -f /tmp/das/lib/libhiredis.so.1.1.0 $(USR_LIBS_DIR)
-	cp -f /tmp/das/lib/libmongoc2.so.2 $(USR_LIBS_DIR)
-	cp -f /tmp/das/lib/libmongocxx.so._noabi $(USR_LIBS_DIR)
-	cp -f /tmp/das/lib/libbson2.so.2 $(USR_LIBS_DIR)
-	cp -f /tmp/das/lib/libbsoncxx.so._noabi $(USR_LIBS_DIR)
-
-	@find $(USR_LIBS_DIR) -type f -name "*.so*" | while read lib; do \
-		echo "Patching: $$lib"; \
-		patchelf --set-rpath '\$ORIGIN':/lib "$$lib"; \
-	done
+	cp -f /tmp/das/lib/hyperon_das.so $(USR_LIBS_DIR)
 
 	rm -rf /tmp/das
 
