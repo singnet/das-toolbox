@@ -2,7 +2,7 @@ Source: das-toolbox
 Section: utils
 Priority: standard
 Maintainer: rafael.levi@singularitynet.io
-Build-Depends: build-essential, zlib1g-dev, python3-pip, python3 (>=3.8.0), debhelper (>=12.10ubuntu1), gzip
+Build-Depends: build-essential, zlib1g-dev, python3-pip, python3 (>=3.8.0), debhelper (>=12.10ubuntu1), gzip, libssl-dev (>= 3.0.2-0ubuntu1.19), libevent-dev, libevent-dev
 Standards-Version: 4.5.0
 
 Package: das-toolbox
