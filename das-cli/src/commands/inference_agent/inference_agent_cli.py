@@ -6,9 +6,12 @@ from commands.inference_agent.inference_agent_container_manager import (
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from common import Command, CommandGroup, Settings, StdoutSeverity
+from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.docker.exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+)
 
 
 class InferenceAgentStop(Command):
@@ -72,6 +75,27 @@ EXAMPLES
 class InferenceAgentStart(Command):
     name = "start"
 
+    params = [
+        CommandOption(
+            ["--peer-hostname"],
+            help="",
+            required=True,
+            type=str,
+        ),
+        CommandOption(
+            ["--peer-port"],
+            help="",
+            required=True,
+            type=int,
+        ),
+        CommandOption(
+            ["--range-port"],
+            help="",
+            required=True,
+            type=str,
+        ),
+    ]
+
     short_help = "Start the Inference Agent service."
 
     help = """
@@ -108,15 +132,24 @@ EXAMPLES
         self._inference_agent_container_manager = inference_agent_container_manager
         self._link_creation_container_manager = link_creation_container_manager
 
-    def _inference_agent(self) -> None:
+    def _inference_agent(
+        self,
+        peer_address: str,
+        port_range: str,
+    ) -> None:
         self.stdout("Starting Inference Agent service...")
         ports_in_use = [
-            str(port) for port in self._inference_agent_container_manager.get_ports_in_use() if port
+            str(port)
+            for port in self._inference_agent_container_manager.get_ports_in_use()
+            if port
         ]
         ports_str = ", ".join(filter(None, ports_in_use))
 
         try:
-            self._inference_agent_container_manager.start_container()
+            self._inference_agent_container_manager.start_container(
+                peer_address,
+                port_range,
+            )
 
             self.stdout(
                 f"Inference Agent started listening on the ports {ports_str}",
@@ -136,11 +169,20 @@ EXAMPLES
         "Run 'link-creation-agent start' to start the Link Creation Agent.",
         verbose=False,
     )
-    def run(self):
+    def run(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+    ):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._inference_agent()
+        self._inference_agent(
+            peer_hostname,
+            peer_port,
+            port_range,
+        )
 
 
 class InferenceAgentRestart(Command):
