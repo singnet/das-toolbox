@@ -1,3 +1,4 @@
+from typing import Optional
 from injector import inject
 from collections import defaultdict
 
@@ -26,8 +27,17 @@ class PortRelease(Command):
             ["--port", "-p"],
             help="",
             type=int,
-            required=True,
-        )
+            required=False,
+        ),
+        CommandOption(
+            ["--range", "-r"],
+            help=(
+                "Release a previously reserved range of ports. Must be in the format START:END, "
+                "as returned by the reserve command. Example: --range 12000:12099."
+            ),
+            type=str,
+            required=False,
+        ),
     ]
 
     @inject
@@ -35,7 +45,7 @@ class PortRelease(Command):
         super().__init__()
         self._port_service = port_service
 
-    def run(self, port: int):
+    def run(self, port: Optional[int], range: Optional[str]):
         try:
             result = self._port_service.release(port_number=port)
 
@@ -64,14 +74,23 @@ class PortReserve(Command):
         "Note: The instance must already be registered using the `instance join` command."
     )
 
+    params = [
+        CommandOption(
+            ["--range"],
+            help="Reserve a range of consecutive ports. The output will be in the format START:END",
+            type=int,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(self, port_service: PortService) -> None:
         super().__init__()
         self._port_service = port_service
 
-    def run(self):
+    def run(self, range: Optional[int]):
         try:
-            result = self._port_service.reserve()
+            result = self._port_service.reserve(range)
 
             port_number = result["port"]["port_number"]
 
@@ -97,7 +116,7 @@ class PortHistory(Command):
         "Output includes the port number, release status, and a grouping by instance for clarity.\n\n"
         "Options:\n"
         "  --is-reserved     Show only currently reserved ports (default: True)"
-    ) 
+    )
 
     params = [
         CommandOption(
@@ -120,7 +139,7 @@ class PortHistory(Command):
         for port in result:
             for bind in port["bindings"]:
                 key = f"{bind['instance']['name']} ({bind['instance']['id'][:12]}...)"
-                status = bind['released_at'] or "IN USE"
+                status = bind["released_at"] or "IN USE"
                 instance_ports[key].append(f"{port['port_number']} ({status})")
 
         for instance, ports in instance_ports.items():

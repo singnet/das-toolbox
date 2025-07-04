@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from database.db_connection import db
-from models.models import Port, PortBinding, Instance
+from models.models import Port, PortBinding, Instance, port_binding_ports
 from sqlalchemy import select
 from config import Config
 
@@ -9,9 +9,82 @@ def get_instance(instance_id):
     return Instance.query.get(instance_id)
 
 
+def reserve_port_range_for_instance(instance, size):
+    size = int(size)
+
+    used_ports_subquery = (
+        db.session.query(port_binding_ports.c.port_id)
+        .join(PortBinding, port_binding_ports.c.port_binding_id == PortBinding.id)
+        .filter(PortBinding.released_at.is_(None))
+        .subquery()
+    )
+
+    free_ports = (
+        Port.query.filter(
+            Port.id.not_in(select(used_ports_subquery)), Port.is_reserved == False
+        )
+        .order_by(Port.port_number)
+        .all()
+    )
+
+    start_index = 0
+    while start_index + size <= len(free_ports):
+        window = free_ports[start_index : start_index + size]
+        expected_end = window[0].port_number + size - 1
+        if window[-1].port_number == expected_end:
+            for port in window:
+                port.is_reserved = True
+
+            binding = PortBinding(
+                instance_id=instance.id,
+                start_port=window[0].port_number,
+                end_port=window[-1].port_number,
+            )
+            db.session.add(binding)
+            db.session.flush()
+
+            binding.ports.extend(window)
+
+            db.session.commit()
+            return binding
+        start_index += 1
+
+    highest_port = (
+        db.session.query(Port.port_number).order_by(Port.port_number.desc()).first()
+    )
+    next_port_number = (
+        Config.PORT_RANGE_START if highest_port is None else highest_port[0] + 1
+    )
+
+    if next_port_number + size - 1 >= Config.PORT_RANGE_END:
+        return None
+
+    reserved_ports = []
+    for i in range(size):
+        port_number = next_port_number + i
+        new_port = Port(port_number=port_number, is_reserved=True)
+        db.session.add(new_port)
+        db.session.flush()
+        reserved_ports.append(new_port)
+
+    binding = PortBinding(
+        instance_id=instance.id,
+        start_port=reserved_ports[0].port_number,
+        end_port=reserved_ports[-1].port_number,
+    )
+    db.session.add(binding)
+    db.session.flush()
+
+    binding.ports.extend(reserved_ports)
+
+    db.session.commit()
+    return binding
+
+
 def reserve_free_port_for_instance(instance):
     used_ports = (
-        db.session.query(PortBinding.port_id)
+        db.session.query(port_binding_ports.c.port_id)
+        .join(PortBinding, port_binding_ports.c.port_binding_id == PortBinding.id)
         .filter(PortBinding.released_at.is_(None))
         .subquery()
     )
@@ -37,8 +110,13 @@ def reserve_free_port_for_instance(instance):
         db.session.add(free_port)
         db.session.commit()
 
-    binding = PortBinding(port_id=free_port.id, instance_id=instance.id)
     free_port.is_reserved = True
+    binding = PortBinding(
+        instance_id=instance.id,
+        start_port=free_port.port_number,
+        end_port=free_port.port_number,
+        ports=[free_port],
+    )
 
     db.session.add(binding)
     db.session.commit()
@@ -51,14 +129,53 @@ def release_port_by_number(port_number):
     if not port:
         return None, "Port not found"
 
-    binding = PortBinding.query.filter_by(port_id=port.id, released_at=None).first()
+    binding = (
+        PortBinding.query.join(
+            port_binding_ports,
+            PortBinding.id == port_binding_ports.c.port_binding_id,
+        )
+        .filter(
+            port_binding_ports.c.port_id == port.id,
+            PortBinding.released_at.is_(None),
+        )
+        .first()
+    )
+
     if not binding:
         return None, "Port is not currently bound"
 
     binding.released_at = datetime.now(timezone.utc)
-    port.is_reserved = False
-    db.session.commit()
 
+    for bound_port in binding.ports:
+        bound_port.is_reserved = False
+
+    db.session.commit()
+    return binding, None
+
+
+def release_port_range(range_str):
+    try:
+        start_str, end_str = range_str.split(":")
+        start_port = int(start_str)
+        end_port = int(end_str)
+    except ValueError:
+        return None, "Invalid range format. Use START:END (e.g. 3000:3099)"
+
+    binding = (
+        PortBinding.query.filter_by(start_port=start_port, end_port=end_port)
+        .filter(PortBinding.released_at.is_(None))
+        .first()
+    )
+
+    if not binding:
+        return None, f"No active binding found for range {range_str}"
+
+    binding.released_at = datetime.now(timezone.utc)
+
+    for port in binding.ports:
+        port.is_reserved = False
+
+    db.session.commit()
     return binding, None
 
 
@@ -106,53 +223,3 @@ def get_or_create_ports(port_numbers):
     db.session.flush()
 
     return existing_ports + new_ports
-
-def observe_ports_for_instance(instance_id, used_port_numbers):
-    instance = get_instance(instance_id)
-    if not instance:
-        return None
-
-    now = datetime.now(timezone.utc)
-
-    ports = get_or_create_ports(used_port_numbers)
-    port_ids = [port.id for port in ports]
-
-    bindings_to_release = (
-        PortBinding.query
-        .filter(
-            PortBinding.instance_id == instance_id,
-            PortBinding.released_at.is_(None),
-            ~PortBinding.port_id.in_(port_ids),
-        )
-        .all()
-    )
-
-    for binding in bindings_to_release:
-        binding.released_at = now
-
-        has_active = (
-            PortBinding.query
-            .filter(
-                PortBinding.port_id == binding.port_id,
-                PortBinding.released_at.is_(None),
-            )
-            .count() > 0
-        )
-        if not has_active:
-            port = db.session.get(Port, binding.port_id)
-            if port:
-                port.is_reserved = False
-
-    for port in ports:
-        existing_binding = PortBinding.query.filter_by(
-            port_id=port.id,
-            instance_id=instance_id,
-            released_at=None,
-        ).first()
-
-        if not existing_binding:
-            db.session.add(PortBinding(port_id=port.id, instance_id=instance_id))
-            port.is_reserved = True
-
-    db.session.commit()
-    return ports

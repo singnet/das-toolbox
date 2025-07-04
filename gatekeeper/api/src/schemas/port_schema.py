@@ -14,6 +14,7 @@ class InstanceSchema(Schema):
 
 class PortReserveSchema(Schema):
     instance_id = fields.Str(required=True)
+    range = fields.Int(required=False)
 
 
 class PortBindingWithInstanceSchema(Schema):
