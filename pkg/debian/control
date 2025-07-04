@@ -7,7 +7,7 @@ Standards-Version: 4.5.0
 
 Package: das-toolbox
 Architecture: any
-Depends: docker.io | docker-ce, bash-completion, ${misc:Depends}, ${shlibs:Depends}
+Depends: libhiredis0.14 (>= 0.14.0), libmongocxx1 (>= 3.6.0), libbsoncxx1 (>= 3.6.0), libhiredis-cluster0.12, docker.io | docker-ce, bash-completion, ${misc:Depends}, ${shlibs:Depends}
 Description: |
  This CLI provides a unified set of tools to manage the DAS ecosystem.
  This package bundles the das-cli, gatekeeper tools and the dynamic library das.os.
