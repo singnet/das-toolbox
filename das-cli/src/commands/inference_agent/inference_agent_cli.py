@@ -78,19 +78,19 @@ class InferenceAgentStart(Command):
     params = [
         CommandOption(
             ["--peer-hostname"],
-            help="",
+            help="The address of the peer to connect to.",
             required=True,
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
-            help="",
+            help="The port of the peer to connect to.",
             required=True,
             type=int,
         ),
         CommandOption(
-            ["--range-port"],
-            help="",
+            ["--port-range"],
+            help="The loweer and upper bounds of the port range to be used by the command proxy.",
             required=True,
             type=str,
         ),
@@ -134,30 +134,27 @@ EXAMPLES
 
     def _inference_agent(
         self,
-        peer_address: str,
+        peer_hostname: str,
+        peer_port: str,
         port_range: str,
     ) -> None:
         self.stdout("Starting Inference Agent service...")
-        ports_in_use = [
-            str(port)
-            for port in self._inference_agent_container_manager.get_ports_in_use()
-            if port
-        ]
-        ports_str = ", ".join(filter(None, ports_in_use))
+        inference_port = self._inference_agent_container_manager.get_container().port
 
         try:
             self._inference_agent_container_manager.start_container(
-                peer_address,
+                peer_hostname,
+                peer_port,
                 port_range,
             )
 
             self.stdout(
-                f"Inference Agent started listening on the ports {ports_str}",
+                f"Inference Agent started listening on the ports {inference_port}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                f"Inference Agent is already running. It's listening on the ports {ports_str}",
+                f"Inference Agent is already running. It's listening on the ports {inference_port}",
                 severity=StdoutSeverity.WARNING,
             )
 

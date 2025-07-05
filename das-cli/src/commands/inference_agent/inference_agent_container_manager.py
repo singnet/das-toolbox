@@ -29,15 +29,12 @@ class InferenceAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def get_ports_in_use(self):
-        return [
-            self._options.get("inference_agent_port"),
-            self._options.get("link_creation_agent_client_port"),
-            self._options.get("das_client_port"),
-            self._options.get("distributed_inference_control_node_port"),
-        ]
-
-    def _gen_inference_command(self, peer_hostname, peer_port, port_range):
+    def _gen_inference_command(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+    ) -> str:
         inference_agent_hostname = str(
             self._options.get("inference_agent_hostname", "")
         )
@@ -48,6 +45,18 @@ class InferenceAgentContainerManager(ContainerManager):
 
         return f"{server_address} {peer_address} {port_range}"
 
+    def _get_port_range(self, port_range: str) -> list[int]:
+        if not port_range or ":" not in port_range:
+            raise ValueError("Invalid port range format. Expected 'start:end'.")
+
+        start_port, end_port = map(int, port_range.split(":"))
+        if start_port >= end_port:
+            raise ValueError(
+                "Invalid port range. Start port must be less than end port."
+            )
+
+        return list(range(start_port, end_port + 1))
+
     def start_container(
         self,
         peer_hostname: str,
@@ -55,7 +64,12 @@ class InferenceAgentContainerManager(ContainerManager):
         port_range: str,
     ):
         self.raise_running_container()
-        self.raise_on_port_in_use(self.get_ports_in_use())
+        self.raise_on_port_in_use(
+            [
+                self._options.get("inference_agent_port"),
+                *self._get_port_range(port_range),
+            ]
+        )
 
         try:
             self.stop()
