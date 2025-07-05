@@ -506,9 +506,42 @@ EXAMPLES
             default=self._settings.get("services.link_creation_agent.port", 9080),
         )
 
+        link_creation_agent_request_interval = self.prompt(
+            "Enter the Link Creation Agent request interval (in seconds)",
+            default=self._settings.get("services.request_interval", 1),
+            type=int,
+        )
+
+        link_creation_agent_thread_count = self.prompt(
+            "Enter the Link Creation Agent thread count",
+            default=self._settings.get("services.thread_count", 1),
+            type=int,
+        )
+
+        link_creation_agent_default_timeout = self.prompt(
+            "Enter the Link Creation Agent default timeout (in seconds)",
+            default=self._settings.get("services.default_timeout", 10),
+            type=int,
+        )
+
+        link_creation_agent_save_links_to_metta_file = self.confirm(
+            "Do you want to save links to a Metta file?",
+            default=self._settings.get("services.save_links_to_metta_file", True),
+        )
+
+        link_creation_agent_save_links_to_db = self.confirm(
+            "Do you want to save links to the database?",
+            default=self._settings.get("services.save_links_to_db", True),
+        )
+
         return {
             "services.link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
             "services.link_creation_agent.port": link_creation_agent_port,
+            "services.link_creation_agent.request_interval": link_creation_agent_request_interval,
+            "services.link_creation_agent.thread_count": link_creation_agent_thread_count,
+            "services.link_creation_agent.default_timeout": link_creation_agent_default_timeout,
+            "services.link_creation_agent.save_links_to_metta_file": link_creation_agent_save_links_to_metta_file,
+            "services.link_creation_agent.save_links_to_db": link_creation_agent_save_links_to_db,
         }
 
     def _inference_agent(self) -> dict:

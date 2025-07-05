@@ -1,11 +1,13 @@
-import tempfile
 from typing import Dict
 
 import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import LINK_CREATION_AGENT_IMAGE_NAME, LINK_CREATION_AGENT_IMAGE_VERSION
+from settings.config import (
+    LINK_CREATION_AGENT_IMAGE_NAME,
+    LINK_CREATION_AGENT_IMAGE_VERSION,
+)
 
 
 class LinkCreationAgentContainerManager(ContainerManager):
@@ -30,94 +32,103 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _create_temp_config_file(
+
+    def _get_port_range(self, port_range: str) -> list[int]:
+        if not port_range or ":" not in port_range:
+            raise ValueError("Invalid port range format. Expected 'start:end'.")
+
+        start_port, end_port = map(int, port_range.split(":"))
+        if start_port >= end_port:
+            raise ValueError(
+                "Invalid port range. Start port must be less than end port."
+            )
+
+        return list(range(start_port, end_port + 1))
+
+    def _gen_link_creation_command(
         self,
-        query_agent_server_hostname: str,
-        query_agent_server_port: int,
-        query_agent_client_hostname: str,
-        query_agent_client_port: int,
-        link_creation_agent_server_hostname: str,
-        link_creation_agent_server_port: int,
-        das_agent_client_hostname: str,
-        das_agent_client_port: int,
-        das_agent_server_hostname: str,
-        das_agent_server_port: int,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+        metta_file_path: str,
+        buffer_file: str,
     ) -> str:
-        query_agent_server_address = f"{query_agent_server_hostname}:{query_agent_server_port}"
-        link_creation_agent_server_address = (
-            f"{link_creation_agent_server_hostname}:{link_creation_agent_server_port}"
+        link_creation_agent_hostname = str(
+            self._options.get("link_creation_agent_hostname", "")
         )
-        query_agent_client_address = f"{query_agent_client_hostname}:{query_agent_client_port}"
-        das_agent_client_address = f"{das_agent_client_hostname}:{das_agent_client_port}"
-        das_agent_server_address = f"{das_agent_server_hostname}:{das_agent_server_port}"
+        link_creation_agent_port = int(
+            self._options.get("link_creation_agent_port", 0)
+        )
 
-        config_data = f"""
-requests_interval_seconds = 10
-link_creation_agent_thread_count = 5
-query_agent_server_id = {query_agent_server_address}
-query_agent_client_id = {query_agent_client_address}
+        request_interval = int(
+            self._options.get("link_creation_agent_request_interval", 1)
+        )
+        thread_count = int(
+            self._options.get("link_creation_agent_thread_count", 1)
+        )
+        default_timeout = int(
+            self._options.get("link_creation_agent_default_timeout", 10)
+        )
+        save_links_to_metta_file = bool(
+            self._options.get(
+                "link_creation_agent_save_links_to_metta_file", True
+            )
+        )
+        save_links_to_db = bool(
+            self._options.get("link_creation_agent_save_links_to_db", True)
+        )
 
-link_creation_agent_server_id = {link_creation_agent_server_address}
-das_agent_client_id = {das_agent_client_address}
-das_agent_server_id = {das_agent_server_address}
+        server_address = f"{link_creation_agent_hostname}:{link_creation_agent_port}"
+        peer_address = f"{peer_hostname}:{peer_port}"
 
-requests_buffer_file = ./buffer
-"""
-        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".conf") as temp_file:
-            temp_file.write(config_data)
-            return temp_file.name
+        return f"{server_address} {peer_address} {port_range} {request_interval} {thread_count} {default_timeout} {buffer_file} {metta_file_path} {save_links_to_metta_file} {save_links_to_db}"
 
-    def get_ports_in_use(self):
-        return [
-            self._options.get("link_creation_agent_server_port"),
-            self._options.get("query_agent_client_port"),
-            self._options.get("das_agent_client_port"),
-        ]
-
-    def start_container(self):
+    def start_container(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+        metta_file_path: str,
+    ) -> str:
         self.raise_running_container()
-        self.raise_on_port_in_use(self.get_ports_in_use())
+        self.raise_on_port_in_use(
+            [
+                self._options.get("link_creation_agent_port"),
+                *self._get_port_range(port_range),
+            ]
+        )
 
         try:
             self.stop()
         except (DockerContainerNotFoundError, DockerError):
             pass
 
-        config_file_path = self._create_temp_config_file(
-            query_agent_server_hostname=str(self._options.get("query_agent_server_hostname", "")),
-            query_agent_server_port=int(self._options.get("query_agent_server_port", 0)),
-            query_agent_client_hostname=str(self._options.get("query_agent_client_hostname", "")),
-            query_agent_client_port=int(self._options.get("query_agent_client_port", 0)),
-            das_agent_client_hostname=str(self._options.get("das_agent_client_hostname", "")),
-            das_agent_client_port=int(self._options.get("das_agent_client_port", 0)),
-            das_agent_server_hostname=str(self._options.get("das_agent_server_hostname", "")),
-            das_agent_server_port=int(self._options.get("das_agent_server_port", 0)),
-            link_creation_agent_server_hostname=str(
-                self._options.get("link_creation_agent_server_hostname", "")
-            ),
-            link_creation_agent_server_port=int(
-                self._options.get("link_creation_agent_server_port", 0)
-            ),
+        buffer_file_container = "/tmp/requests_buffer.bin"
+
+        volumes = {
+            metta_file_path: {
+                "bind": buffer_file_container,
+                "mode": "rw",
+            }
+        }
+
+        exec_command = self._gen_link_creation_command(
+            peer_hostname,
+            peer_port,
+            port_range,
+            metta_file_path,
+            buffer_file_container,
         )
 
         try:
-            volumes = {
-                config_file_path: {
-                    "bind": config_file_path,
-                    "mode": "ro",
-                }
-            }
-
-            exec_command = f"--config_file {config_file_path}"
-
             container_id = self._start_container(
                 network_mode="host",
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                command=exec_command,
                 volumes=volumes,
+                command=exec_command,
                 stdin_open=True,
                 tty=True,
             )
