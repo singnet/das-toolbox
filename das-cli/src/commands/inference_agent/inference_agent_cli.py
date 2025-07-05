@@ -105,7 +105,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli inference-agent start
+    das-cli inference-agent start [--peer-hostname <hostname>] [--peer-port <port>] [--port-range <start:end>]
 
 DESCRIPTION
 
@@ -117,7 +117,7 @@ EXAMPLES
 
     To start the Inference Agent service:
 
-        das-cli inference-agent start
+        das-cli inference-agent start --peer-hostname localhost --peer-port 8080 --port-range 5000:5100
 """
 
     @inject
@@ -215,7 +215,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli inference-agent restart
+    das-cli inference-agent restart [--peer-hostname <hostname>] [--peer-port <port>] [--port-range <start:end>]
 
 DESCRIPTION
 
@@ -226,7 +226,7 @@ EXAMPLES
 
     To restart the Inference Agent service:
 
-        das-cli inference-agent restart
+        das-cli inference-agent restart --peer-hostname localhost --peer-port 8080 --port-range 5000:5100
 """
 
     @inject
