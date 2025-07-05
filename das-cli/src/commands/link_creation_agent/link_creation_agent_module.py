@@ -38,25 +38,24 @@ class LinkCreationAgentModule(Module):
     def _link_creation_agent_container_manager_factory(self) -> LinkCreationAgentContainerManager:
         container_name = self._settings.get("services.link_creation_agent.container_name")
 
-        query_agent_server_hostname = "localhost"
-        query_agent_server_port = self._settings.get("services.query_agent.port")
-
-        link_creation_agent_server_hostname = "localhost"
-        link_creation_agent_server_port = self._settings.get("services.link_creation_agent.port")
+        link_creation_agent_hostname = "localhost"
+        link_creation_agent_port = self._settings.get("services.link_creation_agent.port")
+        link_creation_agent_request_interval = self._settings.get("services.link_creation_agent.request_interval", 1)
+        link_creation_agent_thread_count = self._settings.get("services.link_creation_agent.thread_count", 1)
+        link_creation_agent_default_timeout = self._settings.get("services.link_creation_agent.default_timeout", 10)
+        link_creation_agent_save_links_to_metta_file = self._settings.get("services.link_creation_agent.save_links_to_metta_file", True)
+        link_creation_agent_save_links_to_db = self._settings.get("services.link_creation_agent.save_links_to_db", True)
 
         return LinkCreationAgentContainerManager(
             container_name,
             options={
-                "query_agent_server_hostname": query_agent_server_hostname,
-                "query_agent_server_port": query_agent_server_port,
-                "link_creation_agent_server_hostname": link_creation_agent_server_hostname,
-                "link_creation_agent_server_port": link_creation_agent_server_port,
-                "query_agent_client_hostname": "localhost",
-                "query_agent_client_port": 9001,
-                "das_agent_client_hostname": "localhost",
-                "das_agent_client_port": 9090,
-                "das_agent_server_hostname": "localhost",
-                "das_agent_server_port": 9091,
+                "link_creation_agent_hostname": link_creation_agent_hostname,
+                "link_creation_agent_port": link_creation_agent_port,
+                "link_creation_agent_request_interval": link_creation_agent_request_interval,
+                "link_creation_agent_thread_count": link_creation_agent_thread_count,
+                "link_creation_agent_default_timeout": link_creation_agent_default_timeout,
+                "link_creation_agent_save_links_to_metta_file": link_creation_agent_save_links_to_metta_file,
+                "link_creation_agent_save_links_to_db": link_creation_agent_save_links_to_db,
             },
         )
 

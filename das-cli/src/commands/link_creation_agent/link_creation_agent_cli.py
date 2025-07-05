@@ -1,12 +1,19 @@
+import os
 from injector import inject
 
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import Command, CommandGroup, Settings, StdoutSeverity
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
+from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
+from common.prompt_types import AbsolutePath
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.docker.exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+)
 
 
 class LinkCreationAgentStop(Command):
@@ -70,6 +77,40 @@ EXAMPLES
 class LinkCreationAgentStart(Command):
     name = "start"
 
+    params = [
+        CommandOption(
+            ["--peer-hostname"],
+            help="The address of the peer to connect to.",
+            required=True,
+            type=str,
+        ),
+        CommandOption(
+            ["--peer-port"],
+            help="The port of the peer to connect to.",
+            required=True,
+            type=int,
+        ),
+        CommandOption(
+            ["--port-range"],
+            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            required=True,
+            type=str,
+        ),
+        CommandOption(
+            ["--metta-file-path"],
+            help="The path to the metta file",
+            required=True,
+            type=AbsolutePath(
+                dir_okay=True,
+                file_okay=False,
+                exists=True,
+                writable=True,
+                readable=True,
+            ),
+            default=os.path.abspath(os.path.curdir),
+        ),
+    ]
+
     short_help = "Start the Link Creation Agent service."
 
     help = """
@@ -79,7 +120,8 @@ NAME
 
 SYNOPSIS
 
-    das-cli link-creation-agent start
+    das-cli link-creation-agent start [--peer-hostname <hostname>] [--peer-port <port>]
+    [--port-range <start_port-end_port>] [--metta-file-path <path
 
 DESCRIPTION
 
@@ -91,7 +133,7 @@ EXAMPLES
 
     To start the Link Creation Agent service:
 
-        das-cli link-creation-agent start
+        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
 """
 
     @inject
@@ -103,28 +145,37 @@ EXAMPLES
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._link_creation_agent_container_manager = link_creation_agent_container_manager
+        self._link_creation_agent_container_manager = (
+            link_creation_agent_container_manager
+        )
         self._query_agent_container_manager = query_agent_container_manager
 
-    def _link_creation_agent(self) -> None:
+    def _link_creation_agent(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+        metta_file_path: str,
+    ) -> None:
         self.stdout("Starting Link Creation Agent service...")
-        ports_in_use = [
-            str(port)
-            for port in self._link_creation_agent_container_manager.get_ports_in_use()
-            if port
-        ]
-        ports_str = ", ".join(filter(None, ports_in_use))
 
         try:
-            self._link_creation_agent_container_manager.start_container()
+            port = self._link_creation_agent_container_manager.get_container().port
+
+            self._link_creation_agent_container_manager.start_container(
+                peer_hostname,
+                peer_port,
+                port_range,
+                metta_file_path,
+            )
 
             self.stdout(
-                f"Link Creation Agent started listening on the ports {ports_str}",
+                f"Link Creation Agent started listening on the ports {port}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerDuplicateError:
             self.stdout(
-                f"Link Creation Agent is already running. It's listening on the ports {ports_str}",
+                f"Link Creation Agent is already running. It's listening on the ports {port}",
                 severity=StdoutSeverity.WARNING,
             )
 
@@ -136,11 +187,22 @@ EXAMPLES
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(self):
+    def run(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+        metta_file_path: str,
+    ):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._link_creation_agent()
+        self._link_creation_agent(
+            peer_hostname,
+            peer_port,
+            port_range,
+            metta_file_path,
+        )
 
 
 class LinkCreationAgentRestart(Command):
