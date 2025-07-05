@@ -185,6 +185,27 @@ EXAMPLES
 class InferenceAgentRestart(Command):
     name = "restart"
 
+    params = [
+        CommandOption(
+            ["--peer-hostname"],
+            help="The address of the peer to connect to.",
+            required=True,
+            type=str,
+        ),
+        CommandOption(
+            ["--peer-port"],
+            help="The port of the peer to connect to.",
+            required=True,
+            type=int,
+        ),
+        CommandOption(
+            ["--port-range"],
+            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            required=True,
+            type=str,
+        ),
+    ]
+
     short_help = "Restart the Inference Agent service."
 
     help = """
@@ -218,9 +239,18 @@ EXAMPLES
         self._inference_agent_start = inference_agent_start
         self._inference_agent_stop = inference_agent_stop
 
-    def run(self):
+    def run(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+    ):
         self._inference_agent_stop.run()
-        self._inference_agent_start.run()
+        self._inference_agent_start.run(
+            peer_hostname,
+            peer_port,
+            port_range,
+        )
 
 
 class InferenceAgentCli(CommandGroup):
