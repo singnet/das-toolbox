@@ -1,19 +1,15 @@
 import os
+
 from injector import inject
 
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
-from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
-from common.prompt_types import AbsolutePath
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
-from common.docker.exceptions import (
-    DockerContainerDuplicateError,
-    DockerContainerNotFoundError,
-)
+from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.prompt_types import AbsolutePath
 
 
 class LinkCreationAgentStop(Command):
@@ -145,9 +141,7 @@ EXAMPLES
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._link_creation_agent_container_manager = (
-            link_creation_agent_container_manager
-        )
+        self._link_creation_agent_container_manager = link_creation_agent_container_manager
         self._query_agent_container_manager = query_agent_container_manager
 
     def _link_creation_agent(
@@ -276,9 +270,7 @@ EXAMPLES
         self._link_creation_agent_start = link_creation_agent_start
         self._link_creation_agent_stop = link_creation_agent_stop
 
-    def run(
-        self, peer_hostname: str, peer_port: int, port_range: str, metta_file_path: str
-    ):
+    def run(self, peer_hostname: str, peer_port: int, port_range: str, metta_file_path: str):
         self._link_creation_agent_stop.run()
         self._link_creation_agent_start.run(
             peer_hostname,

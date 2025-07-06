@@ -35,9 +35,7 @@ class InferenceAgentContainerManager(ContainerManager):
         peer_port: int,
         port_range: str,
     ) -> str:
-        inference_agent_hostname = str(
-            self._options.get("inference_agent_hostname", "")
-        )
+        inference_agent_hostname = str(self._options.get("inference_agent_hostname", ""))
         inference_agent_port = int(self._options.get("inference_agent_port", 0))
 
         server_address = f"{inference_agent_hostname}:{inference_agent_port}"
@@ -51,9 +49,7 @@ class InferenceAgentContainerManager(ContainerManager):
 
         start_port, end_port = map(int, port_range.split(":"))
         if start_port >= end_port:
-            raise ValueError(
-                "Invalid port range. Start port must be less than end port."
-            )
+            raise ValueError("Invalid port range. Start port must be less than end port.")
 
         return list(range(start_port, end_port + 1))
 

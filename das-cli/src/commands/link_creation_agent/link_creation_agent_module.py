@@ -40,12 +40,24 @@ class LinkCreationAgentModule(Module):
 
         link_creation_agent_hostname = "localhost"
         link_creation_agent_port = self._settings.get("services.link_creation_agent.port")
-        link_creation_agent_buffer_file = self._settings.get("services.link_creation_agent.buffer_file")
-        link_creation_agent_request_interval = self._settings.get("services.link_creation_agent.request_interval", 1)
-        link_creation_agent_thread_count = self._settings.get("services.link_creation_agent.thread_count", 1)
-        link_creation_agent_default_timeout = self._settings.get("services.link_creation_agent.default_timeout", 10)
-        link_creation_agent_save_links_to_metta_file = self._settings.get("services.link_creation_agent.save_links_to_metta_file", True)
-        link_creation_agent_save_links_to_db = self._settings.get("services.link_creation_agent.save_links_to_db", True)
+        link_creation_agent_buffer_file = self._settings.get(
+            "services.link_creation_agent.buffer_file"
+        )
+        link_creation_agent_request_interval = self._settings.get(
+            "services.link_creation_agent.request_interval", 1
+        )
+        link_creation_agent_thread_count = self._settings.get(
+            "services.link_creation_agent.thread_count", 1
+        )
+        link_creation_agent_default_timeout = self._settings.get(
+            "services.link_creation_agent.default_timeout", 10
+        )
+        link_creation_agent_save_links_to_metta_file = self._settings.get(
+            "services.link_creation_agent.save_links_to_metta_file", True
+        )
+        link_creation_agent_save_links_to_db = self._settings.get(
+            "services.link_creation_agent.save_links_to_db", True
+        )
 
         mongodb_hostname = "localhost"
         mongodb_port = self._settings.get("services.mongodb.port")

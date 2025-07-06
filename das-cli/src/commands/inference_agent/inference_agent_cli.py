@@ -6,12 +6,9 @@ from commands.inference_agent.inference_agent_container_manager import (
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
-from common.docker.exceptions import (
-    DockerContainerDuplicateError,
-    DockerContainerNotFoundError,
-)
+from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 
 
 class InferenceAgentStop(Command):
@@ -135,7 +132,7 @@ EXAMPLES
     def _inference_agent(
         self,
         peer_hostname: str,
-        peer_port: str,
+        peer_port: int,
         port_range: str,
     ) -> None:
         self.stdout("Starting Inference Agent service...")

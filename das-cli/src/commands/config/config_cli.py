@@ -508,7 +508,9 @@ EXAMPLES
 
         link_creation_agent_buffer_file = self.prompt(
             "Enter the Link Creation Agent buffer file",
-            default=self._settings.get("services.link_creation_agent.buffer_file", "/tmp/requests_buffer.bin"),
+            default=self._settings.get(
+                "services.link_creation_agent.buffer_file", "/tmp/requests_buffer.bin"
+            ),
             type=AbsolutePath(
                 file_okay=True,
                 dir_okay=False,
