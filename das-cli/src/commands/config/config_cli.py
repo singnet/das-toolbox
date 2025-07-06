@@ -506,6 +506,18 @@ EXAMPLES
             default=self._settings.get("services.link_creation_agent.port", 9080),
         )
 
+        link_creation_agent_buffer_file = self.prompt(
+            "Enter the Link Creation Agent buffer file",
+            default=self._settings.get("services.link_creation_agent.buffer_file", "/tmp/requests_buffer.bin"),
+            type=AbsolutePath(
+                file_okay=True,
+                dir_okay=False,
+                exists=False,
+                writable=True,
+                readable=True,
+            ),
+        )
+
         link_creation_agent_request_interval = self.prompt(
             "Enter the Link Creation Agent request interval (in seconds)",
             default=self._settings.get("services.request_interval", 1),
@@ -537,6 +549,7 @@ EXAMPLES
         return {
             "services.link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
             "services.link_creation_agent.port": link_creation_agent_port,
+            "services.link_creation_agent.buffer_file": link_creation_agent_buffer_file,
             "services.link_creation_agent.request_interval": link_creation_agent_request_interval,
             "services.link_creation_agent.thread_count": link_creation_agent_thread_count,
             "services.link_creation_agent.default_timeout": link_creation_agent_default_timeout,

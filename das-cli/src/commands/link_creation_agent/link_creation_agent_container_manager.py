@@ -19,7 +19,7 @@ class LinkCreationAgentContainerManager(ContainerManager):
         container = Container(
             link_creation_agent_container_name,
             metadata={
-                "port": options.get("link_creation_agent_server_port"),
+                "port": options.get("link_creation_agent_port"),
                 "image": ContainerImageMetadata(
                     {
                         "name": LINK_CREATION_AGENT_IMAGE_NAME,
@@ -103,13 +103,19 @@ class LinkCreationAgentContainerManager(ContainerManager):
         except (DockerContainerNotFoundError, DockerError):
             pass
 
+        buffer_file = self._options.get("link_creation_agent_buffer_file")
         buffer_file_container = "/tmp/requests_buffer.bin"
+        metta_file_path_container = "/tmp/metta_files"
 
         volumes = {
             metta_file_path: {
+                "bind": metta_file_path_container,
+                "mode": "ro",
+            },
+            buffer_file: {
                 "bind": buffer_file_container,
                 "mode": "rw",
-            }
+            },
         }
 
         exec_command = self._gen_link_creation_command(
@@ -131,6 +137,15 @@ class LinkCreationAgentContainerManager(ContainerManager):
                 command=exec_command,
                 stdin_open=True,
                 tty=True,
+                environment={
+                    "DAS_REDIS_HOSTNAME": self._options.get("redis_hostname"),
+                    "DAS_REDIS_PORT": self._options.get("redis_port"),
+                    "DAS_USE_REDIS_CLUSTER": self._options.get("redis_cluster"),
+                    "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
+                    "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
+                    "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
+                    "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
+                },
             )
 
             return container_id

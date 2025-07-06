@@ -40,22 +40,40 @@ class LinkCreationAgentModule(Module):
 
         link_creation_agent_hostname = "localhost"
         link_creation_agent_port = self._settings.get("services.link_creation_agent.port")
+        link_creation_agent_buffer_file = self._settings.get("services.link_creation_agent.buffer_file")
         link_creation_agent_request_interval = self._settings.get("services.link_creation_agent.request_interval", 1)
         link_creation_agent_thread_count = self._settings.get("services.link_creation_agent.thread_count", 1)
         link_creation_agent_default_timeout = self._settings.get("services.link_creation_agent.default_timeout", 10)
         link_creation_agent_save_links_to_metta_file = self._settings.get("services.link_creation_agent.save_links_to_metta_file", True)
         link_creation_agent_save_links_to_db = self._settings.get("services.link_creation_agent.save_links_to_db", True)
 
+        mongodb_hostname = "localhost"
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+
+        redis_port = self._settings.get("services.redis.port")
+        redis_hostname = "localhost"
+        redis_cluster = self._settings.get("services.redis.cluster", False)
+
         return LinkCreationAgentContainerManager(
             container_name,
             options={
                 "link_creation_agent_hostname": link_creation_agent_hostname,
                 "link_creation_agent_port": link_creation_agent_port,
+                "link_creation_agent_buffer_file": link_creation_agent_buffer_file,
                 "link_creation_agent_request_interval": link_creation_agent_request_interval,
                 "link_creation_agent_thread_count": link_creation_agent_thread_count,
                 "link_creation_agent_default_timeout": link_creation_agent_default_timeout,
                 "link_creation_agent_save_links_to_metta_file": link_creation_agent_save_links_to_metta_file,
                 "link_creation_agent_save_links_to_db": link_creation_agent_save_links_to_db,
+                "redis_port": redis_port,
+                "redis_hostname": redis_hostname,
+                "redis_cluster": redis_cluster,
+                "mongodb_port": mongodb_port,
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
             },
         )
 
