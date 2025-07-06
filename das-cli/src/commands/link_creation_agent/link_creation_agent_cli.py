@@ -121,7 +121,7 @@ NAME
 SYNOPSIS
 
     das-cli link-creation-agent start [--peer-hostname <hostname>] [--peer-port <port>]
-    [--port-range <start_port-end_port>] [--metta-file-path <path
+    [--port-range <start_port-end_port>] [--metta-file-path <path>]
 
 DESCRIPTION
 
@@ -167,7 +167,6 @@ EXAMPLES
                 peer_port,
                 port_range,
                 metta_file_path,
-
             )
 
             self.stdout(
@@ -209,6 +208,40 @@ EXAMPLES
 class LinkCreationAgentRestart(Command):
     name = "restart"
 
+    params = [
+        CommandOption(
+            ["--peer-hostname"],
+            help="The address of the peer to connect to.",
+            required=True,
+            type=str,
+        ),
+        CommandOption(
+            ["--peer-port"],
+            help="The port of the peer to connect to.",
+            required=True,
+            type=int,
+        ),
+        CommandOption(
+            ["--port-range"],
+            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            required=True,
+            type=str,
+        ),
+        CommandOption(
+            ["--metta-file-path"],
+            help="The path to the metta file",
+            required=True,
+            type=AbsolutePath(
+                dir_okay=True,
+                file_okay=False,
+                exists=True,
+                writable=True,
+                readable=True,
+            ),
+            default=os.path.abspath(os.path.curdir),
+        ),
+    ]
+
     short_help = "Restart the Link Creation Agent service."
 
     help = """
@@ -218,7 +251,8 @@ NAME
 
 SYNOPSIS
 
-    das-cli link-creation-agent restart
+    das-cli link-creation-agent restart [--peer-hostname <hostname>] [--peer-port <port>]
+    [--port-range <start_port-end_port>] [--metta-file-path <path>]
 
 DESCRIPTION
 
@@ -229,7 +263,7 @@ EXAMPLES
 
     To restart the Link Creation Agent service:
 
-        das-cli link-creation-agent restart
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
 """
 
     @inject
@@ -242,9 +276,16 @@ EXAMPLES
         self._link_creation_agent_start = link_creation_agent_start
         self._link_creation_agent_stop = link_creation_agent_stop
 
-    def run(self):
+    def run(
+        self, peer_hostname: str, peer_port: int, port_range: str, metta_file_path: str
+    ):
         self._link_creation_agent_stop.run()
-        self._link_creation_agent_start.run()
+        self._link_creation_agent_start.run(
+            peer_hostname,
+            peer_port,
+            port_range,
+            metta_file_path,
+        )
 
 
 class LinkCreationAgentCli(CommandGroup):
@@ -276,7 +317,7 @@ EXAMPLES
 
     Start the service:
 
-        das-cli link-creation-agent start
+        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
 
     Stop the service:
 
@@ -284,7 +325,7 @@ EXAMPLES
 
     Restart the service:
 
-        das-cli link-creation-agent restart
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
 """
 
     @inject
