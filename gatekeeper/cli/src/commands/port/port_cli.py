@@ -92,7 +92,10 @@ class PortReserve(Command):
         try:
             result = self._port_service.reserve(range)
 
-            port_number = result["port"]["port_number"]
+            if range:
+                port_number = f"{result['start_port']}:{result['end_port']}"
+            else:
+                port_number = result["start_port"]
 
             self.stdout(
                 port_number,

@@ -19,9 +19,12 @@ class PortReserveSchema(Schema):
 
 class PortBindingWithInstanceSchema(Schema):
     id = fields.Int()
+    start_port = fields.Int()
+    end_port = fields.Int()
+    bound_at = fields.DateTime()
     released_at = fields.DateTime(allow_none=True)
     instance = fields.Nested(InstanceSchema)
-    port = fields.Nested(PortSchema)
+    ports = fields.Nested(PortSchema, many=True)
 
 
 class PortWithBindingInstanceSchema(Schema):

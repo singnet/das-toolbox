@@ -33,9 +33,7 @@ def reserve_port():
         if not reserved_ports:
             return jsonify({"error": "No available port range"}), 409
 
-        start_port = reserved_ports.start_port
-        end_port = reserved_ports.end_port
-        return jsonify({"range": f"{start_port}:{end_port}"}), 201
+        return PortBindingWithInstanceSchema().dump(reserved_ports), 201
     else:
         reserved_port = reserve_free_port_for_instance(instance)
         if not reserved_port:
