@@ -124,13 +124,18 @@ def reserve_free_port_for_instance(instance):
     return binding
 
 
-def release_port_by_number(port_number):
+def release_port_by_number(port_number, instance_id=None):
     port = Port.query.filter_by(port_number=port_number).first()
     if not port:
         return None, "Port not found"
 
+    binding = PortBinding.query
+
+    if instance_id:
+        binding = binding.filter_by(instance_id=instance_id)
+
     binding = (
-        PortBinding.query.join(
+        binding.join(
             port_binding_ports,
             PortBinding.id == port_binding_ports.c.port_binding_id,
         )
@@ -153,22 +158,26 @@ def release_port_by_number(port_number):
     return binding, None
 
 
-def release_port_range(range_str):
-    try:
-        start_str, end_str = range_str.split(":")
-        start_port = int(start_str)
-        end_port = int(end_str)
-    except ValueError:
-        return None, "Invalid range format. Use START:END (e.g. 3000:3099)"
+def release_port_by_range(start_port, end_port, instance_id=None):
+    if start_port > end_port:
+        return None, "Start port must be less than or equal to end port"
+
+    binding = PortBinding.query
+
+    if instance_id:
+        binding = binding.filter_by(instance_id=instance_id)
 
     binding = (
-        PortBinding.query.filter_by(start_port=start_port, end_port=end_port)
+        binding.filter_by(
+            start_port=start_port,
+            end_port=end_port,
+        )
         .filter(PortBinding.released_at.is_(None))
         .first()
     )
 
     if not binding:
-        return None, f"No active binding found for range {range_str}"
+        return None, f"No active binding found for range {start_port}:{end_port}"
 
     binding.released_at = datetime.now(timezone.utc)
 
@@ -183,21 +192,24 @@ def list_ports_with_bindings(params=None):
     if params is None:
         params = {}
 
-    query = Port.query
+    query = db.session.query(Port)
 
-    is_reserved = bool(params.get("is_reserved"))
+    is_reserved = params.get("is_reserved")
     if is_reserved is not None:
-        query = query.filter(Port.is_reserved == is_reserved)
+        query = query.filter(Port.is_reserved == bool(is_reserved))
 
     instance_id = params.get("instance_id")
     if instance_id is not None:
-        query = query.join(PortBinding).filter(
-            PortBinding.instance_id == instance_id,
-            PortBinding.released_at == None,
+        query = (
+            query.join(port_binding_ports, Port.id == port_binding_ports.c.port_id)
+            .join(PortBinding, PortBinding.id == port_binding_ports.c.port_binding_id)
+            .filter(
+                PortBinding.instance_id == instance_id,
+                PortBinding.released_at.is_(None),
+            )
         )
 
-    ports = query.all()
-    return ports
+    return query.all()
 
 
 def get_or_create_ports(port_numbers):

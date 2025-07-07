@@ -4,6 +4,7 @@ from schemas.port_schema import (
     PortWithBindingInstanceSchema,
     PortBindingWithInstanceSchema,
     PortParamsSchema,
+    PortReleaseSchema,
 )
 from services.port_service import (
     get_instance,
@@ -11,6 +12,7 @@ from services.port_service import (
     reserve_port_range_for_instance,
     release_port_by_number,
     list_ports_with_bindings,
+    release_port_by_range,
 )
 
 ports_bp = Blueprint("ports", __name__)
@@ -41,9 +43,24 @@ def reserve_port():
         return PortBindingWithInstanceSchema().dump(reserved_port), 201
 
 
-@ports_bp.route("/ports/<int:port_number>/release", methods=["POST"])
-def release_port(port_number):
-    instance, error = release_port_by_number(port_number)
+@ports_bp.route("/ports/release", methods=["POST"])
+def release_port_range():
+    data = request.get_json()
+    errors = PortReleaseSchema().validate(data)
+    if errors:
+        return jsonify(errors), 400
+
+    start_port = data.get("start_port")
+    end_port = data.get("end_port")
+    port_number = data.get("port_number")
+    instance_id = data.get("instance_id")
+
+
+    if port_number:
+        instance, error = release_port_by_number(port_number, instance_id)
+    else:
+        instance, error = release_port_by_range(start_port, end_port, instance_id)
+
     if error:
         return jsonify({"error": error}), 404 if "not found" in error else 400
 
@@ -59,19 +76,3 @@ def list_ports():
     ports = list_ports_with_bindings(params)
     return PortWithBindingInstanceSchema(many=True).dump(ports)
 
-
-# @ports_bp.route("/ports/observe", methods=["POST"])
-# def observe_ports():
-#     data = request.get_json()
-#     errors = ObserverRequestSchema().validate(data)
-#     if errors:
-#         return jsonify(errors), 400
-
-#     ports = observe_ports_for_instance(
-#         data["instance_id"],
-#         data["ports"],
-#     )
-#     if ports is None:
-#         return jsonify({"error": "Instance not found"}), 404
-
-#     return PortSchema(many=True).dump(ports)
