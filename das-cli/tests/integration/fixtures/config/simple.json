@@ -1,5 +1,5 @@
 {
-    "schema_hash": "6395085d62e152799ff74955842e23a01ac96a27d70432a0f22f296c1f983cbb",
+    "schema_hash": "87c3ced9b329442eb899aa43c557bfa4bd250aac820f1a2c16820ab5baa80c43",
     "services": {
         "redis": {
             "port": 6379,
