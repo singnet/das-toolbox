@@ -5,7 +5,6 @@
 * A **REST API** that centralizes data about ports and instances.
 * A **CLI** to register instances and manage port allocation.
 * A lightweight **SQLite** database for local and efficient data persistence.
-* An **Agent** that runs periodically to scan active ports on each registered instance.
 
 ---
 
@@ -44,16 +43,6 @@ A command-line interface (`main`) that allows users to:
 * View historical and real-time port data
 * List known instances
 
-### Agent
-
-A lightweight background process that runs **every 5 minutes** on each instance to:
-
-* Detect new ports being listened on
-* Identify ports that are no longer in use
-* Sync this data with the API in real time
-
-This ensures the API always reflects the actual state of each machine without requiring user input.
-
 ### SQLite Database
 
 A local, file-based relational database used by the API to store:
@@ -88,8 +77,14 @@ python cli/src/main.py instance list
 # Reserve a new available port
 python cli/src/main.py port reserve
 
+# Reserve a new range of ports
+python cli/src/main.py port reserve --range 80
+
 # Release a port that is no longer in use
 python cli/src/main.py port release --port 8080
+
+# Release a range of ports that is no longer in use
+python cli/src/main.py port release --range 8000:8080
 
 # View the port usage history
 python cli/src/main.py port history
@@ -100,22 +95,6 @@ To see full CLI options:
 ```bash
 python cli/src/main.py --help
 ```
-
----
-
-## How It Works
-
-### CLI ↔ API Communication
-
-The CLI communicates with the API to perform all operations related to instance and port management.
-
-### Agent Monitoring
-
-The agent runs automatically every **5 minutes**, scanning the system for port usage changes and reporting back to the API:
-
-* Detects **new ports** that start being listened on.
-* Detects **ports that stopped** being listened on.
-* Keeps the database synchronized with real-time activity on each instance.
 
 ---
 

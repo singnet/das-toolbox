@@ -2,8 +2,6 @@
 set -e
 
 echo "Removing services..."
-systemctl stop gk-port-watcher || true
-systemctl disable gk-port-watcher || true
 systemctl stop gk-server || true
 systemctl disable gk-server || true
 

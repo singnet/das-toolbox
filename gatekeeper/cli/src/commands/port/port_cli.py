@@ -1,3 +1,4 @@
+from typing import Optional
 from injector import inject
 from collections import defaultdict
 
@@ -26,8 +27,17 @@ class PortRelease(Command):
             ["--port", "-p"],
             help="",
             type=int,
-            required=True,
-        )
+            required=False,
+        ),
+        CommandOption(
+            ["--range", "-r"],
+            help=(
+                "Release a previously reserved range of ports. Must be in the format START:END, "
+                "as returned by the reserve command. Example: --range 12000:12099."
+            ),
+            type=str,
+            required=False,
+        ),
     ]
 
     @inject
@@ -35,11 +45,37 @@ class PortRelease(Command):
         super().__init__()
         self._port_service = port_service
 
-    def run(self, port: int):
-        try:
-            result = self._port_service.release(port_number=port)
+    def _release_port(self, port: int) -> str:
+        result = self._port_service.release_port(port_number=port)
 
-            port_number = result["port"]["port_number"]
+        return result["start_port"]
+
+    def _release_port_range(self, port_range: str) -> str:
+        start_port, end_port = map(int, port_range.split(":"))
+
+        result = self._port_service.release_port_range(
+            start_port=start_port,
+            end_port=end_port,
+        )
+
+        return f"{result['start_port']}:{result['end_port']}"
+
+    def run(self, port: Optional[int], range: Optional[str]):
+        try:
+            if not port and not range:
+                raise InvalidRequestError(
+                    "You must specify either a port number with --port or a range with --range.",
+                    payload={
+                        "port": port,
+                        "range": range,
+                    },
+                )
+
+            port_number = (
+                self._release_port(port)
+                if port
+                else self._release_port_range(port_range=range)
+            )
 
             self.stdout(
                 port_number,
@@ -64,16 +100,28 @@ class PortReserve(Command):
         "Note: The instance must already be registered using the `instance join` command."
     )
 
+    params = [
+        CommandOption(
+            ["--range"],
+            help="Reserve a range of consecutive ports. The output will be in the format START:END",
+            type=int,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(self, port_service: PortService) -> None:
         super().__init__()
         self._port_service = port_service
 
-    def run(self):
+    def run(self, range: Optional[int]):
         try:
-            result = self._port_service.reserve()
+            result = self._port_service.reserve(range)
 
-            port_number = result["port"]["port_number"]
+            if range:
+                port_number = f"{result['start_port']}:{result['end_port']}"
+            else:
+                port_number = result["start_port"]
 
             self.stdout(
                 port_number,
@@ -97,12 +145,12 @@ class PortHistory(Command):
         "Output includes the port number, release status, and a grouping by instance for clarity.\n\n"
         "Options:\n"
         "  --is-reserved     Show only currently reserved ports (default: True)"
-    ) 
+    )
 
     params = [
         CommandOption(
             ["--is-reserved"],
-            help="",
+            help="Filter to show only currently reserved ports. Defaults to True.",
             type=bool,
             is_flag=True,
             default=True,
@@ -120,13 +168,19 @@ class PortHistory(Command):
         for port in result:
             for bind in port["bindings"]:
                 key = f"{bind['instance']['name']} ({bind['instance']['id'][:12]}...)"
-                status = bind['released_at'] or "IN USE"
-                instance_ports[key].append(f"{port['port_number']} ({status})")
+                status = bind["released_at"] or "IN USE"
+                port_number = (
+                    bind["start_port"]
+                    if bind["start_port"] == bind["end_port"]
+                    else f"{bind['start_port']}:{bind['end_port']}"
+                )
+                instance_ports[key].append(f"{port_number} ({status})")
 
         for instance, ports in instance_ports.items():
             self.stdout(f"{instance}")
             for p in ports:
-                self.stdout(f"  └─ Port: {p}")
+                port_type = "Range" if ":" in p else "Port"
+                self.stdout(f"  └─ {port_type}: {p}")
             self.stdout("\n")
 
     def run(self, is_reserved: bool):

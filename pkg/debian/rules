@@ -25,7 +25,6 @@ override_dh_auto_install:
 	pip3 install -r $(ROOT_DIR)/das-cli/src/requirements.txt
 
 	# Install gatekeeper dependencies
-	pip3 install -r $(ROOT_DIR)/gatekeeper/agent/requirements.txt
 	pip3 install -r $(ROOT_DIR)/gatekeeper/api/requirements.txt
 	pip3 install -r $(ROOT_DIR)/gatekeeper/cli/requirements.txt
 
@@ -34,7 +33,6 @@ override_dh_auto_install:
 		--add-data "$(ROOT_DIR)/das-cli/src/settings/schema.json:settings"
 
 	# Build gatekeeper
-	pyinstaller $(ROOT_DIR)/gatekeeper/agent/src/main.py -y -F -n gk-port-watcher --distpath $(ARTIFACTS_DIR)
 	pyinstaller $(ROOT_DIR)/gatekeeper/api/src/main.py -y -F -n gk-server --distpath $(ARTIFACTS_DIR)
 	pyinstaller $(ROOT_DIR)/gatekeeper/cli/src/main.py -y -F -n gkctl --distpath $(ARTIFACTS_DIR)
 
