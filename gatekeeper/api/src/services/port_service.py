@@ -53,10 +53,10 @@ def reserve_port_range_for_instance(instance, size):
         db.session.query(Port.port_number).order_by(Port.port_number.desc()).first()
     )
     next_port_number = (
-        Config.PORT_RANGE_START if highest_port is None else highest_port[0] + 1
+        Config.PORT_RANGE_ALLOCATION_START if highest_port is None else highest_port[0] + 1
     )
 
-    if next_port_number + size - 1 >= Config.PORT_RANGE_END:
+    if next_port_number + size - 1 >= Config.PORT_RANGE_ALLOCATION_END:
         return None
 
     reserved_ports = []
@@ -100,10 +100,10 @@ def reserve_free_port_for_instance(instance):
             db.session.query(Port.port_number).order_by(Port.port_number.desc()).first()
         )
         next_port_number = (
-            Config.PORT_RANGE_START if highest_port is None else highest_port[0] + 1
+            Config.SINGLE_PORT_ALLOCATION_START if highest_port is None else highest_port[0] + 1
         )
 
-        if next_port_number >= Config.PORT_RANGE_END:
+        if next_port_number >= Config.SINGLE_PORT_ALLOCATION_END:
             return None
 
         free_port = Port(port_number=next_port_number, is_reserved=False)
@@ -211,27 +211,3 @@ def list_ports_with_bindings(params=None):
 
     return query.all()
 
-
-def get_or_create_ports(port_numbers):
-    min_port, max_port = (
-        Config.PORT_RANGE_START,
-        Config.PORT_RANGE_END,
-    )
-    valid_ports = [p for p in port_numbers if min_port <= p <= max_port]
-
-    if not valid_ports:
-        return []
-
-    existing_ports = Port.query.filter(Port.port_number.in_(valid_ports)).all()
-    existing_map = {p.port_number: p for p in existing_ports}
-
-    new_ports = []
-    for port_number in valid_ports:
-        if port_number not in existing_map:
-            new_port = Port(port_number=port_number, is_reserved=False)
-            db.session.add(new_port)
-            new_ports.append(new_port)
-
-    db.session.flush()
-
-    return existing_ports + new_ports
