@@ -6,21 +6,21 @@ on:
     inputs:
       version:
         required: false
-        description: DAS-CLI version
+        description: DAS-TOOLBOX version
         type: string
 
   workflow_call:
     inputs:
       version:
         required: false
-        description: DAS-CLI version
+        description: DAS-TOOLBOX version
         type: string
 
       binary-artifact-name:
         required: false
-        description: Specifies the name of the binary artifact to be generated or used. Default is 'das-cli'.
+        description: Specifies the name of the binary artifact to be generated or used. Default is 'das-toolbox'.
         type: string
-        default: das-cli
+        default: das-toolbox
 
   pull_request:
     types:
@@ -50,41 +50,41 @@ jobs:
         run: make lint
         working-directory: das-cli
 
-  build-das-cli:
+  build-das-toolbox:
     runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build DAS-CLI
+      - name: Build DAS-TOOLBOX
         run: PACKAGE_VERSION=${{github.event.inputs.version || '0.1.0'}} make build
 
       - id: upload-artifact
-        name: Upload das-cli artifact
+        name: Upload das-toolbox artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{github.event.inputs.binary-artifact-name || 'das-cli' }}
+          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox' }}
           path: dist/*
           if-no-files-found: "error"
 
   integration-tests:
     runs-on: self-hosted
-    needs: build-das-cli
+    needs: build-das-toolbox
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Download das-cli artifact
+      - name: Download das-toolbox artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{github.event.inputs.binary-artifact-name || 'das-cli'}}
+          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
           path: dist
 
-      - name: Installing das-cli package
+      - name: Installing das-toolbox package
         run: |-
-          sudo apt -y --autoremove --purge remove das-cli || true
+          sudo apt -y --autoremove --purge remove das-toolbox || true
           sudo apt -y --allow-downgrades install ./$(find . -name *.deb -type f | head -n 1)
 
       - name: Install requirements
