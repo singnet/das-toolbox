@@ -134,7 +134,7 @@ function use_config() {
 function listen_port() {
     local port="$1"
 
-    socat TCP-LISTEN:"$port",fork,reuseaddr - > /dev/null 2>&1 &
+    socat TCP-LISTEN:"$port",fork,reuseaddr - >/dev/null 2>&1 &
     local pid=$!
     disown $pid
 
@@ -146,7 +146,6 @@ function listen_port() {
     fi
 
 }
-
 
 function stop_listen_port() {
     local port="$1"
@@ -162,4 +161,77 @@ function stop_listen_port() {
     for pid in "${pids[@]}"; do
         kill -9 "$pid"
     done
+}
+
+function gkctl_join_and_reserve_ports_range() {
+    local range_arg="${1:-}"
+    local join_cmd="gkctl instance join"
+    local reserve_cmd="gkctl port reserve"
+
+    if [[ "$range_arg" =~ ^--range=([0-9]+)$ ]]; then
+        local port_range_size="${BASH_REMATCH[1]}"
+        join_cmd="gkctl instance join --range=${port_range_size}"
+        reserve_cmd="gkctl port reserve --range=${port_range_size}"
+    fi
+
+    if ! gkctl instance list --current >/dev/null 2>&1; then
+        eval "$join_cmd" || {
+            return 1
+        }
+    fi
+
+    eval "$reserve_cmd"
+}
+
+function gkctl_release_ports_range() {
+    local range_arg="${1:-}"
+    local release_cmd="gkctl port release"
+
+    if [[ "$range_arg" =~ ^--range=([0-9]+:[0-9]+)$ ]]; then
+        local port_range="${BASH_REMATCH[1]}"
+        release_cmd="gkctl port release --range=${port_range}"
+    fi
+
+    if gkctl instance list --current >/dev/null 2>&1; then
+        if ! eval "$release_cmd" >/dev/null 2>&1; then
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+
+function get_port_range() {
+    local fallback_range="12000:13000"
+
+    if command -v gkctl >/dev/null 2>&1; then
+        local reserved_port
+        reserved_port=$(gkctl_join_and_reserve_ports_range --range=1000 | tail -n 1)
+
+        if [[ -n "$reserved_port" ]]; then
+            echo "$reserved_port"
+            return 0
+        fi
+    fi
+
+    echo "$fallback_range"
+}
+
+function release_port_range() {
+   local port_range="${1:-}"
+
+    if [[ -z "$port_range" ]]; then
+        echo "[ERROR] No port range specified. Usage: release_port_range START:END"
+        return 1
+    fi
+
+    if command -v gkctl >/dev/null 2>&1; then
+        if ! gkctl port release --range="$port_range" >/dev/null 2>&1; then
+            echo "[ERROR] Failed to release port range: $port_range"
+            return 1
+        fi
+    fi
+
+    echo $port_range
 }
