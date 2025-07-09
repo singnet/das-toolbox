@@ -15,11 +15,14 @@ docker-build:
 
 build: docker-build
 	@docker run --rm \
-		-e UID=$(shell id -u) \
-		-e GID=$(shell id -g) \
 		-v "$(CURDIR)/dist:/app/das/dist" \
 		-v $(TEMP_DIR):$(TEMP_DIR) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v /etc/passwd:/etc/passwd:ro \
+		-v /etc/group:/etc/group:ro \
+		-v /etc/shadow:/etc/shadow:ro \
+		-v /etc/gshadow:/etc/gshadow:ro \
+		-e USER=$(shell id -u -n) \
 		-e PACKAGE_VERSION=$(PACKAGE_VERSION) \
 		das-toolbox-package:latest
 
