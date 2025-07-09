@@ -8,10 +8,18 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
+    reserved_port_range="$(get_port_range --range=1000)"
+
     das-cli attention-broker start
     das-cli db start
     das-cli query-agent start
-    das-cli link-creation-agent start
+
+
+    das-cli link-creation-agent start \
+        --peer-hostname localhost \
+        --peer-port "$(get_config ".services.query_agent.port")" \
+        --port-range "$reserved_port_range"
+
     das-cli inference-agent stop
 }
 
@@ -21,24 +29,53 @@ teardown() {
     das-cli attention-broker stop
     das-cli query-agent stop
     das-cli db stop
+
+    release_port_range --range="$reserved_port_range"
 }
 
-@test "Trying to start, stop and restart the Inference Agent with unset configuration file" {
-    local cmds=(start stop restart)
 
+@test "Fails to start the Inference Agent when configuration file is not set" {
     unset_config
 
-    for cmd in "${cmds[@]}"; do
-        run das-cli inference-agent $cmd
+    local peer_port="12000"
 
-        assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
-    done
+    run das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
+
+    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+}
+
+@test "Fails to stop the Inference Agent when configuration file is not set" {
+    unset_config
+
+    run das-cli inference-agent stop
+
+    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+}
+
+@test "Fails to restart the Inference Agent when configuration file is not set" {
+    unset_config
+
+    local peer_port="12000"
+
+    run das-cli inference-agent restart \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
+
+    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
 @test "Start Inference Agent when Link Creation Agent is not up" {
     das-cli link-creation-agent stop
 
-    run das-cli inference-agent start
+    run das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
+
     assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'inference-agent start'.
 Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
@@ -56,7 +93,12 @@ Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
     run listen_port "${inference_agent_port}"
     assert_success
 
-    run das-cli inference-agent start
+    run das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
+
+
     assert_output "Starting Inference Agent service...
 [31m[DockerError] Port ${inference_agent_port} is already in use. Please stop the service that is currently using this port.[39m"
 
@@ -70,9 +112,15 @@ Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
 @test "Starting the Inference Agent when it's already up" {
     local inference_agent_port="$(get_config .services.inference_agent.port)"
 
-    das-cli inference-agent start
+    das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
-    run das-cli inference-agent start
+    run das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
     assert_output "Starting Inference Agent service...
 Inference Agent is already running. It's listening on the ports ${inference_agent_port}, 8081, 8083, 8085"
@@ -85,7 +133,10 @@ Inference Agent is already running. It's listening on the ports ${inference_agen
 @test "Starting the Inference Agent" {
     local inference_agent_port="$(get_config .services.inference_agent.port)"
 
-    run das-cli inference-agent start
+    run das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
     assert_output "Starting Inference Agent service...
 Inference Agent started listening on the ports ${inference_agent_port}, 8081, 8083, 8085"
@@ -97,7 +148,10 @@ Inference Agent started listening on the ports ${inference_agent_port}, 8081, 80
 @test "Stopping the Inference Agent when it's up-and-running" {
     local inference_agent_port="$(get_config .services.inference_agent.port)"
 
-    das-cli inference-agent start
+    das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
     run das-cli inference-agent stop
 
@@ -123,9 +177,15 @@ The Inference Agent service named ${inference_agent_container_name} is already s
 @test "Restarting the Inference Agent when it's up-and-running" {
     local inference_agent_port="$(get_config .services.inference_agent.port)"
 
-    das-cli inference-agent start
+    das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
-    run das-cli inference-agent restart
+    run das-cli inference-agent restart \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
     assert_output "Stopping Inference Agent service...
 Inference Agent service stopped
@@ -140,7 +200,10 @@ Inference Agent started listening on the ports ${inference_agent_port}, 8081, 80
     local inference_agent_container_name="$(get_config .services.inference_agent.container_name)"
     local inference_agent_port="$(get_config .services.inference_agent.port)"
 
-    run das-cli inference-agent restart
+    run das-cli inference-agent restart \
+        --peer-hostname localhost \
+        --peer-port "$peer_port" \
+        --port-range "$reserved_port_range"
 
     assert_output "Stopping Inference Agent service...
 The Inference Agent service named ${inference_agent_container_name} is already stopped.

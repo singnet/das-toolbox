@@ -14,7 +14,6 @@ setup() {
     das-cli link-creation-agent stop
 
     reserved_port_range="$(get_port_range --range=1000)"
-    echo $reserved_port_range
 }
 
 teardown() {
