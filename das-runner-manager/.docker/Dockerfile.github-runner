@@ -16,6 +16,7 @@ RUN apt -y update && apt install -y \
   gnupg \
   python3 \
   python3-pip \
+  rsync \
   lsb-release && \
   useradd -m -s /bin/bash ${USER} && \
   echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
