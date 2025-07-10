@@ -170,7 +170,6 @@ function gkctl_join_and_reserve_ports_range() {
 
     if [[ "$range_arg" =~ ^--range=([0-9]+)$ ]]; then
         local port_range_size="${BASH_REMATCH[1]}"
-        join_cmd="gkctl instance join --range=${port_range_size}"
         reserve_cmd="gkctl port reserve --range=${port_range_size}"
     fi
 
