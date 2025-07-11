@@ -125,6 +125,8 @@ class LinkCreationAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
                     "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
                 },
             )
 

@@ -68,6 +68,9 @@ class LinkCreationAgentModule(Module):
         redis_hostname = "localhost"
         redis_cluster = self._settings.get("services.redis.cluster", False)
 
+        attention_broker_hostname = "localhost"
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
         return LinkCreationAgentContainerManager(
             container_name,
             options={
@@ -86,6 +89,8 @@ class LinkCreationAgentModule(Module):
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
+                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_port": attention_broker_port,
             },
         )
 

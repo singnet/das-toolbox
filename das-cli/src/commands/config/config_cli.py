@@ -350,7 +350,9 @@ EXAMPLES
                 default=server_username_default,
             )
 
-            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
+            server_ip_default = (
+                current_nodes[i]["ip"] if i < len(current_nodes) else None
+            )
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
@@ -395,7 +397,9 @@ EXAMPLES
             "services.redis.port": redis_port,
             "services.redis.container_name": f"das-cli-redis-{redis_port}",
             "services.redis.cluster": redis_cluster,
-            "services.redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
+            "services.redis.nodes": lambda: self._redis_nodes(
+                redis_cluster, redis_port
+            ),
         }
 
     def _mongodb_nodes(self, mongodb_cluster, mongodb_port) -> List[Dict]:
@@ -509,7 +513,8 @@ EXAMPLES
         link_creation_agent_buffer_file = self.prompt(
             "Enter the Link Creation Agent buffer file",
             default=self._settings.get(
-                "services.link_creation_agent.buffer_file", "/tmp/requests_buffer.bin"
+                "services.link_creation_agent.buffer_file",
+                "/tmp/requests_buffer.bin",
             ),
             type=AbsolutePath(
                 file_okay=True,
