@@ -1,6 +1,7 @@
 from typing import Dict
 
 import docker
+import os
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -63,6 +64,19 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         return f"{server_address} {peer_address} {port_range} {request_interval} {thread_count} {default_timeout} {buffer_file} {metta_file_path} {save_links_to_metta_file} {save_links_to_db}"
 
+    def _ensure_file_exists(self, path: str) -> None:
+        if os.path.exists(path):
+            if os.path.isfile(path):
+                return
+            else:
+                raise RuntimeError(f"The path '{path}' exists but is not a file.")
+        
+        try:
+            with open(path, "wb") as f:
+                pass
+        except Exception as e:
+            raise RuntimeError(f"Failed to create file '{path}': {e}")
+
     def start_container(
         self,
         peer_hostname: str,
@@ -84,6 +98,9 @@ class LinkCreationAgentContainerManager(ContainerManager):
             pass
 
         buffer_file = self._options.get("link_creation_agent_buffer_file")
+
+        self._ensure_file_exists(buffer_file)
+
         buffer_file_container = "/tmp/requests_buffer.bin"
         metta_file_path_container = "/tmp/metta_files"
 
