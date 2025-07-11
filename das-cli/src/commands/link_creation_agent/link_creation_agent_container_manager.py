@@ -1,7 +1,7 @@
+import os
 from typing import Dict
 
 import docker
-import os
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -70,9 +70,9 @@ class LinkCreationAgentContainerManager(ContainerManager):
                 return
             else:
                 raise RuntimeError(f"The path '{path}' exists but is not a file.")
-        
+
         try:
-            with open(path, "wb") as f:
+            with open(path, "wb") as _:
                 pass
         except Exception as e:
             raise RuntimeError(f"Failed to create file '{path}': {e}")
@@ -97,7 +97,7 @@ class LinkCreationAgentContainerManager(ContainerManager):
         except (DockerContainerNotFoundError, DockerError):
             pass
 
-        buffer_file = self._options.get("link_creation_agent_buffer_file")
+        buffer_file = str(self._options.get("link_creation_agent_buffer_file"))
 
         self._ensure_file_exists(buffer_file)
 
