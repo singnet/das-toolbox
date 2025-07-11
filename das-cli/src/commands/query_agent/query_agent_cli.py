@@ -1,10 +1,14 @@
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.attention_broker.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import Command, CommandGroup, Settings, StdoutSeverity
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
+from common import Command, CommandGroup, Settings, StdoutSeverity, CommandOption
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -73,6 +77,15 @@ EXAMPLES
 class QueryAgentStart(Command):
     name = "start"
 
+    params = [
+        CommandOption(
+            ["--port-range"],
+            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            required=True,
+            type=str,
+        ),
+    ]
+
     short_help = "Start the Query Agent service."
 
     help = """
@@ -82,7 +95,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli query-agent start
+    das-cli query-agent start [--port-range <start:end>]
 
 DESCRIPTION
 
@@ -92,7 +105,7 @@ EXAMPLES
 
     To start the Query Agent service:
 
-        $ das-cli query-agent start
+        $ das-cli query-agent start --port-range 8000:8100
 """
 
     @inject
@@ -111,13 +124,13 @@ EXAMPLES
         self._mongodb_container_manager = mongodb_container_manager
         self._attention_broker_container_manager = attention_broker_container_manager
 
-    def _query_agent(self) -> None:
+    def _query_agent(self, port_range: str) -> None:
         self.stdout("Starting Query Agent service...")
 
         query_agent_port = self._settings.get("services.query_agent.port")
 
         try:
-            self._query_agent_container_manager.start_container()
+            self._query_agent_container_manager.start_container(port_range)
 
             self.stdout(
                 f"Query Agent started on port {query_agent_port}",
@@ -143,15 +156,24 @@ EXAMPLES
         "Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
-    def run(self):
+    def run(self, port_range: str) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._query_agent()
+        self._query_agent(port_range)
 
 
 class QueryAgentRestart(Command):
     name = "restart"
+
+    params = [
+        CommandOption(
+            ["--port-range"],
+            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            required=True,
+            type=str,
+        ),
+    ]
 
     short_help = "Restart the Query Agent service."
 
@@ -162,7 +184,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli query-agent restart
+    das-cli query-agent restart [--port-range <start:end>]
 
 DESCRIPTION
 
@@ -174,21 +196,23 @@ EXAMPLES
 
     To restart the Query Agent service:
 
-        $ das-cli query-agent restart
+        $ das-cli query-agent restart --port-range 8000:8100
 
 """
 
     @inject
     def __init__(
-        self, query_agent_start: QueryAgentStart, query_agent_stop: QueryAgentStop
+        self,
+        query_agent_start: QueryAgentStart,
+        query_agent_stop: QueryAgentStop,
     ) -> None:
         super().__init__()
         self._query_agent_start = query_agent_start
         self._query_agent_stop = query_agent_stop
 
-    def run(self):
+    def run(self, port_range: str):
         self._query_agent_stop.run()
-        self._query_agent_start.run()
+        self._query_agent_start.run(port_range)
 
 
 class QueryAgentCli(CommandGroup):
@@ -229,7 +253,7 @@ EXAMPLES
 
     Start the Query Agent service:
 
-        $ das-cli query-agent start
+        $ das-cli query-agent start --port-range 8000:8100
 
     Stop the Query Agent service:
 
@@ -237,7 +261,7 @@ EXAMPLES
 
     Restart the Query Agent service:
 
-        $ das-cli query-agent restart
+        $ das-cli query-agent restart --port-range 8000:8100
 """
 
     @inject

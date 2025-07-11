@@ -7,7 +7,7 @@ ifdef DAS_CLI_TEST_CLUSTER
 	@bats tests/integration/*.bats --filter-tags 'cluster'
 endif
 
-	@bats tests/integration/test_link_creation_agent.bats --filter-tags '!cluster'
+	@bats tests/integration/*.bats --filter-tags '!cluster'
 
 docker-build-test:
 	@docker build -f Dockerfile.test -t das-cli-runner:latest .

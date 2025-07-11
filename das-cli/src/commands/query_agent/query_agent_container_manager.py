@@ -29,7 +29,12 @@ class QueryAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def start_container(self):
+    def _gen_query_agent_command(self, port_range: str) -> str:
+        query_agent_port = int(self._options.get("query_agent_port", 0))
+
+        return f"{query_agent_port} {port_range}"
+
+    def start_container(self, port_range: str):
         self.raise_running_container()
         self.raise_on_port_in_use([int(self._options.get("query_agent_port", 0))])
 
@@ -39,6 +44,8 @@ class QueryAgentContainerManager(ContainerManager):
             pass
 
         try:
+            exec_command = self._gen_query_agent_command(port_range)
+
             container_id = self._start_container(
                 network_mode="host",
                 restart_policy={
@@ -52,10 +59,14 @@ class QueryAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
                     "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
-                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get(
+                        "attention_broker_hostname"
+                    ),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get(
+                        "attention_broker_port"
+                    ),
                 },
-                command=self._options.get("query_agent_port"),
+                command=exec_command,
             )
 
             return container_id

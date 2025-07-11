@@ -10,7 +10,7 @@ setup() {
 
     das-cli attention-broker start
     das-cli db start
-    das-cli query-agent start
+    das-cli query-agent start --port-range 12000:12100
     das-cli link-creation-agent stop
 }
 
@@ -28,7 +28,7 @@ teardown() {
     run das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$peer_port" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
@@ -49,7 +49,7 @@ teardown() {
     run das-cli link-creation-agent restart \
         --peer-hostname localhost \
         --peer-port "$peer_port" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
@@ -62,7 +62,7 @@ teardown() {
     run das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'link-creation-agent start'.
@@ -84,7 +84,7 @@ Run 'query-agent start' to start the Query Agent.[39m"
     run das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "Starting Link Creation Agent service...
 [31m[DockerError] Port ${link_creation_agent_port} is already in use. Please stop the service that is currently using this port.[39m"
@@ -102,12 +102,12 @@ Run 'query-agent start' to start the Query Agent.[39m"
     das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     run das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "Starting Link Creation Agent service...
 Link Creation Agent is already running. It's listening on the ports ${link_creation_agent_port}"
@@ -123,7 +123,7 @@ Link Creation Agent is already running. It's listening on the ports ${link_creat
     run das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "Starting Link Creation Agent service...
 Link Creation Agent started listening on the ports ${link_creation_agent_port}"
@@ -138,7 +138,7 @@ Link Creation Agent started listening on the ports ${link_creation_agent_port}"
     das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     run das-cli link-creation-agent stop
 
@@ -167,12 +167,12 @@ The Link Creation Agent service named ${link_creation_agent_container_name} is a
     das-cli link-creation-agent start \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     run das-cli link-creation-agent restart \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range "$reserved_port_range"
+        --port-range 12300:12400
 
     assert_output "Stopping Link Creation Agent service...
 Link Creation Agent service stopped
@@ -190,7 +190,7 @@ Link Creation Agent started listening on the ports ${link_creation_agent_port}"
     run das-cli link-creation-agent restart \
         --peer-hostname localhost \
         --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12000:13000
+        --port-range 12300:12400
 
     assert_output "Stopping Link Creation Agent service...
 The Link Creation Agent service named ${link_creation_agent_container_name} is already stopped.
