@@ -134,7 +134,7 @@ function use_config() {
 function listen_port() {
     local port="$1"
 
-    socat TCP-LISTEN:"$port",fork,reuseaddr - > /dev/null 2>&1 &
+    socat TCP-LISTEN:"$port",fork,reuseaddr - >/dev/null 2>&1 &
     local pid=$!
     disown $pid
 
@@ -146,7 +146,6 @@ function listen_port() {
     fi
 
 }
-
 
 function stop_listen_port() {
     local port="$1"

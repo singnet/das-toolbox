@@ -36,13 +36,13 @@ DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
-ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-poc"
+ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-0.10.2"
 
 QUERY_AGENT_IMAGE_NAME = "trueagi/das"
-QUERY_AGENT_IMAGE_VERSION = "query-agent-poc"
+QUERY_AGENT_IMAGE_VERSION = "query-agent-0.10.2"
 
 LINK_CREATION_AGENT_IMAGE_NAME = "trueagi/das"
-LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-poc"
+LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-0.10.2"
 
 INFERENCE_AGENT_IMAGE_NAME = "trueagi/das"
-INFERENCE_AGENT_IMAGE_VERSION = "inference-agent-poc"
+INFERENCE_AGENT_IMAGE_VERSION = "inference-agent-0.10.2"

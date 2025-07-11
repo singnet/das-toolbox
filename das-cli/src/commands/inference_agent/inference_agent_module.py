@@ -38,9 +38,6 @@ class InferenceAgentModule(Module):
     def _inference_agent_container_manager_factory(self) -> InferenceAgentContainerManager:
         container_name = self._settings.get("services.inference_agent.container_name")
 
-        link_creation_agent_server_hostname = "localhost"
-        link_creation_agent_server_port = self._settings.get("services.link_creation_agent.port")
-
         inference_agent_hostname = "localhost"
         inference_agent_port = self._settings.get("services.inference_agent.port")
 
@@ -49,18 +46,6 @@ class InferenceAgentModule(Module):
             options={
                 "inference_agent_hostname": inference_agent_hostname,
                 "inference_agent_port": inference_agent_port,
-                "link_creation_agent_server_hostname": link_creation_agent_server_hostname,
-                "link_creation_agent_server_port": link_creation_agent_server_port,
-                "link_creation_agent_client_hostname": "localhost",
-                "link_creation_agent_client_port": 8081,
-                "das_client_hostname": "localhost",
-                "das_client_port": 8083,
-                "das_server_hostname": "localhost",
-                "das_server_port": 35500,
-                "distributed_inference_control_node_hostname": "localhost",
-                "distributed_inference_control_node_port": 8085,
-                "distributed_inference_control_node_server_hostname": "localhost",
-                "distributed_inference_control_node_server_port": 8086,
             },
         )
 

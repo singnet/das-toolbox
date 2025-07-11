@@ -2,9 +2,7 @@ from time import sleep
 
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import (
-    AttentionBrokerManager,
-)
+from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
@@ -14,9 +12,7 @@ from commands.inference_agent.inference_agent_container_manager import (
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from settings.config import LOG_FILE_NAME
@@ -354,7 +350,8 @@ $ das-cli logs inference-agent
         self._settings = settings
         self._inference_agent_container_manager = inference_agent_container_manager
 
-    @ensure_container_running(["_inference_agent_container_manager"],
+    @ensure_container_running(
+        ["_inference_agent_container_manager"],
         exception_text="Inference agent is not running. Please start it with 'das-cli inference-agent start' before viewing logs.",
         verbose=False,
     )

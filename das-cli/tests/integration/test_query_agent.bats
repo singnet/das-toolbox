@@ -18,16 +18,28 @@ teardown() {
     das-cli attention-broker stop
 }
 
-@test "Trying to start, stop and restart the Query Agent with unset configuration file" {
-    local cmds=(start stop restart)
-
+@test "Fails to start the Query Agent when configuration file is not set" {
     unset_config
 
-    for cmd in "${cmds[@]}"; do
-        run das-cli query-agent $cmd
+    run das-cli query-agent start --port-range 12000:12100
 
-        assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
-    done
+    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+}
+
+@test "Fails to stop the Query Agent when configuration file is not set" {
+    unset_config
+
+    run das-cli query-agent stop
+
+    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+}
+
+@test "Fails to restart the Query Agent when configuration file is not set" {
+    unset_config
+
+    run das-cli query-agent start --port-range 12000:12100
+
+    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
 @test "Start Query Agent when database is not up" {
@@ -35,7 +47,7 @@ teardown() {
 
     das-cli db stop
 
-    run das-cli query-agent start
+    run das-cli query-agent start --port-range 12000:12100
     assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'query-agent start'.
 Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.[39m"
@@ -58,7 +70,7 @@ Run 'db start' to start the databases and 'attention-broker start' to start the 
 
     das-cli attention-broker stop
 
-    run das-cli query-agent start
+    run das-cli query-agent start --port-range 12000:12100
     assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'query-agent start'.
 Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.[39m"
@@ -82,7 +94,7 @@ Run 'db start' to start the databases and 'attention-broker start' to start the 
     run listen_port "${query_agent_port}"
     assert_success
 
-    run das-cli query-agent start
+    run das-cli query-agent start --port-range 12000:12100
     assert_output "Starting Query Agent service...
 [31m[DockerError] 
 Error occurred while trying to start Query Agent on port ${query_agent_port}
@@ -98,9 +110,9 @@ Error occurred while trying to start Query Agent on port ${query_agent_port}
 @test "Starting the Query Agent when it's already up" {
     local query_agent_port="$(get_config .services.query_agent.port)"
 
-    das-cli query-agent start
+    das-cli query-agent start --port-range 12000:12100
 
-    run das-cli query-agent start
+    run das-cli query-agent start --port-range 12000:12100
 
     assert_output "Starting Query Agent service...
 Query Agent is already running. It's listening on port ${query_agent_port}"
@@ -113,7 +125,7 @@ Query Agent is already running. It's listening on port ${query_agent_port}"
 @test "Starting the Query Agent" {
     local query_agent_port="$(get_config .services.query_agent.port)"
 
-    run das-cli query-agent start
+    run das-cli query-agent start --port-range 12000:12100
 
     assert_output "Starting Query Agent service...
 Query Agent started on port ${query_agent_port}"
@@ -125,7 +137,7 @@ Query Agent started on port ${query_agent_port}"
 @test "Stopping the Query Agent when it's up-and-running" {
     local query_agent_port="$(get_config .services.query_agent.port)"
 
-    das-cli query-agent start
+    das-cli query-agent start --port-range 12000:12100
 
     run das-cli query-agent stop
 
@@ -153,9 +165,9 @@ The Query Agent service named ${query_agent_container_name} is already stopped."
 @test "Restarting the Query Agent when it's up-and-running" {
     local query_agent_port="$(get_config .services.query_agent.port)"
 
-    das-cli query-agent start
+    das-cli query-agent start --port-range 12000:12100
 
-    run das-cli query-agent restart
+    run das-cli query-agent restart --port-range 12000:12100
 
     assert_output "Stopping Query Agent service...
 Query Agent service stopped
@@ -171,7 +183,7 @@ Query Agent started on port ${query_agent_port}"
     local query_agent_container_name="$(get_config .services.query_agent.container_name)"
     local query_agent_port="$(get_config .services.query_agent.port)"
 
-    run das-cli query-agent restart
+    run das-cli query-agent restart --port-range 12000:12100
 
     assert_output "Stopping Query Agent service...
 The Query Agent service named ${query_agent_container_name} is already stopped.

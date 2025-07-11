@@ -119,7 +119,7 @@ teardown() {
 @test "Show logs for query agent" {
     das-cli attention-broker start
     das-cli db start
-    das-cli query-agent start
+    das-cli query-agent start --port-range 12000:12100
 
     run timeout 5s das-cli logs query-agent
 
@@ -141,8 +141,11 @@ teardown() {
 @test "Show logs for link creation agent" {
     das-cli attention-broker start
     das-cli db start
-    das-cli query-agent start
-    das-cli link-creation-agent start
+    das-cli query-agent start --port-range 12000:12100
+    das-cli link-creation-agent start \
+        --peer-hostname localhost \
+        --peer-port "$(get_config ".services.query_agent.port")" \
+        --port-range 12300:12400
 
     run timeout 5s das-cli logs link-creation-agent
 
@@ -164,9 +167,18 @@ teardown() {
 @test "Show logs for inference agent" {
     das-cli attention-broker start
     das-cli db start
-    das-cli query-agent start
-    das-cli link-creation-agent start
-    das-cli inference-agent start
+
+    das-cli query-agent start --port-range 12000:12100
+    das-cli link-creation-agent start \
+        --peer-hostname localhost \
+        --peer-port "$(get_config ".services.query_agent.port")" \
+        --port-range 12300:12400
+
+    das-cli inference-agent start \
+        --peer-hostname localhost \
+        --peer-port "$(get_config ".services.query_agent.port")" \
+        --port-range 12500:12600
+
 
     run timeout 5s das-cli logs inference-agent
 

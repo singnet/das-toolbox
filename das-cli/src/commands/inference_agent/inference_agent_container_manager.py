@@ -1,4 +1,3 @@
-import tempfile
 from typing import Dict
 
 import docker
@@ -30,95 +29,55 @@ class InferenceAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _create_temp_config_file(
+    def _gen_inference_command(
         self,
-        inference_agent_hostname: str,
-        inference_agent_port: int,
-        link_creation_agent_client_hostname: str,
-        link_creation_agent_client_port: int,
-        link_creation_agent_server_hostname: str,
-        link_creation_agent_server_port: int,
-        das_client_hostname: str,
-        das_client_port: int,
-        das_server_hostname: str,
-        das_server_port: int,
-        distributed_inference_control_node_hostname: str,
-        distributed_inference_control_node_port: int,
-        distributed_inference_control_node_server_hostname: str,
-        distributed_inference_control_node_server_port: int,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
     ) -> str:
-        config_data = f"""
-inference_node_id = {inference_agent_hostname}:{inference_agent_port}
-link_creation_agent_client_id = {link_creation_agent_client_hostname}:{link_creation_agent_client_port}
-link_creation_agent_server_id = {link_creation_agent_server_hostname}:{link_creation_agent_server_port}
-das_client_id = {das_client_hostname}:{das_client_port}
-das_server_id = {das_server_hostname}:{das_server_port}
-distributed_inference_control_node_id = {distributed_inference_control_node_hostname}:{distributed_inference_control_node_port}
-distributed_inference_control_node_server_id = {distributed_inference_control_node_server_hostname}:{distributed_inference_control_node_server_port}
-"""
-        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".conf") as temp_file:
-            temp_file.write(config_data)
-            return temp_file.name
+        inference_agent_hostname = str(self._options.get("inference_agent_hostname", ""))
+        inference_agent_port = int(self._options.get("inference_agent_port", 0))
 
-    def get_ports_in_use(self):
-        return [
-            self._options.get('inference_agent_port'),
-            self._options.get('link_creation_agent_client_port'),
-            self._options.get('das_client_port'),
-            self._options.get('distributed_inference_control_node_port'),
-        ]
+        server_address = f"{inference_agent_hostname}:{inference_agent_port}"
+        peer_address = f"{peer_hostname}:{peer_port}"
 
-    def start_container(self):
+        return f"{server_address} {peer_address} {port_range}"
+
+    def _get_port_range(self, port_range: str) -> list[int]:
+        if not port_range or ":" not in port_range:
+            raise ValueError("Invalid port range format. Expected 'start:end'.")
+
+        start_port, end_port = map(int, port_range.split(":"))
+        if start_port >= end_port:
+            raise ValueError("Invalid port range. Start port must be less than end port.")
+
+        return list(range(start_port, end_port + 1))
+
+    def start_container(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+    ):
         self.raise_running_container()
-        self.raise_on_port_in_use(self.get_ports_in_use())
+        self.raise_on_port_in_use(
+            [
+                self._options.get("inference_agent_port"),
+                *self._get_port_range(port_range),
+            ]
+        )
 
         try:
             self.stop()
         except (DockerContainerNotFoundError, DockerError):
             pass
 
-        config_file_path = self._create_temp_config_file(
-            inference_agent_hostname=str(self._options.get('inference_agent_hostname', '')),
-            inference_agent_port=int(self._options.get('inference_agent_port', 0)),
-            link_creation_agent_client_hostname=str(
-                self._options.get('link_creation_agent_client_hostname', '')
-            ),
-            link_creation_agent_client_port=int(
-                self._options.get('link_creation_agent_client_port', 0)
-            ),
-            link_creation_agent_server_hostname=str(
-                self._options.get('link_creation_agent_server_hostname', '')
-            ),
-            link_creation_agent_server_port=int(
-                self._options.get('link_creation_agent_server_port', 0)
-            ),
-            das_client_hostname=str(self._options.get('das_client_hostname', '')),
-            das_client_port=int(self._options.get('das_client_port', 0)),
-            das_server_hostname=str(self._options.get('das_server_hostname', '')),
-            das_server_port=int(self._options.get('das_server_port', 0)),
-            distributed_inference_control_node_hostname=str(
-                self._options.get('distributed_inference_control_node_hostname', '')
-            ),
-            distributed_inference_control_node_port=int(
-                self._options.get('distributed_inference_control_node_port', 0)
-            ),
-            distributed_inference_control_node_server_hostname=str(
-                self._options.get('distributed_inference_control_node_server_hostname', '')
-            ),
-            distributed_inference_control_node_server_port=int(
-                self._options.get('distributed_inference_control_node_server_port', 0)
-            ),
-        )
-
         try:
-            volumes = {
-                config_file_path: {
-                    "bind": config_file_path,
-                    "mode": "ro",
-                }
-            }
-
-            exec_command = f"--config_file {config_file_path}"
+            exec_command = self._gen_inference_command(
+                peer_hostname,
+                peer_port,
+                port_range,
+            )
 
             container_id = self._start_container(
                 network_mode="host",
@@ -127,7 +86,6 @@ distributed_inference_control_node_server_id = {distributed_inference_control_no
                     "MaximumRetryCount": 5,
                 },
                 command=exec_command,
-                volumes=volumes,
                 stdin_open=True,
                 tty=True,
             )
