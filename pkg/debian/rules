@@ -5,7 +5,8 @@ DEB_SOURCE := das-toolbox
 ARTIFACTS_DIR := $(ROOT_DIR)/dist
 USR_BIN_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/bin
 USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib
-COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/das-cli/completion
+BASH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/etc/bash_completion.d
+ZSH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/zsh/site-functions
 TEMP_DIR := $(shell mktemp -d)
 
 ifeq ($(PACKAGE_VERSION),)
@@ -50,6 +51,6 @@ build_man_pages:
 
 build_autocomplete:
 	@echo "Generating autocompletion scripts..."
-	mkdir -p $(COMPLETION_DIR)
-	_DAS_CLI_COMPLETE=bash_source $(ARTIFACTS_DIR)/das-cli > $(COMPLETION_DIR)/das-cli.bash
-	_DAS_CLI_COMPLETE=zsh_source $(ARTIFACTS_DIR)/das-cli > $(COMPLETION_DIR)/_das-cli
+	mkdir -p $(BASH_COMPLETION_DIR) $(ZSH_COMPLETION_DIR)
+	_DAS_CLI_COMPLETE=bash_source $(ARTIFACTS_DIR)/das-cli > $(BASH_COMPLETION_DIR)/das-cli.bash
+	_DAS_CLI_COMPLETE=zsh_source $(ARTIFACTS_DIR)/das-cli > $(ZSH_COMPLETION_DIR)/_das-cli
