@@ -7,7 +7,7 @@ Standards-Version: 4.5.0
 
 Package: das-toolbox
 Architecture: any
-Depends: docker.io | docker-ce, ${misc:Depends}, ${shlibs:Depends}
+Depends: docker.io | docker-ce, bash-completion, ${misc:Depends}, ${shlibs:Depends}
 Description: |
  This CLI provides a unified set of tools to manage the DAS ecosystem.
  This package bundles the das-cli, gatekeeper tools and the dynamic library das.os.
