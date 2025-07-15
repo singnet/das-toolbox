@@ -546,10 +546,10 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                faas_start.command,
-                faas_stop.command,
-                faas_restart.command,
-                faas_version.command,
-                faas_update_version.command,
+                faas_start,
+                faas_stop,
+                faas_restart,
+                faas_version,
+                faas_update_version,
             ]
         )

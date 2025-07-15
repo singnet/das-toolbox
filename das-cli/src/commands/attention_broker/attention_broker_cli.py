@@ -232,8 +232,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                attention_broker_start.command,
-                attention_broker_stop.command,
-                attention_broker_restart.command,
+                attention_broker_start,
+                attention_broker_stop,
+                attention_broker_restart,
             ]
         )

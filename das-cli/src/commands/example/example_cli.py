@@ -146,7 +146,7 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                example_local.command,
-                example_faas.command,
+                example_local,
+                example_faas,
             ]
         )

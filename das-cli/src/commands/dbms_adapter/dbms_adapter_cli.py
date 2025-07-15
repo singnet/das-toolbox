@@ -56,13 +56,13 @@ EXAMPLES
     @inject
     def __init__(
         self,
-        das_peer_cli: DasPeerCli,
+        das_peer: DasPeerCli,
         dbms_peer: DbmsPeerCli,
     ) -> None:
         super().__init__()
-        self.add_commands(
+        self.add_groups(
             [
-                das_peer_cli.group,
-                dbms_peer.group,
+                das_peer,
+                dbms_peer,
             ]
         )

@@ -330,8 +330,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                link_creation_agent_start.command,
-                link_creation_agent_stop.command,
-                link_creation_agent_restart.command,
+                link_creation_agent_start,
+                link_creation_agent_stop,
+                link_creation_agent_restart,
             ]
         )

@@ -256,7 +256,7 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                metta_load.command,
-                metta_check.command,
+                metta_load,
+                metta_check,
             ]
         )

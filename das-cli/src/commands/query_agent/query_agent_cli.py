@@ -270,8 +270,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                query_agent_start.command,
-                query_agent_stop.command,
-                query_agent_restart.command,
+                query_agent_start,
+                query_agent_stop,
+                query_agent_restart,
             ]
         )

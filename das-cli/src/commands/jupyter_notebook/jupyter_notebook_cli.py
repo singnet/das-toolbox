@@ -274,8 +274,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                jupyter_notebook_start.command,
-                jupyter_notebook_stop.command,
-                jupyter_notebook_restart.command,
+                jupyter_notebook_start,
+                jupyter_notebook_stop,
+                jupyter_notebook_restart,
             ]
         )

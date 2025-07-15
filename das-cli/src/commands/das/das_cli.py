@@ -177,7 +177,7 @@ Run command remotely using password:
         self.version()
         self.add_commands(
             [
-                das_cli_update_version.command,
+                das_cli_update_version,
             ]
         )
 

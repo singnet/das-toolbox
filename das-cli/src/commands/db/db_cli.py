@@ -486,9 +486,9 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                db_start.command,
-                db_stop.command,
-                db_restart.command,
-                db_count_atoms.command,
+                db_start,
+                db_stop,
+                db_restart,
+                db_count_atoms,
             ]
         )

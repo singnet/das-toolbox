@@ -710,7 +710,7 @@ USAGE
 
         self.add_commands(
             [
-                configSet.command,
-                configList.command,
+                configSet,
+                configList,
             ]
         )

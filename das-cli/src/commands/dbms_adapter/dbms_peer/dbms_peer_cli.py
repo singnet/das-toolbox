@@ -229,6 +229,6 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                dbms_peer_run.command,
+                dbms_peer_run,
             ]
         )
