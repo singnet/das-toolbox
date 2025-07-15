@@ -283,6 +283,8 @@ EXAMPLES
 class LinkCreationAgentCli(CommandGroup):
     name = "link-creation-agent"
 
+    aliases = ["lca"]
+
     short_help = "Manage the Link Creation Agent service."
 
     help = """

@@ -227,6 +227,8 @@ EXAMPLES
 class JupyterNotebookCli(CommandGroup):
     name = "jupyter-notebook"
 
+    aliases = ["jnb"]
+
     short_help = "Manage Jupyter Notebook."
 
     help = """

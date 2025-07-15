@@ -457,6 +457,8 @@ EXAMPLES
 class FaaSCli(CommandGroup):
     name = "faas"
 
+    aliases = ["fs"]
+
     short_help = "Manage OpenFaaS services."
 
     help = """

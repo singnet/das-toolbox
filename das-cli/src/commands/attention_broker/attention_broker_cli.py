@@ -182,6 +182,8 @@ EXAMPLES
 class AttentionBrokerCli(CommandGroup):
     name = "attention-broker"
 
+    aliases = ["ab"]
+
     short_help = "Control the lifecycle of the Attention Broker service."
 
     help = """

@@ -10,6 +10,8 @@ from .release_notes_package import Library, ReleaseNotesPackage
 class ReleaseNotesCli(CommandGroup):
     name = "release-notes"
 
+    aliases = ["rn"]
+
     short_help = "Display available release notes."
 
     help = """

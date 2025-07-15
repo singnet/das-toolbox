@@ -253,6 +253,8 @@ EXAMPLES
 class InferenceAgentCli(CommandGroup):
     name = "inference-agent"
 
+    aliases = ["inf"]
+
     short_help = "Manage the Inference Agent service."
 
     help = """

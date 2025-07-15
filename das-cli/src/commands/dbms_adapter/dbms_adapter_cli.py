@@ -9,7 +9,9 @@ from .dbms_peer.dbms_peer_cli import DbmsPeerCli
 class DbmsAdapterCli(CommandGroup):
     name = "dbms-adapter"
 
-    short_help = "Groups DBMS and DAS peer server commands for easier management."
+    aliases = ["dbms"]
+
+    short_help = "Groups DBMS and DAS peer server commands for easier management." 
 
     help = """
 NAME

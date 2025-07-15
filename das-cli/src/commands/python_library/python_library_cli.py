@@ -333,6 +333,8 @@ EXAMPLES
 class PythonLibraryCli(CommandGroup):
     name = "python-library"
 
+    aliases = ["pylib"]
+
     short_help = "Manage versions of Python libraries."
 
     help = """

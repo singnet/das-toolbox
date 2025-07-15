@@ -429,7 +429,9 @@ $ das-cli db restart
 
 
 class DbCli(CommandGroup):
-    name = "db"
+    name = "database"
+
+    aliases = ["db"]
 
     short_help = "Manage db-related operations."
 

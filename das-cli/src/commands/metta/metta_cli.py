@@ -220,6 +220,8 @@ EXAMPLES
 class MettaCli(CommandGroup):
     name = "metta"
 
+    aliases = ["mt"]
+
     short_help = "Manage operations related to the loading of MeTTa files."
 
     help = """

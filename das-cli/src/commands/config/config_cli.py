@@ -618,6 +618,8 @@ EXAMPLES
 class ConfigList(Command):
     name = "list"
 
+    aliases = ["ls"]
+
     short_help = "Display all current configuration values used by the DAS CLI."
 
     help = """
@@ -660,6 +662,8 @@ EXAMPLES
 
 class ConfigCli(CommandGroup):
     name = "config"
+
+    aliases = ["cfg"]
 
     help = """
 NAME
