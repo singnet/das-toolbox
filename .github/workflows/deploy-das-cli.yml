@@ -74,4 +74,4 @@ jobs:
 
       - name: Copy files to server
         run: |
-          scp -r packages/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ vars.SERVER_DEB_PACKAGES_PATH }}
+          scp -r packages/*.deb ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ vars.SERVER_DEB_PACKAGES_PATH }}
