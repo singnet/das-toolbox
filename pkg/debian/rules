@@ -5,6 +5,8 @@ DEB_SOURCE := das-toolbox
 ARTIFACTS_DIR := $(ROOT_DIR)/dist
 USR_BIN_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/bin
 USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib
+BASH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/etc/bash_completion.d
+ZSH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/zsh/site-functions
 TEMP_DIR := $(shell mktemp -d)
 
 ifeq ($(PACKAGE_VERSION),)
@@ -14,7 +16,7 @@ endif
 %:
 	dh $@
 
-override_dh_builddeb: build_man_pages
+override_dh_builddeb: build_man_pages build_autocomplete
 	dh_builddeb
 	cp ../*.deb $(ARTIFACTS_DIR)
 
@@ -46,3 +48,9 @@ build_man_pages:
 		gzip -c $$file > $$file.gz; \
 		rm $$file; \
 	done
+
+build_autocomplete:
+	@echo "Generating autocompletion scripts..."
+	mkdir -p $(BASH_COMPLETION_DIR) $(ZSH_COMPLETION_DIR)
+	_DAS_CLI_COMPLETE=bash_source $(ARTIFACTS_DIR)/das-cli > $(BASH_COMPLETION_DIR)/das-cli.bash
+	_DAS_CLI_COMPLETE=zsh_source $(ARTIFACTS_DIR)/das-cli > $(ZSH_COMPLETION_DIR)/_das-cli
