@@ -1,5 +1,5 @@
 ---
-name: DAS CLI Deployment
+name: DAS TOOLBOX Deployment
 
 on:
   workflow_dispatch:
@@ -9,34 +9,34 @@ on:
         required: true
 
 jobs:
-  build-jupyter-notebook:
-    runs-on: self-hosted
-    if: github.ref == 'refs/heads/master'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # build-jupyter-notebook:
+  #   runs-on: self-hosted
+  #   if: github.ref == 'refs/heads/master'
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Login to DockerHub
-        if: success()
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: Login to DockerHub
+  #       if: success()
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4
-        with:
-          context: das-cli
-          file: das-cli/.docker/Dockerfile.jupyter-notebook
-          push: true
-          tags: trueagi/das:latest-jupyter-notebook
+  #     - name: Build and Push Docker Image
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         context: das-cli
+  #         file: das-cli/.docker/Dockerfile.jupyter-notebook
+  #         push: true
+  #         tags: trueagi/das:latest-jupyter-notebook
 
   build-with-code-quality:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/run-das-cli-tests.yml
     with:
       version: ${{github.event.inputs.version}}
-      binary-artifact-name: das-cli
+      binary-artifact-name: das-toolbox
 
   tag:
     needs: build-with-code-quality
@@ -50,11 +50,11 @@ jobs:
       main-branch: master
       version-tag-regex-pattern: /^\d+\.\d+\.\d+$/
       version-require-confirmation: "true"
-      title: New version of das-cli
-      deliverable: Debian package named das-cli
+      title: New version of das-toolbox
+      deliverable: Debian package named das-toolbox
     secrets: inherit
 
-  deploy-das-cli:
+  deploy-das-toolbox:
     runs-on: self-hosted
     if: github.ref == 'refs/heads/master'
     needs: build-with-code-quality
@@ -66,10 +66,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Download das-cli artifact
+      - name: Download das-toolbox artifact
         uses: actions/download-artifact@v4
         with:
-          name: das-cli
+          name: das-toolbox 
           path: packages
 
       - name: Copy files to server
