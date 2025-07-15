@@ -41,6 +41,9 @@ def init_module(cli, module):
     instance = container.get(m.get_instance())
     cli.add_command(instance.group)
 
+    for alias in getattr(instance, "aliases", []):
+        cli.add_command(instance.group, name=alias)
+
 
 def init_modules(cli):
     try:
