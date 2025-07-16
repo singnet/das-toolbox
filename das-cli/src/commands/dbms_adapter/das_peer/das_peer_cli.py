@@ -195,7 +195,7 @@ EXAMPLES
 class DasPeerCli(CommandGroup):
     name = "das-peer"
 
-    aliases = ["dsp"]
+    aliases = ["dsp", "dasp", "daspeer"]
 
     short_help = "Manage DAS peer server operations."
 

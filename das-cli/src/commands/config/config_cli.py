@@ -663,7 +663,7 @@ EXAMPLES
 class ConfigCli(CommandGroup):
     name = "config"
 
-    aliases = ["cfg"]
+    aliases = ["cfg", "conf"]
 
     help = """
 NAME

@@ -365,8 +365,6 @@ $ das-cli logs inference-agent
 class LogsCli(CommandGroup):
     name = "logs"
 
-    aliases = ["lg"]
-
     short_help = "Manage container logs."
 
     help = """

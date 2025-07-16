@@ -214,7 +214,7 @@ EXAMPLES
 class QueryAgentCli(CommandGroup):
     name = "query-agent"
 
-    aliases = ["qa"]
+    aliases = ["qa", "query"]
 
     short_help = "Manage the Query Agent service."
 

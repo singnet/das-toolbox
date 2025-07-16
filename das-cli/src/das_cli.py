@@ -6,7 +6,6 @@ from commands.das import DasModule
 from commands.db import DbModule
 from commands.dbms_adapter import DbmsAdapterModule
 from commands.example import ExampleModule
-from commands.faas import FaaSModule
 from commands.inference_agent import InferenceAgentModule
 from commands.jupyter_notebook import JupyterNotebookModule
 from commands.link_creation_agent import LinkCreationAgentModule
@@ -21,7 +20,6 @@ MODULES = [
     ConfigModule,
     ExampleModule,
     DbModule,
-    FaaSModule,
     JupyterNotebookModule,
     LogsModule,
     MettaModule,

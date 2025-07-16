@@ -182,7 +182,7 @@ EXAMPLES
 class DbmsPeerCli(CommandGroup):
     name = "dbms-peer"
 
-    aliases = ["dbp"]
+    aliases = ["dbp", "dbpeer", "dbmspeer"]
 
     short_help = "Manage DBMS peer client operations."
 
