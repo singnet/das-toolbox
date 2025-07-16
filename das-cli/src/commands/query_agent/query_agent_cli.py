@@ -77,7 +77,7 @@ class QueryAgentStart(Command):
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            required=True,
+            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
         ),
     ]
@@ -166,7 +166,7 @@ class QueryAgentRestart(Command):
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            required=True,
+            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
         ),
     ]

@@ -66,34 +66,32 @@ EXAMPLES
             ["--client-hostname"],
             help="Specifies the hostname of the client database.",
             type=str,
-            required=True,
+            prompt="Enter client database hostname (e.g., localhost)",
         ),
         CommandOption(
             ["--client-port"],
             help="Defines the port number of the client database.",
             type=int,
-            required=True,
+            prompt="Enter client database port (e.g., 5432)",
         ),
         CommandOption(
             ["--client-username"],
             help="The username for authenticating to the client database.",
             type=str,
-            required=True,
+            prompt="Enter client database username",
         ),
         CommandOption(
             ["--client-password"],
             help="The password for authenticating to the client database.",
             type=str,
-            prompt=True,
             hide_input=True,
-            required=True,
+            prompt="Enter client database password",
         ),
         CommandOption(
             ["--client-database"],
             help="Specifies the database name; defaults to 'postgres'.",
             type=str,
             default="postgres",
-            required=False,
         ),
         CommandOption(
             ["--context"],
@@ -104,7 +102,7 @@ EXAMPLES
                 exists=True,
                 readable=True,
             ),
-            required=True,
+            prompt="Enter path to DBMS peer client config file",
         ),
     ]
 
