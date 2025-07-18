@@ -76,19 +76,19 @@ class InferenceAgentStart(Command):
         CommandOption(
             ["--peer-hostname"],
             help="The address of the peer to connect to.",
-            required=True,
+            prompt="Enter peer hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            required=True,
+            prompt="Enter peer port (e.g., 8080)",
             type=int,
         ),
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            required=True,
+            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
         ),
     ]
@@ -186,19 +186,19 @@ class InferenceAgentRestart(Command):
         CommandOption(
             ["--peer-hostname"],
             help="The address of the peer to connect to.",
-            required=True,
+            prompt="Enter peer hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            required=True,
+            prompt="Enter peer port (e.g., 8080)",
             type=int,
         ),
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            required=True,
+            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
         ),
     ]

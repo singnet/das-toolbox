@@ -66,7 +66,6 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
         CommandOption(
             ["--version", "-v"],
             help="Specify the version of the package (format: x.x.x).",
-            required=False,
             type=str,
             default=None,
         )

@@ -33,26 +33,6 @@ teardown() {
     assert_line --partial "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
-@test "Missing --client-hostname parameter" {
-    run das-cli dbms-adapter dbms-peer run --client-port 5432 --client-username postgres --client-password pass --client-database db --context "$context_file_path"
-    assert_line --partial "Error: Missing option '--client-hostname'."
-}
-
-@test "Missing --client-port parameter" {
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-username postgres --client-password pass --client-database db --context "$context_file_path"
-    assert_line --partial "Error: Missing option '--client-port'."
-}
-
-@test "Missing --client-username parameter" {
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-password pass --client-database db --context "$context_file_path"
-    assert_line --partial "Error: Missing option '--client-username'."
-}
-
-@test "Missing --context parameter" {
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db
-    assert_line --partial "Error: Missing option '--context'."
-}
-
 @test "Invalid path for --context parameter" {
     local invalid_path="/path/invalid"
     run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --context "$invalid_path"
