@@ -5,18 +5,23 @@ import click
 import distro
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    StdoutSeverity,
+    is_executable_bin,
+)
 from settings.config import VERSION
 
 from .das_ubuntu_advanced_packaging_tool import (
-    DasError,
+    DasPackageUpdateError,
     DasNotFoundError,
     DasUbuntuAdvancedPackagingTool,
 )
 
 
-class PermissionError(Exception):
-    ...  # noqa: E701
+class PermissionError(Exception): ...  # noqa: E701
 
 
 class DasCliUpdateVersion(Command):
@@ -105,10 +110,10 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
         try:
             self.stdout(f"Updating the package {self.package_name}...")
             newer_version = self._das_ubuntu_apt_tool.install_package(version)
-        except Exception:
-            raise DasError(
-                f"The {self.package_name} could not be updated. Please check if the specified version exists."
-            )
+        except Exception as e:
+            raise DasPackageUpdateError(
+                f"The package '{self.package_name}' could not be updated. Reason: {str(e)}"
+            ) from e
 
         if current_version != newer_version:
             self.stdout(
