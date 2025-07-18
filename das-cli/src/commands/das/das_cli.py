@@ -64,7 +64,7 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
     def __init__(self) -> None:
         super().__init__()
         self.package_dir = sys.executable
-        self.package_name = os.path.basename(self.package_dir)
+        self.package_name = "das-toolbox"
         self._das_ubuntu_apt_tool = DasUbuntuAdvancedPackagingTool(self.package_name)
 
     params = [
