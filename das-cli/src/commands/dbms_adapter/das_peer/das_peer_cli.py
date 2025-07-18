@@ -195,6 +195,8 @@ EXAMPLES
 class DasPeerCli(CommandGroup):
     name = "das-peer"
 
+    aliases = ["dsp", "dasp", "daspeer"]
+
     short_help = "Manage DAS peer server operations."
 
     help = """
@@ -245,8 +247,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                das_peer_start.command,
-                das_peer_stop.command,
-                das_peer_restart.command,
+                das_peer_start,
+                das_peer_stop,
+                das_peer_restart,
             ]
         )

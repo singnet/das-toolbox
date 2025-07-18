@@ -180,6 +180,8 @@ EXAMPLES
 class DbmsPeerCli(CommandGroup):
     name = "dbms-peer"
 
+    aliases = ["dbp", "dbpeer", "dbmspeer"]
+
     short_help = "Manage DBMS peer client operations."
 
     help = """
@@ -227,6 +229,6 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                dbms_peer_run.command,
+                dbms_peer_run,
             ]
         )

@@ -422,13 +422,13 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                logs_das.command,
-                logs_faas.command,
-                logs_mongodb.command,
-                logs_redis.command,
-                logs_attention_broker.command,
-                logs_query_agent.command,
-                logs_link_creation_agent.command,
-                logs_inference_agent.command,
+                logs_das,
+                logs_faas,
+                logs_mongodb,
+                logs_redis,
+                logs_attention_broker,
+                logs_query_agent,
+                logs_link_creation_agent,
+                logs_inference_agent,
             ]
         )

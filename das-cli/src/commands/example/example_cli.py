@@ -104,6 +104,8 @@ EXAMPLES
 class ExampleCli(CommandGroup):
     name = "example"
 
+    aliases = ["ex"]
+
     short_help = "'das-cli example' offers a step-by-step guide for using DAS."
 
     help = """
@@ -146,7 +148,7 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                example_local.command,
-                example_faas.command,
+                example_local,
+                example_faas,
             ]
         )

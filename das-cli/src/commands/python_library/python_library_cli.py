@@ -333,6 +333,8 @@ EXAMPLES
 class PythonLibraryCli(CommandGroup):
     name = "python-library"
 
+    aliases = ["pylib"]
+
     short_help = "Manage versions of Python libraries."
 
     help = """
@@ -386,9 +388,9 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                python_library_list.command,
-                python_library_set.command,
-                python_library_update.command,
-                python_library_version.command,
+                python_library_list,
+                python_library_set,
+                python_library_update,
+                python_library_version,
             ]
         )

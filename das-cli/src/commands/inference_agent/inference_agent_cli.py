@@ -253,6 +253,8 @@ EXAMPLES
 class InferenceAgentCli(CommandGroup):
     name = "inference-agent"
 
+    aliases = ["inference"]
+
     short_help = "Manage the Inference Agent service."
 
     help = """
@@ -299,8 +301,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                inference_agent_start.command,
-                inference_agent_stop.command,
-                inference_agent_restart.command,
+                inference_agent_start,
+                inference_agent_stop,
+                inference_agent_restart,
             ]
         )

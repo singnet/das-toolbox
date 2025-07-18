@@ -36,6 +36,7 @@ class Command:
     help = ""
     short_help = ""
     params: List = []
+    aliases: List[str] = []
     remote_params = [
         CommandOption(
             ["--remote"],
@@ -232,9 +233,22 @@ class CommandGroup(Command):
         self.group.callback = self.safe_run
         self.group.no_args_is_help = False
 
-    def add_commands(self, commands: list):
+    def add_groups(self, groups: list["CommandGroup"]):
+        for group_instance in groups:
+            self.group.add_command(
+                group_instance.group,
+                name=group_instance.name,
+            )
+
+            for alias in getattr(group_instance, "aliases", []):
+                self.group.add_command(group_instance.group, name=alias)
+
+    def add_commands(self, commands: List[Command]):
         for command in commands:
-            self.group.add_command(command)
+            self.group.add_command(command.command)
+
+            for alias in getattr(command, "aliases", []):
+                self.group.add_command(command.command, name=alias)
 
     def configure_params(self):
         for param in self.params:

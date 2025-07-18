@@ -182,6 +182,8 @@ EXAMPLES
 class AttentionBrokerCli(CommandGroup):
     name = "attention-broker"
 
+    aliases = ["ab"]
+
     short_help = "Control the lifecycle of the Attention Broker service."
 
     help = """
@@ -232,8 +234,8 @@ EXAMPLES
         super().__init__()
         self.add_commands(
             [
-                attention_broker_start.command,
-                attention_broker_stop.command,
-                attention_broker_restart.command,
+                attention_broker_start,
+                attention_broker_stop,
+                attention_broker_restart,
             ]
         )
