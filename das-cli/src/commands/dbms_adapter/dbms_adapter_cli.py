@@ -11,7 +11,7 @@ class DbmsAdapterCli(CommandGroup):
 
     aliases = ["dbms"]
 
-    short_help = "Groups DBMS and DAS peer server commands for easier management." 
+    short_help = "Groups DBMS and DAS peer server commands for easier management."
 
     help = """
 NAME

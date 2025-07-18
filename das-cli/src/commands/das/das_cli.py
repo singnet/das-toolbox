@@ -9,8 +9,8 @@ from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_exec
 from settings.config import VERSION
 
 from .das_ubuntu_advanced_packaging_tool import (
-    DasError,
     DasNotFoundError,
+    DasPackageUpdateError,
     DasUbuntuAdvancedPackagingTool,
 )
 
@@ -56,11 +56,10 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
 """
 
     @inject
-    def __init__(self) -> None:
+    def __init__(self, das_ubuntu_advanced_packaging_tool: DasUbuntuAdvancedPackagingTool) -> None:
         super().__init__()
         self.package_dir = sys.executable
-        self.package_name = os.path.basename(self.package_dir)
-        self._das_ubuntu_apt_tool = DasUbuntuAdvancedPackagingTool(self.package_name)
+        self._das_ubuntu_advanced_packaging_tool = das_ubuntu_advanced_packaging_tool
 
     params = [
         CommandOption(
@@ -95,20 +94,22 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
             os.X_OK,
         )
 
-        current_version = self._das_ubuntu_apt_tool.get_package_version()
+        current_version = self._das_ubuntu_advanced_packaging_tool.get_package_version()
 
         if not is_binary and not current_version:
             raise DasNotFoundError(
-                f"The package {self.package_name} can only be updated if you installed it via apt."
+                f"The package {self._das_ubuntu_advanced_packaging_tool.package_name} can only be updated if you installed it via apt."
             )
 
         try:
-            self.stdout(f"Updating the package {self.package_name}...")
-            newer_version = self._das_ubuntu_apt_tool.install_package(version)
-        except Exception:
-            raise DasError(
-                f"The {self.package_name} could not be updated. Please check if the specified version exists."
+            self.stdout(
+                f"Updating the package {self._das_ubuntu_advanced_packaging_tool.package_name}..."
             )
+            newer_version = self._das_ubuntu_advanced_packaging_tool.install_package(version)
+        except Exception as e:
+            raise DasPackageUpdateError(
+                f"The package '{self._das_ubuntu_advanced_packaging_tool.package_name}' could not be updated. Reason: {str(e)}"
+            ) from e
 
         if current_version != newer_version:
             self.stdout(
