@@ -5,23 +5,18 @@ import click
 import distro
 from injector import inject
 
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    StdoutSeverity,
-    is_executable_bin,
-)
+from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
 from settings.config import VERSION
 
 from .das_ubuntu_advanced_packaging_tool import (
-    DasPackageUpdateError,
     DasNotFoundError,
+    DasPackageUpdateError,
     DasUbuntuAdvancedPackagingTool,
 )
 
 
-class PermissionError(Exception): ...  # noqa: E701
+class PermissionError(Exception):
+    ...  # noqa: E701
 
 
 class DasCliUpdateVersion(Command):
@@ -103,15 +98,17 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
 
         if not is_binary and not current_version:
             raise DasNotFoundError(
-                f"The package {self.package_name} can only be updated if you installed it via apt."
+                f"The package {self._das_ubuntu_advanced_packaging_tool.package_name} can only be updated if you installed it via apt."
             )
 
         try:
-            self.stdout(f"Updating the package {self.package_name}...")
+            self.stdout(
+                f"Updating the package {self._das_ubuntu_advanced_packaging_tool.package_name}..."
+            )
             newer_version = self._das_ubuntu_advanced_packaging_tool.install_package(version)
         except Exception as e:
             raise DasPackageUpdateError(
-                f"The package '{self.package_name}' could not be updated. Reason: {str(e)}"
+                f"The package '{self._das_ubuntu_advanced_packaging_tool.package_name}' could not be updated. Reason: {str(e)}"
             ) from e
 
         if current_version != newer_version:

@@ -1,8 +1,7 @@
-from typing import List
 from common import Module
 
-from .das_ubuntu_advanced_packaging_tool import DasUbuntuAdvancedPackagingTool
 from .das_cli import DasCli
+from .das_ubuntu_advanced_packaging_tool import DasUbuntuAdvancedPackagingTool
 
 
 class DasModule(Module):
