@@ -4,7 +4,14 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -157,6 +164,7 @@ $ das-cli db stop
         self.stdout("Stopping Redis service...")
 
         redis_nodes = self._settings.get("services.redis.nodes", [])
+        redis_cluster = self._settings.get("services.redis.cluster", False)
 
         try:
             for redis_node in redis_nodes:
@@ -167,6 +175,18 @@ $ das-cli db stop
                 severity=StdoutSeverity.ERROR,
             )
             raise e
+
+
+        self.stdout(
+            {
+                "service": "redis",
+                "action": "stop",
+                "status": "success",
+                "cluster": redis_cluster,
+                "nodes": redis_nodes,
+            },
+            stdout_type=StdoutType.RESULT,
+        )
 
     def _mongodb_node(self, context, ip, username):
         try:
@@ -189,6 +209,7 @@ $ das-cli db stop
         self.stdout("Stopping MongoDB service...")
 
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
+        mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
 
         try:
             for mongodb_node in mongodb_nodes:
@@ -200,6 +221,18 @@ $ das-cli db stop
                 severity=StdoutSeverity.ERROR,
             )
             raise e
+
+
+        self.stdout(
+            {
+                "service": "mongdob",
+                "action": "stop",
+                "status": "success",
+                "cluster": mongodb_cluster,
+                "nodes": mongodb_nodes,
+            },
+            stdout_type=StdoutType.RESULT,
+        )
 
     def run(self):
         self._settings.raise_on_missing_file()
@@ -301,6 +334,17 @@ $ das-cli db start
                 )
                 raise e
 
+        self.stdout(
+            {
+                "service": "redis",
+                "action": "start",
+                "status": "success",
+                "cluster": redis_cluster,
+                "nodes": redis_nodes,
+            },
+            stdout_type=StdoutType.RESULT,
+        )
+
     def _mongodb_node(
         self,
         mongodb_node: dict,
@@ -358,7 +402,9 @@ $ das-cli db start
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
+        mongodb_cluster_secret_key = self._settings.get(
+            "services.mongodb.cluster_secret_key"
+        )
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
@@ -384,6 +430,18 @@ $ das-cli db start
                     severity=StdoutSeverity.ERROR,
                 )
                 raise e
+
+        self.stdout(
+            {
+                "service": "mongodb",
+                "action": "start",
+                "status": "success",
+                "cluster": mongodb_cluster,
+                "nodes": mongodb_nodes,
+            },
+            stdout_type=StdoutType.RESULT,
+            severity=StdoutSeverity.SUCCESS,
+        )
 
     def run(self):
         self._settings.raise_on_missing_file()
