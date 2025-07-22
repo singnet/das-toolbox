@@ -50,7 +50,7 @@ def ensure_container_running(
                                 "status": "not_running",
                                 "port": service_port,
                             },
-                            stdout_type=StdoutType.RESULT,
+                            stdout_type=StdoutType.MACHINE_READABLE,
                         )
                     container_not_running = True
                 else:
