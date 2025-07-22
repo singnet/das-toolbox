@@ -8,7 +8,11 @@ import docker.errors
 
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
-from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
+from .exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+    DockerError,
+)
 
 
 class ContainerImageMetadata(TypedDict, total=False):
@@ -41,13 +45,25 @@ class Container:
 
         return f"{name}:{version}"
 
+    @property
+    def metadata(self) -> ContainerMetadata:
+        return self._metadata
+
     def update_metadata(self, metadata: ContainerMetadata) -> None:
         merged_metadata = deep_merge_dicts(dict(self._metadata), dict(metadata))
 
         if "port" not in merged_metadata or "image" not in merged_metadata:
-            raise ValueError("Merged metadata is missing required keys: 'port' and 'image'")
+            raise ValueError(
+                "Merged metadata is missing required keys: 'port' and 'image'"
+            )
 
         self._metadata = ContainerMetadata(**cast(ContainerMetadata, merged_metadata))
+
+    def __iter__(self):
+        yield "name", self.name
+        yield "port", self.port
+        yield "image", self.image
+        yield "metadata", self.metadata
 
 
 class ContainerManager(DockerManager):
@@ -228,7 +244,9 @@ class ContainerManager(DockerManager):
     def wait_for_container(self, container, timeout=60, interval=2) -> bool:
         elapsed_time = 0
         while elapsed_time < timeout:
-            if self.is_container_running(container) and self.is_container_healthy(container):
+            if self.is_container_running(container) and self.is_container_healthy(
+                container
+            ):
                 return True
 
             time.sleep(interval)

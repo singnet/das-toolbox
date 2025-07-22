@@ -123,6 +123,12 @@ class Command:
     ]
 
     @property
+    def command_path(self) -> str:
+        ctx = click.get_current_context(silent=True)
+
+        return ctx.command_path
+
+    @property
     def output_format(self):
         ctx = click.get_current_context(silent=True)
         if ctx:
