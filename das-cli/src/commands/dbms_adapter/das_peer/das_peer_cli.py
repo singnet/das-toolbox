@@ -2,7 +2,14 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity, StdoutType
+from common import (
+    Command,
+    CommandGroup,
+    ImageManager,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
 from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
