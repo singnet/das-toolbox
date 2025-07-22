@@ -1,18 +1,19 @@
+import json
+import yaml
 from enum import Enum
-from typing import Any, List
+from typing import Any, List, Dict, Callable
 from dataclasses import dataclass, asdict
 
 import click
 from fabric import Connection
 
 from common import Choice
-from common.logger import logger
 from common.utils import log_exception
 
 
 class StdoutType(Enum):
     DEFAULT = "default"
-    RESULT = "result"
+    MACHINE_READABLE = "machine_readable"
 
 
 class StdoutSeverity(Enum):
@@ -43,6 +44,7 @@ class OutputBufferEntry:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
 
 class Command:
     name = "unknown"
@@ -236,6 +238,13 @@ class Command:
     def confirm(self, text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
+    def _handle_default_output(self, entry: OutputBufferEntry) -> None:
+        if self.output_format == "plain":
+            self._print_colored(entry.message, entry.severity)
+
+    def _handle_machine_readable_output(self, entry: OutputBufferEntry) -> None:
+        if self.output_format != "plain":
+            self._output_buffer.append(entry)
 
     def stdout(
         self,
@@ -251,36 +260,46 @@ class Command:
             new_line=new_line,
         )
 
-        if self.output_format == "plain":
-            return self._print_colored(entry.message, entry.severity)
+        handlers: Dict[StdoutType, Callable[[OutputBufferEntry], None]] = {
+            StdoutType.DEFAULT: self._handle_default_output,
+            StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
+        }
 
-        return self._output_buffer.append(entry)
-
+        handler = handlers.get(stdout_type, self._handle_default_output)
+        handler(entry)
 
     def run(self, *args, **kwargs):
         raise NotImplementedError(
             f"The 'run' method from the command '{self.name}' should be implemented."
         )
 
+    def _flush_default_output(self):
+        for entry in self._output_buffer:
+            if entry.stdout_type == StdoutType.DEFAULT:
+                self._print_colored(entry.message, entry.severity)
 
     def flush_stdout(self):
         if self.output_format == "plain":
-            for entry in self._output_buffer:
-                self._print_colored(entry.message, entry.severity)
-        else:
-            results = [
-                entry.message for entry in self._output_buffer
-                if entry.stdout_type == StdoutType.RESULT
-            ]
-            if self.output_format == "json":
-                import json
-                click.echo(json.dumps(results, indent=2))
-            elif self.output_format == "yaml":
-                import yaml
-                click.echo(yaml.dump(results, sort_keys=False))
+            self._flush_default_output()
+        elif self.output_format in {"json", "yaml"}:
+            self._flush_machine_readable_output()
 
         self._output_buffer.clear()
 
+    def _flush_machine_readable_output(self):
+        results = [
+            entry.message
+            for entry in self._output_buffer
+            if entry.stdout_type == StdoutType.MACHINE_READABLE
+        ]
+
+        if not results:
+            return
+
+        if self.output_format == "json":
+            click.echo(json.dumps(results, indent=2))
+        elif self.output_format == "yaml":
+            click.echo(yaml.dump(results, sort_keys=False))
 
     def _print_colored(self, text, severity):
         fg_map = {

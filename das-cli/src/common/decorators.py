@@ -5,7 +5,7 @@ from typing import Callable, List
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .command import Command, StdoutSeverity
+from .command import StdoutType, StdoutSeverity
 from .docker.exceptions import DockerContainerNotFoundError
 from .settings import Settings
 
@@ -39,14 +39,23 @@ def ensure_container_running(
 
                 if not container.is_running():
                     if verbose:
-                        Command.stdout(
+                        self.stdout(
                             f"{service_name} is not running",
                             severity=StdoutSeverity.ERROR,
+                        )
+                        self.stdout(
+                            {
+                                "service": service_name,
+                                "action": "check",
+                                "status": "not_running",
+                                "port": service_port,
+                            },
+                            stdout_type=StdoutType.RESULT,
                         )
                     container_not_running = True
                 else:
                     if verbose:
-                        Command.stdout(
+                        self.stdout(
                             f"{service_name} is running on port {service_port}",
                             severity=StdoutSeverity.WARNING,
                         )
