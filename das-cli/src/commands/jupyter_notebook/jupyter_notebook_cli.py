@@ -1,13 +1,6 @@
 from injector import inject
 
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
@@ -19,9 +12,6 @@ from .jupyter_notebook_agent_container_service_response import (
     JupyterNotebookContainerServiceResponse,
 )
 from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
-from .jupyter_notebook_agent_container_service_response import (
-    JupyterNotebookContainerServiceResponse,
-)
 
 
 class JupyterNotebookStart(Command):

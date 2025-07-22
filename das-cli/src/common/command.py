@@ -208,7 +208,6 @@ class Command:
             setattr(self, f"_{param}", kwargs.pop(param, None))
 
         try:
-
             if remote:
                 self._remote_run(kwargs, remote_kwargs)
             else:

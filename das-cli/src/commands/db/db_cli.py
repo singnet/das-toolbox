@@ -636,9 +636,7 @@ $ das-cli db start
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get(
-            "services.mongodb.cluster_secret_key"
-        )
+        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
