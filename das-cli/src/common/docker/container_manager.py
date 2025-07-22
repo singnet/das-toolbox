@@ -239,7 +239,12 @@ class ContainerManager(DockerManager):
 
     def is_container_healthy(self, container) -> bool:
         inspect_results = self.get_docker_client().api.inspect_container(container.name)
-        return str(inspect_results["State"]["Health"]["Status"]) == "healthy"
+        health_status = inspect_results["State"].get("Health", {}).get("Status")
+
+        if health_status is None:
+            return True
+
+        return str(health_status) == "healthy"
 
     def wait_for_container(self, container, timeout=60, interval=2) -> bool:
         elapsed_time = 0

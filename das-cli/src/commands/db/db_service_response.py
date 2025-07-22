@@ -20,6 +20,6 @@ class DbServiceResponse(ServiceResponse):
             message=message,
             container=container,
             error=error,
-            **extra_details,
+            **(extra_details or {}),
         )
 
