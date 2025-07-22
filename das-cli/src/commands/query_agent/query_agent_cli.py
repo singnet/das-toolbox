@@ -1,16 +1,28 @@
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.attention_broker.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
+from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
 
 class QueryAgentStop(Command):
@@ -48,18 +60,49 @@ EXAMPLES
         self._settings = settings
         self._query_agent_manager = query_agent_manager
 
+    def _get_container(self):
+        return self._query_agent_manager.get_container()
+
     def _query_agent(self):
         try:
             self.stdout("Stopping Query Agent service...")
             self._query_agent_manager.stop()
+
+            success_message = "Query Agent service stopped"
             self.stdout(
-                "Query Agent service stopped",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerNotFoundError:
-            container_name = self._query_agent_manager.get_container().name
             self.stdout(
-                f"The Query Agent service named {container_name} is already stopped.",
+                dict(
+                    QueryAgentContainerServiceResponse(
+                        action="stop",
+                        status="success",
+                        message=success_message,
+                        container=self._get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerNotFoundError:
+            container_name = self._get_container().name
+            warning_message = (
+                f"The Query Agent service named {container_name} is already stopped."
+            )
+            self.stdout(
+                warning_message,
+                severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    QueryAgentContainerServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_message,
+                        container=self._get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
                 severity=StdoutSeverity.WARNING,
             )
 
@@ -120,6 +163,9 @@ EXAMPLES
         self._mongodb_container_manager = mongodb_container_manager
         self._attention_broker_container_manager = attention_broker_container_manager
 
+    def _get_container(self):
+        return self._query_agent_container_manager.get_container()
+
     def _query_agent(self, port_range: str) -> None:
         self.stdout("Starting Query Agent service...")
 
@@ -128,19 +174,48 @@ EXAMPLES
         try:
             self._query_agent_container_manager.start_container(port_range)
 
+            success_message = f"Query Agent started on port {query_agent_port}"
             self.stdout(
-                f"Query Agent started on port {query_agent_port}",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerDuplicateError:
+
             self.stdout(
-                f"Query Agent is already running. It's listening on port {query_agent_port}",
+                dict(
+                    QueryAgentContainerServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=self._get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerDuplicateError:
+            warning_message = f"Query Agent is already running. It's listening on port {query_agent_port}"
+
+            self.stdout(
+                warning_message,
                 severity=StdoutSeverity.WARNING,
             )
-        except DockerError:
-            raise DockerError(
-                f"\nError occurred while trying to start Query Agent on port {query_agent_port}\n"
+
+            self.stdout(
+                dict(
+                    QueryAgentContainerServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=self._get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
+        except DockerError:
+            message = (
+                f"Failed to start Query Agent. Please ensure that the port {query_agent_port} is not already in use "
+                "and that the required services are running."
+            )
+            raise DockerError(message)
 
     @ensure_container_running(
         [
