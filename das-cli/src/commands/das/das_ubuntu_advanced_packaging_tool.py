@@ -3,17 +3,21 @@ import subprocess
 from typing import Union
 
 
-class DasError(Exception):
+class DasPackageUpdateError(Exception):
     ...  # noqa: E701
 
 
-class DasNotFoundError(DasError):
+class DasNotFoundError(DasPackageUpdateError):
     ...  # noqa: E701
 
 
 class DasUbuntuAdvancedPackagingTool:
     def __init__(self, package_name) -> None:
-        self.package_name = package_name
+        self._package_name = package_name
+
+    @property
+    def package_name(self):
+        return self._package_name
 
     @staticmethod
     def update_repository():
@@ -35,7 +39,7 @@ class DasUbuntuAdvancedPackagingTool:
                 [
                     "apt-cache",
                     "policy",
-                    self.package_name,
+                    self._package_name,
                 ],
                 stderr=subprocess.DEVNULL,
             ).decode("utf-8")
@@ -59,7 +63,7 @@ class DasUbuntuAdvancedPackagingTool:
                     "apt",
                     "install",
                     "--only-upgrade",
-                    f"{self.package_name}",
+                    f"{self._package_name}",
                     "-y",
                 ],
                 check=True,
@@ -73,7 +77,7 @@ class DasUbuntuAdvancedPackagingTool:
                     "install",
                     "--only-upgrade",
                     "--allow-downgrades",
-                    f"{self.package_name}={version}",
+                    f"{self._package_name}={version}",
                     "-y",
                 ],
                 check=True,
