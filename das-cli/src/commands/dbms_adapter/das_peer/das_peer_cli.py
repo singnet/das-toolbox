@@ -2,14 +2,7 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import (
-    Command,
-    CommandGroup,
-    ImageManager,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
 from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
@@ -66,7 +59,7 @@ EXAMPLES
         try:
             self._das_peer_container_manager.stop()
 
-            success_message = f"The DAS Peer service has been stopped."
+            success_message = "The DAS Peer service has been stopped."
 
             self.stdout(
                 success_message,
@@ -85,9 +78,7 @@ EXAMPLES
             )
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
-            warning_message = (
-                f"The DAS Peer service named {container_name} is already stopped."
-            )
+            warning_message = f"The DAS Peer service named {container_name} is already stopped."
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,

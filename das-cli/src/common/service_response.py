@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional
+
 from .docker.container_manager import Container
+
 
 class ServiceResponse:
     def __init__(
@@ -8,7 +10,7 @@ class ServiceResponse:
         service: str,
         action: str,
         status: str,
-        message: str,
+        message: str | tuple[str],
         container: Optional[Container] = None,
         error: Optional[dict] = None,
         **extra_details,

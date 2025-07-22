@@ -161,7 +161,9 @@ class MongodbContainerManager(ContainerManager):
                 stats[name] = db.getCollection(name).countDocuments();
             });
             JSON.stringify(stats);
-        """.strip().replace("\n", " ")
+        """.strip().replace(
+            "\n", " "
+        )
 
         command = (
             f'bash -c "mongosh -u {mongodb_username} -p {mongodb_password} '

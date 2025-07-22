@@ -1,17 +1,15 @@
 from injector import inject
 
-from commands.dbms_adapter.das_peer.das_peer_container_manager import (
-    DasPeerContainerManager,
-)
+from commands.dbms_adapter.das_peer.das_peer_container_manager import DasPeerContainerManager
 from common import (
     Command,
     CommandGroup,
     CommandOption,
+    Container,
     ImageManager,
     Settings,
     StdoutSeverity,
     StdoutType,
-    Container,
 )
 from common.decorators import ensure_container_running
 from common.prompt_types import AbsolutePath

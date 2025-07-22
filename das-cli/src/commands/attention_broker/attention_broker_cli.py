@@ -1,13 +1,13 @@
 from injector import inject
-from commands.attention_broker.attention_broker_container_manager import (
-    AttentionBrokerManager,
-)
+
+from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity, StdoutType
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
+
 from .attention_broker_service_response import AttentionBrokerServiceResponse
 
 
@@ -64,28 +64,34 @@ EXAMPLES
                 severity=StdoutSeverity.SUCCESS,
             )
             self.stdout(
-                dict(AttentionBrokerServiceResponse(
-                    action="stop",
-                    status="success",
-                    message=success_message,
-                    container=self._get_container(),
-                )),
+                dict(
+                    AttentionBrokerServiceResponse(
+                        action="stop",
+                        status="success",
+                        message=success_message,
+                        container=self._get_container(),
+                    )
+                ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
             container_name = self._attention_broker_manager.get_container().name
-            warning_message = f"The Attention Broker service named {container_name} is already stopped."
+            warning_message = (
+                f"The Attention Broker service named {container_name} is already stopped."
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
             )
             self.stdout(
-                dict(AttentionBrokerServiceResponse(
-                    action="stop",
-                    status="already_stopped",
-                    message=warning_message,
-                    container=self._get_container(),
-                )),
+                dict(
+                    AttentionBrokerServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_message,
+                        container=self._get_container(),
+                    )
+                ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
@@ -134,7 +140,6 @@ EXAMPLES
         self._settings = settings
         self._attention_broker_container_manager = attention_broker_container_manager
 
-
     def _get_container(self):
         return self._attention_broker_container_manager.get_container()
 
@@ -147,21 +152,21 @@ EXAMPLES
         try:
             self._attention_broker_container_manager.start_container()
 
-            success_message = (
-                f"Attention Broker started on port {attention_broker_port}"
-            )
+            success_message = f"Attention Broker started on port {attention_broker_port}"
 
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
             self.stdout(
-                dict(AttentionBrokerServiceResponse(
-                    action="start",
-                    status="success",
-                    message=success_message,
-                    container=container,
-                )),
+                dict(
+                    AttentionBrokerServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=container,
+                    )
+                ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
@@ -172,12 +177,14 @@ EXAMPLES
                 severity=StdoutSeverity.WARNING,
             )
             self.stdout(
-                dict(AttentionBrokerServiceResponse(
-                    action="start",
-                    status="already_running",
-                    message=warning_message,
-                    container=container,
-                )),
+                dict(
+                    AttentionBrokerServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=container,
+                    )
+                ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError:

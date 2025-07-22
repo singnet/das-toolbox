@@ -1,7 +1,8 @@
 from typing import Optional
 
-from common.service_response import ServiceResponse
 from common.docker.container_manager import Container
+from common.service_response import ServiceResponse
+
 
 class JupyterNotebookContainerServiceResponse(ServiceResponse):
     def __init__(
@@ -22,4 +23,3 @@ class JupyterNotebookContainerServiceResponse(ServiceResponse):
             error=error,
             **(extra_details or {}),
         )
-

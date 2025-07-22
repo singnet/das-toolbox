@@ -1,10 +1,10 @@
 import json
-import yaml
+from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, List, Dict, Callable
-from dataclasses import dataclass, asdict
+from typing import Any, Callable, Dict, List
 
 import click
+import yaml
 from fabric import Connection
 
 from common import Choice
@@ -126,6 +126,9 @@ class Command:
     def command_path(self) -> str:
         ctx = click.get_current_context(silent=True)
 
+        if ctx is None:
+            return self.name
+
         return ctx.command_path
 
     @property
@@ -205,7 +208,6 @@ class Command:
             setattr(self, f"_{param}", kwargs.pop(param, None))
 
         try:
-
             if remote:
                 self._remote_run(kwargs, remote_kwargs)
             else:

@@ -5,7 +5,6 @@ from injector import inject
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
 )

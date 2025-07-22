@@ -1,13 +1,6 @@
 from injector import inject
 
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
@@ -15,10 +8,10 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import AbsolutePath
 
-from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 from .jupyter_notebook_agent_container_service_response import (
     JupyterNotebookContainerServiceResponse,
 )
+from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
 class JupyterNotebookStart(Command):
@@ -118,7 +111,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"Jupyter Notebook is already running. It's listening on port {container.port}"
+            warning_message = (
+                f"Jupyter Notebook is already running. It's listening on port {container.port}"
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -210,7 +205,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
-            warning_message = f"The Jupyter Notebook service named {container.name} is already stopped."
+            warning_message = (
+                f"The Jupyter Notebook service named {container.name} is already stopped."
+            )
 
             self.stdout(
                 warning_message,

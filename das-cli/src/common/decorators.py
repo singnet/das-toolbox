@@ -5,7 +5,7 @@ from typing import Callable, List
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .command import StdoutType, StdoutSeverity
+from .command import StdoutSeverity, StdoutType
 from .docker.exceptions import DockerContainerNotFoundError
 from .settings import Settings
 

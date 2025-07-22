@@ -5,23 +5,12 @@ from injector import inject
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
-from common.docker.exceptions import (
-    DockerContainerDuplicateError,
-    DockerContainerNotFoundError,
-)
+from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import AbsolutePath
+
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
 )
@@ -90,7 +79,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
-            warning_message = f"The Link Creation Agent service named {container.name} is already stopped."
+            warning_message = (
+                f"The Link Creation Agent service named {container.name} is already stopped."
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -184,9 +175,7 @@ EXAMPLES
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._link_creation_agent_container_manager = (
-            link_creation_agent_container_manager
-        )
+        self._link_creation_agent_container_manager = link_creation_agent_container_manager
         self._query_agent_container_manager = query_agent_container_manager
 
     def _get_container(self):
@@ -211,9 +200,7 @@ EXAMPLES
                 metta_file_path,
             )
 
-            success_message = (
-                f"Link Creation Agent started listening on the ports {container.port}"
-            )
+            success_message = f"Link Creation Agent started listening on the ports {container.port}"
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
