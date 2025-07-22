@@ -45,6 +45,7 @@ class OutputBufferEntry:
     def to_dict(self) -> dict:
         return asdict(self)
 
+
 class Command:
     name = "unknown"
     help = ""
@@ -321,40 +322,6 @@ class Command:
             click.secho(text, fg=fg, nl=new_line)
         else:
             click.echo(text, nl=new_line)
-
-
-    def flush_stdout(self):
-        if self.output_format == "plain":
-            for entry in self._output_buffer:
-                self._print_colored(entry.message, entry.severity)
-        else:
-            results = [
-                entry.message for entry in self._output_buffer
-                if entry.stdout_type == StdoutType.RESULT
-            ]
-            if self.output_format == "json":
-                import json
-                click.echo(json.dumps(results, indent=2))
-            elif self.output_format == "yaml":
-                import yaml
-                click.echo(yaml.dump(results, sort_keys=False))
-
-        self._output_buffer.clear()
-
-
-    def _print_colored(self, text, severity):
-        fg_map = {
-            StdoutSeverity.SUCCESS: "green",
-            StdoutSeverity.ERROR: "red",
-            StdoutSeverity.WARNING: "yellow",
-            StdoutSeverity.INFO: None,
-        }
-        fg = fg_map.get(severity)
-        if fg:
-            click.secho(text, fg=fg)
-        else:
-            click.echo(text)
-
 
 class CommandGroup(Command):
     name: str = "unknown"
