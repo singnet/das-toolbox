@@ -4,14 +4,7 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
