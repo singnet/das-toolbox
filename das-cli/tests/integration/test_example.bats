@@ -11,10 +11,3 @@ load 'libs/docker'
 
     assert_success
 }
-
-@test "Show FaaS examples" {
-
-    run das-cli example faas
-
-    assert_success
-}

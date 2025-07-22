@@ -471,9 +471,9 @@ $ das-cli db start
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warnign_message = f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}."
+            warning_message = f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}."
             self.stdout(
-                warnign_message,
+                warning_message,
                 severity=StdoutSeverity.WARNING,
             )
             self.stdout(
@@ -481,7 +481,7 @@ $ das-cli db start
                     DbServiceResponse(
                         action="start",
                         status="already_running",
-                        message=warnign_message,
+                        message=warning_message,
                         container=self._get_redis_container(),
                         extra_details={
                             "node": {
