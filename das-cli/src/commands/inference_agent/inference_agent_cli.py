@@ -9,6 +9,7 @@ from commands.link_creation_agent.link_creation_agent_container_manager import (
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
@@ -65,7 +66,6 @@ EXAMPLES
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-
             self.stdout(
                 dict(
                     InferenceAgentContainerServiceResponse(
