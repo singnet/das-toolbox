@@ -10,6 +10,7 @@ class AttentionBrokerServiceResponse(ServiceResponse):
         status: str,
         message: str,
         container: Optional[Container] = None,
+        extra_details: Optional[dict] = None,
         error: Optional[dict] = None,
     ):
         super().__init__(
@@ -19,5 +20,6 @@ class AttentionBrokerServiceResponse(ServiceResponse):
             message=message,
             container=container,
             error=error,
+            **(extra_details or {}),
         )
 
