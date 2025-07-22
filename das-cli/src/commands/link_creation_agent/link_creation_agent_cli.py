@@ -5,11 +5,26 @@ from injector import inject
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.docker.exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+)
 from common.prompt_types import AbsolutePath
+from .link_creation_agent_container_service_response import (
+    LinkCreationAgentContainerServiceResponse,
+)
 
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
@@ -176,7 +191,9 @@ EXAMPLES
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._link_creation_agent_container_manager = link_creation_agent_container_manager
+        self._link_creation_agent_container_manager = (
+            link_creation_agent_container_manager
+        )
         self._query_agent_container_manager = query_agent_container_manager
 
     def _get_container(self):
