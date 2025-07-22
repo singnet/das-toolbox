@@ -1,16 +1,28 @@
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.attention_broker.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from commands.query_agent.query_agent_container_manager import (
+    QueryAgentContainerManager,
+)
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
+from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
