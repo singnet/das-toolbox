@@ -185,7 +185,7 @@ $ das-cli db stop
                 "cluster": redis_cluster,
                 "nodes": redis_nodes,
             },
-            stdout_type=StdoutType.RESULT,
+            stdout_type=StdoutType.MACHINE_READABLE,
         )
 
     def _mongodb_node(self, context, ip, username):
@@ -231,7 +231,7 @@ $ das-cli db stop
                 "cluster": mongodb_cluster,
                 "nodes": mongodb_nodes,
             },
-            stdout_type=StdoutType.RESULT,
+            stdout_type=StdoutType.MACHINE_READABLE,
         )
 
     def run(self):
@@ -342,7 +342,7 @@ $ das-cli db start
                 "cluster": redis_cluster,
                 "nodes": redis_nodes,
             },
-            stdout_type=StdoutType.RESULT,
+            stdout_type=StdoutType.MACHINE_READABLE
         )
 
     def _mongodb_node(
@@ -439,7 +439,7 @@ $ das-cli db start
                 "cluster": mongodb_cluster,
                 "nodes": mongodb_nodes,
             },
-            stdout_type=StdoutType.RESULT,
+            stdout_type=StdoutType.MACHINE_READABLE,
             severity=StdoutSeverity.SUCCESS,
         )
 
