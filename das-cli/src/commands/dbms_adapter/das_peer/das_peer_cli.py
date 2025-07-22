@@ -2,12 +2,20 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity
+from common import (
+    Command,
+    CommandGroup,
+    ImageManager,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
 from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 from .das_peer_container_manager import DasPeerContainerManager
+from .das_peer_container_service_response import DasPeerContainerServiceResponse
 
 
 class DasPeerStop(Command):
@@ -49,21 +57,51 @@ EXAMPLES
         self._settings = settings
         self._das_peer_container_manager = das_peer_container_manager
 
+    def _get_container(self):
+        return self._das_peer_container_manager.get_container()
+
     def _server(self):
         self.stdout("Stopping DAS Peer service...")
 
         try:
             self._das_peer_container_manager.stop()
 
+            success_message = f"The DAS Peer service has been stopped."
+
             self.stdout(
-                "The DAS Peer service has been stopped.",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerNotFoundError:
-            container_name = self._das_peer_container_manager.get_container().name
             self.stdout(
-                f"The DAS Peer service named {container_name} is already stopped.",
+                dict(
+                    DasPeerContainerServiceResponse(
+                        action="stop",
+                        status="success",
+                        message=success_message,
+                        container=self._get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerNotFoundError:
+            container_name = self._get_container().name
+            warning_message = (
+                f"The DAS Peer service named {container_name} is already stopped."
+            )
+            self.stdout(
+                warning_message,
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DasPeerContainerServiceResponse(
+                        action="stop",
+                        status="warning",
+                        message=warning_message,
+                        container=self._get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
@@ -122,18 +160,36 @@ EXAMPLES
         self._mongodb_container_manager = mongodb_container_manager
         self._redis_container_manager = redis_container_manager
 
+    def _get_container(self):
+        return self._das_peer_container_manager.get_container()
+
     def _start_server(self) -> None:
         self.stdout("Starting DAS Peer server...")
         self._das_peer_container_manager.start_container()
 
-        adapter_server_port = self._das_peer_container_manager.get_container().port
+        adapter_server_port = self._get_container().port
         self.stdout(
             f"DAS Peer is runnig on port {adapter_server_port}",
             severity=StdoutSeverity.SUCCESS,
         )
 
+        self.stdout(
+            dict(
+                DasPeerContainerServiceResponse(
+                    action="start",
+                    status="success",
+                    message="DAS Peer server started successfully.",
+                    container=self._get_container(),
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
+
     @ensure_container_running(
-        ["_mongodb_container_manager", "_redis_container_manager"],
+        [
+            "_mongodb_container_manager",
+            "_redis_container_manager",
+        ],
         exception_text="\nPlease use 'db start' to start required services before running 'das-peer start'.",
     )
     def run(self) -> None:

@@ -1,12 +1,24 @@
 from injector import inject
 
-from commands.dbms_adapter.das_peer.das_peer_container_manager import DasPeerContainerManager
-from common import Command, CommandGroup, CommandOption, ImageManager, Settings
-from common.docker.exceptions import DockerError
+from commands.dbms_adapter.das_peer.das_peer_container_manager import (
+    DasPeerContainerManager,
+)
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    ImageManager,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+    Container,
+)
+from common.decorators import ensure_container_running
 from common.prompt_types import AbsolutePath
 from settings.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
 from .dbms_peer_container_manager import DbmsPeerContainerManager
+from .dbms_peer_container_service_response import DbmsPeerContainerServiceResponse
 
 
 class DbmsPeerRun(Command):
@@ -120,6 +132,9 @@ EXAMPLES
         self._dbms_peer_container_manager = dbms_peer_container_manager
         self._das_peer_container_manager = das_peer_container_manager
 
+    def _get_container(self) -> Container:
+        return self._dbms_peer_container_manager.get_container()
+
     def _start_client(
         self,
         context: str,
@@ -129,7 +144,12 @@ EXAMPLES
         password: str,
         database: str,
     ) -> None:
-        self.stdout(f"Starting DBMS Peer {hostname}:{port}")
+        self.stdout(
+            f"Starting DBMS Peer {hostname}:{port}",
+            severity=StdoutSeverity.INFO,
+        )
+
+        show_logs = self.output_format == "plain"
 
         self._dbms_peer_container_manager.start_container(
             context,
@@ -138,17 +158,46 @@ EXAMPLES
             username,
             password,
             database,
+            show_logs,
         )
-        self.stdout("Done.")
 
-    def _raise_on_server_not_running(self):
-        is_server_running = self._das_peer_container_manager.is_running()
+        success_message = (
+            f"DBMS Peer client started successfully on {hostname}:{port}. "
+            "It will now connect to the DAS peer server and synchronize data."
+        )
 
-        if not is_server_running:
-            raise DockerError(
-                "The server is not running. Please start the server by executing `das-peer start` before attempting to run this command."
-            )
+        self.stdout(
+            success_message,
+            severity=StdoutSeverity.SUCCESS,
+        )
+        self.stdout(
+            dict(
+                DbmsPeerContainerServiceResponse(
+                    action="run",
+                    status="success",
+                    message=success_message,
+                    container=self._get_container(),
+                    extra_details={
+                        "client": {
+                            "context": context,
+                            "hostname": hostname,
+                            "port": port,
+                            "username": username,
+                            "database": database,
+                        },
+                    },
+                ),
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
+    @ensure_container_running(
+        [
+            "_das_peer_container_manager",
+        ],
+        exception_text="\nThe server is not running. Please start the server by executing `das-peer start` before attempting to run this command.",
+        verbose=False,
+    )
     def run(
         self,
         context: str,
@@ -160,7 +209,6 @@ EXAMPLES
     ) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
-        self._raise_on_server_not_running()
 
         self._image_manager.pull(
             DBMS_PEER_IMAGE_NAME,
