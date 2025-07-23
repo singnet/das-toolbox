@@ -1,11 +1,13 @@
 #!/usr/local/bin/bats
 
-skip "Skip test because the 'faas' command is currently disabled"
-
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+
+setup_file() {
+    skip "Skip test because the 'faas' command is currently disabled"
+}
 
 setup() {
     use_config "simple"

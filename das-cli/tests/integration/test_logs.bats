@@ -9,7 +9,6 @@ setup() {
     use_config "simple"
 
     das-cli db stop
-    das-cli faas stop
     das-cli attention-broker stop
     das-cli query-agent stop
     das-cli link-creation-agent stop
@@ -18,15 +17,14 @@ setup() {
 
 teardown() {
     das-cli db stop
-    das-cli faas stop
     das-cli attention-broker stop
     das-cli query-agent stop
     das-cli link-creation-agent stop
     das-cli inference-agent stop
 }
 
-@test "Show logs for MongoDB, Redis and FaaS with unset configuration file" {
-    local services=(mongodb redis faas)
+@test "Show logs for MongoDB and Redis with unset configuration file" {
+    local services=(mongodb redis)
 
     unset_config
 
@@ -59,23 +57,10 @@ teardown() {
     assert_failure
 }
 
-@test "Trying to show logs for FaaS before db is running" {
-    local openfaas_container_name="$(get_config .services.openfaas.container_name)"
-
-    run das-cli logs faas
-
-    assert_output "[31m[DockerContainerNotFoundError] OpenFaaS is not running. Please start it with 'das-cli faas start' before viewing logs.[39m"
-
-    run is_service_up faas
-
-    assert_failure
-}
-
-@test "Show logs for Redis, MongoDB and FaaS" {
-    local services=(mongodb redis faas)
+@test "Show logs for Redis and MongoDB" {
+    local services=(mongodb redis)
 
     das-cli db start
-    das-cli faas start
 
     for service in "${services[@]}"; do
         run timeout 5s das-cli logs "${service}"
