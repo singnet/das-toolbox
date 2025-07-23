@@ -26,14 +26,8 @@ class DasPeerContainerManager(ContainerManager):
         super().__init__(container, exec_context)
         self._options = options
 
-    def _attempt_stop_container(self):
-        try:
-            self.stop()
-        except (DockerContainerNotFoundError, DockerError):
-            pass
 
     def start_container(self):
-        self._attempt_stop_container()
         self.raise_running_container()
 
         container = self.get_container()

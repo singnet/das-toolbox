@@ -56,12 +56,13 @@ EXAMPLES
         return self._link_creation_agent_manager.get_container()
 
     def _link_creation_agent(self):
+        container = self._get_container()
+
         try:
             self.stdout("Stopping Link Creation Agent service...")
             self._link_creation_agent_manager.stop()
 
             success_message = "Link Creation Agent service stopped"
-            container = self._get_container()
 
             self.stdout(
                 success_message,
