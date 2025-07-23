@@ -309,7 +309,7 @@ class Command:
         elif self.output_format == "yaml":
             click.echo(yaml.dump(results, sort_keys=False))
 
-    def _print_colored(self, text, severity):
+    def _print_colored(self, text: str, severity: StdoutSeverity) -> None:
         fg_map = {
             StdoutSeverity.SUCCESS: "green",
             StdoutSeverity.ERROR: "red",

@@ -18,7 +18,7 @@ class ServiceResponse:
         self.service = service
         self.action = action
         self.status = status
-        self.message = message
+        self.message = " ".join(message) if isinstance(message, tuple) else message
         self.timestamp = datetime.utcnow().isoformat() + "Z"
         self.container = container
         self.error = error

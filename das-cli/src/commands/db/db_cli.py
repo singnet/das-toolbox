@@ -570,9 +570,8 @@ $ das-cli db start
             )
             self._mongodb_container_manager.unset_exec_context()
 
-            success_message = (
-                f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}.",
-            )
+            success_message = f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}."
+
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
@@ -592,13 +591,13 @@ $ das-cli db start
                             },
                             "cluster": is_cluster_enabled,
                         },
-                    )
+                    ),
                 ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = (
-                f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}.",
-            )
+            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}."
+
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -619,7 +618,8 @@ $ das-cli db start
                             "cluster": is_cluster_enabled,
                         },
                     )
-                )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError as e:
             self.stdout(
@@ -677,7 +677,6 @@ $ das-cli db start
                 )
             ),
             stdout_type=StdoutType.MACHINE_READABLE,
-            severity=StdoutSeverity.SUCCESS,
         )
 
     def run(self):
