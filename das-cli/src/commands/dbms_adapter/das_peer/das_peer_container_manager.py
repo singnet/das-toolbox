@@ -1,7 +1,6 @@
 from typing import Dict, Union
 
 from common import Container, ContainerManager
-from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 
@@ -25,7 +24,6 @@ class DasPeerContainerManager(ContainerManager):
 
         super().__init__(container, exec_context)
         self._options = options
-
 
     def start_container(self):
         self.raise_running_container()
