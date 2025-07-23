@@ -189,7 +189,6 @@ EXAMPLES
             )
         except DockerError:
             error_message = f"\nError occurred while trying to start Attention Broker on port {attention_broker_port}\n"
-            self.stdout(error_message, severity=StdoutSeverity.ERROR)
             raise DockerError(error_message)
 
     def run(self):
