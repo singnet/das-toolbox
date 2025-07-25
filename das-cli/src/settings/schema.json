@@ -123,6 +123,13 @@
             "port": { "type": "integer" }
           }
         }
+      },
+      "evolution_broker": {
+        "type": "object",
+        "properties": {
+          "container_name": { "type": "string" },
+          "port": { "type": "integer" }
+        }
       }
     }
   }
