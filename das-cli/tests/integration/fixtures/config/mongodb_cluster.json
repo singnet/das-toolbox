@@ -80,8 +80,8 @@
       "container_name": "das-cli-inference-agent-8082"
     },
     "evolution_broker": {
-      "port": 24002,
-      "container_name": "das-cli-evolution-broker-24002"
+      "port": 24003,
+      "container_name": "das-cli-evolution-broker-24003"
     }
   }
 }
