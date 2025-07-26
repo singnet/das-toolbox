@@ -11,6 +11,7 @@ from common import (
     RemoteContextManager,
     Settings,
     StdoutSeverity,
+    StdoutType,
     get_public_ip,
     get_rand_token,
     get_server_username,
@@ -55,6 +56,7 @@ SECTIONS
     │ 9. AttentionBroker │
     │ 10. Query Agent    │
     │ 11. Link Agent     │
+    │ 12. EvolutionBroker│
     └────────────────────┘
 
 OPTIONS AND VARIABLES
@@ -230,6 +232,16 @@ SERVICES CONFIGURATION (services.*)
 
         link_creation_agent.container_name
             Specifies the name of the Docker container running the Link Creation Agent.
+
+    EVOLUTION BROKER CONFIGURATION (evolution.*)
+
+        evolution.port
+            Listening port for the Evolution.
+            The user must ensure this port is available on the server.
+
+        evolution.container_name
+            Specifies the name of the Docker container running the Evolution.
+
 
 EXAMPLES
 
@@ -571,6 +583,17 @@ EXAMPLES
             "services.inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
         }
 
+    def _evolution_broker(self) -> dict:
+        evolution_broker_port = self.prompt(
+            "Enter the Evolution Broker port",
+            default=self._settings.get("services.evolution_broker.port", 24002),
+        )
+
+        return {
+            "services.evolution_broker.port": evolution_broker_port,
+            "services.evolution_broker.container_name": f"das-cli-evolution-broker-{evolution_broker_port}",
+        }
+
     def _schema_hash(self) -> dict:
         schema_hash = get_schema_hash()
         return {"schema_hash": schema_hash}
@@ -606,6 +629,7 @@ EXAMPLES
             self._query_agent,
             self._link_creation_agent,
             self._inference_agent,
+            self._evolution_broker,
         ]
 
         for config_step in config_steps:
@@ -655,9 +679,11 @@ EXAMPLES
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        settings_table = self._settings.pretty()
-
-        self.stdout(settings_table)
+        self.stdout(self._settings.pretty())
+        self.stdout(
+            self._settings.get_content(),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
 
 class ConfigCli(CommandGroup):

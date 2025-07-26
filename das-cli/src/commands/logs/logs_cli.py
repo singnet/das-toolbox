@@ -5,7 +5,6 @@ from injector import inject
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
 )
@@ -61,55 +60,6 @@ EXAMPLES
             self.stdout("Interrupted. Exiting...", severity=StdoutSeverity.ERROR)
         except FileNotFoundError:
             self.stdout("No logs to show up here", severity=StdoutSeverity.WARNING)
-
-
-class LogsFaaS(Command):
-    name = "faas"
-
-    short_help = "Display logs for OpenFaaS services."
-
-    help = """
-NAME
-
-    logs faas - Display logs for the OpenFaaS service
-
-SYNOPSIS
-
-    das-cli logs faas
-
-DESCRIPTION
-
-    Displays the logs of the OpenFaaS service.
-    This includes logs related to function execution, deployment events, and potential errors.
-    The service must be running for the logs to be available.
-
-EXAMPLES
-
-    Display logs of the OpenFaaS service:
-
-        das-cli logs faas
-"""
-
-    @inject
-    def __init__(
-        self,
-        settings: Settings,
-        openfaas_container_manager: OpenFaaSContainerManager,
-    ) -> None:
-        super().__init__()
-        self._settings = settings
-        self._openfaas_container_manager = openfaas_container_manager
-
-    @ensure_container_running(
-        ["_openfaas_container_manager"],
-        exception_text="OpenFaaS is not running. Please start it with 'das-cli faas start' before viewing logs.",
-        verbose=False,
-    )
-    def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
-        self._openfaas_container_manager.logs()
 
 
 class LogsMongoDb(Command):
@@ -411,7 +361,6 @@ EXAMPLES
     def __init__(
         self,
         logs_das: LogsDas,
-        logs_faas: LogsFaaS,
         logs_mongodb: LogsMongoDb,
         logs_redis: LogsRedis,
         logs_attention_broker: LogsAttentionBroker,
@@ -423,7 +372,6 @@ EXAMPLES
         self.add_commands(
             [
                 logs_das,
-                logs_faas,
                 logs_mongodb,
                 logs_redis,
                 logs_attention_broker,

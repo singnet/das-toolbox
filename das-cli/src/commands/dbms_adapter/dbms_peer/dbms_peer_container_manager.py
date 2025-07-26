@@ -47,6 +47,19 @@ class DbmsPeerContainerManager(ContainerManager):
 
         return file
 
+    def _handle_post_start(self, container, show_logs: bool) -> None:
+        if not show_logs:
+            if not self.wait_for_container(container):
+                raise DockerError("DBMS peer could not be started")
+            return
+
+        self.logs()
+        exit_code = self.get_container_exit_status(container)
+        self.stop()
+
+        if exit_code != 0:
+            raise DockerError("DBMS peer could not be started")
+
     def start_container(
         self,
         context: str,
@@ -55,6 +68,7 @@ class DbmsPeerContainerManager(ContainerManager):
         username: str,
         password: str,
         database: str,
+        show_logs: bool = True,
     ):
         self.raise_running_container()
 
@@ -99,11 +113,4 @@ class DbmsPeerContainerManager(ContainerManager):
                 volumes=volumes,
             )
 
-            self.logs()
-
-            exit_code = self.get_container_exit_status(container)
-
-            self.stop()
-
-            if exit_code != 0:
-                raise DockerError("DBMS peer could not be started")
+            self._handle_post_start(container, show_logs)
