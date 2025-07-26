@@ -1,13 +1,11 @@
 import os
 
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .evolution_broker_cli import EvolutionBrokerCli, EvolutionBrokerManager, Settings
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
 
 
 class EvolutionBrokerModule(Module):
@@ -16,9 +14,7 @@ class EvolutionBrokerModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (
@@ -66,9 +62,7 @@ class EvolutionBrokerModule(Module):
         )
 
     def _evolution_broker_container_manager_factory(self) -> EvolutionBrokerManager:
-        evolution_broker_port = str(
-            self._settings.get("services.evolution_broker.port")
-        )
+        evolution_broker_port = str(self._settings.get("services.evolution_broker.port"))
 
         container_name = self._settings.get("services.evolution_broker.container_name")
 

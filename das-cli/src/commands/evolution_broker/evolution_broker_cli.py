@@ -1,18 +1,9 @@
 from injector import inject
 
-from common.decorators import ensure_container_running
-from commands.evolution_broker.evolution_broker_container_manager import (
-    EvolutionBrokerManager,
-)
+from commands.evolution_broker.evolution_broker_container_manager import EvolutionBrokerManager
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
@@ -87,7 +78,9 @@ EXAMPLES
             )
         except DockerContainerNotFoundError:
             container_name = self._evolution_broker_manager.get_container().name
-            warning_message = f"The Evolution Broker service named {container_name} is already stopped."
+            warning_message = (
+                f"The Evolution Broker service named {container_name} is already stopped."
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -172,9 +165,7 @@ EXAMPLES
         try:
             self._evolution_broker_container_manager.start_container(port_range)
 
-            success_message = (
-                f"Evolution Broker started on port {evolution_broker_port}"
-            )
+            success_message = f"Evolution Broker started on port {evolution_broker_port}"
 
             self.stdout(
                 success_message,
