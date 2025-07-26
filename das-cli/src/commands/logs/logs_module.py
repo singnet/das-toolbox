@@ -3,7 +3,6 @@ import os
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from commands.faas.openfaas_container_manager import OpenFaaSContainerManager
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
 )
@@ -36,10 +35,6 @@ class LogsModule(Module):
                 self._settings,
             ),
             (
-                OpenFaaSContainerManager,
-                self._openfaas_container_manager_factory,
-            ),
-            (
                 RedisContainerManager,
                 self._redis_container_manager_factory,
             ),
@@ -64,10 +59,6 @@ class LogsModule(Module):
                 self._inference_agent_container_manager_factory,
             ),
         ]
-
-    def _openfaas_container_manager_factory(self) -> OpenFaaSContainerManager:
-        openfaas_container_name = self._settings.get("services.openfaas.container_name")
-        return OpenFaaSContainerManager(openfaas_container_name)
 
     def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
         mongodb_container_name = self._settings.get("services.mongodb.container_name")

@@ -170,14 +170,16 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
     run das-cli db count-atoms --verbose
 
     assert_success
-    assert_regex "$output" '(MongoDB atoms:\s.*:\s[0-9]+)'
-    assert_regex "$output" '(MongoDB nodes:\s.*:\s[0-9]+)'
-    assert_regex "$output" '(MongoDB links:\s.*:\s[0-9]+)'
+
+    assert_regex "$output" '(MongoDB\s.*:\s[0-9]+)'
+    local mongodb_count=$(grep -oE 'MongoDB\s.*:\s[0-9]+' <<<"$output" | wc -l)
+
+    [ "$mongodb_count" -eq 3 ]
+
     assert_regex "$output" '(Redis\s.*:\s[0-9]+)'
+    local redis_count=$(grep -oE 'Redis\s.*:\s[0-9]+' <<<"$output" | wc -l)
 
-    local count=$(grep -oE 'Redis\s.*:\s[0-9]+' <<<"$output" | wc -l)
-
-    [ "$count" -gt 1 ]
+    [ "$redis_count" -eq 5 ]
 }
 
 @test "Should count atoms with verbose mode disabled" {
@@ -197,9 +199,7 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
     run das-cli db count-atoms --verbose
 
     assert_success
-    assert_output "MongoDB atoms: 0
-MongoDB nodes: 0
-MongoDB links: 0
+    assert_output "MongoDB: No collections found (0)
 Redis: No keys found (0)"
 }
 

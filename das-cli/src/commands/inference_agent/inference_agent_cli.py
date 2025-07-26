@@ -6,9 +6,11 @@ from commands.inference_agent.inference_agent_container_manager import (
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+
+from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
 
 class InferenceAgentStop(Command):
@@ -47,19 +49,53 @@ EXAMPLES
         self._settings = settings
         self._inference_agent_manager = inference_agent_manager
 
+    def _get_container(self):
+        return self._inference_agent_manager.get_container()
+
     def _inference_agent(self):
+        container = self._get_container()
+
         try:
             self.stdout("Stopping Inference Agent service...")
             self._inference_agent_manager.stop()
+
+            success_message = "Inference Agent service stopped"
+
             self.stdout(
-                "Inference Agent service stopped",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerNotFoundError:
-            container_name = self._inference_agent_manager.get_container().name
+
             self.stdout(
-                f"The Inference Agent service named {container_name} is already stopped.",
+                dict(
+                    InferenceAgentContainerServiceResponse(
+                        action="stop",
+                        status="success",
+                        message=success_message,
+                        container=container,
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+
+        except DockerContainerNotFoundError:
+            warning_message = (
+                f"The Inference Agent service named {container.name} is already stopped."
+            )
+            self.stdout(
+                warning_message,
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    InferenceAgentContainerServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_message,
+                        container=container,
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
@@ -129,14 +165,18 @@ EXAMPLES
         self._inference_agent_container_manager = inference_agent_container_manager
         self._link_creation_container_manager = link_creation_container_manager
 
+    def _get_container(self):
+        return self._inference_agent_container_manager.get_container()
+
     def _inference_agent(
         self,
         peer_hostname: str,
         peer_port: int,
         port_range: str,
     ) -> None:
+        container = self._get_container()
+
         self.stdout("Starting Inference Agent service...")
-        inference_port = self._inference_agent_container_manager.get_container().port
 
         try:
             self._inference_agent_container_manager.start_container(
@@ -145,14 +185,41 @@ EXAMPLES
                 port_range,
             )
 
+            success_message = f"Inference Agent started listening on the ports {container.port}"
+
             self.stdout(
-                f"Inference Agent started listening on the ports {inference_port}",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerDuplicateError:
             self.stdout(
-                f"Inference Agent is already running. It's listening on the ports {inference_port}",
+                dict(
+                    InferenceAgentContainerServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=container,
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerDuplicateError:
+            warning_message = (
+                f"Inference Agent is already running. It's listening on the ports {container.port}"
+            )
+            self.stdout(
+                warning_message,
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    InferenceAgentContainerServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=container,
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     @ensure_container_running(

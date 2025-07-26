@@ -4,13 +4,15 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
+
+from .db_service_response import DbServiceResponse
 
 
 class DbCountAtoms(Command):
@@ -66,23 +68,110 @@ $ das-cli db count-atoms --verbose
 
         super().__init__()
 
-    def _show_verbose_output(self) -> None:
+    def _get_mongodb_container(self):
+        return self._mongodb_container_manager.get_container()
+
+    def _get_redis_container(self):
+        return self._redis_container_manager.get_container()
+
+    def _show_mongodb_stats(self):
         collection_stats = self._mongodb_container_manager.get_collection_stats()
-        redis_keys = self._redis_container_manager.get_count_keys().items()
+
+        if len(collection_stats) < 1:
+            self.stdout("MongoDB: No collections found (0)")
+            return self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="count-atoms",
+                        status="no_collections_found",
+                        message="No MongoDB collections found.",
+                        container=self._get_mongodb_container(),
+                        extra_details={
+                            "stats": collection_stats,
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
 
         for key, count in collection_stats.items():
             self.stdout(f"MongoDB {key}: {count}")
 
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="count-atoms",
+                    status="success",
+                    message="Count of MongoDB atoms displayed successfully.",
+                    container=self._get_mongodb_container(),
+                    extra_details={
+                        "stats": collection_stats,
+                    },
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
+
+    def _show_redis_stats(self):
+        redis_keys = self._redis_container_manager.get_count_keys().items()
+
         if len(redis_keys) < 1:
-            return self.stdout("Redis: No keys found (0)")
+            self.stdout("Redis: No keys found (0)")
+            return self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="count-atoms",
+                        status="no_keys_found",
+                        message="No Redis keys found.",
+                        container=self._get_redis_container(),
+                        extra_details={
+                            "stats": dict(redis_keys),
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
 
         for redis_key, redis_count in redis_keys:
             self.stdout(f"Redis {redis_key}: {redis_count}")
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="count-atoms",
+                    status="success",
+                    message="Count of Redis keys displayed successfully.",
+                    container=self._get_redis_container(),
+                    extra_details={
+                        "stats": dict(redis_keys),
+                    },
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
+
+    def _show_verbose_output(self) -> None:
+        self._show_mongodb_stats()
+        self._show_redis_stats()
 
     def _show_non_verbose_output(self) -> None:
         count_atoms = self._mongodb_container_manager.get_count_atoms()
 
         self.stdout(count_atoms)
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="count-atoms",
+                    status="success",
+                    message="Count of MongoDB atoms displayed successfully.",
+                    container=self._get_mongodb_container(),
+                    extra_details={
+                        "atoms": count_atoms,
+                    },
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
     @ensure_container_running(
         [
@@ -136,6 +225,12 @@ $ das-cli db stop
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
 
+    def _get_redis_container(self):
+        return self._redis_container_manager.get_container()
+
+    def _get_mongodb_container(self):
+        return self._mongodb_container_manager.get_container()
+
     def _redis_node(self, context, ip, username):
         try:
             self._redis_container_manager.set_exec_context(context)
@@ -147,16 +242,36 @@ $ das-cli db stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = self._redis_container_manager.get_container().name
+            container_name = self._get_redis_container().name
             self.stdout(
                 f"The Redis service named {container_name} at {ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=f"The Redis service named {container_name} at {ip} is already stopped.",
+                        container=self._get_redis_container(),
+                        extra_details={
+                            "node": {
+                                "context": context,
+                                "ip": ip,
+                                "username": username,
+                            }
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def _redis(self):
         self.stdout("Stopping Redis service...")
 
         redis_nodes = self._settings.get("services.redis.nodes", [])
+        redis_cluster = self._settings.get("services.redis.cluster", False)
+        redis_container = self._get_redis_container()
 
         try:
             for redis_node in redis_nodes:
@@ -167,6 +282,24 @@ $ das-cli db stop
                 severity=StdoutSeverity.ERROR,
             )
             raise e
+
+        success_message = "Redis service stopped successfully"
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="stop",
+                    status="success",
+                    message=success_message,
+                    extra_details={
+                        "cluster": redis_cluster,
+                        "nodes": redis_nodes,
+                    },
+                    container=redis_container,
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
     def _mongodb_node(self, context, ip, username):
         try:
@@ -179,16 +312,38 @@ $ das-cli db stop
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
-            container_name = self._mongodb_container_manager.get_container().name
+            container_name = self._get_mongodb_container().name
+            warning_message = (
+                f"The MongoDB service named {container_name} at {ip} is already stopped."
+            )
             self.stdout(
-                f"The MongoDB service named {container_name} at {ip} is already stopped.",
+                warning_message,
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_message,
+                        container=self._get_mongodb_container(),
+                        extra_details={
+                            "node": {
+                                "context": context,
+                                "ip": ip,
+                                "username": username,
+                            }
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def _mongodb(self):
         self.stdout("Stopping MongoDB service...")
 
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
+        mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
 
         try:
             for mongodb_node in mongodb_nodes:
@@ -200,6 +355,24 @@ $ das-cli db stop
                 severity=StdoutSeverity.ERROR,
             )
             raise e
+
+        success_message = "MongoDB service stopped successfully"
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="stop",
+                    status="success",
+                    message=success_message,
+                    extra_details={
+                        "cluster": mongodb_cluster,
+                        "nodes": mongodb_nodes,
+                    },
+                    container=self._get_mongodb_container(),
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
     def run(self):
         self._settings.raise_on_missing_file()
@@ -246,6 +419,12 @@ $ das-cli db start
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
 
+    def _get_redis_container(self):
+        return self._redis_container_manager.get_container()
+
+    def _get_mongodb_container(self):
+        return self._mongodb_container_manager.get_container()
+
     def _redis_node(
         self,
         redis_node: dict,
@@ -266,14 +445,55 @@ $ das-cli db start
             )
             self._redis_container_manager.unset_exec_context()
 
+            success_message = f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the server user {node_username}."
+
             self.stdout(
-                f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the server user {node_username}.",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerDuplicateError:
             self.stdout(
-                f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}.",
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=self._redis_container_manager.get_container(),
+                        extra_details={
+                            "node": {
+                                "context": node_context,
+                                "ip": node_ip,
+                                "username": node_username,
+                            },
+                            "cluster": redis_cluster,
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerDuplicateError:
+            warning_message = f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}."
+            self.stdout(
+                warning_message,
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=self._get_redis_container(),
+                        extra_details={
+                            "node": {
+                                "context": node_context,
+                                "ip": node_ip,
+                                "username": node_username,
+                            },
+                            "cluster": redis_cluster,
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError:
             self.stdout(
@@ -300,6 +520,22 @@ $ das-cli db start
                     severity=StdoutSeverity.ERROR,
                 )
                 raise e
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="start",
+                    status="success",
+                    message=f"Redis started successfully on port {redis_port}",
+                    extra_details={
+                        "cluster": redis_cluster,
+                        "nodes": redis_nodes,
+                    },
+                    container=self._get_redis_container(),
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
     def _mongodb_node(
         self,
@@ -334,14 +570,56 @@ $ das-cli db start
             )
             self._mongodb_container_manager.unset_exec_context()
 
+            success_message = f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}."
+
             self.stdout(
-                f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}.",
+                success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-        except DockerContainerDuplicateError:
             self.stdout(
-                f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}.",
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=self._get_mongodb_container(),
+                        extra_details={
+                            "node": {
+                                "context": node_context,
+                                "ip": node_ip,
+                                "username": node_username,
+                            },
+                            "cluster": is_cluster_enabled,
+                        },
+                    ),
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerDuplicateError:
+            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}."
+
+            self.stdout(
+                warning_message,
                 severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=self._get_mongodb_container(),
+                        extra_details={
+                            "node": {
+                                "context": node_context,
+                                "ip": node_ip,
+                                "username": node_username,
+                            },
+                            "cluster": is_cluster_enabled,
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError as e:
             self.stdout(
@@ -384,6 +662,22 @@ $ das-cli db start
                     severity=StdoutSeverity.ERROR,
                 )
                 raise e
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="start",
+                    status="success",
+                    message=f"MongoDB started successfully on port {mongodb_port}",
+                    container=self._mongodb_container_manager.get_container(),
+                    extra_details={
+                        "cluster": mongodb_cluster,
+                        "nodes": mongodb_nodes,
+                    },
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
     def run(self):
         self._settings.raise_on_missing_file()

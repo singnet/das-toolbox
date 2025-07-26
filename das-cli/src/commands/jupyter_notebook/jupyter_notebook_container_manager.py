@@ -29,12 +29,12 @@ class JupyterNotebookContainerManager(ContainerManager):
 
     def start_container(
         self,
-        port: int,
         working_dir: str | None = None,
     ):
         self.raise_running_container()
 
         volumes = {(working_dir or os.getcwd()): {"bind": "/home/jovyan/work", "mode": "rw"}}
+        jupyter_notebook_port = self.get_container().port
 
         try:
             container = self._start_container(
@@ -43,7 +43,7 @@ class JupyterNotebookContainerManager(ContainerManager):
                     "MaximumRetryCount": 5,
                 },
                 ports={
-                    "8888/tcp": port,
+                    "8888/tcp": jupyter_notebook_port,
                 },
                 volumes=volumes,
             )

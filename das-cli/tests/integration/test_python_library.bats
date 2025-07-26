@@ -1,11 +1,13 @@
 #!/usr/local/bin/bats
 
-skip "Tests skipped: required package 'hyperon-das-atomdb' is unavailable. We're facing issues due to missing hyperon-das-atomdb packages, blocking test execution."
-
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+
+setup_file() {
+    skip "Tests skipped: required package 'hyperon-das-atomdb' is unavailable. We're facing issues due to missing hyperon-das-atomdb packages, blocking test execution."
+}
 
 setup() {
     libs=(hyperon-das hyperon-das-atomdb)

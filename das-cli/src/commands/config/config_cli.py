@@ -11,6 +11,7 @@ from common import (
     RemoteContextManager,
     Settings,
     StdoutSeverity,
+    StdoutType,
     get_public_ip,
     get_rand_token,
     get_server_username,
@@ -655,9 +656,11 @@ EXAMPLES
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        settings_table = self._settings.pretty()
-
-        self.stdout(settings_table)
+        self.stdout(self._settings.pretty())
+        self.stdout(
+            self._settings.get_content(),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
 
 
 class ConfigCli(CommandGroup):
