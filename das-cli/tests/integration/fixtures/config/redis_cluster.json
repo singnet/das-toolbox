@@ -1,5 +1,5 @@
 {
-    "schema_hash": "87c3ced9b329442eb899aa43c557bfa4bd250aac820f1a2c16820ab5baa80c43",
+    "schema_hash": "7614bdab135e117ea272db55007cd1f3e055d4ef5c94ec99e54ae85f6dac8e3d",
     "services": {
         "redis": {
             "port": 6379,
@@ -78,6 +78,10 @@
         "inference_agent": {
             "port": 8082,
             "container_name": "das-cli-inference-agent-8082"
+        },
+        "evolution_broker": {
+            "port": 24002,
+            "container_name": "das-cli-evolution-broker-24002"
         }
     }
 }
