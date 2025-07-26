@@ -50,7 +50,7 @@ class EvolutionBrokerManager(ContainerManager):
             pass
 
         try:
-            evolution_broker_port = int(self._options.get("evolution_broker_port"))
+            evolution_broker_port = int(self._options.get("evolution_broker_port", 0))
             exec_command = self._gen_evolution_broker_command(evolution_broker_port, port_range)
 
             container_id = self._start_container(
