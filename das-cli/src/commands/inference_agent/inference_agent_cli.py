@@ -12,8 +12,6 @@ from common.docker.exceptions import DockerContainerDuplicateError, DockerContai
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
-from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
-
 
 class InferenceAgentStop(Command):
     name = "stop"

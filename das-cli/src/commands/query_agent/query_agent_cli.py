@@ -14,8 +14,6 @@ from common.docker.exceptions import (
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
-from .query_agent_container_service_response import QueryAgentContainerServiceResponse
-
 
 class QueryAgentStop(Command):
     name = "stop"

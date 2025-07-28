@@ -10,8 +10,6 @@ from common.docker.exceptions import (
 
 from .attention_broker_service_response import AttentionBrokerServiceResponse
 
-from .attention_broker_service_response import AttentionBrokerServiceResponse
-
 
 class AttentionBrokerStop(Command):
     name = "stop"

@@ -322,6 +322,7 @@ class Command:
         else:
             click.echo(text, nl=new_line)
 
+
 class CommandGroup(Command):
     name: str = "unknown"
     help: str = ""
