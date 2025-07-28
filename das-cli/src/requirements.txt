@@ -18,3 +18,5 @@ pre-commit==3.5.0
 # types
 types-paramiko==2.12.0.1
 types-requests==2.32.0.20241016
+types-PyYAML==6.0.12
+

@@ -77,8 +77,9 @@ teardown() {
         --client-database $client_database \
         --context "$context"
 
+    assert_line --partial "Starting DBMS Peer $client_hostname:$client_port"
     assert_line --partial "The 'public.atoms' has been mapped"
-    assert_line --partial "Done."
+    assert_line --partial "DBMS Peer client started successfully on $client_hostname:$client_port. It will now connect to the DAS peer server and synchronize data."
 
     run das-cli db count-atoms
 

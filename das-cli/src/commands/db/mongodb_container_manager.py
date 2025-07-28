@@ -154,11 +154,23 @@ class MongodbContainerManager(ContainerManager):
         mongodb_username = self._options.get("mongodb_username")
         mongodb_password = self._options.get("mongodb_password")
 
-        mongodb_command = "JSON.stringify({ atoms: db.atoms.countDocuments(), nodes: db.atoms.countDocuments({ composite_type: { $exists: false } }), links: db.atoms.countDocuments({ composite_type: { $exists: true } })})"
-        command = f"bash -c \"mongosh -u {mongodb_username} -p {mongodb_password} --eval 'use das' --eval '{mongodb_command}' | tail -n 1\""
+        mongodb_command = """
+            const collections = db.getCollectionNames();
+            const stats = {};
+            collections.forEach(function(name) {
+                stats[name] = db.getCollection(name).countDocuments();
+            });
+            JSON.stringify(stats);
+        """.strip().replace(
+            "\n", " "
+        )
+
+        command = (
+            f'bash -c "mongosh -u {mongodb_username} -p {mongodb_password} '
+            f'--eval \'use das\' --eval \'{mongodb_command}\' | tail -n 1"'
+        )
 
         result = self._exec_container(command)
-
         return json.loads(result.output)
 
     def get_count_atoms(self) -> int:

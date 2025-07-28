@@ -1,15 +1,19 @@
+import json
+from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, List
+from typing import Any, Callable, Dict, List
 
 import click
+import yaml
 from fabric import Connection
 
-from common.logger import logger
+from common import Choice
 from common.utils import log_exception
 
 
 class StdoutType(Enum):
     DEFAULT = "default"
+    MACHINE_READABLE = "machine_readable"
 
 
 class StdoutSeverity(Enum):
@@ -31,12 +35,46 @@ class CommandArgument(click.Argument):
         super().__init__(*args, **kwargs)
 
 
+@dataclass
+class OutputBufferEntry:
+    message: Any
+    stdout_type: StdoutType = StdoutType.DEFAULT
+    severity: StdoutSeverity = StdoutSeverity.INFO
+    new_line: bool = True
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
 class Command:
     name = "unknown"
     help = ""
     short_help = ""
     params: List = []
     aliases: List[str] = []
+    _output_buffer: List[OutputBufferEntry] = []
+
+    exclude_params = [
+        "output_format",
+        "remote",
+        "host",
+        "user",
+        "port",
+        "key-file",
+        "password",
+        "connect-timeout",
+    ]
+
+    default_params = [
+        CommandOption(
+            ["--output-format", "-o"],
+            type=Choice(["plain", "json", "yaml"]),
+            help="Choose the output format: plain, json, yaml",
+            required=False,
+            default="plain",
+        ),
+    ]
+
     remote_params = [
         CommandOption(
             ["--remote"],
@@ -84,13 +122,29 @@ class Command:
         ),
     ]
 
+    @property
+    def command_path(self) -> str:
+        ctx = click.get_current_context(silent=True)
+
+        if ctx is None:
+            return self.name
+
+        return ctx.command_path
+
+    @property
+    def output_format(self):
+        ctx = click.get_current_context(silent=True)
+        if ctx:
+            return ctx.params.get("output_format", "plain")
+        return "plain"
+
     def __init__(self) -> None:
         self.command = click.Command(
             name=self.name,
             callback=self.safe_run,
             help=self.help,
             short_help=self.short_help,
-            params=self.params + self.remote_params,
+            params=self.params + self.remote_params + self.default_params,
         )
 
     def _get_remote_kwargs(self, kwargs) -> tuple[bool, dict, dict]:
@@ -149,12 +203,19 @@ class Command:
 
     def safe_run(self, **kwargs):
         remote, kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
+
+        for param in getattr(self, "exclude_params", []):
+            setattr(self, f"_{param}", kwargs.pop(param, None))
+
         try:
             if remote:
-                return self._remote_run(kwargs, remote_kwargs)
-            return self.run(**kwargs)
+                self._remote_run(kwargs, remote_kwargs)
+            else:
+                self.run(**kwargs)
         except Exception as e:
             log_exception(e)
+
+        self.flush_stdout()
 
     def prompt(
         self,
@@ -185,31 +246,81 @@ class Command:
     def confirm(self, text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
-    @staticmethod
+    def _handle_default_output(self, entry: OutputBufferEntry) -> None:
+        if self.output_format == "plain":
+            self._print_colored(entry.message, entry.severity, entry.new_line)
+
+    def _handle_machine_readable_output(self, entry: OutputBufferEntry) -> None:
+        if self.output_format != "plain":
+            self._output_buffer.append(entry)
+
     def stdout(
+        self,
         content: Any,
         stdout_type: StdoutType = StdoutType.DEFAULT,
         severity: StdoutSeverity = StdoutSeverity.INFO,
         new_line: bool = True,
     ) -> None:
-        message = content
-        logger_instance = {
-            StdoutSeverity.ERROR: logger().error,
-            StdoutSeverity.INFO: logger().info,
-            StdoutSeverity.SUCCESS: logger().info,
-            StdoutSeverity.WARNING: logger().warning,
+        entry = OutputBufferEntry(
+            message=content,
+            stdout_type=stdout_type,
+            severity=severity,
+            new_line=new_line,
+        )
+
+        handlers: Dict[StdoutType, Callable[[OutputBufferEntry], None]] = {
+            StdoutType.DEFAULT: self._handle_default_output,
+            StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
         }
-        log = logger_instance[severity]
 
-        if stdout_type == StdoutType.DEFAULT:
-            click.secho(message, fg=severity.value, nl=new_line)
-
-        log(message)
+        handler = handlers.get(stdout_type, self._handle_default_output)
+        handler(entry)
 
     def run(self, *args, **kwargs):
         raise NotImplementedError(
             f"The 'run' method from the command '{self.name}' should be implemented."
         )
+
+    def _flush_default_output(self):
+        for entry in self._output_buffer:
+            if entry.stdout_type == StdoutType.DEFAULT:
+                self._print_colored(entry.message, entry.severity)
+
+    def flush_stdout(self):
+        if self.output_format == "plain":
+            self._flush_default_output()
+        elif self.output_format in {"json", "yaml"}:
+            self._flush_machine_readable_output()
+
+        self._output_buffer.clear()
+
+    def _flush_machine_readable_output(self):
+        results = [
+            entry.message
+            for entry in self._output_buffer
+            if entry.stdout_type == StdoutType.MACHINE_READABLE
+        ]
+
+        if not results:
+            return
+
+        if self.output_format == "json":
+            click.echo(json.dumps(results, indent=2))
+        elif self.output_format == "yaml":
+            click.echo(yaml.dump(results, sort_keys=False))
+
+    def _print_colored(self, text: str, severity: StdoutSeverity, new_line: bool = True) -> None:
+        fg_map = {
+            StdoutSeverity.SUCCESS: "green",
+            StdoutSeverity.ERROR: "red",
+            StdoutSeverity.WARNING: "yellow",
+            StdoutSeverity.INFO: None,
+        }
+        fg = fg_map.get(severity)
+        if fg:
+            click.secho(text, fg=fg, nl=new_line)
+        else:
+            click.echo(text, nl=new_line)
 
 
 class CommandGroup(Command):

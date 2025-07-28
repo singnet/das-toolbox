@@ -110,6 +110,10 @@ function unset_config() {
     fi
 }
 
+function set_log() {
+    cp "$test_fixtures_dir/logs/das-cli.log" "$das_log_file"
+}
+
 function unset_log() {
     if [ -f "$das_log_file" ]; then
         rm "$das_log_file"
@@ -133,6 +137,11 @@ function use_config() {
 
 function listen_port() {
     local port="$1"
+
+    if [ ! command -v socat &>/dev/null ]; then
+        echo "socat is not installed. Please install it to use this function."
+        return 1
+    fi
 
     socat TCP-LISTEN:"$port",fork,reuseaddr - >/dev/null 2>&1 &
     local pid=$!
