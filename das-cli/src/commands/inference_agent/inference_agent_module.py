@@ -41,11 +41,30 @@ class InferenceAgentModule(Module):
         inference_agent_hostname = "localhost"
         inference_agent_port = self._settings.get("services.inference_agent.port")
 
+        mongodb_hostname = "localhost"
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+
+        redis_port = self._settings.get("services.redis.port")
+        redis_hostname = "localhost"
+
+        attention_broker_hostname = "localhost"
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
         return InferenceAgentContainerManager(
             container_name,
             options={
                 "inference_agent_hostname": inference_agent_hostname,
                 "inference_agent_port": inference_agent_port,
+                "redis_port": redis_port,
+                "redis_hostname": redis_hostname,
+                "mongodb_port": mongodb_port,
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_port": attention_broker_port,
             },
         )
 
