@@ -177,7 +177,7 @@ teardown() {
 
     run das-cli logs evolution-broker
 
-    assert_output "[31m[DockerContainerNotFoundError] Evolution broker is not running. Please start it with 'das-cli evolution-broker start' before viewing logs.[39m"
+    assert_output "[31m[DockerContainerNotFoundError] Evolution Broker is not running. Please start it with 'das-cli evolution-broker start' before viewing logs.[39m"
 
     run is_service_up evolution-broker
 

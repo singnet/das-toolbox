@@ -7,7 +7,7 @@ from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import EVOLUTION_BROKER_IMAGE_NAME, EVOLUTION_BROKER_IMAGE_VERSION
 
 
-class EvolutionBrokerManager(ContainerManager):
+class EvolutionBrokerContainerManager(ContainerManager):
     def __init__(
         self,
         evolution_broker_container_name: str,

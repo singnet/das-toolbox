@@ -1,6 +1,8 @@
 from injector import inject
 
-from commands.evolution_broker.evolution_broker_container_manager import EvolutionBrokerManager
+from commands.evolution_broker.evolution_broker_container_manager import (
+    EvolutionBrokerContainerManager,
+)
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
@@ -45,19 +47,19 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        evolution_broker_manager: EvolutionBrokerManager,
+        evolution_broker_container_manager: EvolutionBrokerContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._evolution_broker_manager = evolution_broker_manager
+        self._evolution_broker_container_manager = evolution_broker_container_manager
 
     def _get_container(self):
-        return self._evolution_broker_manager.get_container()
+        return self._evolution_broker_container_manager.get_container()
 
     def _evolution_broker(self):
         try:
             self.stdout("Stopping Evolution Broker service...")
-            self._evolution_broker_manager.stop()
+            self._evolution_broker_container_manager.stop()
 
             success_message = "Evolution Broker service stopped"
 
@@ -77,7 +79,7 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
-            container_name = self._evolution_broker_manager.get_container().name
+            container_name = self._evolution_broker_container_manager.get_container().name
             warning_message = (
                 f"The Evolution Broker service named {container_name} is already stopped."
             )
@@ -110,7 +112,7 @@ class EvolutionBrokerStart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             prompt="Enter port range (e.g., 3000:3010)",
             type=str,
         ),
@@ -146,7 +148,7 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        evolution_broker_container_manager: EvolutionBrokerManager,
+        evolution_broker_container_manager: EvolutionBrokerContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -228,7 +230,7 @@ class EvolutionBrokerRestart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             prompt="Enter port range (e.g., 3000:3010)",
             type=str,
         ),

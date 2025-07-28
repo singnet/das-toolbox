@@ -5,7 +5,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .evolution_broker_cli import EvolutionBrokerCli, EvolutionBrokerManager, Settings
+from .evolution_broker_cli import EvolutionBrokerCli, EvolutionBrokerContainerManager, Settings
 
 
 class EvolutionBrokerModule(Module):
@@ -22,7 +22,7 @@ class EvolutionBrokerModule(Module):
                 self._query_agent_container_manager_factory,
             ),
             (
-                EvolutionBrokerManager,
+                EvolutionBrokerContainerManager,
                 self._evolution_broker_container_manager_factory,
             ),
             (
@@ -61,7 +61,7 @@ class EvolutionBrokerModule(Module):
             },
         )
 
-    def _evolution_broker_container_manager_factory(self) -> EvolutionBrokerManager:
+    def _evolution_broker_container_manager_factory(self) -> EvolutionBrokerContainerManager:
         evolution_broker_port = str(self._settings.get("services.evolution_broker.port"))
 
         container_name = self._settings.get("services.evolution_broker.container_name")
@@ -77,7 +77,7 @@ class EvolutionBrokerModule(Module):
         attention_broker_hostname = "localhost"
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        return EvolutionBrokerManager(
+        return EvolutionBrokerContainerManager(
             container_name,
             options={
                 "evolution_broker_port": evolution_broker_port,
