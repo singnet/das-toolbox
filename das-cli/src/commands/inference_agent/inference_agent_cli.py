@@ -65,7 +65,6 @@ EXAMPLES
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
             )
-
             self.stdout(
                 dict(
                     InferenceAgentContainerServiceResponse(

@@ -3,6 +3,9 @@ import os
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from commands.evolution_agent.evolution_agent_container_manager import (
+    EvolutionAgentContainerManager,
+)
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
 )
@@ -57,6 +60,10 @@ class LogsModule(Module):
             (
                 InferenceAgentContainerManager,
                 self._inference_agent_container_manager_factory,
+            ),
+            (
+                EvolutionAgentContainerManager,
+                self._evolution_agent_container_manager_factory,
             ),
         ]
 
@@ -130,6 +137,37 @@ class LogsModule(Module):
         return AttentionBrokerManager(
             attention_broker_container,
             options={
+                "attention_broker_port": attention_broker_port,
+            },
+        )
+
+    def _evolution_agent_container_manager_factory(self) -> EvolutionAgentContainerManager:
+        evolution_agent_port = str(self._settings.get("services.evolution_agent.port"))
+
+        container_name = self._settings.get("services.evolution_agent.container_name")
+
+        mongodb_hostname = "localhost"
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+
+        redis_port = self._settings.get("services.redis.port")
+        redis_hostname = "localhost"
+
+        attention_broker_hostname = "localhost"
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
+        return EvolutionAgentContainerManager(
+            container_name,
+            options={
+                "evolution_agent_port": evolution_agent_port,
+                "redis_port": redis_port,
+                "redis_hostname": redis_hostname,
+                "mongodb_port": mongodb_port,
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+                "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
             },
         )

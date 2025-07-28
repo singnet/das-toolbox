@@ -13,6 +13,7 @@ setup() {
     das-cli query-agent stop
     das-cli link-creation-agent stop
     das-cli inference-agent stop
+    das-cli evolution-agent stop
 }
 
 teardown() {
@@ -21,6 +22,7 @@ teardown() {
     das-cli query-agent stop
     das-cli link-creation-agent stop
     das-cli inference-agent stop
+    das-cli evolution-agent stop
 }
 
 @test "Show logs for MongoDB and Redis with unset configuration file" {
@@ -169,6 +171,31 @@ teardown() {
 
     assert_failure 124
 }
+
+@test "Trying to show logs for evolution agent before it is running" {
+    local evolution_agent_container_name="$(get_config .services.evolution_agent.container_name)"
+
+    run das-cli logs evolution-agent
+
+    assert_output "[31m[DockerContainerNotFoundError] Evolution Agent is not running. Please start it with 'das-cli evolution-agent start' before viewing logs.[39m"
+
+    run is_service_up evolution-agent
+
+    assert_failure
+}
+
+@test "Show logs for evolution agent" {
+    das-cli db start
+    das-cli attention-broker start
+    das-cli query-agent start --port-range 12000:12100
+
+    das-cli evolution-agent start --port-range 12300:12400
+
+    run timeout 5s das-cli logs evolution-agent
+
+    assert_failure 124
+}
+
 
 @test "Show DAS logs when the log file does not exist" {
     unset_log

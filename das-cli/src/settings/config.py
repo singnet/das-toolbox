@@ -46,3 +46,6 @@ LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-0.10.2"
 
 INFERENCE_AGENT_IMAGE_NAME = "trueagi/das"
 INFERENCE_AGENT_IMAGE_VERSION = "inference-agent-0.10.2"
+
+EVOLUTION_AGENT_IMAGE_NAME = "trueagi/das"
+EVOLUTION_AGENT_IMAGE_VERSION = "evolution-agent-0.10.2"
