@@ -43,6 +43,7 @@ class EvolutionBrokerManager(ContainerManager):
 
     def start_container(self, port_range: str) -> str:
         self.raise_running_container()
+        self.raise_on_port_in_use([int(self._options.get("evolution_broker_port", 0))])
 
         try:
             self.stop()
@@ -61,6 +62,16 @@ class EvolutionBrokerManager(ContainerManager):
                 command=exec_command,
                 ports={
                     evolution_broker_port: evolution_broker_port,
+                },
+                environment={
+                    "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
+                    "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
+                    "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
+                    "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
+                    "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
+                    "DAS_REDIS_PORT": self._options.get("redis_port"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
                 },
             )
 

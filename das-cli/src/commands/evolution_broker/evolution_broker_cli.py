@@ -201,8 +201,11 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError:
-            error_message = f"\nError occurred while trying to start Evolution Broker on port {evolution_broker_port}\n"
-            raise DockerError(error_message)
+            message = (
+                f"Failed to start Evolution Broker. Please ensure that the port {evolution_broker_port} is not already in use "
+                "and that the required services are running."
+            )
+            raise DockerError(message)
 
     @ensure_container_running(
         [

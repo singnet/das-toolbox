@@ -66,9 +66,28 @@ class EvolutionBrokerModule(Module):
 
         container_name = self._settings.get("services.evolution_broker.container_name")
 
+        mongodb_hostname = "localhost"
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+
+        redis_port = self._settings.get("services.redis.port")
+        redis_hostname = "localhost"
+
+        attention_broker_hostname = "localhost"
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
         return EvolutionBrokerManager(
             container_name,
             options={
                 "evolution_broker_port": evolution_broker_port,
+                "redis_port": redis_port,
+                "redis_hostname": redis_hostname,
+                "mongodb_port": mongodb_port,
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_port": attention_broker_port,
             },
         )
