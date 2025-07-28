@@ -5,11 +5,11 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .evolution_broker_cli import EvolutionBrokerCli, EvolutionBrokerContainerManager, Settings
+from .evolution_agent_cli import EvolutionAgentCli, EvolutionAgentContainerManager, Settings
 
 
-class EvolutionBrokerModule(Module):
-    _instance = EvolutionBrokerCli
+class EvolutionAgentModule(Module):
+    _instance = EvolutionAgentCli
 
     def __init__(self) -> None:
         super().__init__()
@@ -22,8 +22,8 @@ class EvolutionBrokerModule(Module):
                 self._query_agent_container_manager_factory,
             ),
             (
-                EvolutionBrokerContainerManager,
-                self._evolution_broker_container_manager_factory,
+                EvolutionAgentContainerManager,
+                self._evolution_agent_container_manager_factory,
             ),
             (
                 Settings,
@@ -41,8 +41,8 @@ class EvolutionBrokerModule(Module):
         redis_port = self._settings.get("services.redis.port")
         redis_hostname = "localhost"
 
-        attention_broker_hostname = "localhost"
-        attention_broker_port = self._settings.get("services.attention_broker.port")
+        attention_agent_hostname = "localhost"
+        attention_agent_port = self._settings.get("services.attention_agent.port")
 
         container_name = self._settings.get("services.query_agent.container_name")
 
@@ -56,15 +56,15 @@ class EvolutionBrokerModule(Module):
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": attention_broker_hostname,
-                "attention_broker_port": attention_broker_port,
+                "attention_agent_hostname": attention_agent_hostname,
+                "attention_agent_port": attention_agent_port,
             },
         )
 
-    def _evolution_broker_container_manager_factory(self) -> EvolutionBrokerContainerManager:
-        evolution_broker_port = str(self._settings.get("services.evolution_broker.port"))
+    def _evolution_agent_container_manager_factory(self) -> EvolutionAgentContainerManager:
+        evolution_agent_port = str(self._settings.get("services.evolution_agent.port"))
 
-        container_name = self._settings.get("services.evolution_broker.container_name")
+        container_name = self._settings.get("services.evolution_agent.container_name")
 
         mongodb_hostname = "localhost"
         mongodb_port = self._settings.get("services.mongodb.port")
@@ -74,20 +74,20 @@ class EvolutionBrokerModule(Module):
         redis_port = self._settings.get("services.redis.port")
         redis_hostname = "localhost"
 
-        attention_broker_hostname = "localhost"
-        attention_broker_port = self._settings.get("services.attention_broker.port")
+        attention_agent_hostname = "localhost"
+        attention_agent_port = self._settings.get("services.attention_agent.port")
 
-        return EvolutionBrokerContainerManager(
+        return EvolutionAgentContainerManager(
             container_name,
             options={
-                "evolution_broker_port": evolution_broker_port,
+                "evolution_agent_port": evolution_agent_port,
                 "redis_port": redis_port,
                 "redis_hostname": redis_hostname,
                 "mongodb_port": mongodb_port,
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": attention_broker_hostname,
-                "attention_broker_port": attention_broker_port,
+                "attention_agent_hostname": attention_agent_hostname,
+                "attention_agent_port": attention_agent_port,
             },
         )

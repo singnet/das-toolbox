@@ -35,8 +35,8 @@ setup() {
     assert_line --partial "$(get_config ".services.openfaas.function")"
     assert_line --partial "$(get_config ".services.jupyter_notebook.port")"
     assert_line --partial "$(get_config ".services.jupyter_notebook.container_name")"
-    assert_line --partial "$(get_config ".services.evolution_broker.container_name")"
-    assert_line --partial "$(get_config ".services.evolution_broker.port")"
+    assert_line --partial "$(get_config ".services.evolution_agent.container_name")"
+    assert_line --partial "$(get_config ".services.evolution_agent.port")"
 
 }
 
@@ -62,7 +62,7 @@ setup() {
     local link_creation_agent_save_links_to_metta_file="y"
     local link_creation_agent_save_links_to_db="y"
     local inference_agent_port="8080"
-    local evolution_broker_port="24002"
+    local evolution_agent_port="24002"
 
     run das-cli config set <<EOF
 $redis_port
@@ -82,7 +82,7 @@ $link_creation_agent_default_timeout
 $link_creation_agent_save_links_to_metta_file
 $link_creation_agent_save_links_to_db
 $inference_agent_port
-$evolution_broker_port
+$evolution_agent_port
 EOF
 
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -103,7 +103,7 @@ EOF
     assert_equal "$(get_config ".services.link_creation_agent.save_links_to_metta_file")" "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")"
     assert_equal "$(get_config ".services.link_creation_agent.save_links_to_db")" "$(human_to_boolean "$link_creation_agent_save_links_to_db")"
     assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
-    assert_equal "$(get_config ".services.evolution_broker.port")" "$evolution_broker_port"
+    assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
 }
 
 @test "configuring settings with a previously set configuration file" {
@@ -126,7 +126,7 @@ EOF
     local old_link_creation_agent_save_links_to_metta_file="$(get_config ".services.link_creation_agent.save_links_to_metta_file")"
     local old_link_creation_agent_save_links_to_db="$(get_config ".services.link_creation_agent.save_links_to_db")"
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
-    local old_evolution_broker_port="$(get_config ".services.evolution_broker.port")"
+    local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
 
     local redis_port="7000"
     local redis_cluster="no"
@@ -145,7 +145,7 @@ EOF
     local link_creation_agent_save_links_to_metta_file="no"
     local link_creation_agent_save_links_to_db="no"
     local inference_agent_port="8080"
-    local evolution_broker_port="24002"
+    local evolution_agent_port="24002"
 
     run das-cli config set <<EOF
 $redis_port
@@ -165,7 +165,7 @@ $link_creation_agent_default_timeout
 $link_creation_agent_save_links_to_metta_file
 $link_creation_agent_save_links_to_db
 $inference_agent_port
-$evolution_broker_port
+$evolution_agent_port
 EOF
 
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -186,7 +186,7 @@ EOF
     assert_equal "$(get_config ".services.link_creation_agent.save_links_to_metta_file")" "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")"
     assert_equal "$(get_config ".services.link_creation_agent.save_links_to_db")" "$(human_to_boolean "$link_creation_agent_save_links_to_db")"
     assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
-    assert_equal "$(get_config ".services.evolution_broker.port")" "$evolution_broker_port"
+    assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
 
     assert_not_equal "$redis_port" "$old_redis_port"
     assert_equal "$(human_to_boolean "$redis_cluster")" "$old_redis_cluster"
@@ -205,7 +205,7 @@ EOF
     assert_not_equal "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")" "$old_link_creation_agent_save_links_to_metta_file"
     assert_not_equal "$(human_to_boolean "$link_creation_agent_save_links_to_db")" "$old_link_creation_agent_save_links_to_db"
     assert_not_equal "$inference_agent_port" "$old_inference_agent_port"
-    assert_not_equal "$evolution_broker_port" "$old_evolution_broker_port"
+    assert_not_equal "$evolution_agent_port" "$old_evolution_agent_port"
 
 }
 
@@ -229,7 +229,7 @@ EOF
     local old_link_creation_agent_save_links_to_metta_file="$(get_config ".services.link_creation_agent.save_links_to_metta_file")"
     local old_link_creation_agent_save_links_to_db="$(get_config ".services.link_creation_agent.save_links_to_db")"
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
-    local old_evolution_broker_port="$(get_config ".services.evolution_broker.port")"
+    local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
 
     local redis_port=""
     local redis_cluster=""
@@ -248,7 +248,7 @@ EOF
     local link_creation_agent_save_links_to_metta_file=""
     local link_creation_agent_save_links_to_db=""
     local inference_agent_port=""
-    local evolution_broker_port=""
+    local evolution_agent_port=""
 
     run das-cli config set <<EOF
 $redis_port
@@ -268,7 +268,7 @@ $link_creation_agent_default_timeout
 $link_creation_agent_save_links_to_metta_file
 $link_creation_agent_save_links_to_db
 $inference_agent_port
-$evolution_broker_port
+$evolution_agent_port
 EOF
 
     assert_not_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -288,7 +288,7 @@ EOF
     assert_not_equal "$(get_config ".services.link_creation_agent.save_links_to_metta_file")" "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")"
     assert_not_equal "$(get_config ".services.link_creation_agent.save_links_to_db")" "$(human_to_boolean "$link_creation_agent_save_links_to_db")"
     assert_not_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
-    assert_not_equal "$(get_config ".services.evolution_broker.port")" "$evolution_broker_port"
+    assert_not_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
 
     assert_equal "$old_redis_port" "$(get_config ".services.redis.port")"
     assert_equal "$old_redis_cluster" "$(get_config ".services.redis.cluster")"
@@ -308,5 +308,5 @@ EOF
     assert_equal "$old_link_creation_agent_save_links_to_metta_file" "$(get_config ".services.link_creation_agent.save_links_to_metta_file")"
     assert_equal "$old_link_creation_agent_save_links_to_db" "$(get_config ".services.link_creation_agent.save_links_to_db")"
     assert_equal "$old_inference_agent_port" "$(get_config ".services.inference_agent.port")"
-    assert_equal "$old_evolution_broker_port" "$(get_config ".services.evolution_broker.port")"
+    assert_equal "$old_evolution_agent_port" "$(get_config ".services.evolution_agent.port")"
 }

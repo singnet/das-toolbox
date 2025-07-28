@@ -4,7 +4,7 @@ from common.docker.container_manager import Container
 from common.service_response import ServiceResponse
 
 
-class EvolutionBrokerServiceResponse(ServiceResponse):
+class EvolutionAgentServiceResponse(ServiceResponse):
     def __init__(
         self,
         action: str,
@@ -15,7 +15,7 @@ class EvolutionBrokerServiceResponse(ServiceResponse):
         error: Optional[dict] = None,
     ):
         super().__init__(
-            service="evolution_broker",
+            service="evolution_agent",
             action=action,
             status=status,
             message=message,

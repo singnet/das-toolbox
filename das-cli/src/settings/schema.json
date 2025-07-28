@@ -124,7 +124,7 @@
           }
         }
       },
-      "evolution_broker": {
+      "evolution_agent": {
         "type": "object",
         "properties": {
           "container_name": { "type": "string" },

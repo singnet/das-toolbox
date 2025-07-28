@@ -1,7 +1,7 @@
 from injector import inject
 
-from commands.evolution_broker.evolution_broker_container_manager import (
-    EvolutionBrokerContainerManager,
+from commands.evolution_agent.evolution_agent_container_manager import (
+    EvolutionAgentContainerManager,
 )
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
@@ -12,56 +12,56 @@ from common.docker.exceptions import (
     DockerError,
 )
 
-from .evolution_broker_service_response import EvolutionBrokerServiceResponse
+from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
 
-class EvolutionBrokerStop(Command):
+class EvolutionAgentStop(Command):
     name = "stop"
 
-    short_help = "Stop the running Evolution Broker service"
+    short_help = "Stop the running Evolution Agent service"
 
     help = """
 NAME
 
-    das-cli evolution-broker stop - Stop the running Evolution Broker service
+    das-cli evolution-agent stop - Stop the running Evolution Agent service
 
 SYNOPSIS
 
-    das-cli evolution-broker stop
+    das-cli evolution-agent stop
 
 DESCRIPTION
 
-    Stops the currently running Evolution Broker container. This halts the processing of messages
-    and deactivates the broker until it is explicitly started again.
+    Stops the currently running Evolution Agent container. This halts the processing of messages
+    and deactivates the agent until it is explicitly started again.
 
     If the service is already stopped, a warning message is displayed.
 
 EXAMPLES
 
-    Stop the running Evolution Broker service:
+    Stop the running Evolution Agent service:
 
-        $ das-cli evolution-broker stop
+        $ das-cli evolution-agent stop
 """
 
     @inject
     def __init__(
         self,
         settings: Settings,
-        evolution_broker_container_manager: EvolutionBrokerContainerManager,
+        evolution_agent_container_manager: EvolutionAgentContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._evolution_broker_container_manager = evolution_broker_container_manager
+        self._evolution_agent_container_manager = evolution_agent_container_manager
 
     def _get_container(self):
-        return self._evolution_broker_container_manager.get_container()
+        return self._evolution_agent_container_manager.get_container()
 
-    def _evolution_broker(self):
+    def _evolution_agent(self):
         try:
-            self.stdout("Stopping Evolution Broker service...")
-            self._evolution_broker_container_manager.stop()
+            self.stdout("Stopping Evolution Agent service...")
+            self._evolution_agent_container_manager.stop()
 
-            success_message = "Evolution Broker service stopped"
+            success_message = "Evolution Agent service stopped"
 
             self.stdout(
                 success_message,
@@ -69,7 +69,7 @@ EXAMPLES
             )
             self.stdout(
                 dict(
-                    EvolutionBrokerServiceResponse(
+                    EvolutionAgentServiceResponse(
                         action="stop",
                         status="success",
                         message=success_message,
@@ -79,9 +79,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
-            container_name = self._evolution_broker_container_manager.get_container().name
+            container_name = self._evolution_agent_container_manager.get_container().name
             warning_message = (
-                f"The Evolution Broker service named {container_name} is already stopped."
+                f"The Evolution Agent service named {container_name} is already stopped."
             )
             self.stdout(
                 warning_message,
@@ -89,7 +89,7 @@ EXAMPLES
             )
             self.stdout(
                 dict(
-                    EvolutionBrokerServiceResponse(
+                    EvolutionAgentServiceResponse(
                         action="stop",
                         status="already_stopped",
                         message=warning_message,
@@ -103,10 +103,10 @@ EXAMPLES
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._evolution_broker()
+        self._evolution_agent()
 
 
-class EvolutionBrokerStart(Command):
+class EvolutionAgentStart(Command):
     name = "start"
 
     params = [
@@ -118,29 +118,29 @@ class EvolutionBrokerStart(Command):
         ),
     ]
 
-    short_help = "Start the Evolution Broker service."
+    short_help = "Start the Evolution Agent service."
 
     help = """
 NAME
 
-    das-cli evolution-broker start - Start the Evolution Broker service
+    das-cli evolution-agent start - Start the Evolution Agent service
 
 SYNOPSIS
 
-    das-cli evolution-broker start [--port-range <start:end>]
+    das-cli evolution-agent start [--port-range <start:end>]
 
 DESCRIPTION
 
-    Starts the Evolution Broker service in a Docker container. If the service is already running,
+    Starts the Evolution Agent service in a Docker container. If the service is already running,
     a warning will be shown.
 
-    The broker begins listening on the configured port and processes messages accordingly.
+    The agent begins listening on the configured port and processes messages accordingly.
 
 EXAMPLES
 
-    Start the Evolution Broker service:
+    Start the Evolution Agent service:
 
-        $ das-cli evolution-broker start --port-range 8000:8100
+        $ das-cli evolution-agent start --port-range 8000:8100
 """
 
     @inject
@@ -148,26 +148,26 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        evolution_broker_container_manager: EvolutionBrokerContainerManager,
+        evolution_agent_container_manager: EvolutionAgentContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._evolution_broker_container_manager = evolution_broker_container_manager
+        self._evolution_agent_container_manager = evolution_agent_container_manager
         self._query_agent_container_manager = query_agent_container_manager
 
     def _get_container(self):
-        return self._evolution_broker_container_manager.get_container()
+        return self._evolution_agent_container_manager.get_container()
 
-    def _evolution_broker(self, port_range: str) -> None:
-        self.stdout("Starting Evolution Broker service...")
+    def _evolution_agent(self, port_range: str) -> None:
+        self.stdout("Starting Evolution Agent service...")
 
         container = self._get_container()
-        evolution_broker_port = container.port
+        evolution_agent_port = container.port
 
         try:
-            self._evolution_broker_container_manager.start_container(port_range)
+            self._evolution_agent_container_manager.start_container(port_range)
 
-            success_message = f"Evolution Broker started on port {evolution_broker_port}"
+            success_message = f"Evolution Agent started on port {evolution_agent_port}"
 
             self.stdout(
                 success_message,
@@ -175,7 +175,7 @@ EXAMPLES
             )
             self.stdout(
                 dict(
-                    EvolutionBrokerServiceResponse(
+                    EvolutionAgentServiceResponse(
                         action="start",
                         status="success",
                         message=success_message,
@@ -185,7 +185,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"Evolution Broker is already running. It's listening on port {evolution_broker_port}"
+            warning_message = (
+                f"Evolution Agent is already running. It's listening on port {evolution_agent_port}"
+            )
 
             self.stdout(
                 warning_message,
@@ -193,7 +195,7 @@ EXAMPLES
             )
             self.stdout(
                 dict(
-                    EvolutionBrokerServiceResponse(
+                    EvolutionAgentServiceResponse(
                         action="start",
                         status="already_running",
                         message=warning_message,
@@ -204,7 +206,7 @@ EXAMPLES
             )
         except DockerError:
             message = (
-                f"Failed to start Evolution Broker. Please ensure that the port {evolution_broker_port} is not already in use "
+                f"Failed to start Evolution Agent. Please ensure that the port {evolution_agent_port} is not already in use "
                 "and that the required services are running."
             )
             raise DockerError(message)
@@ -213,7 +215,7 @@ EXAMPLES
         [
             "_query_agent_container_manager",
         ],
-        exception_text="\nPlease start the required services before running 'evolution-broker start'.\n"
+        exception_text="\nPlease start the required services before running 'evolution-agent start'.\n"
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
@@ -221,10 +223,10 @@ EXAMPLES
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._evolution_broker(port_range)
+        self._evolution_agent(port_range)
 
 
-class EvolutionBrokerRestart(Command):
+class EvolutionAgentRestart(Command):
     name = "restart"
 
     params = [
@@ -236,103 +238,103 @@ class EvolutionBrokerRestart(Command):
         ),
     ]
 
-    short_help = "Restart the Evolution Broker service."
+    short_help = "Restart the Evolution Agent service."
 
     help = """
 NAME
 
-    das-cli evolution-broker restart - Restart the Evolution Broker service
+    das-cli evolution-agent restart - Restart the Evolution Agent service
 
 SYNOPSIS
 
-    das-cli evolution-broker restart [--port-range <start:end>]
+    das-cli evolution-agent restart [--port-range <start:end>]
 
 DESCRIPTION
 
     This command combines a stop and a start operation to ensure that the
-    Evolution Broker is restarted cleanly.
+    Evolution Agent is restarted cleanly.
 
     Useful for refreshing configurations or recovering from faults.
 
 EXAMPLES
 
-    Restart the Evolution Broker service:
+    Restart the Evolution Agent service:
 
-        $ das-cli evolution-broker restart --port-range 8000:8100
+        $ das-cli evolution-agent restart --port-range 8000:8100
 """
 
     @inject
     def __init__(
         self,
-        evolution_broker_start: EvolutionBrokerStart,
-        evolution_broker_stop: EvolutionBrokerStop,
+        evolution_agent_start: EvolutionAgentStart,
+        evolution_agent_stop: EvolutionAgentStop,
     ) -> None:
         super().__init__()
-        self._evolution_broker_start = evolution_broker_start
-        self._evolution_broker_stop = evolution_broker_stop
+        self._evolution_agent_start = evolution_agent_start
+        self._evolution_agent_stop = evolution_agent_stop
 
     def run(self, port_range: str):
-        self._evolution_broker_stop.run()
-        self._evolution_broker_start.run(port_range)
+        self._evolution_agent_stop.run()
+        self._evolution_agent_start.run(port_range)
 
 
-class EvolutionBrokerCli(CommandGroup):
-    name = "evolution-broker"
+class EvolutionAgentCli(CommandGroup):
+    name = "evolution-agent"
 
-    aliases = ["eb"]
+    aliases = ["evolution"]
 
-    short_help = "Control the lifecycle of the Evolution Broker service."
+    short_help = "Control the lifecycle of the Evolution Agent service."
 
     help = """
 NAME
 
-    das-cli evolution-broker - Manage the Evolution Broker service
+    das-cli evolution-agent - Manage the Evolution Agent service
 
 SYNOPSIS
 
-    das-cli evolution-broker [COMMAND]
+    das-cli evolution-agent [COMMAND]
 
 DESCRIPTION
 
-    This command group allows you to manage the lifecycle of the Evolution Broker service,
+    This command group allows you to manage the lifecycle of the Evolution Agent service,
     which is responsible for  tracks atom importance values in different contexts and updates those values based on user queries using context-specific Hebbian networks.
 
 COMMANDS
     start
-        Start the Evolution Broker service and begin message processing.
+        Start the Evolution Agent service and begin message processing.
 
     stop
-        Stop the currently running Evolution Broker container.
+        Stop the currently running Evolution Agent container.
 
     restart
-        Restart the Evolution Broker container (stop followed by start).
+        Restart the Evolution Agent container (stop followed by start).
 
 EXAMPLES
-    Start the broker:
+    Start the agent:
 
-        $ das-cli evolution-broker start [--port-range <start:end>]
+        $ das-cli evolution-agent start [--port-range <start:end>]
 
-    Stop the broker:
+    Stop the agent:
 
-        $ das-cli evolution-broker stop
+        $ das-cli evolution-agent stop
 
-    Restart the broker:
+    Restart the agent:
 
-        $ das-cli evolution-broker restart [--port-range <start:end>]
+        $ das-cli evolution-agent restart [--port-range <start:end>]
 """
 
     @inject
     def __init__(
         self,
-        evolution_broker_start: EvolutionBrokerStart,
-        evolution_broker_stop: EvolutionBrokerStop,
-        evolution_broker_restart: EvolutionBrokerRestart,
+        evolution_agent_start: EvolutionAgentStart,
+        evolution_agent_stop: EvolutionAgentStop,
+        evolution_agent_restart: EvolutionAgentRestart,
     ) -> None:
         super().__init__()
         self.add_commands(
             [
-                evolution_broker_start,
-                evolution_broker_stop,
-                evolution_broker_restart,
+                evolution_agent_start,
+                evolution_agent_stop,
+                evolution_agent_restart,
             ]
         )

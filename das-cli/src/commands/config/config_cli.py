@@ -56,7 +56,7 @@ SECTIONS
     │ 9. AttentionBroker │
     │ 10. Query Agent    │
     │ 11. Link Agent     │
-    │ 12. EvolutionBroker│
+    │ 12. Evolution Agent│
     └────────────────────┘
 
 OPTIONS AND VARIABLES
@@ -233,7 +233,7 @@ SERVICES CONFIGURATION (services.*)
         link_creation_agent.container_name
             Specifies the name of the Docker container running the Link Creation Agent.
 
-    EVOLUTION BROKER CONFIGURATION (evolution.*)
+    EVOLUTION AGENT CONFIGURATION (evolution.*)
 
         evolution.port
             Listening port for the Evolution.
@@ -583,15 +583,15 @@ EXAMPLES
             "services.inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
         }
 
-    def _evolution_broker(self) -> dict:
-        evolution_broker_port = self.prompt(
-            "Enter the Evolution Broker port",
-            default=self._settings.get("services.evolution_broker.port", 24002),
+    def _evolution_agent(self) -> dict:
+        evolution_agent_port = self.prompt(
+            "Enter the Evolution agent port",
+            default=self._settings.get("services.evolution_agent.port", 24002),
         )
 
         return {
-            "services.evolution_broker.port": evolution_broker_port,
-            "services.evolution_broker.container_name": f"das-cli-evolution-broker-{evolution_broker_port}",
+            "services.evolution_agent.port": evolution_agent_port,
+            "services.evolution_agent.container_name": f"das-cli-evolution-agent-{evolution_agent_port}",
         }
 
     def _schema_hash(self) -> dict:
@@ -629,7 +629,7 @@ EXAMPLES
             self._query_agent,
             self._link_creation_agent,
             self._inference_agent,
-            self._evolution_broker,
+            self._evolution_agent,
         ]
 
         for config_step in config_steps:
