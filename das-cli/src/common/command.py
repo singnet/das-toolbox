@@ -248,7 +248,7 @@ class Command:
 
     def _handle_default_output(self, entry: OutputBufferEntry) -> None:
         if self.output_format == "plain":
-            self._print_colored(entry.message, entry.severity)
+            self._print_colored(entry.message, entry.severity, entry.new_line)
 
     def _handle_machine_readable_output(self, entry: OutputBufferEntry) -> None:
         if self.output_format != "plain":
@@ -309,7 +309,7 @@ class Command:
         elif self.output_format == "yaml":
             click.echo(yaml.dump(results, sort_keys=False))
 
-    def _print_colored(self, text: str, severity: StdoutSeverity) -> None:
+    def _print_colored(self, text: str, severity: StdoutSeverity, new_line: bool = True) -> None:
         fg_map = {
             StdoutSeverity.SUCCESS: "green",
             StdoutSeverity.ERROR: "red",
@@ -318,9 +318,9 @@ class Command:
         }
         fg = fg_map.get(severity)
         if fg:
-            click.secho(text, fg=fg)
+            click.secho(text, fg=fg, nl=new_line)
         else:
-            click.echo(text)
+            click.echo(text, nl=new_line)
 
 
 class CommandGroup(Command):

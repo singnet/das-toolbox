@@ -181,6 +181,7 @@ teardown() {
 }
 
 @test "Show logs for DAS" {
+    set_log
 
     run timeout 5s das-cli logs das
 

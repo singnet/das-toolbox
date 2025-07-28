@@ -1,0 +1,5 @@
+2025-07-27 19:17:36 ERROR    Configuration file not found in /home/ubuntu/.das/config.json. You can run the command `config set` to create a configuration file.
+Traceback (most recent call last):
+  File "common/command.py", line 214, in safe_run
+  File "commands/metta/metta_cli.py", line 209, in run
+  File "common/settings.py", line 76, in raise_on_missing_file

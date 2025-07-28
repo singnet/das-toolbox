@@ -334,19 +334,18 @@ DESCRIPTION
 COMMANDS
 
     das-cli logs das        Logs from the DAS core
-    das-cli logs faas       Logs from the OpenFaaS service
     das-cli logs mongodb    Logs from the MongoDB database
     das-cli logs redis      Logs from the Redis cache
+    das-cli logs attention-broker  Logs from the Attention Broker service
+    das-cli logs query-agent       Logs from the Query Agent service
+    das-cli logs link-creation-agent Logs from the Link Creation Agent service
+    das-cli logs inference-agent    Logs from the Inference Agent service
 
 EXAMPLES
 
     Display logs from the DAS core:
 
         das-cli logs das
-
-    Display logs from the OpenFaaS service:
-
-        das-cli logs faas
 
     Display logs from MongoDB:
 
@@ -355,6 +354,21 @@ EXAMPLES
     Display logs from Redis:
 
         das-cli logs redis
+
+    Display logs from the Attention Broker service:
+        das-cli logs attention-broker
+
+    Display logs from the Query Agent service:
+
+        das-cli logs query-agent
+
+    Display logs from the Link Creation Agent service:
+
+        das-cli logs link-creation-agent
+
+    Display logs from the Inference Agent service:
+
+        das-cli logs inference-agent
 """
 
     @inject
