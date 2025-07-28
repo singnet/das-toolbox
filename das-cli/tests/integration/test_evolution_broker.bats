@@ -69,8 +69,10 @@ Run 'query-agent start' to start the Query Agent.[39m"
 
     run das-cli evolution-broker start --port-range 12700:12800
 
+
     assert_output "Starting Evolution Broker service...
-[31m[DockerError] Port ${evolution_broker_port} is already in use. Please stop the service that is currently using this port.[39m"
+[31m[DockerError] Failed to start Evolution Broker. Please ensure that the port ${evolution_broker_port} is not already in use and that the required services are running.[39m"
+
 
     run stop_listen_port "${evolution_broker_port}"
     assert_success
