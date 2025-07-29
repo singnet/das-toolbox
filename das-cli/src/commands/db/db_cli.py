@@ -4,7 +4,14 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -191,6 +198,16 @@ $ das-cli db count-atoms --verbose
 class DbStop(Command):
     name = "stop"
 
+    params = [
+        CommandOption(
+            ["--prune", "-p"],
+            is_flag=True,
+            help="Remove volumes and force stop the containers.",
+            default=False,
+            required=False,
+        ),
+    ]
+
     short_help = "Stops all DBMS containers."
 
     help = """
@@ -210,6 +227,10 @@ IMPORTANT NOTE: After stopping the databases, all data will be lost.
 Stop DBMS containers previously started with 'das-cli db start'.
 
 $ das-cli db stop
+
+Stop DBMS containers and remove volumes.
+
+$ das-cli db stop --prune
 
 """
 
@@ -231,10 +252,19 @@ $ das-cli db stop
     def _get_mongodb_container(self):
         return self._mongodb_container_manager.get_container()
 
-    def _redis_node(self, context, ip, username):
+    def _redis_node(
+        self,
+        context,
+        ip,
+        username,
+        prune: bool = False,
+    ):
         try:
             self._redis_container_manager.set_exec_context(context)
-            self._redis_container_manager.stop()
+            self._redis_container_manager.stop(
+                remove_volume=prune,
+                force=prune,
+            )
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
@@ -259,14 +289,15 @@ $ das-cli db stop
                                 "context": context,
                                 "ip": ip,
                                 "username": username,
-                            }
+                            },
+                            "prune": prune,
                         },
                     )
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-    def _redis(self):
+    def _redis(self, prune: bool = False) -> None:
         self.stdout("Stopping Redis service...")
 
         redis_nodes = self._settings.get("services.redis.nodes", [])
@@ -275,7 +306,7 @@ $ das-cli db stop
 
         try:
             for redis_node in redis_nodes:
-                self._redis_node(**redis_node)
+                self._redis_node(**redis_node, prune=prune)
         except DockerError as e:
             self.stdout(
                 "\nError occurred while trying to stop Redis\n",
@@ -294,6 +325,7 @@ $ das-cli db stop
                     extra_details={
                         "cluster": redis_cluster,
                         "nodes": redis_nodes,
+                        "prune": prune,
                     },
                     container=redis_container,
                 )
@@ -301,10 +333,19 @@ $ das-cli db stop
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-    def _mongodb_node(self, context, ip, username):
+    def _mongodb_node(
+        self,
+        context,
+        ip,
+        username,
+        prune: bool = False,
+    ) -> None:
         try:
             self._mongodb_container_manager.set_exec_context(context)
-            self._mongodb_container_manager.stop()
+            self._mongodb_container_manager.stop(
+                remove_volume=prune,
+                force=prune,
+            )
             self._mongodb_container_manager.unset_exec_context()
 
             self.stdout(
@@ -313,9 +354,7 @@ $ das-cli db stop
             )
         except DockerContainerNotFoundError:
             container_name = self._get_mongodb_container().name
-            warning_message = (
-                f"The MongoDB service named {container_name} at {ip} is already stopped."
-            )
+            warning_message = f"The MongoDB service named {container_name} at {ip} is already stopped."
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -339,7 +378,7 @@ $ das-cli db stop
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-    def _mongodb(self):
+    def _mongodb(self, prune: bool = False) -> None:
         self.stdout("Stopping MongoDB service...")
 
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
@@ -347,7 +386,7 @@ $ das-cli db stop
 
         try:
             for mongodb_node in mongodb_nodes:
-                self._mongodb_node(**mongodb_node)
+                self._mongodb_node(**mongodb_node, prune=prune)
 
         except DockerError as e:
             self.stdout(
@@ -367,6 +406,7 @@ $ das-cli db stop
                     extra_details={
                         "cluster": mongodb_cluster,
                         "nodes": mongodb_nodes,
+                        "prune": prune,
                     },
                     container=self._get_mongodb_container(),
                 )
@@ -374,12 +414,12 @@ $ das-cli db stop
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-    def run(self):
+    def run(self, prune: bool = False) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._redis()
-        self._mongodb()
+        self._redis(prune)
+        self._mongodb(prune)
 
 
 class DbStart(Command):
@@ -636,7 +676,9 @@ $ das-cli db start
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
+        mongodb_cluster_secret_key = self._settings.get(
+            "services.mongodb.cluster_secret_key"
+        )
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
