@@ -144,6 +144,35 @@ The MongoDB service at localhost has been stopped by the server user ${mongodb_n
     assert_failure
 }
 
+@test "It should stop db and prune its volume" {
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
+    local redis_node1_username="$(get_config ".services.redis.nodes[0].username")"
+
+    das-cli db start &>/dev/null
+
+    local mongodb_volumes="$(get_service_volumes "mongodb")"
+    local redis_volumes="$(get_service_volumes "redis")"
+
+    run das-cli db stop --prune
+
+    assert_output "Stopping Redis service...
+The Redis service at localhost has been stopped by the server user ${redis_node1_username}
+Stopping MongoDB service...
+The MongoDB service at localhost has been stopped by the server user ${mongodb_node1_username}"
+
+    run is_service_up redis
+    assert_failure
+
+    run is_service_up mongodb
+    assert_failure
+
+    run all_volumes_exist "${mongodb_volumes[@]}"
+    assert_failure
+
+    run all_volumes_exist "${redis_volumes[@]}"
+    assert_failure
+}
+
 @test "It should warns up when db is already stopped" {
     local redis_container_name="$(get_config .services.redis.container_name)"
     local mongodb_container_name="$(get_config .services.mongodb.container_name)"
