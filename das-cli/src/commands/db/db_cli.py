@@ -732,6 +732,16 @@ $ das-cli db start
 class DbRestart(Command):
     name = "restart"
 
+    params = [
+        CommandOption(
+            ["--prune", "-p"],
+            is_flag=True,
+            help="Remove volumes and force stop the containers.",
+            default=False,
+            required=False,
+        ),
+    ]
+
     short_help = "Restart all DBMS containers."
 
     help = """
@@ -751,6 +761,11 @@ IMPORTANT NOTE: Restarting the databases will result in all data being lost. Dat
 Restart DBMS containers previously started with 'das-cli db start'.
 
 $ das-cli db restart
+
+Restart DBMS containers and remove their volumes.
+
+$ das-cli db restart --prune
+
 """
 
     @inject
@@ -759,8 +774,8 @@ $ das-cli db restart
         self._db_start = db_start
         self._db_stop = db_stop
 
-    def run(self):
-        self._db_stop.run()
+    def run(self, prune: bool = False):
+        self._db_stop.run(prune)
         self._db_start.run()
 
 
