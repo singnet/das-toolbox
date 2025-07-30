@@ -171,3 +171,28 @@ function stop_listen_port() {
         kill -9 "$pid"
     done
 }
+
+function update_json_key() {
+    local file="$1"
+    local key_path="$2"
+    local new_value="$3"
+
+    if [[ -z "$file" || -z "$key_path" || -z "$new_value" ]]; then
+        echo "Usage: update_json_key <file> <key_path> <new_value>"
+        echo "Example: update_json_key config.json services.redis.port 6380"
+        return 1
+    fi
+
+    if [[ ! -f "$file" ]]; then
+        echo "Error: File '$file' not found."
+        return 1
+    fi
+
+    local jq_path=".$key_path"
+
+    if [[ "$new_value" =~ ^[0-9]+$ ]] || [[ "$new_value" =~ ^true$|^false$ ]]; then
+        jq "$jq_path = $new_value" "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    else
+        jq --arg val "$new_value" "$jq_path = \$val" "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    fi
+}
