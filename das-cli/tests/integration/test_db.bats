@@ -124,6 +124,41 @@ MongoDB has started successfully on port ${mongodb_port} at localhost, operating
     assert_success
 }
 
+@test "It should restart db and prune its volumes" {
+    local mongodb_port="$(get_config .services.mongodb.port)"
+    local mongodb_node1_username="$(get_config .services.mongodb.nodes[0].username)"
+    local redis_port="$(get_config .services.redis.port)"
+    local redis_node1_username="$(get_config .services.redis.nodes[0].username)"
+
+    das-cli db start
+
+    local mongodb_volumes="$(get_service_volumes "mongodb")"
+    local redis_volumes="$(get_service_volumes "redis")"
+
+    run das-cli db restart --prune
+
+    assert_output "Stopping Redis service...
+The Redis service at localhost has been stopped by the server user ${redis_node1_username}
+Stopping MongoDB service...
+The MongoDB service at localhost has been stopped by the server user ${mongodb_node1_username}
+Starting Redis service...
+Redis has started successfully on port ${redis_port} at localhost, operating under the server user ${redis_node1_username}.
+Starting MongoDB service...
+MongoDB has started successfully on port ${mongodb_port} at localhost, operating under the server user ${mongodb_node1_username}."
+
+    run is_service_up redis
+    assert_success
+
+    run is_service_up mongodb
+    assert_success
+
+    run all_volumes_exist "${mongodb_volumes[@]}"
+    assert_failure
+
+    run all_volumes_exist "${redis_volumes[@]}"
+    assert_failure
+}
+
 @test "It should stop db successfully" {
     local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
     local redis_node1_username="$(get_config ".services.redis.nodes[0].username")"
@@ -141,6 +176,35 @@ The MongoDB service at localhost has been stopped by the server user ${mongodb_n
     assert_failure
 
     run is_service_up mongodb
+    assert_failure
+}
+
+@test "It should stop db and prune its volume" {
+    local mongodb_node1_username="$(get_config ".services.mongodb.nodes[0].username")"
+    local redis_node1_username="$(get_config ".services.redis.nodes[0].username")"
+
+    das-cli db start &>/dev/null
+
+    local mongodb_volumes="$(get_service_volumes "mongodb")"
+    local redis_volumes="$(get_service_volumes "redis")"
+
+    run das-cli db stop --prune
+
+    assert_output "Stopping Redis service...
+The Redis service at localhost has been stopped by the server user ${redis_node1_username}
+Stopping MongoDB service...
+The MongoDB service at localhost has been stopped by the server user ${mongodb_node1_username}"
+
+    run is_service_up redis
+    assert_failure
+
+    run is_service_up mongodb
+    assert_failure
+
+    run all_volumes_exist "${mongodb_volumes[@]}"
+    assert_failure
+
+    run all_volumes_exist "${redis_volumes[@]}"
     assert_failure
 }
 

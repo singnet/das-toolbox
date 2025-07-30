@@ -137,3 +137,40 @@ function resolve_openfaas_version() {
 
     echo "$version"
 }
+
+function get_service_volumes() {
+    local service_name="$1"
+    local container_name
+
+    container_name=$(get_config ".services.${service_name}.container_name")
+
+    if [[ -z "$container_name" ]]; then
+        echo "Container name not found for service: $service_name" >&2
+        return 1
+    fi
+
+    docker container inspect "$container_name" \
+        | jq -r '.[0].Mounts[] | select(.Type=="volume") | .Name'
+}
+
+function volume_exists() {
+    local volume_id="$1"
+
+    if docker volume inspect "$volume_id" >/dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function all_volumes_exist() {
+    local volumes=("$@")
+
+    for vol in "${volumes[@]}"; do
+        if ! volume_exists "$vol"; then
+            return 1
+        fi
+    done
+
+    return 0
+}
