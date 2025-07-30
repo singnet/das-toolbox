@@ -67,9 +67,9 @@ class Settings:
     def raise_on_schema_mismatch(self):
         expected_hash = get_schema_hash()
         if self._store.get("schema_hash") != expected_hash:
-            raise ValueError(
-                f"Schema mismatch. Expected {expected_hash}, got {self._store.get('schema_hash')}"
-            )
+            mismatch_message = f"Your configuration file in {self.get_path()} desn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
+
+            raise ValueError(mismatch_message)
 
     def raise_on_missing_file(self):
         if not self.exists():
