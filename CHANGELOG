@@ -6,3 +6,18 @@
 [#132] das-cli db count-atoms --verbose should details Node and Link counts (PR: #138)
 [#141] Validate Redis Cluster port range instead of a single port
 [das#190] Implement deployment scripts for system components in VULTR servers
+[das#323] Deploy Inference Agent component (PR: #160)
+[#161] Add support for loading Metta file directories in das-cli (PR: #162)
+[das#238] Design port management sub-system (PR: #162)
+[#173] Fix remote command execution in das-cli (PR: #174)
+[#183] Track configuration file in version control (PR: #187)
+[das#501] Extend das-cli logs command to show logs from all agents (PR: #193)
+[#190] Add Gatekeeper command to reserve a range of ports (PR: #196, #199)
+[#197] Update link creation and Inference Agent to use parameter-based approach (PR: #198)
+[#178] Add shell autocompletion support (PR: #200)
+[#180] Add aliases for common subcommands (PR: #201)
+[#179] Add interactive prompts for missing required inputs (PR: #202)
+[das#561] Fix das-cli update version not working (PR: #203)
+[#181] Add support for multiple output formats (JSON, YAML, plain) (PR: #204)
+[das#588] Add das-cli commands for new Agent evolution (PR: #206)
+[das#558] Add --prune parameter to das-cli db stop to remove container volumes (PR: #207)
