@@ -1,87 +1,82 @@
 {
-    "schema_hash": "74bf73ceca23584e6d735564ed064a8c99be188877c9525c85d6db0a5bb14fad",
-    "services": {
-        "redis": {
-            "port": 6379,
-            "container_name": "das-cli-redis-6379",
-            "cluster": true,
-            "nodes": [
-                {
-                    "context": "default",
-                    "ip": "45.63.85.181",
-                    "username": "SERVER01_USERNAME"
-                },
-                {
-                    "context": "SERVER02_CONTEXT",
-                    "ip": "45.32.130.104",
-                    "username": "root"
-                },
-                {
-                    "context": "SERVER03_CONTEXT",
-                    "ip": "104.207.150.215",
-                    "username": "root"
-                }
-            ]
+  "schema_hash": "296cf9cf34e3d979009cab26d2ba2634c78e265b4f562379d59ae956e7da09f5",
+  "services": {
+    "redis": {
+      "port": 40020,
+      "container_name": "das-cli-redis-40020",
+      "cluster": true,
+      "nodes": [
+        {
+          "context": "default",
+          "ip": "45.63.85.181",
+          "username": "SERVER01_USERNAME"
         },
-        "mongodb": {
-            "cluster": false,
-            "port": 27017,
-            "container_name": "das-cli-mongodb-27017",
-            "username": "admin",
-            "password": "admin",
-            "cluster_secret_key": "eri290eiw299e0-92",
-            "nodes": [
-                {
-                    "context": "default",
-                    "ip": "localhost",
-                    "username": "rafaellevi"
-                }
-            ]
+        {
+          "context": "SERVER02_CONTEXT",
+          "ip": "45.32.130.104",
+          "username": "root"
         },
-        "loader": {
-            "container_name": "das-cli-loader"
-        },
-        "openfaas": {
-            "container_name": "das-cli-openfaas-8080",
-            "version": "1.12.10",
-            "function": "query-engine"
-        },
-        "jupyter_notebook": {
-            "port": 8888,
-            "container_name": "das-cli-jupyter-notebook-8888"
-        },
-        "das_peer": {
-            "container_name": "das-cli-das-peer-30100",
-            "port": 30100
-        },
-        "dbms_peer": {
-            "container_name": "das-cli-dbms-peer"
-        },
-        "attention_broker": {
-            "port": 37107,
-            "container_name": "das-cli-attention-broker-37107"
-        },
-        "query_agent": {
-            "port": 35500,
-            "container_name": "das-cli-query-agent-35500"
-        },
-        "link_creation_agent": {
-            "container_name": "das-cli-link-creation-agent-9070",
-            "port": 9070,
-            "buffer_file": "/tmp/requests_buffer.bin",
-            "request_interval": 1,
-            "thread_count": 1,
-            "default_timeout": 10,
-            "save_links_to_metta_file": true,
-            "save_links_to_db": true
-        },
-        "inference_agent": {
-            "port": 8082,
-            "container_name": "das-cli-inference-agent-8082"
-        },
-        "evolution_agent": {
-            "port": 24003,
-            "container_name": "das-cli-evolution-broker-24003"
+        {
+          "context": "SERVER03_CONTEXT",
+          "ip": "104.207.150.215",
+          "username": "root"
         }
+      ]
+    },
+    "mongodb": {
+      "cluster": false,
+      "port": 40021,
+      "container_name": "das-cli-mongodb-40021",
+      "username": "admin",
+      "password": "admin",
+      "cluster_secret_key": "eri290eiw299e0-92",
+      "nodes": [
+        {
+          "context": "default",
+          "ip": "localhost",
+          "username": "rafaellevi"
+        }
+      ]
+    },
+    "loader": {
+      "container_name": "das-cli-loader"
+    },
+    "jupyter_notebook": {
+      "port": 40019,
+      "container_name": "das-cli-jupyter-notebook-40019"
+    },
+    "das_peer": {
+      "container_name": "das-cli-das-peer-40018",
+      "port": 40018
+    },
+    "dbms_peer": {
+      "container_name": "das-cli-dbms-peer"
+    },
+    "attention_broker": {
+      "port": 40001,
+      "container_name": "das-cli-attention-broker-40001"
+    },
+    "query_agent": {
+      "port": 40002,
+      "container_name": "das-cli-query-agent-40002"
+    },
+    "link_creation_agent": {
+      "container_name": "das-cli-link-creation-agent-40003",
+      "port": 40003,
+      "buffer_file": "/tmp/requests_buffer.bin",
+      "request_interval": 1,
+      "thread_count": 1,
+      "default_timeout": 10,
+      "save_links_to_metta_file": true,
+      "save_links_to_db": true
+    },
+    "inference_agent": {
+      "port": 40004,
+      "container_name": "das-cli-inference-agent-40004"
+    },
+    "evolution_agent": {
+      "port": 40005,
+      "container_name": "das-cli-evolution-broker-40005"
     }
+  }
 }
