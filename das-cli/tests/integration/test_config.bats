@@ -30,11 +30,19 @@ setup() {
     assert_line --partial "$(get_config ".services.mongodb.username")"
     assert_line --partial "$(get_config ".services.mongodb.password")"
     assert_line --partial "$(get_config ".services.loader.container_name")"
-    assert_line --partial "$(get_config ".services.openfaas.container_name")"
-    assert_line --partial "$(get_config ".services.openfaas.version")"
-    assert_line --partial "$(get_config ".services.openfaas.function")"
     assert_line --partial "$(get_config ".services.jupyter_notebook.port")"
     assert_line --partial "$(get_config ".services.jupyter_notebook.container_name")"
+    assert_line --partial "$(get_config ".services.das_peer.container_name")"
+    assert_line --partial "$(get_config ".services.das_peer.port")"
+    assert_line --partial "$(get_config ".services.dbms_peer.container_name")"
+    assert_line --partial "$(get_config ".services.attention_broker.container_name")"
+    assert_line --partial "$(get_config ".services.attention_broker.port")"
+    assert_line --partial "$(get_config ".services.query_agent.container_name")"
+    assert_line --partial "$(get_config ".services.query_agent.port")"
+    assert_line --partial "$(get_config ".services.link_creation_agent.container_name")"
+    assert_line --partial "$(get_config ".services.link_creation_agent.port")"
+    assert_line --partial "$(get_config ".services.inference_agent.container_name")"
+    assert_line --partial "$(get_config ".services.inference_agent.port")"
     assert_line --partial "$(get_config ".services.evolution_agent.container_name")"
     assert_line --partial "$(get_config ".services.evolution_agent.port")"
 
@@ -309,4 +317,20 @@ EOF
     assert_equal "$old_link_creation_agent_save_links_to_db" "$(get_config ".services.link_creation_agent.save_links_to_db")"
     assert_equal "$old_inference_agent_port" "$(get_config ".services.inference_agent.port")"
     assert_equal "$old_evolution_agent_port" "$(get_config ".services.evolution_agent.port")"
+}
+
+
+@test "Raises error value when configuration schema hash does not match" {
+    [ -f "$das_config_file" ]
+
+    local old_shema_hash="$(get_config ".schema_hash")"
+    local current_schema_hash="invalid_schema_hash"
+
+    update_json_key "$das_config_file" schema_hash "$current_schema_hash"
+
+    assert_not_equal "$old_schema_hash" "$current_schema_hash"
+
+    run das-cli config list
+
+    assert_output "[31m[ValueError] Your configuration file in ${das_config_file} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values.[39m"
 }

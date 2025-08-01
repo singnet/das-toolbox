@@ -395,7 +395,7 @@ EXAMPLES
     def _redis(self) -> Dict:
         redis_port = self.prompt(
             "Enter Redis port",
-            default=self._settings.get("services.redis.port", 6379),
+            default=self._settings.get("services.redis.port", 40020),
             type=int,
         )
         cluster_default_value = self._settings.get("services.redis.cluster", False)
@@ -422,7 +422,7 @@ EXAMPLES
     def _mongodb(self) -> dict:
         mongodb_port = self.prompt(
             "Enter MongoDB port",
-            default=self._settings.get("services.mongodb.port", 27017),
+            default=self._settings.get("services.mongodb.port", 40021),
             type=int,
         )
         mongodb_username = self.prompt(
@@ -460,7 +460,7 @@ EXAMPLES
         return {"services.loader.container_name": "das-cli-loader"}
 
     def _das_peer(self) -> dict:
-        database_adapter_server_port = 30100
+        database_adapter_server_port = 40018
 
         return {
             "services.das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
@@ -472,17 +472,10 @@ EXAMPLES
             "services.dbms_peer.container_name": "das-cli-dbms-peer",
         }
 
-    def _openfaas(self) -> dict:
-        return {
-            "services.openfaas.container_name": "das-cli-openfaas-8080",
-            "services.openfaas.version": "latest",
-            "services.openfaas.function": "query-engine",  # TODO: CHANGE TO ENUM
-        }
-
     def _jupyter_notebook(self) -> dict:
         jupyter_notebook_port = self.prompt(
             "Enter Jupyter Notebook port",
-            default=self._settings.get("services.jupyter.port", 8888),
+            default=self._settings.get("services.jupyter.port", 40019),
         )
 
         return {
@@ -493,7 +486,7 @@ EXAMPLES
     def _attention_broker(self) -> dict:
         attention_broker_port = self.prompt(
             "Enter the Attention Broker port",
-            default=self._settings.get("services.attention_broker.port", 37007),
+            default=self._settings.get("services.attention_broker.port", 40001),
         )
 
         return {
@@ -504,7 +497,7 @@ EXAMPLES
     def _query_agent(self) -> dict:
         query_agent_port = self.prompt(
             "Enter the Query Agent port",
-            default=self._settings.get("services.query_agent.port", 35700),
+            default=self._settings.get("services.query_agent.port", 40002),
         )
 
         return {
@@ -515,7 +508,7 @@ EXAMPLES
     def _link_creation_agent(self) -> dict:
         link_creation_agent_port = self.prompt(
             "Enter the Link Creation Agent Server port",
-            default=self._settings.get("services.link_creation_agent.port", 9080),
+            default=self._settings.get("services.link_creation_agent.port", 40003),
         )
 
         link_creation_agent_buffer_file = self.prompt(
@@ -575,7 +568,7 @@ EXAMPLES
     def _inference_agent(self) -> dict:
         inference_agent_port = self.prompt(
             "Enter the Inference Agent port",
-            default=self._settings.get("services.inference_agent.port", 8080),
+            default=self._settings.get("services.inference_agent.port", 40004),
         )
 
         return {
@@ -586,7 +579,7 @@ EXAMPLES
     def _evolution_agent(self) -> dict:
         evolution_agent_port = self.prompt(
             "Enter the Evolution agent port",
-            default=self._settings.get("services.evolution_agent.port", 24002),
+            default=self._settings.get("services.evolution_agent.port", 40005),
         )
 
         return {
@@ -623,7 +616,6 @@ EXAMPLES
             self._loader,
             self._das_peer,
             self._dbms_peer,
-            self._openfaas,
             self._jupyter_notebook,
             self._attention_broker,
             self._query_agent,

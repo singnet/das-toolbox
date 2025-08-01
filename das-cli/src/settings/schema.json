@@ -74,14 +74,6 @@
             "container_name": { "type": "string" }
           }
         },
-        "openfaas": {
-          "type": "object",
-          "properties": {
-            "container_name": { "type": "string" },
-            "version": { "type": "string" },
-            "function": { "type": "string" }
-          }
-        },
         "jupyter_notebook": {
           "type": "object",
           "properties": {

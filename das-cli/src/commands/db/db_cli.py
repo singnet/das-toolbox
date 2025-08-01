@@ -4,14 +4,7 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -354,7 +347,9 @@ $ das-cli db stop --prune
             )
         except DockerContainerNotFoundError:
             container_name = self._get_mongodb_container().name
-            warning_message = f"The MongoDB service named {container_name} at {ip} is already stopped."
+            warning_message = (
+                f"The MongoDB service named {container_name} at {ip} is already stopped."
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -676,9 +671,7 @@ $ das-cli db start
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get(
-            "services.mongodb.cluster_secret_key"
-        )
+        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
