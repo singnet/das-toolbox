@@ -11,6 +11,23 @@ class ConfigStore(ABC):
         pass
 
     @abstractmethod
+    def enable_overwrite_mode(self):
+        """
+        Enable overwrite mode for the configuration store.
+
+        When overwrite mode is enabled, the next save operation will ignore any 
+        previously loaded content from the existing configuration file (if any) 
+        and will persist only the newly set values. This is useful when you want 
+        to create or reset a configuration file from scratch, without merging 
+        with old keys or values.
+
+        Typical use cases:
+        - Creating a brand new configuration file.
+        - Resetting an existing configuration file to a clean state.
+        """
+        pass
+
+    @abstractmethod
     def set(self, key: str, value: Any):
         """Set a value in the configuration by dotted key path."""
         pass
@@ -47,13 +64,15 @@ class ConfigStore(ABC):
 
 
 class JsonConfigStore(ConfigStore):
-    def __init__(self, file_path):
-        self._content = {}
+    def __init__(self, file_path: str):
         self._file_path = file_path
+        self._content = {}
+        self._new_content = {}
+        self._overwrite_mode = False
         self.rewind()
 
     def get_content(self) -> dict:
-        return self._content
+        return {**self._content, **self._new_content}
 
     def get_path(self) -> str:
         return self._file_path
@@ -66,19 +85,19 @@ class JsonConfigStore(ConfigStore):
 
     def rewind(self):
         try:
-            with open(self._file_path, "r") as config_file:
-                self._content = json.load(config_file)
+            with open(self._file_path, "r") as f:
+                self._content = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self._content = {}
-
         return self
 
-    def save(self):
-        config_dir = os.path.dirname(self._file_path)
-        os.makedirs(config_dir, exist_ok=True)
+    def enable_overwrite_mode(self):
+        self._overwrite_mode = True
+        self._new_content = {}
+        return self
 
-        with open(self._file_path, "w") as config_file:
-            json.dump(self._content, config_file, indent=2)
+    def exists(self) -> bool:
+        return os.path.exists(self._file_path)
 
     def get(self, key: str, default: Any = None):
         keys = key.split(".")
@@ -91,11 +110,24 @@ class JsonConfigStore(ConfigStore):
 
     def set(self, key: str, value: Any):
         keys = key.split(".")
-        current_dict = self._content
-
+        current = self._new_content
         for k in keys[:-1]:
-            current_dict = current_dict.setdefault(k, {})
-
-        current_dict[keys[-1]] = value
-
+            current = current.setdefault(k, {})
+        current[keys[-1]] = value
         return self
+
+    def save(self):
+        os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
+
+        if self._overwrite_mode:
+            data_to_save = self._new_content
+        else:
+            data_to_save = self.get_content()
+
+        with open(self._file_path, "w") as f:
+            json.dump(data_to_save, f, indent=2)
+
+        self._content = data_to_save
+        self._new_content = {}
+        self._overwrite_mode = False
+

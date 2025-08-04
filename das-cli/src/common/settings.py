@@ -26,6 +26,9 @@ class Settings:
     def replace_loader(self, loader: ConfigLoader) -> None:
         self._default_loader = loader
 
+    def enable_overwrite_mode(self):
+        return self._store.enable_overwrite_mode()
+
     def exists(self) -> bool:
         return self._store.exists()
 
