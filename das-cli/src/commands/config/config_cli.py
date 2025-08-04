@@ -274,6 +274,7 @@ EXAMPLES
     ) -> None:
         super().__init__()
         self._settings = settings
+        self._settings.enable_overwrite_mode()
         self._remote_context_manager = remote_context_manager
 
     def _set_config(self, config_dict):
