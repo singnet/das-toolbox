@@ -1,7 +1,7 @@
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 
 class ConfigStore(ABC):
@@ -15,10 +15,10 @@ class ConfigStore(ABC):
         """
         Enable overwrite mode for the configuration store.
 
-        When overwrite mode is enabled, the next save operation will ignore any 
-        previously loaded content from the existing configuration file (if any) 
-        and will persist only the newly set values. This is useful when you want 
-        to create or reset a configuration file from scratch, without merging 
+        When overwrite mode is enabled, the next save operation will ignore any
+        previously loaded content from the existing configuration file (if any)
+        and will persist only the newly set values. This is useful when you want
+        to create or reset a configuration file from scratch, without merging
         with old keys or values.
 
         Typical use cases:
@@ -66,8 +66,8 @@ class ConfigStore(ABC):
 class JsonConfigStore(ConfigStore):
     def __init__(self, file_path: str):
         self._file_path = file_path
-        self._content = {}
-        self._new_content = {}
+        self._content: Dict[str, Any] = {}
+        self._new_content: Dict[str, Any] = {}
         self._overwrite_mode = False
         self.rewind()
 
@@ -95,9 +95,6 @@ class JsonConfigStore(ConfigStore):
         self._overwrite_mode = True
         self._new_content = {}
         return self
-
-    def exists(self) -> bool:
-        return os.path.exists(self._file_path)
 
     def get(self, key: str, default: Any = None):
         keys = key.split(".")
@@ -130,4 +127,3 @@ class JsonConfigStore(ConfigStore):
         self._content = data_to_save
         self._new_content = {}
         self._overwrite_mode = False
-
