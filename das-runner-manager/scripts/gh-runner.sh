@@ -5,6 +5,12 @@ source ./gh-login.sh
 
 LOG_DIR="/tmp/"
 RUNNER_LOG="$LOG_DIR/runner_output.log"
+EXTRA_LABELS=$(docker inspect --format '{{range $k,$v := .Config.Labels}}{{printf "%s," $k}}{{end}}' "$CONTAINER_ID" | sed 's/,$//')
+LABELS="self-hosted,Linux,X64"
+
+if [[ -n "$EXTRA_LABELS" ]]; then
+  LABELS="$LABELS,$EXTRA_LABELS"
+fi
 
 echo "Creating log file at '$RUNNER_LOG'..."
 
@@ -33,7 +39,8 @@ if [ -f .runner ]; then
   echo "Runner is already configured. Skipping configuration."
 else
   echo "Configuring the GitHub Actions Runner..."
-  ./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN" --ephemeral
+
+  ./config.sh --url "$REPO_URL" --token "$RUNNER_TOKEN" --ephemeral --labels "$LABELS"
 fi
 
 echo "Starting the runner..."
