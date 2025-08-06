@@ -4,12 +4,34 @@ from agent_service.tasks import run_container_task
 from agent_service.utils import handle_connection_refused
 import sys
 
+
 class StartCommand:
     def __init__(self, subparsers):
-        self.parser = subparsers.add_parser("start", help="Start a runner")
-        self.parser.add_argument("--repository", required=True, help="Repository name")
-        self.parser.add_argument("--token", help="GitHub Action runner token (will prompt if not provided)")
-        self.parser.add_argument("--runners", type=int, default=1, help="Number of runners (default: 1, between 1 and 15)")
+        self.parser = subparsers.add_parser(
+            "start",
+            help="Start a runner",
+        )
+        self.parser.add_argument(
+            "--repository",
+            required=True,
+            help="Repository name",
+        )
+        self.parser.add_argument(
+            "--token",
+            help="GitHub Action runner token (will prompt if not provided)",
+        )
+        self.parser.add_argument(
+            "--runners",
+            type=int,
+            default=1,
+            help="Number of runners (default: 1, between 1 and 15)",
+        )
+        self.parser.add_argument(
+            "--no-cache",
+            type=int,
+            default=[],
+            help="Indexes of instances that should receive the no-cache label (e.g., --no-cache 0 2)",
+        )
         self.parser.set_defaults(func=self.run)
 
     @handle_connection_refused
@@ -32,7 +54,7 @@ class StartCommand:
                     "bind": f"/home/ubuntu/.cache/{args.repository}",
                     "mode": "rw",
                 },
-            }
+            } if args.no_cache == i else {}
 
             container_name = f"{args.repository}-github-runner-{i}"
             network_name = "das-runner-network"
