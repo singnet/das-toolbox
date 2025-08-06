@@ -1,7 +1,7 @@
 docker-build:
 	@docker build -f .docker/Dockerfile.das-runner-manager -t das-runner-manager:latest .
 
-build: docker-build
+build: build-das-runner-manager-agent-image docker-build
 	@docker run --rm \
 		--user "$(shell id -u):$(shell id -g)" \
 		-v "$(shell pwd)/dist:/app/das/dist" \

@@ -5,7 +5,7 @@ source ./gh-login.sh
 
 LOG_DIR="/tmp/"
 RUNNER_LOG="$LOG_DIR/runner_output.log"
-EXTRA_LABELS=$(docker inspect --format '{{range $k,$v := .Config.Labels}}{{printf "%s," $k}}{{end}}' "$CONTAINER_ID" | sed 's/,$//')
+EXTRA_LABELS=$(docker inspect --format '{{range $k,$v := .Config.Labels}}{{printf "%s," $k}}{{end}}' "$CONTAINER_NAME" | sed 's/,$//')
 LABELS="self-hosted,Linux,X64"
 
 if [[ -n "$EXTRA_LABELS" ]]; then

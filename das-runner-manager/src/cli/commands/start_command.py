@@ -74,6 +74,7 @@ class StartCommand:
                 "REPO_URL": f"https://github.com/singnet/{args.repository}",
                 "GH_TOKEN": args.token,
                 "USER": "ubuntu",
+                "CONTAINER_NAME": container_name,
             }
 
             restart_policy = {"Name": "unless-stopped"}
