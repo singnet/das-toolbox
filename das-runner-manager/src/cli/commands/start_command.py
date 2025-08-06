@@ -55,9 +55,7 @@ class StartCommand:
         for i in range(0, args.runners):
             home_dir = os.path.expanduser("~")
             volume = {}
-            labels = {
-                "no-cache": "false" if args.no_cache_runners < i else "true",
-            }
+            labels = {}
 
             if args.no_cache_runners < i:
                 volume |= {
@@ -67,6 +65,12 @@ class StartCommand:
                     },
                 }
 
+            if args.no_cache_runners > i:
+                labels = {
+                    "self-hosted-nocache": "",
+                }
+
+
             container_name = f"{args.repository}-github-runner-{i}"
             network_name = "das-runner-network"
 
@@ -74,9 +78,8 @@ class StartCommand:
                 "REPO_URL": f"https://github.com/singnet/{args.repository}",
                 "GH_TOKEN": args.token,
                 "USER": "ubuntu",
-                "CONTAINER_NAME": container_name,
+                "EXTRA_LABELS": ",".join(labels.keys()),
             }
-
             restart_policy = {"Name": "unless-stopped"}
 
             container_data = {

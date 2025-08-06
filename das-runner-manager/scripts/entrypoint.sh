@@ -68,7 +68,7 @@ fi
 echo "Setting permissions for Docker socket..."
 chmod 777 /var/run/docker.sock
 
-sudo -u "$USER" ./gh-runner.sh "$REPO_URL" "$GH_TOKEN" &
+sudo -u "$USER" ./gh-runner.sh "$REPO_URL" "$GH_TOKEN" "$EXTRA_LABELS" &
 RUNNER_PID=$!
 
 sleep 10s

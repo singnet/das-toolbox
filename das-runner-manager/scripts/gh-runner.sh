@@ -5,12 +5,8 @@ source ./gh-login.sh
 
 LOG_DIR="/tmp/"
 RUNNER_LOG="$LOG_DIR/runner_output.log"
-EXTRA_LABELS=$(docker inspect --format '{{range $k,$v := .Config.Labels}}{{printf "%s," $k}}{{end}}' "$CONTAINER_NAME" | sed 's/,$//')
+CONTAINER_NAME=$(cat /etc/hostname)
 LABELS="self-hosted,Linux,X64"
-
-if [[ -n "$EXTRA_LABELS" ]]; then
-  LABELS="$LABELS,$EXTRA_LABELS"
-fi
 
 echo "Creating log file at '$RUNNER_LOG'..."
 
@@ -19,13 +15,19 @@ chmod 644 $RUNNER_LOG
 
 echo "The log file permissions for '$RUNNER_LOG' have been updated to 644, allowing everyone to read it."
 
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <REPO_URL> <GITHUB_TOKEN>"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <REPO_URL> <GITHUB_TOKEN> <EXTRA_LABELS>"
     exit 1
 fi
 
 REPO_URL=$1
 GH_TOKEN=$2
+EXTRA_LABELS="$3"
+
+if [[ -n "$EXTRA_LABELS" ]]; then
+  LABELS="$LABELS,$EXTRA_LABELS"
+fi
+
 RUNNER_TOKEN=$(get_github_runner_token "$REPO_URL" "$GH_TOKEN")
 
 
