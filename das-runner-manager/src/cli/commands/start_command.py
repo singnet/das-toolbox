@@ -3,6 +3,7 @@ import os
 from agent_service.tasks import run_container_task
 from agent_service.utils import handle_connection_refused
 import sys
+from typing import List
 
 
 class StartCommand:
@@ -28,7 +29,7 @@ class StartCommand:
         )
         self.parser.add_argument(
             "--no-cache",
-            type=int,
+            type=List[int],
             default=[],
             help="Indexes of instances that should receive the no-cache label (e.g., --no-cache 0 2)",
         )
@@ -49,12 +50,19 @@ class StartCommand:
 
         for i in range(0, args.runners):
             home_dir = os.path.expanduser("~")
-            volume = {
-                f"{home_dir}/.cache/docker/{args.repository}": {
-                    "bind": f"/home/ubuntu/.cache/{args.repository}",
-                    "mode": "rw",
-                },
-            } if args.no_cache == i else {}
+            volume = {}
+            labels = {}
+
+            if i in args.no_cache:
+                volume += {
+                    f"{home_dir}/.cache/docker/{args.repository}": {
+                        "bind": f"/home/ubuntu/.cache/{args.repository}",
+                        "mode": "rw",
+                    },
+                }
+                labels += {
+                    "no-cache": True,
+                }
 
             container_name = f"{args.repository}-github-runner-{i}"
             network_name = "das-runner-network"
@@ -76,6 +84,7 @@ class StartCommand:
                 "privileged": True,
                 "network": network_name,
                 "restart_policy": restart_policy,
+                "labels": labels,
             }
 
             run_container_task(container_data)
