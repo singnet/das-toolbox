@@ -28,10 +28,10 @@ class StartCommand:
             help="Number of runners (default: 1, between 1 and 15)",
         )
         self.parser.add_argument(
-            "--no-cache",
-            type=List[int],
-            default=[],
-            help="Indexes of instances that should receive the no-cache label (e.g., --no-cache 0 2)",
+            "--no-cache-runners",
+            type=int,
+            default=0,
+            help="Number of runners that should use cache (default: 0)",
         )
         self.parser.set_defaults(func=self.run)
 
@@ -39,6 +39,10 @@ class StartCommand:
     def run(self, args):
         if args.runners < 1 or args.runners > 15:
             print("Error: The number of runners must be between 1 and 15.")
+            sys.exit(1)
+
+        if args.no_cache_runners > args.runners or args.no_cache_runners < 0:
+            print("Error: The number of cache runners must be at least 0 and no greater than the total number of runners.")
             sys.exit(1)
 
         if not args.token:
@@ -51,17 +55,16 @@ class StartCommand:
         for i in range(0, args.runners):
             home_dir = os.path.expanduser("~")
             volume = {}
-            labels = {}
+            labels = {
+                "no-cache": "false" if args.no_cache_runners < i else "true",
+            }
 
-            if i in args.no_cache:
-                volume += {
+            if args.no_cache_runners < i:
+                volume |= {
                     f"{home_dir}/.cache/docker/{args.repository}": {
                         "bind": f"/home/ubuntu/.cache/{args.repository}",
                         "mode": "rw",
                     },
-                }
-                labels += {
-                    "no-cache": True,
                 }
 
             container_name = f"{args.repository}-github-runner-{i}"

@@ -31,6 +31,7 @@ def run_container(request: container_models.DockerContainerRunRequest):
         tmpfs=request.tmpfs,
         hostname=request.hostname,
         restart_policy=request.restart_policy,
+        labels=request.labels,
     )
 
 
