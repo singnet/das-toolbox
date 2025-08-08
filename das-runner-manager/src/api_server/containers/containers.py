@@ -4,6 +4,7 @@ from typing import Union, Dict
 
 client = from_env()
 
+
 def list_containers():
     try:
         containers = client.containers.list(all=True)
@@ -17,6 +18,7 @@ def list_containers():
                         container.image.tags[0] if container.image.tags else "unknown"
                     ),
                     "ports": container.ports,
+                    "labels": container.labels,
                 }
                 for container in containers
             ]
@@ -37,21 +39,29 @@ def run_container(
     tmpfs: Union[str, None],
     hostname: Union[str, None],
     restart_policy: Union[Dict[str, str], None],
+    labels: Union[Dict[str, str], None],
 ):
+    create_kwargs = {
+        "image": image,
+        "name": name,
+        "volumes": volumes,
+        "environment": environment,
+        "privileged": privileged,
+        "tmpfs": tmpfs,
+        "hostname": hostname,
+        "restart_policy": restart_policy,
+        "labels": {k: str(v) for k, v in (labels or {}).items()},
+        "detach": detach,
+    }
+
+    if network is not None:
+        create_kwargs["network"] = network
+    else:
+        create_kwargs["network_mode"] = network_mode
+
     try:
-        container = client.containers.run(
-            image=image,
-            name=name,
-            volumes=volumes,
-            environment=environment,
-            privileged=privileged,
-            detach=detach,
-            network_mode=network_mode,
-            network=network,
-            tmpfs=tmpfs,
-            hostname=hostname,
-            restart_policy=restart_policy,
-        )
+        container = client.containers.run(**create_kwargs)
+
         return {"message": "Container started", "container_id": container.id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -64,6 +74,7 @@ def stop_container(name: str):
         return {"message": f"Container {name} stopped"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 def delete_container(name: str):
     try:

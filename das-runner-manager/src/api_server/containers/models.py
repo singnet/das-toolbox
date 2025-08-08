@@ -13,3 +13,4 @@ class DockerContainerRunRequest(BaseModel):
     tmpfs: Optional[Dict[str, str]] = None
     hostname: Optional[str] = None
     restart_policy: Optional[Dict[str, str]]
+    labels: Optional[Dict[str, str]] = {}

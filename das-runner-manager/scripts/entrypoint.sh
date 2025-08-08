@@ -36,6 +36,11 @@ sudo chown "$USERID:$GROUPID" "/home/$USER"
 echo "Configuring permissions for the cache folder at /home/$USER/.cache..."
 echo "Current user: $USER, User ID: $USERID, Group ID: $GROUPID"
 
+if [ ! -d "/home/$USER/.cache" ]; then
+    echo "Creating /home/$USER/.cache directory..."
+    mkdir -p "/home/$USER/.cache"
+fi
+
 chown "$USERID:$GROUPID" "/home/$USER/.cache" -R
 
 if docker info > /dev/null 2>&1; then
@@ -63,7 +68,7 @@ fi
 echo "Setting permissions for Docker socket..."
 chmod 777 /var/run/docker.sock
 
-sudo -u "$USER" ./gh-runner.sh "$REPO_URL" "$GH_TOKEN" &
+sudo -u "$USER" ./gh-runner.sh "$REPO_URL" "$GH_TOKEN" "$EXTRA_LABELS" &
 RUNNER_PID=$!
 
 sleep 10s
