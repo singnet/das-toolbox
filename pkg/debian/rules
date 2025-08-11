@@ -16,6 +16,9 @@ endif
 %:
 	dh $@
 
+override_dh_shlibdeps:
+	LD_LIBRARY_PATH=$(USR_LIBS_DIR) dh_shlibdeps
+
 override_dh_builddeb: build_man_pages build_autocomplete
 	dh_builddeb
 	cp ../*.deb $(ARTIFACTS_DIR)
@@ -38,9 +41,23 @@ override_dh_auto_install:
 	pyinstaller $(ROOT_DIR)/gatekeeper/api/src/main.py -y -F -n gk-server --distpath $(ARTIFACTS_DIR)
 	pyinstaller $(ROOT_DIR)/gatekeeper/cli/src/main.py -y -F -n gkctl --distpath $(ARTIFACTS_DIR)
 
-	# Copy all binaries and libs
+	# Copy all binaries
 	mkdir -p $(USR_BIN_DIR) $(USR_LIBS_DIR)
 	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
+
+	# Build hyperon_das.so
+	git clone --depth 1 --branch das-435 https://github.com/singnet/das.git /tmp/das
+	cd /tmp/das && make bazel build //:das && find ./lib -maxdepth 1 -type f -name "*.so" -exec cp {} $(USR_LIBS_DIR) \;
+
+	cp -f /tmp/das/lib/hyperon_das.so $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libmongoc2.so.2 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libmongocxx.so._noabi $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libhiredis.so.1.1.0 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libhiredis_cluster.so.0.12 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libbson2.so.2 $(USR_LIBS_DIR)
+	cp -f /tmp/das/lib/libbsoncxx.so._noabi $(USR_LIBS_DIR)
+
+	rm -rf /tmp/das
 
 build_man_pages:
 	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
