@@ -4,9 +4,21 @@ ENV TZ=America/Sao_Paulo \
     DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y build-essential debhelper zlib1g-dev python3-pip python3 gzip git uuid-runtime tree && \
-    curl -fsSL "https://github.com/tianon/gosu/releases/download/1.16/gosu-amd64" -o /usr/local/bin/gosu && \
-    chmod +x /usr/local/bin/gosu
+    apt-get install -y \
+        build-essential \
+        debhelper \
+        zlib1g-dev \
+        python3-pip \
+        python3 \
+        gzip \
+        git \
+        uuid-runtime \
+        patchelf \
+        tree
+
+RUN git config --global http.version HTTP/1.1
+
+RUN git config --global http.postBuffer 157286400
 
 RUN curl -fsSL https://get.docker.com/ | bash
 
@@ -16,5 +28,6 @@ WORKDIR /app/das
 
 COPY . .
 
-CMD [ "scripts/build-entrypoint.sh" ]
+ENTRYPOINT [ "make" ]
+CMD [ "build-local" ]
 

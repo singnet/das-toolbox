@@ -16,6 +16,9 @@ endif
 %:
 	dh $@
 
+override_dh_shlibdeps:
+	dh_shlibdeps -l$(USR_LIBS_DIR)
+
 override_dh_builddeb: build_man_pages build_autocomplete
 	dh_builddeb
 	cp ../*.deb $(ARTIFACTS_DIR)
@@ -43,9 +46,9 @@ override_dh_auto_install:
 	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
 
 	# Build hyperon_das.so
-	git clone --depth 1 --branch master https://github.com/singnet/das.git
-	# cd das && make bazel build //:das && find ./lib -maxdepth 1 -type f -name "*.so" -exec cp {} $(USR_LIBS_DIR) \;
-	cd das && make build-all && find ./lib -maxdepth 1 -type f -name "*.so" -exec cp {} $(USR_LIBS_DIR) \;
+	rm -rf /tmp/das
+	git clone --depth 1 --branch das-435 https://github.com/singnet/das.git /tmp/das
+	cd /tmp/das && make build-all && find ./lib -maxdepth 1 -type f -name "*.*" -exec cp {} $(USR_LIBS_DIR) \;
 
 	# Shared library should be looking for its dependencies in the same directory
 	patchelf --set-rpath '$$ORIGIN' $(USR_LIBS_DIR)/hyperon_das.so
