@@ -4,9 +4,9 @@ ROOT_DIR := $(patsubst %/,%,$(dir $(CURDIR)))
 DEB_SOURCE := das-toolbox
 ARTIFACTS_DIR := $(ROOT_DIR)/dist
 USR_BIN_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/bin
-USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib
 BASH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/etc/bash_completion.d
 ZSH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/zsh/site-functions
+USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib/$(DEB_SOURCE)
 TEMP_DIR := $(shell mktemp -d)
 
 ifeq ($(PACKAGE_VERSION),)
@@ -15,6 +15,9 @@ endif
 
 %:
 	dh $@
+
+override_dh_shlibdeps:
+	dh_shlibdeps -l$(USR_LIBS_DIR)
 
 override_dh_builddeb: build_man_pages build_autocomplete
 	dh_builddeb
@@ -38,9 +41,17 @@ override_dh_auto_install:
 	pyinstaller $(ROOT_DIR)/gatekeeper/api/src/main.py -y -F -n gk-server --distpath $(ARTIFACTS_DIR)
 	pyinstaller $(ROOT_DIR)/gatekeeper/cli/src/main.py -y -F -n gkctl --distpath $(ARTIFACTS_DIR)
 
-	# Copy all binaries and libs
+	# Copy all binaries
 	mkdir -p $(USR_BIN_DIR) $(USR_LIBS_DIR)
 	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
+
+	# Build hyperon_das.so
+	rm -rf /tmp/das
+	git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das
+	cd /tmp/das && make build-all && find ./lib -maxdepth 1 -type f -name "*.*" -exec cp {} $(USR_LIBS_DIR) \;
+
+	# Shared library should be looking for its dependencies in the same directory
+	patchelf --set-rpath '$$ORIGIN' $(USR_LIBS_DIR)/hyperon_das.so
 
 build_man_pages:
 	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/

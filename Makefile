@@ -15,8 +15,9 @@ docker-build:
 
 build: docker-build
 	@docker run --rm \
-		-e UID=$(shell id -u) \
-		-e GID=$(shell id -g) \
+		--user=$(id -u):$(id -g) \
+		-e USER=$(id -un) \
+		-v /etc/passwd:/etc/passwd:ro \
 		-v "$(CURDIR)/dist:/app/das/dist" \
 		-v $(TEMP_DIR):$(TEMP_DIR) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
