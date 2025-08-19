@@ -59,10 +59,8 @@ class EvolutionAgentContainerManager(ContainerManager):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
+                network_mode="host",
                 command=exec_command,
-                ports={
-                    evolution_agent_port: evolution_agent_port,
-                },
                 environment={
                     "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
@@ -70,8 +68,8 @@ class EvolutionAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
                     "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_ATTENTION_agent_ADDRESS": self._options.get("attention_agent_hostname"),
-                    "DAS_ATTENTION_agent_PORT": self._options.get("attention_agent_port"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_agent_hostname"),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_agent_port"),
                 },
             )
 

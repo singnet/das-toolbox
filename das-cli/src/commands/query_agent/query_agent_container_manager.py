@@ -47,11 +47,12 @@ class QueryAgentContainerManager(ContainerManager):
             exec_command = self._gen_query_agent_command(port_range)
 
             container_id = self._start_container(
-                network_mode="host",
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
+                network_mode="host",
+                command=exec_command,
                 environment={
                     "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
@@ -59,10 +60,9 @@ class QueryAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
                     "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
-                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_agent_hostname"),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_agent_port"),
                 },
-                command=exec_command,
             )
 
             return container_id
