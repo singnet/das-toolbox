@@ -1,6 +1,6 @@
 import getpass
 
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 # PATHS
@@ -22,7 +22,7 @@ MONGODB_IMAGE_NAME = "mongo"
 MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.5.7-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "0.5.8-metta-parser"
 
 OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
@@ -36,16 +36,16 @@ DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
-ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-0.11.0"
+ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-0.11.2"
 
 QUERY_AGENT_IMAGE_NAME = "trueagi/das"
-QUERY_AGENT_IMAGE_VERSION = "query-agent-0.11.0"
+QUERY_AGENT_IMAGE_VERSION = "query-agent-0.11.2"
 
 LINK_CREATION_AGENT_IMAGE_NAME = "trueagi/das"
-LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-0.11.0"
+LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-0.11.2"
 
 INFERENCE_AGENT_IMAGE_NAME = "trueagi/das"
-INFERENCE_AGENT_IMAGE_VERSION = "inference-agent-0.11.0"
+INFERENCE_AGENT_IMAGE_VERSION = "inference-agent-0.11.2"
 
 EVOLUTION_AGENT_IMAGE_NAME = "trueagi/das"
-EVOLUTION_AGENT_IMAGE_VERSION = "evolution-agent-0.11.0"
+EVOLUTION_AGENT_IMAGE_VERSION = "evolution-agent-0.11.2"
