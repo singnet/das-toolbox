@@ -1,10 +1,8 @@
 from injector import inject
 
+from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.inference_agent.inference_agent_container_manager import (
     InferenceAgentContainerManager,
-)
-from commands.link_creation_agent.link_creation_agent_container_manager import (
-    LinkCreationAgentContainerManager,
 )
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
@@ -142,7 +140,7 @@ SYNOPSIS
 DESCRIPTION
 
     Starts the Inference Agent service, initializing the required containers and ports.
-    Checks that dependent services (e.g., Link Creation Agent) are running before starting.
+    Checks that dependent services (e.g., Attention Broker) are running before starting.
     Shows the ports on which the service is listening.
 
 EXAMPLES
@@ -157,12 +155,12 @@ EXAMPLES
         self,
         settings: Settings,
         inference_agent_container_manager: InferenceAgentContainerManager,
-        link_creation_container_manager: LinkCreationAgentContainerManager,
+        attention_broker_container_manager: AttentionBrokerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._inference_agent_container_manager = inference_agent_container_manager
-        self._link_creation_container_manager = link_creation_container_manager
+        self._attention_broker_container_manager = attention_broker_container_manager
 
     def _get_container(self):
         return self._inference_agent_container_manager.get_container()
@@ -223,10 +221,10 @@ EXAMPLES
 
     @ensure_container_running(
         [
-            "_link_creation_container_manager",
+            "_attention_broker_container_manager",
         ],
         exception_text="\nPlease start the required services before running 'inference-agent start'.\n"
-        "Run 'link-creation-agent start' to start the Link Creation Agent.",
+        "Run 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
     def run(

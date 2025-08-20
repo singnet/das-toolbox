@@ -1,0 +1,3 @@
+[das#686] Fix Evolution errors: network mode for MongoDB & Attention Broker variable typo (PR: #211)
+[das#688] Remove dependency Inference agent -> LCA in das-cli
+
