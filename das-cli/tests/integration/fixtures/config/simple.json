@@ -43,8 +43,8 @@
       "container_name": "das-cli-dbms-peer"
     },
     "attention_broker": {
-      "port": 40001,
-      "container_name": "das-cli-attention-broker-40001"
+      "port": 37007,
+      "container_name": "das-cli-attention-broker-37007"
     },
     "query_agent": {
       "port": 40002,

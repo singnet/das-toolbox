@@ -42,7 +42,7 @@ class EvolutionAgentModule(Module):
         redis_hostname = "localhost"
 
         attention_agent_hostname = "localhost"
-        attention_agent_port = self._settings.get("services.attention_agent.port")
+        attention_agent_port = self._settings.get("services.attention_broker.port")
 
         container_name = self._settings.get("services.query_agent.container_name")
 

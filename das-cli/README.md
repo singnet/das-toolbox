@@ -49,7 +49,7 @@
 2. Install the package:
 
   ```bash
-  sudo apt install das-cli
+  sudo apt install das-toolbox
   ```
 
 3. Check installation:
