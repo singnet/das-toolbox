@@ -10,21 +10,12 @@ setup() {
 
     das-cli attention-broker start
     das-cli db start
-    das-cli query-agent start --port-range 12000:12100
-
-    das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$(get_config ".services.query_agent.port")" \
-        --port-range 12300:12400
-
     das-cli inference-agent stop
 }
 
 teardown() {
     das-cli inference-agent stop
-    das-cli link-creation-agent stop
     das-cli attention-broker stop
-    das-cli query-agent stop
     das-cli db stop
 }
 
@@ -63,8 +54,8 @@ teardown() {
     assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
-@test "Start Inference Agent when Link Creation Agent is not up" {
-    das-cli link-creation-agent stop
+@test "Start Inference Agent when Attention Broker is not up" {
+    das-cli attention-broker stop
 
     run das-cli inference-agent start \
         --peer-hostname localhost \
@@ -73,9 +64,9 @@ teardown() {
 
     assert_output "[31m[DockerContainerNotFoundError] 
 Please start the required services before running 'inference-agent start'.
-Run 'link-creation-agent start' to start the Link Creation Agent.[39m"
+Run 'attention-broker start' to start the Attention Broker.[39m"
 
-    run is_service_up link_creation_agent
+    run is_service_up attention_broker
     assert_failure
 
     run is_service_up inference_agent

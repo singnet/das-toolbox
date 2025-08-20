@@ -5,9 +5,9 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .inference_agent_cli import (
+    AttentionBrokerManager,
     InferenceAgentCli,
     InferenceAgentContainerManager,
-    LinkCreationAgentContainerManager,
     Settings,
 )
 
@@ -26,8 +26,8 @@ class InferenceAgentModule(Module):
                 self._inference_agent_container_manager_factory,
             ),
             (
-                LinkCreationAgentContainerManager,
-                self._link_creation_agent_container_manager_factory,
+                AttentionBrokerManager,
+                self._attention_broker_container_manager_factory,
             ),
             (
                 Settings,
@@ -68,27 +68,14 @@ class InferenceAgentModule(Module):
             },
         )
 
-    def _link_creation_agent_container_manager_factory(self) -> LinkCreationAgentContainerManager:
-        container_name = self._settings.get("services.link_creation_agent.container_name")
+    def _attention_broker_container_manager_factory(self) -> AttentionBrokerManager:
+        attention_broker_port = str(self._settings.get("services.attention_broker.port"))
 
-        query_agent_server_hostname = "localhost"
-        query_agent_server_port = self._settings.get("services.query_agent.port")
+        container_name = self._settings.get("services.attention_broker.container_name")
 
-        link_creation_agent_server_hostname = "localhost"
-        link_creation_agent_server_port = self._settings.get("services.link_creation_agent.port")
-
-        return LinkCreationAgentContainerManager(
+        return AttentionBrokerManager(
             container_name,
             options={
-                "query_agent_server_hostname": query_agent_server_hostname,
-                "query_agent_server_port": query_agent_server_port,
-                "link_creation_agent_server_hostname": link_creation_agent_server_hostname,
-                "link_creation_agent_server_port": link_creation_agent_server_port,
-                "query_agent_client_hostname": "localhost",
-                "query_agent_client_port": 9001,
-                "das_agent_client_hostname": "localhost",
-                "das_agent_client_port": 9090,
-                "das_agent_server_hostname": "localhost",
-                "das_agent_server_port": 9091,
+                "attention_broker_port": attention_broker_port,
             },
         )
