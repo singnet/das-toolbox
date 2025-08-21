@@ -238,7 +238,7 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
     assert_regex "$output" '(MongoDB\s.*:\s[0-9]+)'
     local mongodb_count=$(grep -oE 'MongoDB\s.*:\s[0-9]+' <<<"$output" | wc -l)
 
-    [ "$mongodb_count" -eq 3 ]
+    [ "$mongodb_count" -eq 4 ]
 
     assert_regex "$output" '(Redis\s.*:\s[0-9]+)'
     local redis_count=$(grep -oE 'Redis\s.*:\s[0-9]+' <<<"$output" | wc -l)
