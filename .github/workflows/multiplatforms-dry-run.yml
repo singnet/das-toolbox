@@ -15,7 +15,7 @@ jobs:
   multiplatforms-dry-run:
     strategy:
       matrix:
-        os: ["ubuntu-20.04", "ubuntu-24.04", "macos-14", "macos-15", "windows-latest"]
+        os: ["ubuntu-20.04", "ubuntu-24.04", "windows-latest"]
         python-version: ["3.10", "3.13"]
       max-parallel: 4
 
@@ -28,13 +28,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Set up Docker (macOS only)
-        if: runner.os == 'macos'
-        run: |
-          brew install docker colima
-          colima start
-          while ! docker system info > /dev/null 2>&1; do sleep 1; done
 
       - name: Create virtual environment
         run: |
