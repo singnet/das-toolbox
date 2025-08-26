@@ -1,0 +1,55 @@
+name: multiplatform-dry-run
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+jobs:
+  multiplatforms-dry-run:
+    strategy:
+      matrix:
+        os:  ["ubuntu-20.04", "ubuntu-24.04", "macos-14", "macos-15", "windows-latest"]
+        python-version: ["3.10", "3.13"]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+
+      - name: Install das-cli
+        run: |
+          python -m pip install --upgrade pip
+          cd das-cli/src
+          python -m pip install -e .
+
+      - name: Dry-run das-cli commands
+        run: |
+          das-cli --version
+          das-cli db start
+          das-cli ab start
+          das-cli qa start
+      
+      - name: Clean up
+        run: |
+          das-cli db stop
+          das-cli ab stop
+          das-cli qa stop
