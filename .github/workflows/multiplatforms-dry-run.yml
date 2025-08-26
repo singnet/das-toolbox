@@ -48,7 +48,7 @@ jobs:
           das-cli --version
           das-cli db start
           das-cli ab start
-          das-cli qa start
+          python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | das-cli qa start
       
       - name: Clean up
         run: |
