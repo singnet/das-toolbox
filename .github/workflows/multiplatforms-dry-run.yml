@@ -17,6 +17,7 @@ jobs:
       matrix:
         os: ["ubuntu-20.04", "ubuntu-24.04", "macos-14", "macos-15", "windows-latest"]
         python-version: ["3.10", "3.13"]
+      max-parallel: 4
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -37,6 +38,10 @@ jobs:
           python -m pip install --upgrade pip
           cd das-cli/src
           python -m pip install -e .
+
+      - name: Configure das-cli
+        run: |
+          python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
 
       - name: Dry-run das-cli commands
         run: |
