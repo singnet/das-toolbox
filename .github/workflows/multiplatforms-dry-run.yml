@@ -29,13 +29,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Set up Docker on macOS (others have it pre-installed)
       - name: Set up Docker (macOS only)
-        if: runner.os == 'macos'
-        run: |
-          brew install --cask docker
-          sudo /Applications/Docker.app/Contents/MacOS/Docker --unattended --install-privileged-components
-          open -a Docker
-          while ! docker system info > /dev/null 2>&1; do sleep 1; done
+        if: runner.os == 'macOS'
+        uses: docker/setup-docker-action@v3
 
       - name: Create virtual environment
         run: |
@@ -66,6 +63,6 @@ jobs:
         shell: bash
         run: |
           source .venv/bin/activate
-          das-cli db stop
-          das-cli ab stop
           das-cli qa stop
+          das-cli ab stop
+          das-cli db stop
