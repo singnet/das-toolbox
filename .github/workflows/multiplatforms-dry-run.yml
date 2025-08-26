@@ -29,10 +29,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Set up Docker on macOS (others have it pre-installed)
       - name: Set up Docker (macOS only)
-        if: runner.os == 'macOS'
-        uses: docker/setup-docker-action@v3
+        if: runner.os == 'macos'
+        run: |
+          brew install docker colima
+          colima start
+          while ! docker system info > /dev/null 2>&1; do sleep 1; done
 
       - name: Create virtual environment
         run: |
