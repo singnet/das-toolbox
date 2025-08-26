@@ -42,13 +42,21 @@ jobs:
       - name: Configure das-cli
         shell: bash
         run: |
-          source .venv/bin/activate
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source .venv\\Scripts\\activate
+          else
+            source .venv/bin/activate
+          fi
           python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
 
       - name: Dry-run das-cli commands
         shell: bash
         run: |
-          source .venv/bin/activate
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source .venv\\Scripts\\activate
+          else
+            source .venv/bin/activate
+          fi
           das-cli --version
           das-cli db start
           das-cli ab start
@@ -57,7 +65,11 @@ jobs:
       - name: Clean up
         shell: bash
         run: |
-          source .venv/bin/activate
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source .venv\\Scripts\\activate
+          else
+            source .venv/bin/activate
+          fi
           das-cli qa stop
           das-cli ab stop
           das-cli db stop
