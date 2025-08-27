@@ -76,17 +76,23 @@
   source env/bin/activate
   ```
 
-3. Install dependencies:
+3. Install the package:
 
   ```bash
   cd das-cli/src
-  pip3 install -r requirements.txt
+  python3 -m pip install .
   ```
 
 4. Run:
 
   ```bash
-  python3 das_cli.py --help
+  das-cli --help
+  ```
+
+**Note:** For development dependencies (linting, testing, etc.), you can install them separately:
+
+  ```bash
+  python3 -m pip install -r requirements-dev.txt
   ```
 
 ---
@@ -125,13 +131,13 @@ Best suited for distributed environments with multiple clients.
 
 ### General Syntax
 
-From source:
+From source (dev):
 
 ```bash
 python3 das_cli.py <command> <subcommand> [options]
 ```
 
-Or, if installed via APT:
+Or, if installed via pip or APT:
 
 ```bash
 das-cli <command> <subcommand> [options]

@@ -1,3 +1,5 @@
+# Runtime dependencies for das-cli
+# For development dependencies, see requirements-dev.txt
 Click==8.1.6
 docker==7.1.0
 distro==1.9.0
@@ -5,18 +7,5 @@ click-man==0.4.1
 fabric==3.2.2
 cryptography==36.0.2
 paramiko==3.4.0
+pyyaml==6.0.1
 injector==0.21.0
-
-# Dev dependencies
-flake8==6.1.0
-pylint==3.2.6
-mypy==1.10.1
-isort==5.12.0
-black==23.7.0
-pre-commit==3.5.0
-
-# types
-types-paramiko==2.12.0.1
-types-requests==2.32.0.20241016
-types-PyYAML==6.0.12
-

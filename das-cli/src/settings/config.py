@@ -1,6 +1,6 @@
 import getpass
 
-VERSION = '0.5.1'
+VERSION = '0.5.2'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 # PATHS

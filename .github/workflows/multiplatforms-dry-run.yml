@@ -1,0 +1,111 @@
+name: multiplatform-dry-run
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+jobs:
+  multiplatforms-dry-run:
+    strategy:
+      matrix:
+        os: ["ubuntu-20.04", "ubuntu-24.04", "windows-latest"]
+        python-version: ["3.10", "3.13"]
+      max-parallel: 4
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Create virtual environment
+        shell: bash
+        run: |
+          python -m venv venv
+
+      - name: Install das-cli
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
+          python -m pip install --upgrade pip
+          cd das-cli/src
+          python -m pip install -e .
+          # On Windows, we need to ensure the entry point is properly installed
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            python -m pip install --force-reinstall -e .
+          fi
+
+      - name: Configure das-cli
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
+          echo "Python path: $(which python)"
+          echo "Python version: $(python --version)"
+          echo "Installed packages:"
+          pip list
+          # Try using python das_cli.py instead of das-cli command on Windows
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cd das-cli/src
+            python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | python das_cli.py config set
+          else
+            python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
+          fi
+
+      - name: Dry-run das-cli commands
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cd das-cli/src
+            python das_cli.py --version
+            python das_cli.py db start
+            python das_cli.py ab start
+            python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | python das_cli.py qa start
+          else
+            das-cli --version
+            das-cli db start
+            das-cli ab start
+            python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | das-cli qa start
+          fi
+      
+      - name: Clean up
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cd das-cli/src
+            python das_cli.py qa stop
+            python das_cli.py ab stop
+            python das_cli.py db stop
+          else
+            das-cli qa stop
+            das-cli ab stop
+            das-cli db stop
+          fi
