@@ -31,7 +31,7 @@ jobs:
 
       - name: Create virtual environment
         run: |
-          python -m venv .venv
+          python -m venv venv
 
       - name: Install das-cli
         run: |
@@ -40,36 +40,36 @@ jobs:
           python -m pip install -e .
 
       - name: Configure das-cli
-        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            source .venv\\Scripts\\activate
+            CMD=venv\\Scripts\\das-cli
           else
-            source .venv/bin/activate
+            source venv/bin/activate
+            CMD=das-cli
           fi
-          python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
+          python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | $CMD config set
 
       - name: Dry-run das-cli commands
-        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            source .venv\\Scripts\\activate
+            CMD=venv\\Scripts\\das-cli
           else
-            source .venv/bin/activate
+            source venv/bin/activate
+            CMD=das-cli
           fi
-          das-cli --version
-          das-cli db start
-          das-cli ab start
-          python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | das-cli qa start
+          $CMD --version
+          $CMD db start
+          $CMD ab start
+          python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | $CMD qa start
       
       - name: Clean up
-        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            source .venv\\Scripts\\activate
+            CMD=venv\\Scripts\\das-cli
           else
-            source .venv/bin/activate
+            source venv/bin/activate
+            CMD=das-cli
           fi
-          das-cli qa stop
-          das-cli ab stop
-          das-cli db stop
+          $CMD qa stop
+          $CMD ab stop
+          $CMD db stop
