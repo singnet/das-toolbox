@@ -37,6 +37,11 @@ jobs:
       - name: Install das-cli
         shell: bash
         run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            source venv/Scripts/activate
+          else
+            source venv/bin/activate
+          fi
           python -m pip install --upgrade pip
           cd das-cli/src
           python -m pip install -e .
@@ -45,17 +50,21 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            source venv\\Scripts\\activate
+            source venv/Scripts/activate
           else
             source venv/bin/activate
           fi
+          echo "Python path: $(which python)"
+          echo "Python version: $(python --version)"
+          echo "Installed packages:"
+          pip list
           python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
 
       - name: Dry-run das-cli commands
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            source venv\\Scripts\\activate
+            source venv/Scripts/activate
           else
             source venv/bin/activate
           fi
@@ -68,7 +77,7 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            source venv\\Scripts\\activate
+            source venv/Scripts/activate
           else
             source venv/bin/activate
           fi
