@@ -62,9 +62,10 @@ jobs:
           echo "Python version: $(python --version)"
           echo "Installed packages:"
           pip list
-          # Try using python -m das_cli instead of das-cli command
+          # Try using python das_cli.py instead of das-cli command on Windows
           if [ "$RUNNER_OS" = "Windows" ]; then
-            python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | python -m das_cli config set
+            cd das-cli/src
+            python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | python das_cli.py config set
           else
             python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
           fi
@@ -78,10 +79,11 @@ jobs:
             source venv/bin/activate
           fi
           if [ "$RUNNER_OS" = "Windows" ]; then
-            python -m das_cli --version
-            python -m das_cli db start
-            python -m das_cli ab start
-            python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | python -m das_cli qa start
+            cd das-cli/src
+            python das_cli.py --version
+            python das_cli.py db start
+            python das_cli.py ab start
+            python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | python das_cli.py qa start
           else
             das-cli --version
             das-cli db start
@@ -98,9 +100,10 @@ jobs:
             source venv/bin/activate
           fi
           if [ "$RUNNER_OS" = "Windows" ]; then
-            python -m das_cli qa stop
-            python -m das_cli ab stop
-            python -m das_cli db stop
+            cd das-cli/src
+            python das_cli.py qa stop
+            python das_cli.py ab stop
+            python das_cli.py db stop
           else
             das-cli qa stop
             das-cli ab stop
