@@ -45,36 +45,33 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            CMD=venv\\Scripts\\das-cli
+            source venv\\Scripts\\activate
           else
             source venv/bin/activate
-            CMD=das-cli
           fi
-          python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | $CMD config set
+          python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
 
       - name: Dry-run das-cli commands
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            CMD=venv\\Scripts\\das-cli
+            source venv\\Scripts\\activate
           else
             source venv/bin/activate
-            CMD=das-cli
           fi
-          $CMD --version
-          $CMD db start
-          $CMD ab start
-          python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | $CMD qa start
+          das-cli --version
+          das-cli db start
+          das-cli ab start
+          python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | das-cli qa start
       
       - name: Clean up
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            CMD=venv\\Scripts\\das-cli
+            source venv\\Scripts\\activate
           else
             source venv/bin/activate
-            CMD=das-cli
           fi
-          $CMD qa stop
-          $CMD ab stop
-          $CMD db stop
+          das-cli qa stop
+          das-cli ab stop
+          das-cli db stop
