@@ -30,16 +30,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Create virtual environment
+        shell: bash
         run: |
           python -m venv venv
 
       - name: Install das-cli
+        shell: bash
         run: |
           python -m pip install --upgrade pip
           cd das-cli/src
           python -m pip install -e .
 
       - name: Configure das-cli
+        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
             CMD=venv\\Scripts\\das-cli
@@ -50,6 +53,7 @@ jobs:
           python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | $CMD config set
 
       - name: Dry-run das-cli commands
+        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
             CMD=venv\\Scripts\\das-cli
@@ -63,6 +67,7 @@ jobs:
           python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | $CMD qa start
       
       - name: Clean up
+        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
             CMD=venv\\Scripts\\das-cli
