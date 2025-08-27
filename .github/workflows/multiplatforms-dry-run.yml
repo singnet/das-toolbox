@@ -45,6 +45,10 @@ jobs:
           python -m pip install --upgrade pip
           cd das-cli/src
           python -m pip install -e .
+          # On Windows, we need to ensure the entry point is properly installed
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            python -m pip install --force-reinstall -e .
+          fi
 
       - name: Configure das-cli
         shell: bash
@@ -58,7 +62,12 @@ jobs:
           echo "Python version: $(python --version)"
           echo "Installed packages:"
           pip list
-          python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
+          # Try using python -m das_cli instead of das-cli command
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | python -m das_cli config set
+          else
+            python -c "import sys; sys.stdout.write('\n' * 7 + '37007' + '\n' * 12)" | das-cli config set
+          fi
 
       - name: Dry-run das-cli commands
         shell: bash
@@ -68,10 +77,17 @@ jobs:
           else
             source venv/bin/activate
           fi
-          das-cli --version
-          das-cli db start
-          das-cli ab start
-          python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | das-cli qa start
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            python -m das_cli --version
+            python -m das_cli db start
+            python -m das_cli ab start
+            python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | python -m das_cli qa start
+          else
+            das-cli --version
+            das-cli db start
+            das-cli ab start
+            python -c "import sys; sys.stdout.write('42000:42999' + '\n')" | das-cli qa start
+          fi
       
       - name: Clean up
         shell: bash
@@ -81,6 +97,12 @@ jobs:
           else
             source venv/bin/activate
           fi
-          das-cli qa stop
-          das-cli ab stop
-          das-cli db stop
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            python -m das_cli qa stop
+            python -m das_cli ab stop
+            python -m das_cli db stop
+          else
+            das-cli qa stop
+            das-cli ab stop
+            das-cli db stop
+          fi
