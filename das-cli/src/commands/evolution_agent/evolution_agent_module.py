@@ -77,6 +77,9 @@ class EvolutionAgentModule(Module):
         attention_agent_hostname = "localhost"
         attention_agent_port = self._settings.get("services.attention_agent.port")
 
+        query_agent_port = str(self._settings.get("services.query_agent.port"))
+        query_agent_hostname = "localhost"
+
         return EvolutionAgentContainerManager(
             container_name,
             options={
@@ -89,5 +92,7 @@ class EvolutionAgentModule(Module):
                 "mongodb_password": mongodb_password,
                 "attention_agent_hostname": attention_agent_hostname,
                 "attention_agent_port": attention_agent_port,
+                "query_agent_port": query_agent_port,
+                "query_agent_hostname": query_agent_hostname,
             },
         )
