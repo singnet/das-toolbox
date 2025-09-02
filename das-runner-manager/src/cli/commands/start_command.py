@@ -56,23 +56,29 @@ class StartCommand:
             home_dir = os.path.expanduser("~")
             volume = {}
             labels = {}
+            container_name = f"{args.repository}-github-runner-{i}"
+            network_name = "das-runner-network"
+
 
             if args.no_cache_runners < i:
                 volume |= {
-                    f"{home_dir}/.cache/docker/{args.repository}": {
+                    f"{home_dir}/.cache/docker/{args.repository}/{container_name}": {
                         "bind": f"/home/ubuntu/.cache/{args.repository}",
                         "mode": "rw",
                     },
+                    f"{home_dir}/.cache/docker/{args.repository}/shared": {
+                        "bind": f"/home/ubuntu/.cache/shared",
+                        "mode": "rw",
+                    },
+                }
+                labels = {
+                    "self-hosted-withcache": "",
                 }
 
             if args.no_cache_runners > i:
                 labels = {
                     "self-hosted-nocache": "",
                 }
-
-
-            container_name = f"{args.repository}-github-runner-{i}"
-            network_name = "das-runner-network"
 
             env_vars = {
                 "REPO_URL": f"https://github.com/singnet/{args.repository}",
