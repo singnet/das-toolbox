@@ -71,6 +71,9 @@ class StartCommand:
                         "mode": "rw",
                     },
                 }
+                labels = {
+                    "self-hosted-withcache": "",
+                }
 
             if args.no_cache_runners > i:
                 labels = {
