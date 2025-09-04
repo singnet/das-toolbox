@@ -45,7 +45,6 @@ class MettaLoaderContainerManager(ContainerManager):
             exec_command = f"db_loader {filename}"
 
             container = self._start_container(
-                network_mode="host",
                 environment={
                     "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),
                     "DAS_REDIS_PORT": self._options.get('redis_port'),
