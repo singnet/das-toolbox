@@ -49,7 +49,6 @@ class DasPeerContainerManager(ContainerManager):
 
         container = self._start_container(
             command=command_params,
-            network_mode="host",
             healthcheck={
                 "Test": [
                     "CMD-SHELL",
