@@ -9,6 +9,7 @@ import docker.errors
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
+from settings.config import SERVICES_NETWORK_NAME
 
 
 class ContainerImageMetadata(TypedDict, total=False):
@@ -97,6 +98,7 @@ class ContainerManager(DockerManager):
                 image=self.get_container().image,
                 name=self.get_container().name,
                 detach=True,
+                network=SERVICES_NETWORK_NAME,
             )
 
             return response
