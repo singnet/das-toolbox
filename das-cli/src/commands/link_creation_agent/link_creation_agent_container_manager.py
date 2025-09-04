@@ -98,7 +98,6 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         try:
             container_id = self._start_container(
-                network_mode="host",
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
