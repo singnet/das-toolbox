@@ -33,16 +33,16 @@ class EvolutionAgentModule(Module):
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
         query_agent_port = str(self._settings.get("services.query_agent.port"))
-        mongodb_hostname = "localhost"
+        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = "localhost"
+        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_agent_hostname = "localhost"
-        attention_agent_port = self._settings.get("services.attention_broker.port")
+        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
+        attention_broker_port = self._settings.get("services.attention_broker.port")
 
         container_name = self._settings.get("services.query_agent.container_name")
 
@@ -56,8 +56,8 @@ class EvolutionAgentModule(Module):
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_agent_hostname": attention_agent_hostname,
-                "attention_agent_port": attention_agent_port,
+                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_port": attention_broker_port,
             },
         )
 
@@ -66,19 +66,19 @@ class EvolutionAgentModule(Module):
 
         container_name = self._settings.get("services.evolution_agent.container_name")
 
-        mongodb_hostname = "localhost"
+        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = "localhost"
+        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_agent_hostname = "localhost"
-        attention_agent_port = self._settings.get("services.attention_agent.port")
+        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
+        attention_broker_port = self._settings.get("services.attention_broker.port")
 
         query_agent_port = str(self._settings.get("services.query_agent.port"))
-        query_agent_hostname = "localhost"
+        query_agent_hostname = self._settings.get("services.query_agent.container_name")
 
         return EvolutionAgentContainerManager(
             container_name,
@@ -90,8 +90,8 @@ class EvolutionAgentModule(Module):
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_agent_hostname": attention_agent_hostname,
-                "attention_agent_port": attention_agent_port,
+                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_port": attention_broker_port,
                 "query_agent_port": query_agent_port,
                 "query_agent_hostname": query_agent_hostname,
             },
