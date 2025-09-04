@@ -80,7 +80,6 @@ class InferenceAgentContainerManager(ContainerManager):
             )
 
             container_id = self._start_container(
-                network_mode="host",
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
@@ -90,7 +89,7 @@ class InferenceAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
                     "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
-                    "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
+                    "DAS_REDIS_HOSTNAME": self._options.get("redis_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
