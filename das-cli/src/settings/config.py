@@ -3,6 +3,8 @@ import getpass
 VERSION = '0.5.3'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
+SERVICES_NETWORK_NAME = "das-services-network"
+
 # PATHS
 
 USER_DAS_PATH = "~/.das"
