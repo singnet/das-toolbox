@@ -43,15 +43,15 @@ class QueryAgentModule(Module):
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
         query_agent_port = str(self._settings.get("services.query_agent.port"))
-        mongodb_hostname = "localhost"
+        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = "localhost"
+        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_broker_hostname = "localhost"
+        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         container_name = self._settings.get("services.query_agent.container_name")
