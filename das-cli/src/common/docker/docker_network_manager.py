@@ -1,7 +1,10 @@
+from typing import Union
+
 import docker
 
-from .docker_manager import DockerManager
 from common.utils import log_exception
+
+from .docker_manager import DockerManager
 
 
 class DockerNetworkManager(DockerManager):
@@ -9,16 +12,14 @@ class DockerNetworkManager(DockerManager):
         self,
         name: str,
         driver: str = "bridge",
-        subnet: str = None,
+        subnet: Union[str, None] = None,
     ):
         ipam_config = None
         if subnet:
             ipam_pool = docker.types.IPAMPool(subnet=subnet)
             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
 
-        network = self._get_client().networks.create(
-            name=name, driver=driver, ipam=ipam_config
-        )
+        network = self._get_client().networks.create(name=name, driver=driver, ipam=ipam_config)
         return network
 
     def list_networks(self):

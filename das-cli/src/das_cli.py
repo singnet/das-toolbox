@@ -15,8 +15,8 @@ from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
-from common.utils import log_exception
 from common.docker.docker_network_manager import init_network
+from common.utils import log_exception
 
 MODULES = [
     ConfigModule,
@@ -37,7 +37,8 @@ MODULES = [
 
 
 def bootstrap():
-   init_network() 
+    init_network()
+
 
 def init_module(cli, module):
     m = module()
