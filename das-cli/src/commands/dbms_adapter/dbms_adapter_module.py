@@ -68,7 +68,9 @@ class DbmsAdapterModule(Module):
         container_name = self._settings.get("services.das_peer.container_name")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_container_name = self._settings.get("services.mongodb.container_name")
-        mongodb_hostname = mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else mongodb_container_name
+        mongodb_hostname = (
+            mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else mongodb_container_name
+        )
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_port = self._settings.get("services.mongodb.port")

@@ -6,10 +6,11 @@ from typing import Any, List, Optional, TypedDict, Union, cast
 import docker
 import docker.errors
 
+from settings.config import SERVICES_NETWORK_NAME
+
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
-from settings.config import SERVICES_NETWORK_NAME
 
 
 class ContainerImageMetadata(TypedDict, total=False):
