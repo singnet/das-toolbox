@@ -154,6 +154,7 @@ class MongodbContainerManager(ContainerManager):
     def get_collection_stats(self) -> dict:
         mongodb_username = self._options.get("mongodb_username")
         mongodb_password = self._options.get("mongodb_password")
+        mongodb_port = self._options.get("mongodb_port")
 
         mongodb_command = """
             const collections = db.getCollectionNames();
@@ -167,7 +168,7 @@ class MongodbContainerManager(ContainerManager):
         )
 
         command = (
-            f'bash -c "mongosh -u {mongodb_username} -p {mongodb_password} '
+            f'bash -c "mongosh --port {mongodb_port} -u {mongodb_username} -p {mongodb_password} '
             f'--eval \'use das\' --eval \'{mongodb_command}\' | tail -n 1"'
         )
 
