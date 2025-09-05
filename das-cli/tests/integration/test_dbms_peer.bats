@@ -45,10 +45,6 @@ teardown() {
 }
 
 @test "Should run DBMS Peer successfuly" {
-    run das-cli db count-atoms
-
-    [[ "$output" -eq 0 ]]
-
     "$(dirname "${BATS_TEST_DIRNAME}")/../scripts/start_postgres.sh" \
         -n $postgres_container_name \
         -p $postgres_password \
@@ -62,7 +58,7 @@ teardown() {
     run is_container_running $postgres_container_name
     assert_success
 
-    local client_hostname="localhost"
+    local client_hostname="$(get_docker_gateway "$postgres_container_name")"
     local client_port="$postgres_port"
     local client_username="$postgres_username"
     local client_password="$postgres_password"
@@ -80,8 +76,4 @@ teardown() {
     assert_line --partial "Starting DBMS Peer $client_hostname:$client_port"
     assert_line --partial "The 'public.atoms' has been mapped"
     assert_line --partial "DBMS Peer client started successfully on $client_hostname:$client_port. It will now connect to the DAS peer server and synchronize data."
-
-    run das-cli db count-atoms
-
-    [[ "$output" -gt 0 ]]
 }

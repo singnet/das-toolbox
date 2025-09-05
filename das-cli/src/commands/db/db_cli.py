@@ -51,7 +51,7 @@ $ das-cli db count-atoms --verbose
         CommandOption(
             ["--verbose", "-v"],
             is_flag=True,
-            help="",
+            help="Display detailed counts for both MongoDB and Redis.",
             default=False,
             required=False,
         )

@@ -109,7 +109,6 @@ class DbmsPeerContainerManager(ContainerManager):
 
             container = self._start_container(
                 command=command_params,
-                network_mode="host",
                 volumes=volumes,
             )
 
