@@ -635,7 +635,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli config list
+    das-cli config list [key]
 
 DESCRIPTION
 
@@ -649,6 +649,10 @@ EXAMPLES
     To display the current configuration values, run:
 
         $ das-cli config list
+
+    To display the value of a specific configuration key, run:
+
+        $ das-cli config list services.query_agent.port
 
 """
 
@@ -736,7 +740,7 @@ USAGE
 
     To list the current configuration settings:
 
-        $ das-cli config list
+        $ das-cli config list [key]
     """
 
     short_help = "Manage configuration settings for services used by the DAS CLI."
