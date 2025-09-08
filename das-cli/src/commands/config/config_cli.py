@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from injector import inject
 
@@ -6,6 +6,7 @@ from common import (
     Command,
     CommandGroup,
     CommandOption,
+    CommandArgument,
     IntRange,
     ReachableIpAddress,
     RemoteContextManager,
@@ -49,14 +50,13 @@ SECTIONS
     │ 2. Redis           │
     │ 3. MongoDB         │
     │ 4. Loader          │
-    │ 5. OpenFaaS        │
-    │ 6. Jupyter         │
-    │ 7. DAS Peer        │
-    │ 8. DBMS Peer       │
-    │ 9. AttentionBroker │
-    │ 10. Query Agent    │
-    │ 11. Link Agent     │
-    │ 12. Evolution Agent│
+    │ 5. Jupyter         │
+    │ 6. DAS Peer        │
+    │ 7. DBMS Peer       │
+    │ 8. AttentionBroker │
+    │ 9. Query Agent     │
+    │ 10. Link Agent     │
+    │ 11. Evolution Agent│
     └────────────────────┘
 
 OPTIONS AND VARIABLES
@@ -177,17 +177,6 @@ SERVICES CONFIGURATION (services.*)
 
         loader.container_name
             Specifies the name of the Docker container running the Loader.
-
-    OPENFAAS CONFIGURATION (openfaas.*)
-
-        openfaas.container_name
-            Specifies the name of the Docker container running OpenFaaS.
-
-        openfaas.version
-            Specifies the version of OpenFaaS function being used.
-
-        openfaas.function
-            Specifies the name of the function to be executed within OpenFaaS.
 
     JUPYTER NOTEBOOK CONFIGURATION (jupyter_notebook.*)
 
@@ -663,20 +652,49 @@ EXAMPLES
 
 """
 
+    params = [
+        CommandArgument(
+            ["key"],
+            required=False,
+            type=str,
+        ),
+    ]
+
     @inject
     def __init__(self, settings: Settings) -> None:
         super().__init__()
         self._settings = settings
 
-    def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+    def _show_config_key(self, key: str) -> Optional[str]:
+        value = self._settings.get(key, None)
+        if value is None:
+            self.stdout(
+                f"The key '{key}' does not exist in the configuration file.",
+                severity=StdoutSeverity.ERROR,
+            )
+        else:
+            self.stdout(value)
+            self.stdout(
+                value,
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
 
+    def _show_config(self) -> None:
         self.stdout(self._settings.pretty())
         self.stdout(
             self._settings.get_content(),
             stdout_type=StdoutType.MACHINE_READABLE,
         )
+
+    def run(self, key: Optional[str] = None):
+        self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
+
+        if not key:
+            self._show_config()
+        else:
+            self._show_config_key(key)
+            
 
 
 class ConfigCli(CommandGroup):
