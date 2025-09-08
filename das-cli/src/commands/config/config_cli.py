@@ -4,9 +4,9 @@ from injector import inject
 
 from common import (
     Command,
+    CommandArgument,
     CommandGroup,
     CommandOption,
-    CommandArgument,
     IntRange,
     ReachableIpAddress,
     RemoteContextManager,
@@ -669,7 +669,7 @@ EXAMPLES
         super().__init__()
         self._settings = settings
 
-    def _show_config_key(self, key: str) -> Optional[str]:
+    def _show_config_key(self, key: str) -> None:
         value = self._settings.get(key, None)
         if value is None:
             self.stdout(
@@ -698,7 +698,6 @@ EXAMPLES
             self._show_config()
         else:
             self._show_config_key(key)
-            
 
 
 class ConfigCli(CommandGroup):
