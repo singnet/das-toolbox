@@ -6,4 +6,3 @@ class PortBindingError(Exception):
         self.host = host
         ports_str = ", ".join(map(str, ports))
         super().__init__(f"Ports {ports_str} on {host} are already in use.")
-

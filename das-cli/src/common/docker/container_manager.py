@@ -7,11 +7,11 @@ import docker
 import docker.errors
 
 from settings.config import SERVICES_NETWORK_NAME
+from common.exceptions import PortBindingError
 
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
-from common.exceptions import PortBindingError
 
 
 class ContainerImageMetadata(TypedDict, total=False):
@@ -113,7 +113,7 @@ class ContainerManager(DockerManager):
                 port_in_use = s.connect_ex(("localhost", port)) == 0
 
                 if port_in_use:
-                    raise PortBindingError([ports])
+                    raise PortBindingError([port])
 
     def raise_running_container(self) -> None:
         if self.is_running():
