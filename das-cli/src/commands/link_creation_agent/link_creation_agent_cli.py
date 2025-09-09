@@ -1,4 +1,3 @@
-import os
 from injector import inject
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
@@ -7,7 +6,7 @@ from commands.query_agent.query_agent_container_manager import QueryAgentContain
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
-from common.prompt_types import AbsolutePath, PortRangeType
+from common.prompt_types import PortRangeType
 
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
@@ -125,18 +124,6 @@ class LinkCreationAgentStart(Command):
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
             default="43000:43999",
             type=PortRangeType(),
-        ),
-        CommandOption(
-            ["--metta-file-path"],
-            help="The path to the metta file",
-            type=AbsolutePath(
-                dir_okay=True,
-                file_okay=False,
-                exists=True,
-                writable=True,
-                readable=True,
-            ),
-            default=os.path.abspath(os.path.curdir),
         ),
     ]
 
@@ -277,18 +264,6 @@ class LinkCreationAgentRestart(Command):
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
             default="43000:43999",
             type=PortRangeType(),
-        ),
-        CommandOption(
-            ["--metta-file-path"],
-            help="The path to the metta file",
-            type=AbsolutePath(
-                dir_okay=True,
-                file_okay=False,
-                exists=True,
-                writable=True,
-                readable=True,
-            ),
-            default=os.path.abspath(os.path.curdir),
         ),
     ]
 
