@@ -354,7 +354,7 @@ EXAMPLES
 
     Restart the service:
 
-        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
 """
 
     @inject
