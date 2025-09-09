@@ -9,7 +9,7 @@ from commands.query_agent.query_agent_container_manager import QueryAgentContain
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
-from common.prompt_types import AbsolutePath
+from common.prompt_types import AbsolutePath, PortRangeType
 
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
@@ -126,7 +126,7 @@ class LinkCreationAgentStart(Command):
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
             prompt="Enter port range (e.g., 3000:3010)",
-            type=str,
+            type=PortRangeType(),
         ),
         CommandOption(
             ["--metta-file-path"],
@@ -282,7 +282,7 @@ class LinkCreationAgentRestart(Command):
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
             prompt="Enter port range (e.g., 3000:3010)",
-            type=str,
+            type=PortRangeType(),
         ),
         CommandOption(
             ["--metta-file-path"],
