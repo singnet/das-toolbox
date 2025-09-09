@@ -63,12 +63,6 @@ setup() {
     local attention_broker_port="37007"
     local query_agent_port="35700"
     local link_creation_agent_port="9080"
-    local link_creation_agent_buffer_file="/tmp/requests_buffer.bin"
-    local link_creation_agent_request_interval="1"
-    local link_creation_agent_thread_count="1"
-    local link_creation_agent_default_timeout="10"
-    local link_creation_agent_save_links_to_metta_file="y"
-    local link_creation_agent_save_links_to_db="y"
     local inference_agent_port="8080"
     local evolution_agent_port="24002"
 
@@ -83,12 +77,6 @@ $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
 $link_creation_agent_port
-$link_creation_agent_buffer_file
-$link_creation_agent_request_interval
-$link_creation_agent_thread_count
-$link_creation_agent_default_timeout
-$link_creation_agent_save_links_to_metta_file
-$link_creation_agent_save_links_to_db
 $inference_agent_port
 $evolution_agent_port
 EOF
@@ -104,12 +92,6 @@ EOF
     assert_equal "$(get_config ".services.attention_broker.port")" "$attention_broker_port"
     assert_equal "$(get_config ".services.query_agent.port")" "$query_agent_port"
     assert_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
-    assert_equal "$(get_config ".services.link_creation_agent.buffer_file")" "$link_creation_agent_buffer_file"
-    assert_equal "$(get_config ".services.link_creation_agent.request_interval")" "$link_creation_agent_request_interval"
-    assert_equal "$(get_config ".services.link_creation_agent.thread_count")" "$link_creation_agent_thread_count"
-    assert_equal "$(get_config ".services.link_creation_agent.default_timeout")" "$link_creation_agent_default_timeout"
-    assert_equal "$(get_config ".services.link_creation_agent.save_links_to_metta_file")" "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")"
-    assert_equal "$(get_config ".services.link_creation_agent.save_links_to_db")" "$(human_to_boolean "$link_creation_agent_save_links_to_db")"
     assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
     assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
 }
@@ -127,12 +109,6 @@ EOF
     local old_attention_broker_port="$(get_config ".services.attention_broker.port")"
     local old_query_agent_port="$(get_config ".services.query_agent.port")"
     local old_link_creation_agent_port="$(get_config ".services.link_creation_agent.port")"
-    local old_link_creation_agent_buffer_file="$(get_config ".services.link_creation_agent.buffer_file")"
-    local old_link_creation_agent_request_interval="$(get_config ".services.link_creation_agent.request_interval")"
-    local old_link_creation_agent_thread_count="$(get_config ".services.link_creation_agent.thread_count")"
-    local old_link_creation_agent_default_timeout="$(get_config ".services.link_creation_agent.default_timeout")"
-    local old_link_creation_agent_save_links_to_metta_file="$(get_config ".services.link_creation_agent.save_links_to_metta_file")"
-    local old_link_creation_agent_save_links_to_db="$(get_config ".services.link_creation_agent.save_links_to_db")"
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
 
@@ -146,12 +122,6 @@ EOF
     local attention_broker_port="38007"
     local query_agent_port="36700"
     local link_creation_agent_port="9180"
-    local link_creation_agent_buffer_file="/tmp/buffer.bin"
-    local link_creation_agent_request_interval="2"
-    local link_creation_agent_thread_count="2"
-    local link_creation_agent_default_timeout="20"
-    local link_creation_agent_save_links_to_metta_file="no"
-    local link_creation_agent_save_links_to_db="no"
     local inference_agent_port="8080"
     local evolution_agent_port="24002"
 
@@ -166,12 +136,6 @@ $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
 $link_creation_agent_port
-$link_creation_agent_buffer_file
-$link_creation_agent_request_interval
-$link_creation_agent_thread_count
-$link_creation_agent_default_timeout
-$link_creation_agent_save_links_to_metta_file
-$link_creation_agent_save_links_to_db
 $inference_agent_port
 $evolution_agent_port
 EOF
@@ -187,12 +151,6 @@ EOF
     assert_equal "$(get_config ".services.attention_broker.port")" "$attention_broker_port"
     assert_equal "$(get_config ".services.query_agent.port")" "$query_agent_port"
     assert_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
-    assert_equal "$(get_config ".services.link_creation_agent.buffer_file")" "$link_creation_agent_buffer_file"
-    assert_equal "$(get_config ".services.link_creation_agent.request_interval")" "$link_creation_agent_request_interval"
-    assert_equal "$(get_config ".services.link_creation_agent.thread_count")" "$link_creation_agent_thread_count"
-    assert_equal "$(get_config ".services.link_creation_agent.default_timeout")" "$link_creation_agent_default_timeout"
-    assert_equal "$(get_config ".services.link_creation_agent.save_links_to_metta_file")" "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")"
-    assert_equal "$(get_config ".services.link_creation_agent.save_links_to_db")" "$(human_to_boolean "$link_creation_agent_save_links_to_db")"
     assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
     assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
 
@@ -206,12 +164,6 @@ EOF
     assert_not_equal "$attention_broker_port" "$old_attention_broker_port"
     assert_not_equal "$query_agent_port" "$old_query_agent_port"
     assert_not_equal "$link_creation_agent_port" "$old_link_creation_agent_port"
-    assert_not_equal "$link_creation_agent_buffer_file" "$old_link_creation_agent_buffer_file"
-    assert_not_equal "$link_creation_agent_request_interval" "$old_link_creation_agent_request_interval"
-    assert_not_equal "$link_creation_agent_thread_count" "$old_link_creation_agent_thread_count"
-    assert_not_equal "$link_creation_agent_default_timeout" "$old_link_creation_agent_default_timeout"
-    assert_not_equal "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")" "$old_link_creation_agent_save_links_to_metta_file"
-    assert_not_equal "$(human_to_boolean "$link_creation_agent_save_links_to_db")" "$old_link_creation_agent_save_links_to_db"
     assert_not_equal "$inference_agent_port" "$old_inference_agent_port"
     assert_not_equal "$evolution_agent_port" "$old_evolution_agent_port"
 
@@ -230,12 +182,6 @@ EOF
     local old_attention_broker_port="$(get_config ".services.attention_broker.port")"
     local old_query_agent_port="$(get_config ".services.query_agent.port")"
     local old_link_creation_agent_port="$(get_config ".services.link_creation_agent.port")"
-    local old_link_creation_agent_buffer_file="$(get_config ".services.link_creation_agent.buffer_file")"
-    local old_link_creation_agent_request_interval="$(get_config ".services.link_creation_agent.request_interval")"
-    local old_link_creation_agent_thread_count="$(get_config ".services.link_creation_agent.thread_count")"
-    local old_link_creation_agent_default_timeout="$(get_config ".services.link_creation_agent.default_timeout")"
-    local old_link_creation_agent_save_links_to_metta_file="$(get_config ".services.link_creation_agent.save_links_to_metta_file")"
-    local old_link_creation_agent_save_links_to_db="$(get_config ".services.link_creation_agent.save_links_to_db")"
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
 
@@ -249,12 +195,6 @@ EOF
     local attention_broker_port=""
     local query_agent_port=""
     local link_creation_agent_port=""
-    local link_creation_agent_buffer_file=""
-    local link_creation_agent_request_interval=""
-    local link_creation_agent_thread_count=""
-    local link_creation_agent_default_timeout=""
-    local link_creation_agent_save_links_to_metta_file=""
-    local link_creation_agent_save_links_to_db=""
     local inference_agent_port=""
     local evolution_agent_port=""
 
@@ -269,12 +209,6 @@ $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
 $link_creation_agent_port
-$link_creation_agent_buffer_file
-$link_creation_agent_request_interval
-$link_creation_agent_thread_count
-$link_creation_agent_default_timeout
-$link_creation_agent_save_links_to_metta_file
-$link_creation_agent_save_links_to_db
 $inference_agent_port
 $evolution_agent_port
 EOF
@@ -289,12 +223,6 @@ EOF
     assert_not_equal "$(get_config ".services.attention_broker.port")" "$attention_broker_port"
     assert_not_equal "$(get_config ".services.query_agent.port")" "$query_agent_port"
     assert_not_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
-    assert_not_equal "$(get_config ".services.link_creation_agent.buffer_file")" "$link_creation_agent_buffer_file"
-    assert_not_equal "$(get_config ".services.link_creation_agent.request_interval")" "$link_creation_agent_request_interval"
-    assert_not_equal "$(get_config ".services.link_creation_agent.thread_count")" "$link_creation_agent_thread_count"
-    assert_not_equal "$(get_config ".services.link_creation_agent.default_timeout")" "$link_creation_agent_default_timeout"
-    assert_not_equal "$(get_config ".services.link_creation_agent.save_links_to_metta_file")" "$(human_to_boolean "$link_creation_agent_save_links_to_metta_file")"
-    assert_not_equal "$(get_config ".services.link_creation_agent.save_links_to_db")" "$(human_to_boolean "$link_creation_agent_save_links_to_db")"
     assert_not_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
     assert_not_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
 
@@ -308,13 +236,6 @@ EOF
     assert_equal "$old_attention_broker_port" "$(get_config ".services.attention_broker.port")"
     assert_equal "$old_query_agent_port" "$(get_config ".services.query_agent.port")"
     assert_equal "$old_link_creation_agent_port" "$(get_config ".services.link_creation_agent.port")"
-
-    assert_equal "$old_link_creation_agent_buffer_file" "$(get_config ".services.link_creation_agent.buffer_file")"
-    assert_equal "$old_link_creation_agent_request_interval" "$(get_config ".services.link_creation_agent.request_interval")"
-    assert_equal "$old_link_creation_agent_thread_count" "$(get_config ".services.link_creation_agent.thread_count")"
-    assert_equal "$old_link_creation_agent_default_timeout" "$(get_config ".services.link_creation_agent.default_timeout")"
-    assert_equal "$old_link_creation_agent_save_links_to_metta_file" "$(get_config ".services.link_creation_agent.save_links_to_metta_file")"
-    assert_equal "$old_link_creation_agent_save_links_to_db" "$(get_config ".services.link_creation_agent.save_links_to_db")"
     assert_equal "$old_inference_agent_port" "$(get_config ".services.inference_agent.port")"
     assert_equal "$old_evolution_agent_port" "$(get_config ".services.evolution_agent.port")"
 }
