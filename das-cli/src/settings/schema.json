@@ -99,13 +99,7 @@
           "type": "object",
           "properties": {
             "container_name": { "type": "string" },
-            "port": { "type": "integer" },
-            "buffer_file": { "type": "string" },
-            "request_interval": { "type": "integer" },
-            "thread_count": { "type": "integer" },
-            "default_timeout": { "type": "integer" },
-            "save_links_to_metta_file": { "type": "boolean" },
-            "save_links_to_db": { "type": "boolean" }
+            "port": { "type": "integer" }
           }
         },
         "inference_agent": {
