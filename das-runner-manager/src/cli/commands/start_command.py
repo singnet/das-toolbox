@@ -58,10 +58,14 @@ class StartCommand:
             labels = {}
             container_name = f"{args.repository}-github-runner-{i}"
             network_name = "das-runner-network"
+            tmpfs = {}
 
+            if i < args.no_cache_runners:
+                labels = {"self-hosted-nocache": ""}
+                tmpfs = {"/home/ubuntu/.cache": "rw"}
 
-            if args.no_cache_runners < i:
-                volume |= {
+            else:
+                volume = {
                     f"{home_dir}/.cache/docker/{args.repository}/{container_name}": {
                         "bind": f"/home/ubuntu/.cache/{args.repository}",
                         "mode": "rw",
@@ -71,14 +75,8 @@ class StartCommand:
                         "mode": "rw",
                     },
                 }
-                labels = {
-                    "self-hosted-withcache": "",
-                }
+                labels = {"self-hosted-withcache": ""}
 
-            if args.no_cache_runners > i:
-                labels = {
-                    "self-hosted-nocache": "",
-                }
 
             env_vars = {
                 "REPO_URL": f"https://github.com/singnet/{args.repository}",
@@ -98,6 +96,7 @@ class StartCommand:
                 "network": network_name,
                 "restart_policy": restart_policy,
                 "labels": labels,
+                "tmpfs": tmpfs,
             }
 
             run_container_task(container_data)
