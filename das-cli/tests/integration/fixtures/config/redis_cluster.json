@@ -1,5 +1,5 @@
 {
-  "schema_hash": "296cf9cf34e3d979009cab26d2ba2634c78e265b4f562379d59ae956e7da09f5",
+  "schema_hash": "7861d213288eec0b37e95fc770e5407258006ec617589a7a4d1bc8c32b457d0e",
   "services": {
     "redis": {
       "port": 40020,
@@ -62,13 +62,7 @@
     },
     "link_creation_agent": {
       "container_name": "das-cli-link-creation-agent-40003",
-      "port": 40003,
-      "buffer_file": "/tmp/requests_buffer.bin",
-      "request_interval": 1,
-      "thread_count": 1,
-      "default_timeout": 10,
-      "save_links_to_metta_file": true,
-      "save_links_to_db": true
+      "port": 40003
     },
     "inference_agent": {
       "port": 40004,

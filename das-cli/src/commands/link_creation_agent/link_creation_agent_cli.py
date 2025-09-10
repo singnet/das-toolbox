@@ -1,5 +1,3 @@
-import os
-
 from injector import inject
 
 from commands.link_creation_agent.link_creation_agent_container_manager import (
@@ -9,7 +7,6 @@ from commands.query_agent.query_agent_container_manager import QueryAgentContain
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
-from common.prompt_types import AbsolutePath
 
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
@@ -128,18 +125,6 @@ class LinkCreationAgentStart(Command):
             type=str,
             default="43000:43999",
         ),
-        CommandOption(
-            ["--metta-file-path"],
-            help="The path to the metta file",
-            type=AbsolutePath(
-                dir_okay=True,
-                file_okay=False,
-                exists=True,
-                writable=True,
-                readable=True,
-            ),
-            default=os.path.abspath(os.path.curdir),
-        ),
     ]
 
     short_help = "Start the Link Creation Agent service."
@@ -152,7 +137,7 @@ NAME
 SYNOPSIS
 
     das-cli link-creation-agent start [--peer-hostname <hostname>] [--peer-port <port>]
-    [--port-range <start_port-end_port>] [--metta-file-path <path>]
+    [--port-range <start_port-end_port>]
 
 DESCRIPTION
 
@@ -164,7 +149,7 @@ EXAMPLES
 
     To start the Link Creation Agent service:
 
-        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
+        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
 """
 
     @inject
@@ -187,7 +172,6 @@ EXAMPLES
         peer_hostname: str,
         peer_port: int,
         port_range: str,
-        metta_file_path: str,
     ) -> None:
         self.stdout("Starting Link Creation Agent service...")
 
@@ -198,7 +182,6 @@ EXAMPLES
                 peer_hostname,
                 peer_port,
                 port_range,
-                metta_file_path,
             )
 
             success_message = f"Link Creation Agent started listening on the ports {container.port}"
@@ -249,7 +232,6 @@ EXAMPLES
         peer_hostname: str,
         peer_port: int,
         port_range: str,
-        metta_file_path: str,
     ):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -258,7 +240,6 @@ EXAMPLES
             peer_hostname,
             peer_port,
             port_range,
-            metta_file_path,
         )
 
 
@@ -284,18 +265,6 @@ class LinkCreationAgentRestart(Command):
             type=str,
             default="43000:43999",
         ),
-        CommandOption(
-            ["--metta-file-path"],
-            help="The path to the metta file",
-            type=AbsolutePath(
-                dir_okay=True,
-                file_okay=False,
-                exists=True,
-                writable=True,
-                readable=True,
-            ),
-            default=os.path.abspath(os.path.curdir),
-        ),
     ]
 
     short_help = "Restart the Link Creation Agent service."
@@ -308,7 +277,7 @@ NAME
 SYNOPSIS
 
     das-cli link-creation-agent restart [--peer-hostname <hostname>] [--peer-port <port>]
-    [--port-range <start_port-end_port>] [--metta-file-path <path>]
+    [--port-range <start_port-end_port>]
 
 DESCRIPTION
 
@@ -319,7 +288,7 @@ EXAMPLES
 
     To restart the Link Creation Agent service:
 
-        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
 """
 
     @inject
@@ -337,14 +306,12 @@ EXAMPLES
         peer_hostname: str,
         peer_port: int,
         port_range: str,
-        metta_file_path: str,
     ):
         self._link_creation_agent_stop.run()
         self._link_creation_agent_start.run(
             peer_hostname,
             peer_port,
             port_range,
-            metta_file_path,
         )
 
 
@@ -379,7 +346,7 @@ EXAMPLES
 
     Start the service:
 
-        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
+        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
 
     Stop the service:
 
@@ -387,7 +354,7 @@ EXAMPLES
 
     Restart the service:
 
-        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010 --metta-file-path /path/to/metta/file
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
 """
 
     @inject

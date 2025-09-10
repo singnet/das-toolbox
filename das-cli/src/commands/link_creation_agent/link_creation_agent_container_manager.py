@@ -45,24 +45,14 @@ class LinkCreationAgentContainerManager(ContainerManager):
         peer_hostname: str,
         peer_port: int,
         port_range: str,
-        metta_file_path: str,
-        buffer_file: str,
     ) -> str:
         link_creation_agent_hostname = str(self._options.get("link_creation_agent_hostname", ""))
         link_creation_agent_port = int(self._options.get("link_creation_agent_port", 0))
 
-        request_interval = int(self._options.get("link_creation_agent_request_interval", 1))
-        thread_count = int(self._options.get("link_creation_agent_thread_count", 1))
-        default_timeout = int(self._options.get("link_creation_agent_default_timeout", 10))
-        save_links_to_metta_file = bool(
-            self._options.get("link_creation_agent_save_links_to_metta_file", True)
-        )
-        save_links_to_db = bool(self._options.get("link_creation_agent_save_links_to_db", True))
-
         server_address = f"{link_creation_agent_hostname}:{link_creation_agent_port}"
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{server_address} {peer_address} {port_range} {request_interval} {thread_count} {default_timeout} {buffer_file} {metta_file_path} {save_links_to_metta_file} {save_links_to_db}"
+        return f"{server_address} {peer_address} {port_range}"
 
     def _ensure_file_exists(self, path: str) -> None:
         if os.path.exists(path):
@@ -82,7 +72,6 @@ class LinkCreationAgentContainerManager(ContainerManager):
         peer_hostname: str,
         peer_port: int,
         port_range: str,
-        metta_file_path: str,
     ) -> str:
         self.raise_running_container()
         self.raise_on_port_in_use(
@@ -101,26 +90,10 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         self._ensure_file_exists(buffer_file)
 
-        buffer_file_container = "/tmp/requests_buffer.bin"
-        metta_file_path_container = "/tmp/metta_files"
-
-        volumes = {
-            metta_file_path: {
-                "bind": metta_file_path_container,
-                "mode": "ro",
-            },
-            buffer_file: {
-                "bind": buffer_file_container,
-                "mode": "rw",
-            },
-        }
-
         exec_command = self._gen_link_creation_command(
             peer_hostname,
             peer_port,
             port_range,
-            metta_file_path,
-            buffer_file_container,
         )
 
         try:
@@ -130,7 +103,6 @@ class LinkCreationAgentContainerManager(ContainerManager):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                volumes=volumes,
                 command=exec_command,
                 stdin_open=True,
                 tty=True,
