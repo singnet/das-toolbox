@@ -1,7 +1,13 @@
-import curses
 import socket
 import time
 from typing import Any, List, Optional, TypedDict, Union, cast
+
+# Conditional import for curses (not available on Windows)
+try:
+    import curses
+    CURSES_AVAILABLE = True
+except ImportError:
+    CURSES_AVAILABLE = False
 
 import docker
 import docker.errors
@@ -158,6 +164,26 @@ class ContainerManager(DockerManager):
     def tail(self, file_path: str, clear_terminal: bool = False) -> None:
         container_name = self.get_container().name
 
+        if not CURSES_AVAILABLE:
+            # Fallback for Windows where curses is not available
+            try:
+                container = self.get_docker_client().containers.get(container_name)
+                exec_command = f"tail -f {file_path}"
+                logs = container.exec_run(
+                    cmd=exec_command,
+                    tty=True,
+                    stdout=True,
+                    stderr=True,
+                    stream=True,
+                )
+                for line in logs.output:
+                    if line.strip() != "":
+                        print(line.decode().strip())
+            except docker.errors.APIError:
+                pass
+            return
+
+        # Original curses implementation for Unix-like systems
         stdscr = curses.initscr()
         curses.noecho()
         curses.cbreak()
