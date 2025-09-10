@@ -113,8 +113,8 @@ class EvolutionAgentStart(Command):
         CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
-            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
+            default="45000:45999",
         ),
     ]
 
@@ -233,8 +233,8 @@ class EvolutionAgentRestart(Command):
         CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
-            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
+            default="45000:45999",
         ),
     ]
 
