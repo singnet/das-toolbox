@@ -125,8 +125,8 @@ class LinkCreationAgentStart(Command):
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
+            default="43000:43999",
         ),
         CommandOption(
             ["--metta-file-path"],
@@ -281,8 +281,8 @@ class LinkCreationAgentRestart(Command):
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            prompt="Enter port range (e.g., 3000:3010)",
             type=str,
+            default="43000:43999",
         ),
         CommandOption(
             ["--metta-file-path"],

@@ -1,1 +1,2 @@
-
+[das#683] Create a command das-cli config list <key> (PR: #218)
+[das#681] Add default port ranges for all agents (PR: #223)
