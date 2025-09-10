@@ -11,6 +11,7 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.prompt_types import PortRangeType
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
@@ -109,7 +110,7 @@ class QueryAgentStart(Command):
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
             prompt="Enter port range (e.g., 3000:3010)",
-            type=str,
+            type=PortRangeType(),
         ),
     ]
 
@@ -232,7 +233,7 @@ class QueryAgentRestart(Command):
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
             prompt="Enter port range (e.g., 3000:3010)",
-            type=str,
+            type=PortRangeType(),
         ),
     ]
 

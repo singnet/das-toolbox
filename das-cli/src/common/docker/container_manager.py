@@ -6,6 +6,8 @@ from typing import Any, List, Optional, TypedDict, Union, cast
 import docker
 import docker.errors
 
+from common.exceptions import PortBindingError
+
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
@@ -109,9 +111,7 @@ class ContainerManager(DockerManager):
                 port_in_use = s.connect_ex(("localhost", port)) == 0
 
                 if port_in_use:
-                    raise DockerError(
-                        f"Port {port} is already in use. Please stop the service that is currently using this port."
-                    )
+                    raise PortBindingError([port])
 
     def raise_running_container(self) -> None:
         if self.is_running():
