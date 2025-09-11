@@ -40,12 +40,7 @@ class EvolutionAgentContainerManager(ContainerManager):
 
         return f"{evolution_agent_port} {port_range} {peer_address}"
 
-    def start_container(
-        self,
-        peer_hostname: str,
-        peer_port: str,
-        port_range: str
-    ) -> str:
+    def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()
         self.raise_on_port_in_use([int(self._options.get("evolution_agent_port", 0))])
 

@@ -139,7 +139,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>] 
+    das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
 
 DESCRIPTION
 
@@ -171,8 +171,8 @@ EXAMPLES
         return self._evolution_agent_container_manager.get_container()
 
     def _evolution_agent(
-        self, 
-        peer_hostname: str, 
+        self,
+        peer_hostname: str,
         peer_port: int,
         port_range: str,
     ) -> None:
@@ -183,9 +183,9 @@ EXAMPLES
 
         try:
             self._evolution_agent_container_manager.start_container(
-                peer_hostname, 
+                peer_hostname,
                 peer_port,
-                port_range
+                port_range,
             )
 
             success_message = f"Evolution Agent started on port {evolution_agent_port}"
@@ -250,7 +250,7 @@ EXAMPLES
         self._settings.raise_on_schema_mismatch()
 
         self._evolution_agent(
-            peer_hostname, 
+            peer_hostname,
             peer_port,
             port_range,
         )
@@ -359,7 +359,7 @@ COMMANDS
 EXAMPLES
     Start the agent:
 
-        $ das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>] 
+        $ das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
 
     Stop the agent:
 
@@ -367,7 +367,7 @@ EXAMPLES
 
     Restart the agent:
 
-        $ das-cli evolution-agent restart [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>] 
+        $ das-cli evolution-agent restart [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
 """
 
     @inject
