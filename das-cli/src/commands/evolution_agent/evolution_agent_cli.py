@@ -111,6 +111,18 @@ class EvolutionAgentStart(Command):
 
     params = [
         CommandOption(
+            ["--peer-hostname"],
+            help="The address of the peer to connect to.",
+            prompt="Enter peer hostname (e.g., 192.168.1.100)",
+            type=str,
+        ),
+        CommandOption(
+            ["--peer-port"],
+            help="The port of the peer to connect to.",
+            prompt="Enter peer port (e.g., 8080)",
+            type=int,
+        ),
+        CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
             type=str,
@@ -127,7 +139,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli evolution-agent start [--port-range <start:end>]
+    das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>] 
 
 DESCRIPTION
 
@@ -140,7 +152,7 @@ EXAMPLES
 
     Start the Evolution Agent service:
 
-        $ das-cli evolution-agent start --port-range 8000:8100
+        $ das-cli evolution-agent start --port-range 8000:8100 --peer-hostname localhost --peer-port 42000
 """
 
     @inject
@@ -158,14 +170,23 @@ EXAMPLES
     def _get_container(self):
         return self._evolution_agent_container_manager.get_container()
 
-    def _evolution_agent(self, port_range: str) -> None:
+    def _evolution_agent(
+        self, 
+        peer_hostname: str, 
+        peer_port: int,
+        port_range: str,
+    ) -> None:
         self.stdout("Starting Evolution Agent service...")
 
         container = self._get_container()
         evolution_agent_port = container.port
 
         try:
-            self._evolution_agent_container_manager.start_container(port_range)
+            self._evolution_agent_container_manager.start_container(
+                peer_hostname, 
+                peer_port,
+                port_range
+            )
 
             success_message = f"Evolution Agent started on port {evolution_agent_port}"
 
@@ -219,17 +240,38 @@ EXAMPLES
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(self, port_range: str):
+    def run(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+    ):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._evolution_agent(port_range)
+        self._evolution_agent(
+            peer_hostname, 
+            peer_port,
+            port_range,
+        )
 
 
 class EvolutionAgentRestart(Command):
     name = "restart"
 
     params = [
+        CommandOption(
+            ["--peer-hostname"],
+            help="The address of the peer to connect to.",
+            prompt="Enter peer hostname (e.g., 192.168.1.100)",
+            type=str,
+        ),
+        CommandOption(
+            ["--peer-port"],
+            help="The port of the peer to connect to.",
+            prompt="Enter peer port (e.g., 8080)",
+            type=int,
+        ),
         CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
@@ -247,7 +289,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli evolution-agent restart [--port-range <start:end>]
+    das-cli evolution-agent restart [--peer-hostname <hostname>] [--peer-port <port>]  [--port-range <start:end>]
 
 DESCRIPTION
 
@@ -273,9 +315,14 @@ EXAMPLES
         self._evolution_agent_start = evolution_agent_start
         self._evolution_agent_stop = evolution_agent_stop
 
-    def run(self, port_range: str):
+    def run(
+        self,
+        peer_hostname: str,
+        peer_port: int,
+        port_range: str,
+    ):
         self._evolution_agent_stop.run()
-        self._evolution_agent_start.run(port_range)
+        self._evolution_agent_start.run(port_range, peer_hostname, peer_port)
 
 
 class EvolutionAgentCli(CommandGroup):
@@ -312,7 +359,7 @@ COMMANDS
 EXAMPLES
     Start the agent:
 
-        $ das-cli evolution-agent start [--port-range <start:end>]
+        $ das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>] 
 
     Stop the agent:
 
@@ -320,7 +367,7 @@ EXAMPLES
 
     Restart the agent:
 
-        $ das-cli evolution-agent restart [--port-range <start:end>]
+        $ das-cli evolution-agent restart [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>] 
 """
 
     @inject
