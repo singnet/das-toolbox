@@ -3,7 +3,6 @@ import os
 from agent_service.tasks import run_container_task
 from agent_service.utils import handle_connection_refused
 import sys
-from typing import List
 
 
 class StartCommand:
@@ -62,7 +61,6 @@ class StartCommand:
 
             if i < args.no_cache_runners:
                 labels = {"self-hosted-nocache": ""}
-                tmpfs = {"/home/ubuntu/.cache": "rw"}
 
             else:
                 volume = {

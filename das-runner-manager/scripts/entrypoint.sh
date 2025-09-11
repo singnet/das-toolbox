@@ -15,8 +15,12 @@ cleanup() {
     echo "Cleaning tmpfs directories..."
     for dir in "/var/lib/docker" "/tmp" "/var/tmp" "/var/cache" "/var/log" "/home/ubuntu"; do
         if [ -d "$dir" ]; then
-            echo "Cleaning $dir..."
-            sudo rm -rf "$dir"/*
+            if mountpoint -q "$dir"; then
+                echo "Skipping $dir (mountpoint)"
+            else
+                echo "Cleaning $dir..."
+                sudo rm -rf "$dir"/{*,.[!.]*,..?*}
+            fi
         fi
     done
 }
