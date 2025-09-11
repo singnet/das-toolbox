@@ -63,6 +63,8 @@ class MettaLoaderContainerManager(ContainerManager):
                 },
                 stdin_open=True,
                 tty=True,
+                auto_remove=True,
+                remove=True,
             )
 
             self.logs()
