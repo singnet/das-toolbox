@@ -38,24 +38,23 @@ class InferenceAgentModule(Module):
     def _inference_agent_container_manager_factory(self) -> InferenceAgentContainerManager:
         container_name = self._settings.get("services.inference_agent.container_name")
 
-        inference_agent_hostname = "localhost"
         inference_agent_port = self._settings.get("services.inference_agent.port")
 
-        mongodb_hostname = "localhost"
+        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = "localhost"
+        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_broker_hostname = "localhost"
+        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         return InferenceAgentContainerManager(
             container_name,
             options={
-                "inference_agent_hostname": inference_agent_hostname,
+                "inference_agent_hostname": container_name,
                 "inference_agent_port": inference_agent_port,
                 "redis_port": redis_port,
                 "redis_hostname": redis_hostname,

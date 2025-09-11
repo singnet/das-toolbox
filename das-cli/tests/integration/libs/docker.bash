@@ -174,3 +174,9 @@ function all_volumes_exist() {
 
     return 0
 }
+
+function get_docker_gateway() {
+    local container_id="$1"
+    
+    docker inspect -f '{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}' "$container_id"
+}

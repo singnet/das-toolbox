@@ -48,7 +48,8 @@ function main() {
             -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
             -e POSTGRES_DB="$POSTGRES_DBNAME" \
             -e POSTGRES_USER="$POSTGRES_USERNAME" \
-            -p "$POSTGRES_PORT":5432 \
+            -e POSTGRES_PORT="$POSTGRES_PORT" \
+            -p "$POSTGRES_PORT":"$POSTGRES_PORT" \
             -v "$POSTGRES_DBINIT:/docker-entrypoint-initdb.d/$(basename $POSTGRES_DBINIT)" \
             postgres:latest
 
