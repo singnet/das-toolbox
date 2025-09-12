@@ -32,16 +32,15 @@ class EvolutionAgentContainerManager(ContainerManager):
     def _gen_evolution_agent_command(
         self,
         evolution_agent_port: int,
+        peer_hostname: str,
+        peer_port: int,
         port_range: str,
     ) -> str:
-        query_agent_hostname = str(self._options.get("query_agent_hostname", ""))
-        query_agent_port = int(self._options.get("query_agent_port", 0))
+        peer_address = f"{peer_hostname}:{peer_port}"
 
-        query_agent_address = f"{query_agent_hostname}:{query_agent_port}"
+        return f"{evolution_agent_port} {port_range} {peer_address}"
 
-        return f"{evolution_agent_port} {port_range} {query_agent_address}"
-
-    def start_container(self, port_range: str) -> str:
+    def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()
         self.raise_on_port_in_use([int(self._options.get("evolution_agent_port", 0))])
 
@@ -52,7 +51,12 @@ class EvolutionAgentContainerManager(ContainerManager):
 
         try:
             evolution_agent_port = int(self._options.get("evolution_agent_port", 0))
-            exec_command = self._gen_evolution_agent_command(evolution_agent_port, port_range)
+            exec_command = self._gen_evolution_agent_command(
+                evolution_agent_port,
+                peer_hostname,
+                peer_port,
+                port_range,
+            )
 
             container_id = self._start_container(
                 restart_policy={

@@ -189,7 +189,10 @@ teardown() {
     das-cli attention-broker start
     das-cli query-agent start --port-range 12000:12100
 
-    das-cli evolution-agent start --port-range 12300:12400
+    das-cli evolution-agent start \
+        --peer-hostname localhost \
+        --peer-port "$(get_config ".services.query_agent.port")" \
+        --port-range 12300:12400
 
     run timeout 5s das-cli logs evolution-agent
 
