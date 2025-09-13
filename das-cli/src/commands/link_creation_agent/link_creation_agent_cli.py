@@ -117,7 +117,7 @@ class LinkCreationAgentStart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -150,7 +150,7 @@ EXAMPLES
 
     To start the Link Creation Agent service:
 
-        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
+        das-cli link-creation-agent start --peer-hostname localhost --peer-port 40002 --port-range 43000:43999
 """
 
     @inject
@@ -257,7 +257,7 @@ class LinkCreationAgentRestart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -289,7 +289,7 @@ EXAMPLES
 
     To restart the Link Creation Agent service:
 
-        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 40002 --port-range 43000:43999
 """
 
     @inject
@@ -347,7 +347,7 @@ EXAMPLES
 
     Start the service:
 
-        das-cli link-creation-agent start --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
+        das-cli link-creation-agent start --peer-hostname localhost --peer-port 40002 --port-range 43000:43999
 
     Stop the service:
 
@@ -355,7 +355,7 @@ EXAMPLES
 
     Restart the service:
 
-        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 5000 --port-range 6000:6010
+        das-cli link-creation-agent restart --peer-hostname localhost --peer-port 40002 --port-range 43000:43999
 """
 
     @inject
