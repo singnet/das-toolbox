@@ -119,7 +119,7 @@ class EvolutionAgentStart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -152,7 +152,7 @@ EXAMPLES
 
     Start the Evolution Agent service:
 
-        $ das-cli evolution-agent start --port-range 8000:8100 --peer-hostname localhost --peer-port 42000
+        $ das-cli evolution-agent start --port-range 45000:45999 --peer-hostname localhost --peer-port 40002
 """
 
     @inject
@@ -269,7 +269,7 @@ class EvolutionAgentRestart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -302,7 +302,7 @@ EXAMPLES
 
     Restart the Evolution Agent service:
 
-        $ das-cli evolution-agent restart --port-range 8000:8100
+        $ das-cli evolution-agent restart --port-range 45000:45999 --peer-hostname localhost --peer-port 40002
 """
 
     @inject

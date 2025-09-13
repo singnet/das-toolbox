@@ -132,7 +132,7 @@ EXAMPLES
 
     To start the Query Agent service:
 
-        $ das-cli query-agent start --port-range 8000:8100
+        $ das-cli query-agent start --port-range 42000:42999
 """
 
     @inject
@@ -257,7 +257,7 @@ EXAMPLES
 
     To restart the Query Agent service:
 
-        $ das-cli query-agent restart --port-range 8000:8100
+        $ das-cli query-agent restart --port-range 42000:42999
 
 """
 
@@ -316,7 +316,7 @@ EXAMPLES
 
     Start the Query Agent service:
 
-        $ das-cli query-agent start --port-range 8000:8100
+        $ das-cli query-agent start --port-range 42000:42999
 
     Stop the Query Agent service:
 
@@ -324,7 +324,7 @@ EXAMPLES
 
     Restart the Query Agent service:
 
-        $ das-cli query-agent restart --port-range 8000:8100
+        $ das-cli query-agent restart --port-range 42000:42999
 """
 
     @inject
