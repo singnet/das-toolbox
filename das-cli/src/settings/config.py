@@ -1,6 +1,6 @@
 import getpass
 
-VERSION = '0.5.2'
+VERSION = '0.5.3'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 # PATHS
@@ -35,17 +35,20 @@ DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
+DAS_VERSION = "0.11.4"
+
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
-ATTENTION_BROKER_IMAGE_VERSION = "attention-broker-0.11.3"
+ATTENTION_BROKER_IMAGE_VERSION = f"attention-broker-{DAS_VERSION}"
 
 QUERY_AGENT_IMAGE_NAME = "trueagi/das"
-QUERY_AGENT_IMAGE_VERSION = "query-agent-0.11.3"
+QUERY_AGENT_IMAGE_VERSION = f"query-agent-{DAS_VERSION}"
 
 LINK_CREATION_AGENT_IMAGE_NAME = "trueagi/das"
-LINK_CREATION_AGENT_IMAGE_VERSION = "link-creation-agent-0.11.3"
+LINK_CREATION_AGENT_IMAGE_VERSION = f"link-creation-agent-{DAS_VERSION}"
 
 INFERENCE_AGENT_IMAGE_NAME = "trueagi/das"
-INFERENCE_AGENT_IMAGE_VERSION = "inference-agent-0.11.3"
+INFERENCE_AGENT_IMAGE_VERSION = f"inference-agent-{DAS_VERSION}"
 
 EVOLUTION_AGENT_IMAGE_NAME = "trueagi/das"
-EVOLUTION_AGENT_IMAGE_VERSION = "evolution-agent-0.11.3"
+EVOLUTION_AGENT_IMAGE_VERSION = f"evolution-agent-{DAS_VERSION}"
+
