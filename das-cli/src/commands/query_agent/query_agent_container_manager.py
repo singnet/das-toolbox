@@ -30,9 +30,13 @@ class QueryAgentContainerManager(ContainerManager):
         super().__init__(container)
 
     def _gen_query_agent_command(self, port_range: str) -> str:
+        query_agent_hostname = self._options.get("query_agent_hostname", "localhost")
         query_agent_port = int(self._options.get("query_agent_port", 0))
 
-        return f"{query_agent_port} {port_range}"
+        attention_broker_hostname = self._options.get("attention_broker_hostname", "localhost")
+        attention_broker_port = int(self._options.get("attention_broker_port", 0))
+
+        return f"{query_agent_hostname}:{query_agent_port} {port_range} {attention_broker_hostname}:{attention_broker_port}"
 
     def start_container(self, port_range: str):
         self.raise_running_container()

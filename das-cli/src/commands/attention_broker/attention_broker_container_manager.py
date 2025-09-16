@@ -29,6 +29,12 @@ class AttentionBrokerManager(ContainerManager):
 
         super().__init__(container)
 
+    def _gen_attention_broker_command(self) -> str:
+        attention_broker_hostname = self._options.get("attention_broker_hostname", "localhost")
+        attention_broker_port = int(self._options.get("attention_broker_port", 0))
+
+        return f"{attention_broker_hostname}:{attention_broker_port}"
+
     def start_container(self):
         self.raise_running_container()
 
@@ -39,12 +45,13 @@ class AttentionBrokerManager(ContainerManager):
 
         try:
             attention_broker_port = self._options.get("attention_broker_port")
+            exec_command = self._gen_attention_broker_command()
             container_id = self._start_container(
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                command=attention_broker_port,
+                command=exec_command,
                 ports={
                     attention_broker_port: attention_broker_port,
                 },

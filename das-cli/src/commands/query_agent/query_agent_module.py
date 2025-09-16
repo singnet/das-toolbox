@@ -60,6 +60,7 @@ class QueryAgentModule(Module):
             container_name,
             options={
                 "query_agent_port": query_agent_port,
+                "query_agent_hostname": container_name,
                 "redis_port": redis_port,
                 "redis_hostname": redis_hostname,
                 "mongodb_port": mongodb_port,
