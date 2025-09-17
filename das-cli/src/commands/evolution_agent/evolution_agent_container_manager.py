@@ -74,6 +74,9 @@ class EvolutionAgentContainerManager(ContainerManager):
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
                 },
+                ports={
+                    evolution_agent_port: evolution_agent_port,
+                },
             )
 
             return container_id

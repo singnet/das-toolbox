@@ -73,6 +73,7 @@ class InferenceAgentContainerManager(ContainerManager):
             pass
 
         try:
+            inference_agent_port = int(self._options.get("inference_agent_port", 0))
             exec_command = self._gen_inference_command(
                 peer_hostname,
                 peer_port,
@@ -97,6 +98,9 @@ class InferenceAgentContainerManager(ContainerManager):
                 command=exec_command,
                 stdin_open=True,
                 tty=True,
+                ports={
+                    inference_agent_port: inference_agent_port,
+                },
             )
 
             return container_id
