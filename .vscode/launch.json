@@ -6,7 +6,7 @@
     "configurations": [
 
         {
-            "name": "Python Debugger: Flask",
+            "name": "Python Debugger: Gatekeeper API",
             "type": "debugpy",
             "request": "launch",
             "module": "flask",
@@ -22,6 +22,24 @@
             ],
             "jinja": true,
             "autoStartBrowser": false
+        },
+        {
+            "name": "Python Debugger: DAS Runner Manager API",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "cwd": "${workspaceFolder}/das-runner-manager/src",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/das-runner-manager/src"
+            },
+            "args": [
+                "api_server.main:app",
+                "--reload",
+                "--host", "0.0.0.0",
+                "--port", "3000"
+            ],
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/env/bin/python3"
         }
     ]
 }
