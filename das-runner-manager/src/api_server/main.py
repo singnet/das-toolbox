@@ -46,7 +46,7 @@ def stop_container(name: str):
 
 @app.post("/containers/{name}/restart-sequence")
 def restart_container_sequence(name: str):
-    return containers.restart_container(name)
+    return containers.recreate_container(name)
 
 
 @app.post("/networks")

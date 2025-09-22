@@ -11,18 +11,6 @@ cleanup() {
 
     echo "Removing the GitHub Actions runner..."
     sudo -u "$USER" ./config.sh remove --token "$RUNNER_TOKEN" || true
-
-    echo "Cleaning tmpfs directories..."
-    for dir in "/var/lib/docker" "/tmp" "/var/tmp" "/var/cache" "/var/log" "/home/ubuntu"; do
-        if [ -d "$dir" ]; then
-            if mountpoint -q "$dir"; then
-                echo "Skipping $dir (mountpoint)"
-            else
-                echo "Cleaning $dir..."
-                sudo rm -rf "$dir"/{*,.[!.]*,..?*}
-            fi
-        fi
-    done
 }
 
 trap cleanup SIGINT SIGTERM EXIT

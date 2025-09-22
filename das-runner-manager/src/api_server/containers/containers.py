@@ -34,12 +34,12 @@ def run_container(
     environment: dict,
     privileged: bool,
     detach: bool,
-    network_mode: Union[str, None],
-    network: Union[str, None],
-    tmpfs: Union[str, None],
-    hostname: Union[str, None],
-    restart_policy: Union[Dict[str, str], None],
-    labels: Union[Dict[str, str], None],
+    network_mode: Union[str, None] = None,
+    network: Union[str, None] = None,
+    tmpfs: Union[str, None] = None,
+    hostname: Union[str, None] = None,
+    restart_policy: Union[Dict[str, str], None] = None,
+    labels: Union[Dict[str, str], None] = None,
 ):
     create_kwargs = {
         "image": image,
@@ -101,6 +101,53 @@ def restart_container(name: str):
         start_container(name=name)
 
         return {"message": f"Container {name} has been successfully restarted."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def recreate_container(name: str):
+    try:
+        container = client.containers.get(name)
+        attrs = container.attrs
+
+        config = attrs["Config"]
+        host_config = attrs["HostConfig"]
+        network_settings = attrs.get("NetworkSettings", {})
+
+        image = config["Image"]
+        env = {e.split("=", 1)[0]: e.split("=", 1)[1] for e in config.get("Env", [])}
+        labels = config.get("Labels", {})
+        privileged = host_config.get("Privileged", False)
+        restart_policy = host_config.get("RestartPolicy", {})
+        tmpfs = host_config.get("Tmpfs", None)
+
+        volumes = {}
+        if host_config.get("Binds"):
+            for bind in host_config["Binds"]:
+                src, dst, mode = bind.split(":")
+                volumes[src] = {"bind": dst, "mode": mode}
+
+        network_mode = host_config.get("NetworkMode", None)
+        network = None
+        if "Networks" in network_settings and len(network_settings["Networks"]) == 1:
+            network = list(network_settings["Networks"].keys())[0]
+
+        delete_container(name)
+
+        return run_container(
+            image=image,
+            name=name,
+            volumes=volumes,
+            environment=env,
+            privileged=privileged,
+            detach=True,
+            network_mode=network_mode,
+            network=network,
+            tmpfs=tmpfs,
+            restart_policy=restart_policy,
+            labels=labels,
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
