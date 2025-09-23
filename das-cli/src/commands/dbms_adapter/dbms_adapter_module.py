@@ -69,14 +69,14 @@ class DbmsAdapterModule(Module):
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_container_name = self._settings.get("services.mongodb.container_name")
         mongodb_hostname = (
-            mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 0 else mongodb_container_name
+            mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 1 else mongodb_container_name
         )
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_port = self._settings.get("services.mongodb.port")
         redis_nodes = self._settings.get("services.redis.nodes", [])
         redis_container_name = self._settings.get("services.redis.container_name")
-        redis_hostname = redis_nodes[0]["ip"] if len(redis_nodes) > 0 else redis_container_name
+        redis_hostname = redis_nodes[0]["ip"] if len(redis_nodes) > 1 else redis_container_name
         redis_port = self._settings.get("services.redis.port")
 
         adapter_server_port = 30100
