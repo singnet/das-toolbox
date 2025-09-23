@@ -84,6 +84,7 @@ class EvolutionAgentModule(Module):
             container_name,
             options={
                 "evolution_agent_port": evolution_agent_port,
+                "evolution_agent_hostname": container_name,
                 "redis_port": redis_port,
                 "redis_hostname": redis_hostname,
                 "mongodb_port": mongodb_port,

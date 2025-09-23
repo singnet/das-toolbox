@@ -31,6 +31,7 @@ class EvolutionAgentContainerManager(ContainerManager):
 
     def _gen_evolution_agent_command(
         self,
+        evolution_agent_hostname: str,
         evolution_agent_port: int,
         peer_hostname: str,
         peer_port: int,
@@ -38,7 +39,7 @@ class EvolutionAgentContainerManager(ContainerManager):
     ) -> str:
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{evolution_agent_port} {port_range} {peer_address}"
+        return f"{evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address}"
 
     def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()
@@ -50,8 +51,11 @@ class EvolutionAgentContainerManager(ContainerManager):
             pass
 
         try:
+            evolution_agent_hostname = str(self._options.get("evolution_agent_hostname", ""))
             evolution_agent_port = int(self._options.get("evolution_agent_port", 0))
+
             exec_command = self._gen_evolution_agent_command(
+                evolution_agent_hostname,
                 evolution_agent_port,
                 peer_hostname,
                 peer_port,
