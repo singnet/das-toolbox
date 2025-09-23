@@ -106,10 +106,11 @@ def restart_container(name: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def recreate_container(name: str):
+def recreate_container(container_id: str):
     try:
-        container = client.containers.get(name)
+        container = client.containers.get(container_id)
         attrs = container.attrs
+        name = container.name or container_id
 
         config = attrs["Config"]
         host_config = attrs["HostConfig"]
@@ -133,7 +134,7 @@ def recreate_container(name: str):
         if "Networks" in network_settings and len(network_settings["Networks"]) == 1:
             network = list(network_settings["Networks"].keys())[0]
 
-        delete_container(name)
+        delete_container(container_id)
 
         return run_container(
             image=image,
