@@ -95,10 +95,10 @@ class LinkCreationAgentContainerManager(ContainerManager):
             peer_port,
             port_range,
         )
+        link_creation_agent_port = int(self._options.get("link_creation_agent_port", 0))
 
         try:
             container_id = self._start_container(
-                network_mode="host",
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
@@ -116,6 +116,9 @@ class LinkCreationAgentContainerManager(ContainerManager):
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                },
+                ports={
+                    link_creation_agent_port: link_creation_agent_port,
                 },
             )
 

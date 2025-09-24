@@ -90,19 +90,20 @@ class MongodbContainerManager(ContainerManager):
 
         container = self._start_container(
             **self._get_cluster_node_config(cluster_node, mongodb_cluster_secret_key),
+            command=["mongod", "--bind_ip_all", "--port", f"{port}"],
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
             },
             ports={
-                "27017/tcp": port,
+                f"{port}/tcp": port,
             },
             environment={
                 "MONGO_INITDB_ROOT_USERNAME": username,
                 "MONGO_INITDB_ROOT_PASSWORD": password,
             },
             healthcheck={
-                "Test": ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"],
+                "Test": ["CMD-SHELL", f"mongosh --port {port} --eval 'db.adminCommand(\"ping\")'"],
             },
         )
 
@@ -153,6 +154,7 @@ class MongodbContainerManager(ContainerManager):
     def get_collection_stats(self) -> dict:
         mongodb_username = self._options.get("mongodb_username")
         mongodb_password = self._options.get("mongodb_password")
+        mongodb_port = self._options.get("mongodb_port")
 
         mongodb_command = """
             const collections = db.getCollectionNames();
@@ -166,7 +168,7 @@ class MongodbContainerManager(ContainerManager):
         )
 
         command = (
-            f'bash -c "mongosh -u {mongodb_username} -p {mongodb_password} '
+            f'bash -c "mongosh --port {mongodb_port} -u {mongodb_username} -p {mongodb_password} '
             f'--eval \'use das\' --eval \'{mongodb_command}\' | tail -n 1"'
         )
 

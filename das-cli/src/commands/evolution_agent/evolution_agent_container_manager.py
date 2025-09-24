@@ -31,6 +31,7 @@ class EvolutionAgentContainerManager(ContainerManager):
 
     def _gen_evolution_agent_command(
         self,
+        evolution_agent_hostname: str,
         evolution_agent_port: int,
         peer_hostname: str,
         peer_port: int,
@@ -38,7 +39,7 @@ class EvolutionAgentContainerManager(ContainerManager):
     ) -> str:
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{evolution_agent_port} {port_range} {peer_address}"
+        return f"{evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address}"
 
     def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()
@@ -50,8 +51,11 @@ class EvolutionAgentContainerManager(ContainerManager):
             pass
 
         try:
+            evolution_agent_hostname = str(self._options.get("evolution_agent_hostname", ""))
             evolution_agent_port = int(self._options.get("evolution_agent_port", 0))
+
             exec_command = self._gen_evolution_agent_command(
+                evolution_agent_hostname,
                 evolution_agent_port,
                 peer_hostname,
                 peer_port,
@@ -63,17 +67,19 @@ class EvolutionAgentContainerManager(ContainerManager):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                network_mode="host",
                 command=exec_command,
                 environment={
                     "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
                     "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
-                    "DAS_REDIS_HOSTNAME": self._options.get("mongodb_hostname"),
+                    "DAS_REDIS_HOSTNAME": self._options.get("redis_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_agent_hostname"),
-                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_agent_port"),
+                    "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
+                    "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                },
+                ports={
+                    evolution_agent_port: evolution_agent_port,
                 },
             )
 

@@ -3,6 +3,8 @@ import getpass
 VERSION = '0.5.3'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
+SERVICES_NETWORK_NAME = "das-services-network"
+
 # PATHS
 
 USER_DAS_PATH = "~/.das"
@@ -35,7 +37,7 @@ DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
-DAS_VERSION = "0.11.4"
+DAS_VERSION = "0.11.5"
 
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
 ATTENTION_BROKER_IMAGE_VERSION = f"attention-broker-{DAS_VERSION}"
