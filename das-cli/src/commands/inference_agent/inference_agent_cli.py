@@ -115,7 +115,7 @@ class InferenceAgentStart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -147,7 +147,7 @@ EXAMPLES
 
     To start the Inference Agent service:
 
-        das-cli inference-agent start --peer-hostname localhost --peer-port 8080 --port-range 5000:5100
+        das-cli inference-agent start --peer-hostname localhost --peer-port 40002 --port-range 44000:44999
 """
 
     @inject
@@ -256,7 +256,7 @@ class InferenceAgentRestart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -287,7 +287,7 @@ EXAMPLES
 
     To restart the Inference Agent service:
 
-        das-cli inference-agent restart --peer-hostname localhost --peer-port 8080 --port-range 5000:5100
+        das-cli inference-agent restart --peer-hostname localhost --peer-port 40002 --port-range 44000:44999
 """
 
     @inject
