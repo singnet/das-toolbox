@@ -322,7 +322,7 @@ EXAMPLES
         port_range: str,
     ):
         self._evolution_agent_stop.run()
-        self._evolution_agent_start.run(port_range, peer_hostname, peer_port)
+        self._evolution_agent_start.run(peer_hostname, peer_port, port_range)
 
 
 class EvolutionAgentCli(CommandGroup):
