@@ -86,7 +86,7 @@ Run 'attention-broker start' to start the Attention Broker.[39m"
 
 
     assert_output "Starting Inference Agent service...
-[31m[PortBindingError] Port ${inference_agent_port} on localhost are already in use."
+[31m[PortBindingError] Port ${inference_agent_port} on localhost are already in use.[39m"
 
     run stop_listen_port "${inference_agent_port}"
     assert_success
