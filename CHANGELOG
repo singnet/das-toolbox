@@ -1,4 +1,12 @@
+Highlights:
 [das#683] Create a command das-cli config list <key> (PR: #218)
 [das#678] Remove LinkCreationAgent config parameters from das-client setup (PR #221)
 [das#681] Add default port ranges for all agents (PR: #223)
 [das#710] Updated das-cli evolution start to require --peer-port and --peer-hostname parameters (previously inferred from Query Agent) (PR #224)
+
+Bug fixes:
+[HOTFIX] Fix evolution-agent restart command params were shuffled (PR: #227)
+
+General changes:
+[das#681] Port ranges for all agents should be defaulted (PR: #223)
+[das#710] das-cli evolution start should expect the same parameters as the other agents (PR: #224)
