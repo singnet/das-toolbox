@@ -96,7 +96,7 @@ Run 'db start' to start the databases and 'attention-broker start' to start the 
 
     run das-cli query-agent start --port-range 12000:12100
     assert_output "Starting Query Agent service...
-[31m[DockerError] Failed to start Query Agent. Please ensure that the port ${query_agent_port} is not already in use and that the required services are running.[39m"
+[31m[PortBindingError] Port ${query_agent_port} on localhost are already in use.[39m"
 
     run stop_listen_port "${query_agent_port}"
     assert_success

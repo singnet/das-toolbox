@@ -79,3 +79,21 @@ class RegexType(ParamType):
             self.fail(self.error_message, param, ctx)
 
         return value
+
+
+class PortRangeType(ParamType):
+    name = "port-range"
+
+    def convert(self, value, param, ctx):
+        if not value or ":" not in value:
+            self.fail("Invalid port range format. Expected 'start:end'.", param, ctx)
+
+        try:
+            start_port, end_port = map(int, value.split(":"))
+        except ValueError:
+            self.fail("Port range must contain integers like '8000:8100'.", param, ctx)
+
+        if start_port >= end_port:
+            self.fail("Invalid port range. Start port must be less than end port.", param, ctx)
+
+        return value

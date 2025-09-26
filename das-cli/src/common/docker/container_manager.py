@@ -7,6 +7,7 @@ import docker
 import docker.errors
 
 from settings.config import SERVICES_NETWORK_NAME
+from common.exceptions import PortBindingError
 
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
@@ -112,9 +113,7 @@ class ContainerManager(DockerManager):
                 port_in_use = s.connect_ex(("localhost", port)) == 0
 
                 if port_in_use:
-                    raise DockerError(
-                        f"Port {port} is already in use. Please stop the service that is currently using this port."
-                    )
+                    raise PortBindingError([port])
 
     def raise_running_container(self) -> None:
         if self.is_running():
@@ -238,7 +237,6 @@ class ContainerManager(DockerManager):
         try:
             return int(container.wait()["StatusCode"])
         except docker.errors.NotFound:
-            container = self.get_docker_client().containers.get(container)
             exit_code = container.attrs["State"]["ExitCode"]
             return int(exit_code)
 

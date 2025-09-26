@@ -7,6 +7,7 @@ from commands.inference_agent.inference_agent_container_manager import (
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.prompt_types import PortRangeType
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
@@ -121,8 +122,8 @@ class InferenceAgentStart(Command):
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            type=str,
             default="44000:44999",
+            type=PortRangeType(),
         ),
     ]
 
@@ -262,8 +263,8 @@ class InferenceAgentRestart(Command):
         CommandOption(
             ["--port-range"],
             help="The loweer and upper bounds of the port range to be used by the command proxy.",
-            type=str,
             default="44000:44999",
+            type=PortRangeType(),
         ),
     ]
 

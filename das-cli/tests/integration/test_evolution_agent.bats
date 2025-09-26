@@ -85,7 +85,7 @@ Run 'query-agent start' to start the Query Agent.[39m"
 
 
     assert_output "Starting Evolution Agent service...
-[31m[DockerError] Failed to start Evolution Agent. Please ensure that the port ${evolution_agent_port} is not already in use and that the required services are running.[39m"
+[31m[PortBindingError] Port ${evolution_agent_port} on localhost are already in use.[39m"
 
 
     run stop_listen_port "${evolution_agent_port}"

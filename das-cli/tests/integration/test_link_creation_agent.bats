@@ -87,7 +87,7 @@ Run 'query-agent start' to start the Query Agent.[39m"
         --port-range 12300:12400
 
     assert_output "Starting Link Creation Agent service...
-[31m[DockerError] Port ${link_creation_agent_port} is already in use. Please stop the service that is currently using this port.[39m"
+[31m[PortBindingError] Port ${link_creation_agent_port} on localhost are already in use.[39m"
 
     run stop_listen_port "${link_creation_agent_port}"
     assert_success

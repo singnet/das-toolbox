@@ -30,16 +30,6 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _get_port_range(self, port_range: str) -> list[int]:
-        if not port_range or ":" not in port_range:
-            raise ValueError("Invalid port range format. Expected 'start:end'.")
-
-        start_port, end_port = map(int, port_range.split(":"))
-        if start_port >= end_port:
-            raise ValueError("Invalid port range. Start port must be less than end port.")
-
-        return list(range(start_port, end_port + 1))
-
     def _gen_link_creation_command(
         self,
         peer_hostname: str,
@@ -77,7 +67,6 @@ class LinkCreationAgentContainerManager(ContainerManager):
         self.raise_on_port_in_use(
             [
                 self._options.get("link_creation_agent_port"),
-                *self._get_port_range(port_range),
             ]
         )
 
