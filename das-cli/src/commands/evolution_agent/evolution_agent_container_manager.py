@@ -37,9 +37,13 @@ class EvolutionAgentContainerManager(ContainerManager):
         peer_port: int,
         port_range: str,
     ) -> str:
+        attention_broker_hostname = self._options.get("attention_broker_hostname") 
+        attention_broker_port = self._options.get("attention_broker_port")
+        attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
+
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address}"
+        return f"{evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address} {attention_broker_address}"
 
     def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()
