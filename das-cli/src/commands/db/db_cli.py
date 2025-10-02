@@ -47,16 +47,6 @@ $ das-cli db count-atoms --verbose
 
 """
 
-    params = [
-        CommandOption(
-            ["--verbose", "-v"],
-            is_flag=True,
-            help="Display detailed counts for both MongoDB and Redis.",
-            default=False,
-            required=False,
-        )
-    ]
-
     @inject
     def __init__(
         self,
@@ -150,28 +140,6 @@ $ das-cli db count-atoms --verbose
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-    def _show_verbose_output(self) -> None:
-        self._show_mongodb_stats()
-        self._show_redis_stats()
-
-    def _show_non_verbose_output(self) -> None:
-        count_atoms = self._mongodb_container_manager.get_count_atoms()
-
-        self.stdout(count_atoms)
-        self.stdout(
-            dict(
-                DbServiceResponse(
-                    action="count-atoms",
-                    status="success",
-                    message="Count of MongoDB atoms displayed successfully.",
-                    container=self._get_mongodb_container(),
-                    extra_details={
-                        "atoms": count_atoms,
-                    },
-                )
-            ),
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
 
     @ensure_container_running(
         [
@@ -181,11 +149,10 @@ $ das-cli db count-atoms --verbose
         exception_text="\nPlease use 'db start' to start required services before running 'db count-atoms'.",
         verbose=False,
     )
-    def run(self, verbose: bool) -> None:
-        if verbose:
-            return self._show_verbose_output()
+    def run(self) -> None:
+        self._show_mongodb_stats()
+        self._show_redis_stats()
 
-        return self._show_non_verbose_output()
 
 
 class DbStop(Command):

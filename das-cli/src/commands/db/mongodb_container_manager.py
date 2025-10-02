@@ -173,7 +173,17 @@ class MongodbContainerManager(ContainerManager):
         )
 
         result = self._exec_container(command)
-        return json.loads(result.output)
+        stats = json.loads(result.output)
+
+        atoms = 0
+        if "nodes" in stats:
+            atoms += stats["nodes"]
+        if "links" in stats:
+            atoms += stats["links"]
+
+        stats["atoms"] = atoms
+
+        return stats
 
     def get_count_atoms(self) -> int:
         collection_stats = self.get_collection_stats()
