@@ -30,20 +30,11 @@ count-atoms - Displays counts of MongoDB atoms and Redis key patterns.
 'das-cli db count-atoms' counts the atoms stored in MongoDB and shows counts of specific key patterns stored in Redis.
 This is useful for monitoring and understanding the distribution and number of records in your databases.
 
-.SH OPTIONS
-
---verbose, -v
-    Displays detailed information, including the count of atoms in MongoDB and the counts for various Redis key patterns.
-
 .SH EXAMPLES
 
-Run the command to get only the count of MongoDB atoms:
+Run the command see the count of MongoDB atoms and the breakdown of Redis key patterns:
 
 $ das-cli db count-atoms
-
-Run the command with verbose output to see the count of MongoDB atoms and the breakdown of Redis key patterns:
-
-$ das-cli db count-atoms --verbose
 
 """
 
