@@ -32,7 +32,7 @@ class ContextAgentContainerManager(ContainerManager):
     def _gen_context_agent_command(
         self,
         peer_hostname: str,
-        peer_port: str,
+        peer_port: int,
         port_range: str,
     ) -> str:
         context_agent_hostname = self._options.get(
@@ -49,9 +49,7 @@ class ContextAgentContainerManager(ContainerManager):
             "localhost",
         )
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
-        attention_broker_address = (
-            f"{attention_broker_hostname}:{attention_broker_port}"
-        )
+        attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
 
         return f"{context_agent_address} {port_range} {peer_address} {attention_broker_address}"
 
