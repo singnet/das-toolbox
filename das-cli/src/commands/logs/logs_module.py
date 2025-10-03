@@ -13,6 +13,7 @@ from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from commands.context_agent.context_agent_container_manager import ContextAgentContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -64,6 +65,10 @@ class LogsModule(Module):
             (
                 EvolutionAgentContainerManager,
                 self._evolution_agent_container_manager_factory,
+            ),
+            (
+                ContextAgentContainerManager,
+                self._context_agent_container_manager_factory,
             ),
         ]
 
@@ -169,5 +174,38 @@ class LogsModule(Module):
                 "mongodb_password": mongodb_password,
                 "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
+            },
+        )
+
+
+    def _context_agent_container_manager_factory(self) -> ContextAgentContainerManager:
+        context_agent_port = self._settings.get("services.context_agent.port")
+
+        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
+        mongodb_hostname = self._settings.get("services.mongodb.container_name")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+
+        redis_port = self._settings.get("services.redis.port")
+        redis_hostname = self._settings.get("services.redis.container_name")
+
+        container_name = self._settings.get("services.context_agent.container_name")
+
+        return ContextAgentContainerManager(
+            container_name,
+            options={
+                "context_agent_port": context_agent_port,
+                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_port": attention_broker_port,
+                "redis_port": redis_port,
+                "redis_hostname": redis_hostname,
+                "mongodb_port": mongodb_port,
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+ 
             },
         )
