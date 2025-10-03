@@ -18,7 +18,6 @@ from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
-    DockerError,
 )
 from common.prompt_types import PortRangeType
 
