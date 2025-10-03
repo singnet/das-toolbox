@@ -1,29 +1,13 @@
 from injector import inject
 
-from commands.query_agent.query_agent_container_manager import (
-    QueryAgentContainerManager,
-)
-from commands.context_agent.context_agent_container_manager import (
-    ContextAgentContainerManager,
-)
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from commands.context_agent.context_agent_container_manager import ContextAgentContainerManager
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
-from common.docker.exceptions import (
-    DockerContainerDuplicateError,
-    DockerContainerNotFoundError,
-)
+from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from .context_agent_container_service_response import (
-    ContextAgentContainerServiceResponse,
-)
+from .context_agent_container_service_response import ContextAgentContainerServiceResponse
 
 
 class ContextAgentStop(Command):
@@ -210,7 +194,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"Context Agent is already running. It's listening on port {context_agent_port}"
+            warning_message = (
+                f"Context Agent is already running. It's listening on port {context_agent_port}"
+            )
 
             self.stdout(
                 warning_message,

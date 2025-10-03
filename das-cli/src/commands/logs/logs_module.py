@@ -1,6 +1,7 @@
 import os
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.context_agent.context_agent_container_manager import ContextAgentContainerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.evolution_agent.evolution_agent_container_manager import (
@@ -13,7 +14,6 @@ from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from commands.context_agent.context_agent_container_manager import ContextAgentContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -177,7 +177,6 @@ class LogsModule(Module):
             },
         )
 
-
     def _context_agent_container_manager_factory(self) -> ContextAgentContainerManager:
         context_agent_port = self._settings.get("services.context_agent.port")
 
@@ -206,6 +205,5 @@ class LogsModule(Module):
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
- 
             },
         )

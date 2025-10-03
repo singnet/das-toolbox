@@ -3,6 +3,7 @@ from time import sleep
 from injector import inject
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from commands.context_agent.context_agent_container_manager import ContextAgentContainerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.evolution_agent.evolution_agent_container_manager import (
@@ -13,9 +14,6 @@ from commands.inference_agent.inference_agent_container_manager import (
 )
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
-)
-from commands.context_agent.context_agent_container_manager import (
-    ContextAgentContainerManager,
 )
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity
@@ -364,6 +362,7 @@ $ das-cli logs evolution-agent
         self._settings.raise_on_schema_mismatch()
 
         self._evolution_agent_container_manager.logs()
+
 
 class LogsContextAgent(Command):
     name = "context-agent"

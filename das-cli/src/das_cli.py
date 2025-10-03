@@ -2,6 +2,7 @@ from injector import Injector
 
 from commands.attention_broker import AttentionBrokerModule
 from commands.config import ConfigModule
+from commands.context_agent import ContextAgentModule
 from commands.das import DasModule
 from commands.db import DbModule
 from commands.dbms_adapter import DbmsAdapterModule
@@ -15,7 +16,6 @@ from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
-from commands.context_agent import ContextAgentModule
 from common.docker.docker_network_manager import init_network
 from common.utils import log_exception
 

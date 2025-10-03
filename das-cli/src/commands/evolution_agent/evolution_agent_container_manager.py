@@ -37,7 +37,7 @@ class EvolutionAgentContainerManager(ContainerManager):
         peer_port: int,
         port_range: str,
     ) -> str:
-        attention_broker_hostname = self._options.get("attention_broker_hostname") 
+        attention_broker_hostname = self._options.get("attention_broker_hostname")
         attention_broker_port = self._options.get("attention_broker_port")
         attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
 

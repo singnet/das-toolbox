@@ -1,9 +1,9 @@
 import os
 
+from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 
 from .context_agent_cli import ContextAgentCli, ContextAgentContainerManager, Settings
 
@@ -62,7 +62,6 @@ class ContextAgentModule(Module):
             },
         )
 
-
     def _context_agent_container_manager_factory(self) -> ContextAgentContainerManager:
         context_agent_port = self._settings.get("services.context_agent.port")
 
@@ -91,6 +90,5 @@ class ContextAgentModule(Module):
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
- 
             },
         )
