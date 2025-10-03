@@ -1,4 +1,5 @@
 from injector import inject
+
 from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
