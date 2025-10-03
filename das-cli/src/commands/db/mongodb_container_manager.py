@@ -175,13 +175,12 @@ class MongodbContainerManager(ContainerManager):
         result = self._exec_container(command)
         stats = json.loads(result.output)
 
-        atoms = 0
-        if "nodes" in stats:
-            atoms += stats["nodes"]
-        if "links" in stats:
-            atoms += stats["links"]
+        if "nodes" in stats and "links" in stats:
+            atoms = 0
+            atoms += int(stats.get("nodes", 0))
+            atoms += int(stats.get("links", 0))
 
-        stats["atoms"] = atoms
+            stats["atoms"] = atoms
 
         return stats
 
