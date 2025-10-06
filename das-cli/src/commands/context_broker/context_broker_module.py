@@ -5,11 +5,11 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .context_agent_cli import ContextAgentCli, ContextAgentContainerManager, Settings
+from .context_broker_cli import ContextBrokerCli, ContextBrokerContainerManager, Settings
 
 
-class ContextAgentModule(Module):
-    _instance = ContextAgentCli
+class ContextBrokerModule(Module):
+    _instance = ContextBrokerCli
 
     def __init__(self) -> None:
         super().__init__()
@@ -22,8 +22,8 @@ class ContextAgentModule(Module):
                 self._query_agent_container_manager_factory,
             ),
             (
-                ContextAgentContainerManager,
-                self._context_agent_container_manager_factory,
+                ContextBrokerContainerManager,
+                self._context_broker_container_manager_factory,
             ),
             (
                 Settings,
@@ -62,8 +62,8 @@ class ContextAgentModule(Module):
             },
         )
 
-    def _context_agent_container_manager_factory(self) -> ContextAgentContainerManager:
-        context_agent_port = self._settings.get("services.context_agent.port")
+    def _context_broker_container_manager_factory(self) -> ContextBrokerContainerManager:
+        context_broker_port = self._settings.get("services.context_broker.port")
 
         attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
@@ -76,12 +76,12 @@ class ContextAgentModule(Module):
         redis_port = self._settings.get("services.redis.port")
         redis_hostname = self._settings.get("services.redis.container_name")
 
-        container_name = self._settings.get("services.context_agent.container_name")
+        container_name = self._settings.get("services.context_broker.container_name")
 
-        return ContextAgentContainerManager(
+        return ContextBrokerContainerManager(
             container_name,
             options={
-                "context_agent_port": context_agent_port,
+                "context_broker_port": context_broker_port,
                 "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
                 "redis_port": redis_port,

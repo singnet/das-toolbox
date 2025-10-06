@@ -1,7 +1,7 @@
 import os
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
-from commands.context_agent.context_agent_container_manager import ContextAgentContainerManager
+from commands.context_broker.context_broker_container_manager import ContextBrokerContainerManager
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.evolution_agent.evolution_agent_container_manager import (
@@ -67,8 +67,8 @@ class LogsModule(Module):
                 self._evolution_agent_container_manager_factory,
             ),
             (
-                ContextAgentContainerManager,
-                self._context_agent_container_manager_factory,
+                ContextBrokerContainerManager,
+                self._context_broker_container_manager_factory,
             ),
         ]
 
@@ -177,8 +177,8 @@ class LogsModule(Module):
             },
         )
 
-    def _context_agent_container_manager_factory(self) -> ContextAgentContainerManager:
-        context_agent_port = self._settings.get("services.context_agent.port")
+    def _context_broker_container_manager_factory(self) -> ContextBrokerContainerManager:
+        context_broker_port = self._settings.get("services.context_broker.port")
 
         attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
@@ -191,12 +191,12 @@ class LogsModule(Module):
         redis_port = self._settings.get("services.redis.port")
         redis_hostname = self._settings.get("services.redis.container_name")
 
-        container_name = self._settings.get("services.context_agent.container_name")
+        container_name = self._settings.get("services.context_broker.container_name")
 
-        return ContextAgentContainerManager(
+        return ContextBrokerContainerManager(
             container_name,
             options={
-                "context_agent_port": context_agent_port,
+                "context_broker_port": context_broker_port,
                 "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
                 "redis_port": redis_port,

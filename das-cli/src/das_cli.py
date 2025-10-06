@@ -2,7 +2,7 @@ from injector import Injector
 
 from commands.attention_broker import AttentionBrokerModule
 from commands.config import ConfigModule
-from commands.context_agent import ContextAgentModule
+from commands.context_broker import ContextBrokerModule
 from commands.das import DasModule
 from commands.db import DbModule
 from commands.dbms_adapter import DbmsAdapterModule
@@ -34,7 +34,7 @@ MODULES = [
     LinkCreationAgentModule,
     InferenceAgentModule,
     EvolutionAgentModule,
-    ContextAgentModule,
+    ContextBrokerModule,
 ]
 
 

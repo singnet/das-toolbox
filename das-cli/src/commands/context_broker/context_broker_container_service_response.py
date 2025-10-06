@@ -4,7 +4,7 @@ from common.docker.container_manager import Container
 from common.service_response import ServiceResponse
 
 
-class ContextAgentContainerServiceResponse(ServiceResponse):
+class ContextBrokerContainerServiceResponse(ServiceResponse):
     def __init__(
         self,
         action: str,
@@ -15,7 +15,7 @@ class ContextAgentContainerServiceResponse(ServiceResponse):
         error: Optional[dict] = None,
     ):
         super().__init__(
-            service="context_agent",
+            service="context_broker",
             action=action,
             status=status,
             message=message,

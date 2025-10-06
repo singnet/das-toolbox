@@ -528,15 +528,15 @@ EXAMPLES
             "services.evolution_agent.container_name": f"das-cli-evolution-agent-{evolution_agent_port}",
         }
 
-    def _context_agent(self) -> dict:
-        context_agent_port = self.prompt(
-            "Enter the Context Agent port",
-            default=self._settings.get("services.context_agent.port", 40006),
+    def _context_broker(self) -> dict:
+        context_broker_port = self.prompt(
+            "Enter the Context Broker port",
+            default=self._settings.get("services.context_broker.port", 40006),
         )
 
         return {
-            "services.context_agent.port": context_agent_port,
-            "services.context_agent.container_name": f"das-cli-context-agent-{context_agent_port}",
+            "services.context_broker.port": context_broker_port,
+            "services.context_broker.container_name": f"das-cli-context-broker-{context_broker_port}",
         }
 
     def _schema_hash(self) -> dict:
@@ -574,7 +574,7 @@ EXAMPLES
             self._link_creation_agent,
             self._inference_agent,
             self._evolution_agent,
-            self._context_agent,
+            self._context_broker,
         ]
 
         for config_step in config_steps:

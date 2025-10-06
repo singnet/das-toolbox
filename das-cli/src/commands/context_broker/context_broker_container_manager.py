@@ -4,23 +4,23 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import CONTEXT_AGENT_IMAGE_NAME, CONTEXT_AGENT_IMAGE_VERSION
+from settings.config import CONTEXT_BROKER_IMAGE_NAME, CONTEXT_BROKER_IMAGE_VERSION
 
 
-class ContextAgentContainerManager(ContainerManager):
+class ContextBrokerContainerManager(ContainerManager):
     def __init__(
         self,
-        context_agent_container_name: str,
+        context_broker_container_name: str,
         options: Dict = {},
     ) -> None:
         container = Container(
-            context_agent_container_name,
+            context_broker_container_name,
             metadata={
-                "port": options.get("context_agent_port"),
+                "port": options.get("context_broker_port"),
                 "image": ContainerImageMetadata(
                     {
-                        "name": CONTEXT_AGENT_IMAGE_NAME,
-                        "version": CONTEXT_AGENT_IMAGE_VERSION,
+                        "name": CONTEXT_BROKER_IMAGE_NAME,
+                        "version": CONTEXT_BROKER_IMAGE_VERSION,
                     }
                 ),
             },
@@ -29,18 +29,18 @@ class ContextAgentContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _gen_context_agent_command(
+    def _gen_context_broker_command(
         self,
         peer_hostname: str,
         peer_port: int,
         port_range: str,
     ) -> str:
-        context_agent_hostname = self._options.get(
-            "context_agent_hostname",
+        context_broker_hostname = self._options.get(
+            "context_broker_hostname",
             "localhost",
         )
-        context_agent_port = int(self._options.get("context_agent_port", 0))
-        context_agent_address = f"{context_agent_hostname}:{context_agent_port}"
+        context_broker_port = int(self._options.get("context_broker_port", 0))
+        context_broker_address = f"{context_broker_hostname}:{context_broker_port}"
 
         peer_address = f"{peer_hostname}:{peer_port}"
 
@@ -51,7 +51,7 @@ class ContextAgentContainerManager(ContainerManager):
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
         attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
 
-        return f"{context_agent_address} {port_range} {peer_address} {attention_broker_address}"
+        return f"{context_broker_address} {port_range} {peer_address} {attention_broker_address}"
 
     def start_container(
         self,
@@ -60,7 +60,7 @@ class ContextAgentContainerManager(ContainerManager):
         port_range: str,
     ):
         self.raise_running_container()
-        self.raise_on_port_in_use([int(self._options.get("context_agent_port", 0))])
+        self.raise_on_port_in_use([int(self._options.get("context_broker_port", 0))])
 
         try:
             self.stop()
@@ -68,12 +68,12 @@ class ContextAgentContainerManager(ContainerManager):
             pass
 
         try:
-            exec_command = self._gen_context_agent_command(
+            exec_command = self._gen_context_broker_command(
                 peer_hostname,
                 peer_port,
                 port_range,
             )
-            context_agent_port = self._options.get("context_agent_port", 0)
+            context_broker_port = self._options.get("context_broker_port", 0)
 
             container_id = self._start_container(
                 restart_policy={
@@ -82,7 +82,7 @@ class ContextAgentContainerManager(ContainerManager):
                 },
                 command=exec_command,
                 ports={
-                    context_agent_port: context_agent_port,
+                    context_broker_port: context_broker_port,
                 },
                 environment={
                     "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
@@ -98,7 +98,7 @@ class ContextAgentContainerManager(ContainerManager):
         except docker.errors.APIError as e:
             if e.response.reason == "Not Found":
                 raise DockerContainerNotFoundError(
-                    f"The docker image {self.get_container().image} for the context agent could not be found!"
+                    f"The docker image {self.get_container().image} for the context broker could not be found!"
                 )
 
             raise DockerError(e.explanation)
