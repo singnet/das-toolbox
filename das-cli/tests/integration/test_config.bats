@@ -45,6 +45,7 @@ setup() {
     assert_line --partial "$(get_config ".services.inference_agent.port")"
     assert_line --partial "$(get_config ".services.evolution_agent.container_name")"
     assert_line --partial "$(get_config ".services.evolution_agent.port")"
+    assert_line --partial "$(get_config ".services.context_broker.port")"
 
 }
 
@@ -65,6 +66,7 @@ setup() {
     local link_creation_agent_port="9080"
     local inference_agent_port="8080"
     local evolution_agent_port="24002"
+    local context_broker_port="40006"
 
     run das-cli config set <<EOF
 $redis_port
@@ -79,6 +81,7 @@ $query_agent_port
 $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
+$context_broker_port
 EOF
 
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -94,6 +97,7 @@ EOF
     assert_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
     assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
     assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
+    assert_equal "$(get_config ".services.context_broker.port")" "$context_broker_port"
 }
 
 @test "configuring settings with a previously set configuration file" {
@@ -111,6 +115,7 @@ EOF
     local old_link_creation_agent_port="$(get_config ".services.link_creation_agent.port")"
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
+    local old_context_broker_port="$(get_config ".services.context_broker.port")"
 
     local redis_port="7000"
     local redis_cluster="no"
@@ -124,6 +129,7 @@ EOF
     local link_creation_agent_port="9180"
     local inference_agent_port="8080"
     local evolution_agent_port="24002"
+    local context_broker_port="30006"
 
     run das-cli config set <<EOF
 $redis_port
@@ -138,6 +144,7 @@ $query_agent_port
 $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
+$context_broker_port
 EOF
 
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -153,6 +160,7 @@ EOF
     assert_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
     assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
     assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
+    assert_equal "$(get_config ".services.context_broker.port")" "$context_broker_port"
 
     assert_not_equal "$redis_port" "$old_redis_port"
     assert_equal "$(human_to_boolean "$redis_cluster")" "$old_redis_cluster"
@@ -166,6 +174,7 @@ EOF
     assert_not_equal "$link_creation_agent_port" "$old_link_creation_agent_port"
     assert_not_equal "$inference_agent_port" "$old_inference_agent_port"
     assert_not_equal "$evolution_agent_port" "$old_evolution_agent_port"
+    assert_not_equal "$context_broker_port" "$old_context_broker_port"
 
 }
 
@@ -184,6 +193,7 @@ EOF
     local old_link_creation_agent_port="$(get_config ".services.link_creation_agent.port")"
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
+    local old_context_broker_port="$(get_config ".services.context_broker.port")"
 
     local redis_port=""
     local redis_cluster=""
@@ -197,6 +207,7 @@ EOF
     local link_creation_agent_port=""
     local inference_agent_port=""
     local evolution_agent_port=""
+    local context_broker_port=""
 
     run das-cli config set <<EOF
 $redis_port
@@ -211,6 +222,7 @@ $query_agent_port
 $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
+$context_broker_port
 EOF
 
     assert_not_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -225,6 +237,7 @@ EOF
     assert_not_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
     assert_not_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
     assert_not_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
+    assert_not_equal "$(get_config ".services.context_broker.port")" "$context_broker_port"
 
     assert_equal "$old_redis_port" "$(get_config ".services.redis.port")"
     assert_equal "$old_redis_cluster" "$(get_config ".services.redis.cluster")"
@@ -238,6 +251,7 @@ EOF
     assert_equal "$old_link_creation_agent_port" "$(get_config ".services.link_creation_agent.port")"
     assert_equal "$old_inference_agent_port" "$(get_config ".services.inference_agent.port")"
     assert_equal "$old_evolution_agent_port" "$(get_config ".services.evolution_agent.port")"
+    assert_equal "$old_context_broker_port" "$(get_config ".services.context_broker.port")"
 }
 
 
