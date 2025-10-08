@@ -37,7 +37,7 @@ DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
-DAS_VERSION = "0.11.6"
+DAS_VERSION = "0.11.7"
 
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
 ATTENTION_BROKER_IMAGE_VERSION = f"attention-broker-{DAS_VERSION}"
@@ -54,3 +54,5 @@ INFERENCE_AGENT_IMAGE_VERSION = f"inference-agent-{DAS_VERSION}"
 EVOLUTION_AGENT_IMAGE_NAME = "trueagi/das"
 EVOLUTION_AGENT_IMAGE_VERSION = f"evolution-agent-{DAS_VERSION}"
 
+CONTEXT_BROKER_IMAGE_NAME = "trueagi/das"
+CONTEXT_BROKER_IMAGE_VERSION = f"context-broker-{DAS_VERSION}"
