@@ -142,9 +142,6 @@ das-cli <command> <subcommand> [options]
 ## Examples
 
 ```bash
-# Install DAS Python package
-pip3 install hyperon-das
-
 # Configure Redis/Mongo
 das-cli config set
 
@@ -203,7 +200,7 @@ das-cli <command-group> <subcommand> --help
 Example:
 
 ```bash
-das-cli faas update-version --help
+das-cli db count-atoms --help
 ```
 
 ### Manual Pages (APT install only)
@@ -212,7 +209,7 @@ If you installed `das-cli` via the APT package, you can also view man pages:
 
 ```bash
 man das-cli
-man das-cli-faas-start
+man das-cli-attention-broker-start
 man das-cli-db-restart
 ```
 
