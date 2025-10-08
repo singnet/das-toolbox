@@ -111,7 +111,7 @@ class ContextBrokerStart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
@@ -252,7 +252,7 @@ class ContextBrokerRestart(Command):
         CommandOption(
             ["--peer-port"],
             help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 8080)",
+            prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
