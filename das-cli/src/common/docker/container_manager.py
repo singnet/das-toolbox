@@ -162,8 +162,6 @@ class ContainerManager(DockerManager):
             else:
                 print(chr(chunk), end="")
 
-        
-
     def tail(self, file_path: str, clear_terminal: bool = False) -> None:
         container_name = self.get_container().name
 
