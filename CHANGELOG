@@ -7,6 +7,7 @@ Highlights:
 Bug fixes:
 [HOTFIX] Fix evolution-agent restart command params were shuffled (PR: #227)
 [das#700] das-cli db count-atoms command not working (PR: #228)
+[das#721] Changed logs command to print once by default, added --follow for live mode, and fixed remote support (PR: #230)
 
 General changes:
 [das#681] Port ranges for all agents should be defaulted (PR: #223)
