@@ -531,6 +531,16 @@ Display logs of the Context Broker service.
 $ das-cli logs context-broker
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -546,11 +556,11 @@ $ das-cli logs context-broker
         exception_text="Context Broker is not running. Please start it with 'das-cli context-broker start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._context_broker_container_manager.logs()
+        self._context_broker_container_manager.logs(follow)
 
 
 class LogsCli(CommandGroup):
