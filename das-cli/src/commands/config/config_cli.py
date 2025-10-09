@@ -545,6 +545,7 @@ EXAMPLES
 
         return {
             "services.context_broker.port": context_broker_port,
+            "services.context_broker.hostname": "0.0.0.0",
             "services.context_broker.container_name": f"das-cli-context-broker-{context_broker_port}",
         }
 
