@@ -4,6 +4,7 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.mork_container_manager import MorkContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -43,10 +44,11 @@ $ das-cli db count-atoms
         self,
         mongodb_container_manager: MongodbContainerManager,
         redis_container_manager: RedisContainerManager,
+        mork_container_manager: MorkContainerManager,
     ) -> None:
         self._mongodb_container_manager = mongodb_container_manager
         self._redis_container_manager = redis_container_manager
-
+        self._mork_container_manager = mork_container_manager
         super().__init__()
 
     def _get_mongodb_container(self):
@@ -54,6 +56,9 @@ $ das-cli db count-atoms
 
     def _get_redis_container(self):
         return self._redis_container_manager.get_container()
+
+    def _get_mork_container(self):
+        return self._mork_container_manager.get_container()
 
     def _show_mongodb_stats(self):
         collection_stats = self._mongodb_container_manager.get_collection_stats()
@@ -136,6 +141,7 @@ $ das-cli db count-atoms
         [
             "_mongodb_container_manager",
             "_redis_container_manager",
+            "_mork_container_manager",
         ],
         exception_text="\nPlease use 'db start' to start required services before running 'db count-atoms'.",
         verbose=False,
@@ -191,17 +197,22 @@ $ das-cli db stop --prune
         settings: Settings,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
+        mork_container_manager: MorkContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+        self._mork_container_manager = mork_container_manager
 
     def _get_redis_container(self):
         return self._redis_container_manager.get_container()
 
     def _get_mongodb_container(self):
         return self._mongodb_container_manager.get_container()
+
+    def _get_mork_container(self):
+        return self._mork_container_manager.get_container()
 
     def _redis_node(
         self,
@@ -367,11 +378,94 @@ $ das-cli db stop --prune
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
+    def _mork_node(self, context, ip, username, prune: bool = False) -> None:
+        try:
+            self._mork_container_manager.set_exec_context(context)
+            self._mork_container_manager.stop(
+                remove_volume=prune,
+                force=prune,
+            )
+            self._mork_container_manager.unset_exec_context()
+
+            self.stdout(
+                f"The MORK service at {ip} has been stopped by the server user {username}",
+                severity=StdoutSeverity.SUCCESS,
+            )
+        except DockerContainerNotFoundError:
+            container_name = self._get_mork_container().name
+            warning_message = (
+                f"The MORK service named {container_name} at {ip} is already stopped."
+            )
+            self.stdout(
+                warning_message,
+                severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_message,
+                        container=self._get_mork_container(),
+                        extra_details={
+                            "node": {
+                                "context": context,
+                                "ip": ip,
+                                "username": username,
+                            }
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+
+    def _mork(self, prune: bool = False) -> None:
+        self.stdout("Stopping MORK service...")
+
+        mork_nodes = self._settings.get("services.mork.nodes", [
+            {
+                "context": "default",
+                "ip": "localhost",
+                "username": "arturgontijo"
+            }
+        ])
+        mork_container = self._get_mork_container()
+
+        try:
+            for mork_node in mork_nodes:
+                self._mork_node(**mork_node, prune=prune)
+
+        except DockerError as e:
+            self.stdout(
+                "\nError occurred while trying to stop MORK\n",
+                severity=StdoutSeverity.ERROR,
+            )
+            raise e
+
+        success_message = "MORK service stopped successfully"
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="stop",
+                    status="success",
+                    message=success_message,
+                    extra_details={
+                        "nodes": mork_nodes,
+                        "prune": prune,
+                    },
+                    container=mork_container,
+                ),
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
+
     def run(self, prune: bool = False) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         self._redis(prune)
+        self._mork(prune)
         self._mongodb(prune)
 
 
@@ -406,17 +500,22 @@ $ das-cli db start
         settings: Settings,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
+        mork_container_manager: MorkContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+        self._mork_container_manager = mork_container_manager
 
     def _get_redis_container(self):
         return self._redis_container_manager.get_container()
 
     def _get_mongodb_container(self):
         return self._mongodb_container_manager.get_container()
+
+    def _get_mork_container(self):
+        return self._mork_container_manager.get_container()
 
     def _redis_node(
         self,
@@ -672,11 +771,111 @@ $ das-cli db start
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
+    def _mork_node(
+        self,
+        mork_node: dict,
+        mork_port: int,
+    ) -> None:
+        node_context = mork_node.get("context")
+        node_ip = mork_node.get("ip")
+        node_username = mork_node.get("username")
+
+        try:
+            self._mork_container_manager.set_exec_context(node_context)
+            self._mork_container_manager.start_container(
+                mork_port,
+            )
+            self._mork_container_manager.unset_exec_context()
+
+            success_message = f"MORK has started successfully on port {mork_port} at {node_ip}, operating under the server user {node_username}."
+
+            self.stdout(
+                success_message,
+                severity=StdoutSeverity.SUCCESS,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=self._get_mork_container(),
+                        extra_details={
+                            "node": {
+                                "context": node_context,
+                                "ip": node_ip,
+                                "username": node_username,
+                            },
+                        },
+                    ),
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerDuplicateError:
+            warning_message = f"MORK is already running. It is currently listening on port {mork_port} at {node_ip} under the server user {node_username}."
+
+            self.stdout(
+                warning_message,
+                severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=self._get_mork_container(),
+                        extra_details={
+                            "node": {
+                                "context": node_context,
+                                "ip": node_ip,
+                                "username": node_username,
+                            },
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+
+    def _mork(self) -> None:
+        self.stdout("Starting MORK service...")
+
+        mork_port = self._settings.get("services.mork.port", 8000)
+        mork_nodes = self._settings.get("services.mork.nodes", [
+            {
+                "context": "default",
+                "ip": "localhost",
+                "username": "arturgontijo",
+            }
+        ])
+
+        for mork_node in mork_nodes:
+            self._mork_node(
+                mork_node,
+                mork_port,
+            )
+
+        self.stdout(
+            dict(
+                DbServiceResponse(
+                    action="start",
+                    status="success",
+                    message=f"MORK started successfully on port {mork_port}",
+                    container=self._mork_container_manager.get_container(),
+                    extra_details={
+                        "nodes": mork_nodes,
+                    },
+                )
+            ),
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
+
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         self._redis()
+        self._mork()
         self._mongodb()
 
 

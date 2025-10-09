@@ -66,6 +66,9 @@ class QueryAgentContainerManager(ContainerManager):
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_DISABLE_ATOMDB_CACHE": self._options.get("disable_atomdb_cache", "true"),
+                    "DAS_MORK_HOSTNAME": self._options.get("mork_hostname", "0.0.0.0"),
+                    "DAS_MORK_PORT": self._options.get("mork_port", 8000),
                 },
                 ports={
                     query_agent_port: query_agent_port,

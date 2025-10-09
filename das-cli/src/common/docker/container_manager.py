@@ -94,6 +94,9 @@ class ContainerManager(DockerManager):
     def _start_container(self, **kwargs) -> Any:
         self.raise_running_container()
 
+        if "db_loader" not in kwargs.get("command", ""):
+            del kwargs["ports"]
+
         try:
             response = self.get_docker_client().containers.run(
                 **kwargs,

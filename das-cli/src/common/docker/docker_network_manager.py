@@ -2,7 +2,7 @@ from typing import Union
 
 import docker
 
-from common.utils import log_exception
+# from common.utils import log_exception
 
 from .docker_manager import DockerManager
 
@@ -35,14 +35,15 @@ class DockerNetworkManager(DockerManager):
 
 
 def init_network():
-    from common.docker.docker_network_manager import DockerNetworkManager
-    from settings.config import SERVICES_NETWORK_NAME
+    return
+    # from common.docker.docker_network_manager import DockerNetworkManager
+    # from settings.config import SERVICES_NETWORK_NAME
 
-    try:
-        network_manager = DockerNetworkManager()
-        network = network_manager.get_network_by_name(SERVICES_NETWORK_NAME)
-        if network is None:
-            network_manager.create_network(name=SERVICES_NETWORK_NAME)
-    except Exception as e:
-        log_exception(e)
-        exit(1)
+    # try:
+    #     network_manager = DockerNetworkManager()
+    #     network = network_manager.get_network_by_name(SERVICES_NETWORK_NAME)
+    #     if network is None:
+    #         network_manager.create_network(name=SERVICES_NETWORK_NAME)
+    # except Exception as e:
+    #     log_exception(e)
+    #     exit(1)

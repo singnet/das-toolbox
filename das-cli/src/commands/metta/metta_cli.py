@@ -5,6 +5,7 @@ from injector import inject
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.mork_container_manager import MorkContainerManager
 from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
@@ -12,6 +13,7 @@ from common.prompt_types import AbsolutePath
 
 from .metta_loader_container_manager import MettaLoaderContainerManager
 from .metta_syntax_container_manager import MettaSyntaxContainerManager
+from .mork_loader_container_manager import MorkLoaderContainerManager
 
 
 class MettaLoad(Command):
@@ -75,14 +77,18 @@ EXAMPLES
         self,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
+        mork_container_manager: MorkContainerManager,
         metta_loader_container_manager: MettaLoaderContainerManager,
+        mork_loader_container_manager: MorkLoaderContainerManager,
         settings: Settings,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+        self._mork_container_manager = mork_container_manager
         self._metta_loader_container_manager = metta_loader_container_manager
+        self._mork_loader_container_manager = mork_loader_container_manager
 
     def _load_metta_from_file(self, file_path: str):
         if not file_path.endswith(".metta"):
@@ -95,6 +101,7 @@ EXAMPLES
         self.stdout(f"Loading metta file {file_path}...")
 
         self._metta_loader_container_manager.start_container(file_path)
+        self._mork_loader_container_manager.start_container(9000, file_path)
 
     def _load_metta_from_directory(self, directory_path: str):
         files = glob.glob(f"{directory_path}/*")

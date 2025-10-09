@@ -1,9 +1,9 @@
 import getpass
 
-VERSION = '0.5.5'
+VERSION = '0.6.0-rc'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
-SERVICES_NETWORK_NAME = "das-services-network"
+SERVICES_NETWORK_NAME = "host"
 
 # PATHS
 
@@ -23,8 +23,14 @@ REDIS_IMAGE_VERSION = "7.2.3-alpine"
 MONGODB_IMAGE_NAME = "mongo"
 MONGODB_IMAGE_VERSION = "6.0.13-jammy"
 
+MORK_SERVER_IMAGE_NAME = "trueagi/das"
+MORK_SERVER_IMAGE_VERSION = f"mork-server-0.10.2"
+
+MORK_LOADER_IMAGE_NAME = "trueagi/das"
+MORK_LOADER_IMAGE_VERSION = f"mork-loader-0.10.2"
+
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.5.9-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "0.5.9-metta-parser-arm64"
 
 OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
@@ -43,7 +49,7 @@ ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
 ATTENTION_BROKER_IMAGE_VERSION = f"attention-broker-{DAS_VERSION}"
 
 QUERY_AGENT_IMAGE_NAME = "trueagi/das"
-QUERY_AGENT_IMAGE_VERSION = f"query-agent-{DAS_VERSION}"
+QUERY_AGENT_IMAGE_VERSION = f"query-agent-mork-{DAS_VERSION}"
 
 LINK_CREATION_AGENT_IMAGE_NAME = "trueagi/das"
 LINK_CREATION_AGENT_IMAGE_VERSION = f"link-creation-agent-{DAS_VERSION}"

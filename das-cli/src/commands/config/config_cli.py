@@ -395,6 +395,7 @@ EXAMPLES
         )
         return {
             "services.redis.port": redis_port,
+            "services.redis.hostname": "0.0.0.0",
             "services.redis.container_name": f"das-cli-redis-{redis_port}",
             "services.redis.cluster": redis_cluster,
             "services.redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
@@ -435,6 +436,7 @@ EXAMPLES
         )
         return {
             "services.mongodb.port": mongodb_port,
+            "services.mongodb.hostname": "0.0.0.0",
             "services.mongodb.container_name": f"das-cli-mongodb-{mongodb_port}",
             "services.mongodb.username": mongodb_username,
             "services.mongodb.password": mongodb_password,
@@ -453,6 +455,7 @@ EXAMPLES
         database_adapter_server_port = 40018
 
         return {
+            "services.das_peer.hostname": "0.0.0.0",
             "services.das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
             "services.das_peer.port": database_adapter_server_port,
         }
@@ -470,6 +473,7 @@ EXAMPLES
 
         return {
             "services.jupyter_notebook.port": jupyter_notebook_port,
+            "services.jupyter_notebook.hostname": "0.0.0.0",
             "services.jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{jupyter_notebook_port}",
         }
 
@@ -481,6 +485,7 @@ EXAMPLES
 
         return {
             "services.attention_broker.port": attention_broker_port,
+            "services.attention_broker.hostname": "0.0.0.0",
             "services.attention_broker.container_name": f"das-cli-attention-broker-{attention_broker_port}",
         }
 
@@ -492,6 +497,7 @@ EXAMPLES
 
         return {
             "services.query_agent.port": query_agent_port,
+            "services.query_agent.hostname": "0.0.0.0",
             "services.query_agent.container_name": f"das-cli-query-agent-{query_agent_port}",
         }
 
@@ -502,6 +508,7 @@ EXAMPLES
         )
 
         return {
+            "services.link_creation_agent.hostname": "0.0.0.0",
             "services.link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
             "services.link_creation_agent.port": link_creation_agent_port,
         }
@@ -514,6 +521,7 @@ EXAMPLES
 
         return {
             "services.inference_agent.port": inference_agent_port,
+            "services.inference_agent.hostname": "0.0.0.0",
             "services.inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
         }
 
@@ -525,6 +533,7 @@ EXAMPLES
 
         return {
             "services.evolution_agent.port": evolution_agent_port,
+            "services.evolution_agent.hostname": "0.0.0.0",
             "services.evolution_agent.container_name": f"das-cli-evolution-agent-{evolution_agent_port}",
         }
 
