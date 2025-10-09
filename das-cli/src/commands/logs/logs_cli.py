@@ -16,7 +16,7 @@ from commands.link_creation_agent.link_creation_agent_container_manager import (
     LinkCreationAgentContainerManager,
 )
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
-from common import Command, CommandGroup, Settings, StdoutSeverity
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from settings.config import LOG_FILE_NAME
 
@@ -48,18 +48,39 @@ EXAMPLES
         das-cli logs das
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     def __init__(self) -> None:
         super().__init__()
 
-    def run(self):
+    def _follow_logs(self):
+        with open(LOG_FILE_NAME, "r") as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    sleep(0.1)
+                    continue
+                self.stdout(line, new_line=False)
+
+    def _show_logs(self):
+        with open(LOG_FILE_NAME, "r") as file:
+            for line in file:
+                self.stdout(line, new_line=False)
+
+    def run(self, follow: bool = False):
         try:
-            with open(LOG_FILE_NAME, "r") as file:
-                while True:
-                    line = file.readline()
-                    if not line:
-                        sleep(0.1)
-                        continue
-                    self.stdout(line, new_line=False)
+            if follow:
+                self._follow_logs()
+            else:
+                self._show_logs()
         except KeyboardInterrupt:
             self.stdout("Interrupted. Exiting...", severity=StdoutSeverity.ERROR)
         except FileNotFoundError:
@@ -93,6 +114,16 @@ EXAMPLES
         das-cli logs mongodb
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -108,11 +139,11 @@ EXAMPLES
         exception_text="MongoDB is not running. Please start it with 'das-cli db start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._mongodb_container_manager.logs()
+        self._mongodb_container_manager.logs(follow)
 
 
 class LogsRedis(Command):
@@ -142,6 +173,16 @@ EXAMPLES
         das-cli logs redis
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -157,11 +198,11 @@ EXAMPLES
         exception_text="Redis is not running. Please start it with 'das-cli db start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._redis_container_manager.logs()
+        self._redis_container_manager.logs(follow)
 
 
 class LogsAttentionBroker(Command):
@@ -182,6 +223,16 @@ Display logs of the Attention Broker service.
 $ das-cli logs attention-broker
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -197,11 +248,11 @@ $ das-cli logs attention-broker
         exception_text="Attention broker is not running. Please start it with 'das-cli attention-broker start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._attention_broker_manager.logs()
+        self._attention_broker_manager.logs(follow)
 
 
 class LogsQueryAgent(Command):
@@ -222,6 +273,16 @@ Display logs of the Query Agent service.
 $ das-cli logs query-agent
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -237,11 +298,11 @@ $ das-cli logs query-agent
         exception_text="Query agent is not running. Please start it with 'das-cli query-agent start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._query_agent_container_manager.logs()
+        self._query_agent_container_manager.logs(follow)
 
 
 class LogsLinkCreationAgent(Command):
@@ -262,6 +323,16 @@ Display logs of the Link Creation Agent service.
 $ das-cli logs link-creation-agent
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -277,11 +348,11 @@ $ das-cli logs link-creation-agent
         exception_text="Link creation agent is not running. Please start it with 'das-cli link-creation-agent start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._link_creation_container_manager.logs()
+        self._link_creation_container_manager.logs(follow)
 
 
 class LogsInferenceAgent(Command):
@@ -302,6 +373,16 @@ Display logs of the Inference Agent service.
 $ das-cli logs inference-agent
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -317,11 +398,11 @@ $ das-cli logs inference-agent
         exception_text="Inference agent is not running. Please start it with 'das-cli inference-agent start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._inference_agent_container_manager.logs()
+        self._inference_agent_container_manager.logs(follow)
 
 
 class LogsEvolutionAgent(Command):
@@ -342,6 +423,16 @@ Display logs of the Evolution Agent service.
 $ das-cli logs evolution-agent
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -357,11 +448,11 @@ $ das-cli logs evolution-agent
         exception_text="Evolution Agent is not running. Please start it with 'das-cli evolution-agent start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._evolution_agent_container_manager.logs()
+        self._evolution_agent_container_manager.logs(follow)
 
 
 class LogsContextBroker(Command):
@@ -382,6 +473,16 @@ Display logs of the Context Broker service.
 $ das-cli logs context-broker
 """
 
+    params = [
+        CommandOption(
+            ["--follow", "-f"],
+            is_flag=True,
+            help="Follow log output in real-time.",
+            default=False,
+            required=False,
+        )
+    ]
+
     @inject
     def __init__(
         self,
@@ -397,11 +498,11 @@ $ das-cli logs context-broker
         exception_text="Context Broker is not running. Please start it with 'das-cli context-broker start' before viewing logs.",
         verbose=False,
     )
-    def run(self):
+    def run(self, follow: bool = False):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._context_broker_container_manager.logs()
+        self._context_broker_container_manager.logs(follow)
 
 
 class LogsCli(CommandGroup):
