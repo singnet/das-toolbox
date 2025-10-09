@@ -89,13 +89,10 @@ SYNOPSIS
 DESCRIPTION
 
     'das-cli example' provides step-by-step guides for various DAS usage scenarios.
-    You can choose topics such as 'local' for running DAS locally, or 'faas' for
-    connecting to OpenFaaS functions.
 
 SUBCOMMANDS
 
     local       Shows example commands for local DAS setup.
-    faas        Shows example commands for OpenFaaS setup.
 
 EXAMPLES
 

@@ -60,7 +60,11 @@
     },
     "evolution_agent": {
       "port": 40005,
-      "container_name": "das-cli-evolution-broker-40005"
+      "container_name": "das-cli-evolution-agent-40005"
+    },
+    "context_broker": {
+      "port": 40006,
+      "container_name": "das-cli-context-broker-40006"
     }
   }
 }

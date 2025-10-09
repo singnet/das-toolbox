@@ -53,7 +53,7 @@ class DbmsPeerContainerManager(ContainerManager):
                 raise DockerError("DBMS peer could not be started")
             return
 
-        self.logs()
+        self.logs(follow=True)
         exit_code = self.get_container_exit_status(container)
         self.stop()
 

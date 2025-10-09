@@ -6,8 +6,8 @@ from typing import Any, List, Optional, TypedDict, Union, cast
 import docker
 import docker.errors
 
-from settings.config import SERVICES_NETWORK_NAME
 from common.exceptions import PortBindingError
+from settings.config import SERVICES_NETWORK_NAME
 
 from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
@@ -150,15 +150,20 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerContainerNotFoundError(e.explanation)
 
-    def logs(self) -> None:
+    def logs(self, follow: bool = False) -> None:
         container_name = self.get_container().name
         try:
             container = self.get_docker_client().containers.get(container_name)
         except docker.errors.NotFound:
             raise DockerError(f"Service {container_name} is not running")
 
-        for log in container.logs(stdout=True, stderr=True, stream=True):
-            print(log.decode("utf-8"), end="")
+        logs = container.logs(stdout=True, stderr=True, stream=True, follow=follow)
+
+        for chunk in logs:
+            if isinstance(chunk, (bytes, bytearray)):
+                print(chunk.decode("utf-8", errors="ignore"), end="")
+            else:
+                print(chr(chunk), end="")
 
     def tail(self, file_path: str, clear_terminal: bool = False) -> None:
         container_name = self.get_container().name

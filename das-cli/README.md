@@ -142,9 +142,6 @@ das-cli <command> <subcommand> [options]
 ## Examples
 
 ```bash
-# Install DAS Python package
-pip3 install hyperon-das
-
 # Configure Redis/Mongo
 das-cli config set
 
@@ -154,9 +151,6 @@ das-cli db start
 # Validate and load MeTTa file
 das-cli metta check ./examples/data/animals.metta
 das-cli metta load ./examples/data/animals.metta
-
-# Start OpenFaaS
-das-cli faas start
 
 # Start DAS and DBMS peers
 das-cli dbms-adapter das-peer start
@@ -179,7 +173,7 @@ You don't need to memorize all commands. DAS CLI offers a structured help system
 das-cli --help
 ```
 
-This will show the main command categories such as `db`, `faas`, `metta`, `logs`, etc.
+This will show the main command categories such as `db`, `metta`, `logs`, etc.
 
 ### View Help for a Command Group
 
@@ -206,7 +200,7 @@ das-cli <command-group> <subcommand> --help
 Example:
 
 ```bash
-das-cli faas update-version --help
+das-cli db count-atoms --help
 ```
 
 ### Manual Pages (APT install only)
@@ -215,7 +209,7 @@ If you installed `das-cli` via the APT package, you can also view man pages:
 
 ```bash
 man das-cli
-man das-cli-faas-start
+man das-cli-attention-broker-start
 man das-cli-db-restart
 ```
 
@@ -234,13 +228,13 @@ git submodule update --init --recursive
 ### Without cluster tests:
 
 ```bash
-make integration_tests
+make tests-local
 ```
 
 ### With cluster tests:
 
 ```bash
-DAS_CLI_TEST_CLUSTER=true make integration_tests
+DAS_CLI_TEST_CLUSTER=true make tests-local
 ```
 
 Make sure you have configured the `tests/integration/fixtures/config/redis_cluster.json` file. Replace the `username` and `ip` for the cluster nodes. For the first node, you don't need to replace the `username` as it will automatically use the current server's user where the tests are running with `das-cli`. Do not change the `context` as it will be created during test execution.

@@ -537,6 +537,17 @@ EXAMPLES
             "services.evolution_agent.container_name": f"das-cli-evolution-agent-{evolution_agent_port}",
         }
 
+    def _context_broker(self) -> dict:
+        context_broker_port = self.prompt(
+            "Enter the Context Broker port",
+            default=self._settings.get("services.context_broker.port", 40006),
+        )
+
+        return {
+            "services.context_broker.port": context_broker_port,
+            "services.context_broker.container_name": f"das-cli-context-broker-{context_broker_port}",
+        }
+
     def _schema_hash(self) -> dict:
         schema_hash = get_schema_hash()
         return {"schema_hash": schema_hash}
@@ -572,6 +583,7 @@ EXAMPLES
             self._link_creation_agent,
             self._inference_agent,
             self._evolution_agent,
+            self._context_broker,
         ]
 
         for config_step in config_steps:

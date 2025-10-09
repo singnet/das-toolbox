@@ -136,7 +136,6 @@ $ das-cli db count-atoms
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-
     @ensure_container_running(
         [
             "_mongodb_container_manager",
@@ -149,7 +148,6 @@ $ das-cli db count-atoms
     def run(self) -> None:
         self._show_mongodb_stats()
         self._show_redis_stats()
-
 
 
 class DbStop(Command):

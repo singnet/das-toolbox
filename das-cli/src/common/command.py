@@ -156,14 +156,21 @@ class Command:
         """
         if not kwargs:
             return (False, kwargs, {})
+
+        connect_kwargs = {}
+        key_file = kwargs.pop("key_file", None)
+        password = kwargs.pop("password", None)
+
+        if key_file:
+            connect_kwargs["key_filename"] = key_file
+        if password:
+            connect_kwargs["password"] = password
+
         remote_kwargs = {
             "user": kwargs.pop("user", ""),
             "port": kwargs.pop("port", 22),
             "host": kwargs.pop("host", ""),
-            "connect_kwargs": {
-                "key_filename": kwargs.pop("key_file", None),
-                "password": kwargs.pop("password", None),
-            },
+            "connect_kwargs": connect_kwargs,
             "connect_timeout": kwargs.pop("connect_timeout", 10),
         }
         remote = kwargs.pop("remote", False)
