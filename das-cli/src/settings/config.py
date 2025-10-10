@@ -1,4 +1,6 @@
 import getpass
+from pathlib import Path
+import tempfile
 
 VERSION = '0.5.5'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
@@ -7,13 +9,13 @@ SERVICES_NETWORK_NAME = "das-services-network"
 
 # PATHS
 
-USER_DAS_PATH = "~/.das"
+USER_DAS_PATH = Path.home() / ".das"
 
-SECRETS_PATH = f"{USER_DAS_PATH}/config.json"
+SECRETS_PATH = USER_DAS_PATH / "config.json"
 
 # LOG
 
-LOG_FILE_NAME = f"/tmp/{getpass.getuser()}-das-cli.log"
+LOG_FILE_NAME = Path(tempfile.gettempdir()) / f"{getpass.getuser()}-das-cli.log"
 
 # SERVICES
 
