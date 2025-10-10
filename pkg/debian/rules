@@ -54,7 +54,7 @@ override_dh_auto_install:
 	patchelf --set-rpath '$$ORIGIN' $(USR_LIBS_DIR)/hyperon_das.so
 
 build_man_pages:
-	python3 $(ROOT_DIR)/das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
+	PYTHONPATH=$(ROOT_DIR)/das-cli/src python3 $(ROOT_DIR)/das-cli/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
 	@for file in $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
 		gzip -c $$file > $$file.gz; \
 		rm $$file; \
