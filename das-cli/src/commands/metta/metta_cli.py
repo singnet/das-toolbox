@@ -121,6 +121,7 @@ EXAMPLES
         [
             "_mongodb_container_manager",
             "_redis_container_manager",
+            "_mork_container_manager",
         ],
         exception_text="\nPlease use 'db start' to start required services before running 'metta load'.",
         verbose=True,
@@ -131,6 +132,7 @@ EXAMPLES
 
         self._load_metta(path)
 
+        self.stdout(f"Connecting to Mork at 0.0.0.0:{self._mork_container_manager.get_container().port}")
         self.stdout("Done.")
 
 
