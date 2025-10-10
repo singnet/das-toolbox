@@ -19,11 +19,12 @@
 * [General Syntax](#general-syntax)
 * [Examples](#examples)
 
-  * [Attention Broker](#attention-broker)
-  * [Configuration](#configuration)
-  * [Databases](#databases)
-  * [MeTTa Files](#metta-files)
-  * [DAS & DBMS Peers](#das--dbms-peers)
+  * [1. Configure the Environment](#1-configure-the-environment)
+  * [2. Start Databases](#2-start-databases)
+  * [3. Load MeTTa Files](#3-load-metta-files)
+  * [4. Start Core Services](#4-start-core-services)
+  * [5. Run a Query (Under Construction)](#5-run-a-query-under-construction)
+
 * [Help](#help)
 
   * [List All Command Groups](#list-all-command-groups)
@@ -158,60 +159,70 @@ das-cli <command> <subcommand> [options]
 
 ### Examples
 
-#### Attention Broker
+#### 1. Configure the Environment
 
 ```bash
-# Start the Attention Broker module
-das-cli ab start
-```
-
----
-
-#### Configuration
-
-```bash
-# Configure Redis or Mongo
+# Configure Redis, MongoDB, or any supported service
 das-cli config set
 ```
 
----
-
-#### Databases
+You can verify the configuration using:
 
 ```bash
-# Start databases
+das-cli config ls
+```
+
+---
+
+#### 2. Start Databases
+
+```bash
+# Start database services
 das-cli db start
 ```
 
 ---
 
-#### MeTTa Files
+#### 3. Load MeTTa Files
+
+Before starting the modules, verify and load your MeTTa files to the database.
 
 ```bash
-# Validate a MeTTa file
+# Validate the MeTTa syntax
 das-cli metta check ./examples/data/animals.metta
 
-# Load a MeTTa file into the system
+# Load the MeTTa file into the database
 das-cli metta load ./examples/data/animals.metta
 ```
 
 ---
 
-#### DAS & DBMS Peers
+#### 4. Start core services
+
+Start the **Attention Broker** and the other core services:
 
 ```bash
-# Start the DAS peer
-das-cli dbms-adapter das-peer start
+# Start the Attention Broker
+das-cli ab start
 
-# Run the DBMS peer with custom client settings
-das-cli dbms-adapter dbms-peer run \
-  --client-hostname example.io \
-  --client-port 1234 \
-  --client-database myDatabase \
-  --client-username John \
-  --context $(pwd)/context.txt
+# Start the Query Agent
+das-cli query start
 ```
+
 ---
+
+#### 5. Run a Query
+
+You can run a query test using the `query send` command, passing a **port range**, and the **query expression**.
+
+```bash
+das-cli query send \
+  --port-range 42500:42599 \
+  --query 'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "\"human\"" VARIABLE S'
+```
+
+> This command sends a MeTTa query to the running DAS environment. This command is under construction yet.
+
 
 ## Help
 
