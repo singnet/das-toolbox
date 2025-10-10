@@ -7,4 +7,4 @@ if [ ! command -v python3 &> /dev/null ]; then
     exit 1
 fi
 
-python3 das-cli/src/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/man
+PYTHONPATH=das-cli/src/ python3 das-cli/setup.py --command-packages=click_man.commands man_pages --target $(CURDIR)/man

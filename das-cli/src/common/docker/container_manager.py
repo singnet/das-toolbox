@@ -1,10 +1,12 @@
-import curses
 import socket
 import time
 from typing import Any, List, Optional, TypedDict, Union, cast
 
 import docker
 import docker.errors
+from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
 
 from common.exceptions import PortBindingError
 from settings.config import SERVICES_NETWORK_NAME
@@ -163,42 +165,37 @@ class ContainerManager(DockerManager):
                 print(chr(chunk), end="")
 
     def tail(self, file_path: str, clear_terminal: bool = False) -> None:
-        container_name = self.get_container().name
+        console = Console()
 
-        stdscr = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        stdscr.keypad(True)
+        container_name = self.get_container().name
+        container = self.get_docker_client().containers.get(container_name)
+
+        exec_command = f"tail -f {file_path}"
+
+        logs = container.exec_run(
+            cmd=exec_command,
+            tty=True,
+            stdout=True,
+            stderr=True,
+            stream=True,
+        )
+
+        log_lines = []
 
         try:
-            container = self.get_docker_client().containers.get(container_name)
+            with Live(console=console, refresh_per_second=4) as live:
+                for line in logs.output:
+                    decoded_line = line.decode().strip()
+                    if decoded_line != "":
+                        log_lines.append(decoded_line)
 
-            exec_command = f"tail -f {file_path}"
+                    panel_content = "\n".join(log_lines)
+                    if clear_terminal:
+                        panel_content = decoded_line
 
-            logs = container.exec_run(
-                cmd=exec_command,
-                tty=True,
-                stdout=True,
-                stderr=True,
-                stream=True,
-            )
-
-            for line in logs.output:
-                if clear_terminal:
-                    stdscr.clear()
-
-                if line.strip() != "":
-                    stdscr.addstr(line.decode().strip() + "\n")
-
-                stdscr.refresh()
-
+                    live.update(Panel(panel_content))
         except docker.errors.APIError:
             pass
-        finally:
-            curses.nocbreak()
-            stdscr.keypad(False)
-            curses.echo()
-            curses.endwin()
 
     def prune_volumes(self) -> dict[str, Any]:
         client = self.get_docker_client()
