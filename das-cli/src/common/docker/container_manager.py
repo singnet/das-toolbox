@@ -1,12 +1,12 @@
-from rich.console import Console
-from rich.live import Live
-from rich.panel import Panel
 import socket
 import time
 from typing import Any, List, Optional, TypedDict, Union, cast
 
 import docker
 import docker.errors
+from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
 
 from common.exceptions import PortBindingError
 from settings.config import SERVICES_NETWORK_NAME

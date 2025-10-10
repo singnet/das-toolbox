@@ -1,7 +1,9 @@
-from typing import Union
-import platform
 import os
+import platform
+from typing import Union
+
 import docker
+
 from .exceptions import DockerContextError, DockerDaemonConnectionError
 
 
@@ -31,17 +33,9 @@ class DockerManager:
 
             host = None
             try:
-                endpoints = (
-                    context.get("Endpoints")
-                    or context.get("endpoints")
-                    or {}
-                )
+                endpoints = context.get("Endpoints") or context.get("endpoints") or {}
                 docker_ep = endpoints.get("docker") or endpoints.get("Docker") or {}
-                host = (
-                    docker_ep.get("Host")
-                    or docker_ep.get("host")
-                    or docker_ep.get("Host")
-                )
+                host = docker_ep.get("Host") or docker_ep.get("host") or docker_ep.get("Host")
             except Exception:
                 host = None
 
@@ -72,9 +66,7 @@ class DockerManager:
             try:
                 return docker.from_env()
             except docker.errors.DockerException:
-                raise DockerDaemonConnectionError(
-                    "Docker daemon not reachable. Is Docker running?"
-                )
+                raise DockerDaemonConnectionError("Docker daemon not reachable. Is Docker running?")
 
         try:
             return docker.DockerClient(base_url="npipe:////./pipe/docker_engine")
@@ -88,7 +80,6 @@ class DockerManager:
                 "Docker daemon not reachable on Windows. "
                 "Ensure Docker Desktop is running, or expose the daemon on tcp://localhost:2375."
             )
-
 
     def get_docker_client(self) -> docker.DockerClient:
         return self._get_client(self._exec_context)

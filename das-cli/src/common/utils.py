@@ -6,8 +6,8 @@ import secrets
 import string
 import sys
 import time
-from pathlib import Path
 from importlib import resources
+from pathlib import Path
 from typing import Callable, Optional
 
 from common.logger import logger
@@ -121,6 +121,7 @@ def get_schema_hash() -> str:
         pass
 
     raise FileNotFoundError("Schema file not found in any known location.")
+
 
 def log_exception(e: Exception) -> None:
     error_type = e.__class__.__name__
