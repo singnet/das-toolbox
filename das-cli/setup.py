@@ -41,6 +41,9 @@ setup(
             "das-cli=das_cli:das_cli",
         ],
     },
+    package_data={
+        "settings": ["schema.json"],
+    },
     install_requires=get_install_requirements(),
     python_requires=">=3.8",
     license="MIT",
