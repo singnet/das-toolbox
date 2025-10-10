@@ -196,13 +196,14 @@ class ContainerManager(DockerManager):
                     live.update(Panel(panel_content))
         except docker.errors.APIError:
             pass
-        def prune_volumes(self) -> dict[str, Any]:
-            client = self.get_docker_client()
-            try:
-                result = client.volumes.prune()
-                return result
-            except docker.errors.APIError as e:
-                raise DockerError(f"Error pruning volumes: {e.explanation}")
+
+    def prune_volumes(self) -> dict[str, Any]:
+        client = self.get_docker_client()
+        try:
+            result = client.volumes.prune()
+            return result
+        except docker.errors.APIError as e:
+            raise DockerError(f"Error pruning volumes: {e.explanation}")
 
     def stop(
         self,
