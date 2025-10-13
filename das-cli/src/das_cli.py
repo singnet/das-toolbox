@@ -1,5 +1,6 @@
-from injector import Injector
 import copy
+
+from injector import Injector
 
 from commands.attention_broker import AttentionBrokerModule
 from commands.config import ConfigModule
