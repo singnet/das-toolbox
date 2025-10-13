@@ -6,6 +6,7 @@ import secrets
 import string
 import sys
 import time
+from importlib import resources
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -110,10 +111,16 @@ def get_schema_hash() -> str:
         ],
     )
 
-    if schema_path is None:
-        raise FileNotFoundError("Schema file not found.")
+    if schema_path is not None:
+        return calculate_file_hash(schema_path)
 
-    return calculate_file_hash(schema_path)
+    try:
+        with resources.path("das_cli.settings", "schema.json") as pkg_path:
+            return calculate_file_hash(pkg_path)
+    except (FileNotFoundError, ModuleNotFoundError):
+        pass
+
+    raise FileNotFoundError("Schema file not found in any known location.")
 
 
 def log_exception(e: Exception) -> None:

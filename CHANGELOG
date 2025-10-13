@@ -3,6 +3,7 @@ Highlights:
 [das#678] Remove LinkCreationAgent config parameters from das-client setup (PR #221)
 [das#681] Add default port ranges for all agents (PR: #223)
 [das#710] Updated das-cli evolution start to require --peer-port and --peer-hostname parameters (previously inferred from Query Agent) (PR #224)
+[das#708] Add cross-platform workflow examples and enable pip installation on Windows, Linux, and macOS (PR: #231)
 
 Bug fixes:
 [HOTFIX] Fix evolution-agent restart command params were shuffled (PR: #227)
