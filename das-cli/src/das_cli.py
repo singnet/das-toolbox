@@ -1,3 +1,5 @@
+import copy
+
 from injector import Injector
 
 from commands.attention_broker import AttentionBrokerModule
@@ -49,7 +51,9 @@ def init_module(cli, module):
     cli.add_command(instance.group)
 
     for alias in getattr(instance, "aliases", []):
-        cli.add_command(instance.group, name=alias)
+        alias_cmd = copy.copy(instance.group)
+        alias_cmd.hidden = True
+        cli.add_command(alias_cmd, name=alias)
 
 
 def init_modules(cli):
