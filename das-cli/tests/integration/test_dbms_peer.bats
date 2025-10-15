@@ -27,23 +27,23 @@ teardown() {
         -n $postgres_container_name
 }
 
-@test "Trying run command with unset configuration file" {
+@test "Trying run command with unset configuration file" { 
     unset_config
 
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --context $context_file_path
+    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --configpath $context_file_path
 
     assert_line --partial "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
 }
 
-@test "Invalid path for --context parameter" {
+@test "Invalid path for --configpath parameter" {
     local invalid_path="/path/invalid"
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --context "$invalid_path"
-    assert_line --partial "Error: Invalid value for '--context': File '$invalid_path' does not exist."
+    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --configpath "$invalid_path"
+    assert_line --partial "Error: Invalid value for '--configpath': File '$invalid_path' does not exist."
 }
 
-@test "Directory provided instead of file for --context" {
-    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --context "$test_fixtures_dir"
-    assert_line --partial "Error: Invalid value for '--context': File '$test_fixtures_dir' is a directory."
+@test "Directory provided instead of file for --configpath" {
+    run das-cli dbms-adapter dbms-peer run --client-hostname localhost --client-port 5432 --client-username postgres --client-password pass --client-database db --configpath "$test_fixtures_dir"
+    assert_line --partial "Error: Invalid value for '--configpath': File '$test_fixtures_dir' is a directory."
 }
 
 @test "DBMS Peer should not start when server is not up and running" {
@@ -98,7 +98,7 @@ The server is not running. Please start the server by executing \`dbms das-peer 
         --client-username $client_username \
         --client-password $client_password \
         --client-database $client_database \
-        --context "$context"
+        --configpath "$context"\
 
     assert_line --partial "Starting DBMS Peer $client_hostname:$client_port"
     assert_line --partial "The 'public.atoms' has been mapped"

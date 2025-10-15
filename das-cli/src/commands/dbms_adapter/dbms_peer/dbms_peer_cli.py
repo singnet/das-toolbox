@@ -68,7 +68,7 @@ EXAMPLES
             --client-username admin \\
             --client-password secret \\
             --client-database das_data \\
-            --context /etc/das/context.txt
+            --configpath /etc/das/context.txt
 """
 
     params = [
@@ -104,7 +104,7 @@ EXAMPLES
             default="postgres",
         ),
         CommandOption(
-            ["--context"],
+            ["--configpath"],
             help="Path to the configuration file for the DBMS peer client.",
             type=AbsolutePath(
                 file_okay=True,
@@ -135,7 +135,7 @@ EXAMPLES
 
     def _start_client(
         self,
-        context: str,
+        configpath: str,
         hostname: str,
         port: int,
         username: str,
@@ -150,7 +150,7 @@ EXAMPLES
         show_logs = self.output_format == "plain"
 
         self._dbms_peer_container_manager.start_container(
-            context,
+            configpath,
             hostname,
             port,
             username,
@@ -177,7 +177,7 @@ EXAMPLES
                     container=self._get_container(),
                     extra_details={
                         "client": {
-                            "context": context,
+                            "context": configpath,
                             "hostname": hostname,
                             "port": port,
                             "username": username,
@@ -198,7 +198,7 @@ EXAMPLES
     )
     def run(
         self,
-        context: str,
+        configpath: str,
         client_hostname: str,
         client_port: int,
         client_username: str,
@@ -214,7 +214,7 @@ EXAMPLES
         )
 
         self._start_client(
-            context,
+            configpath,
             client_hostname,
             client_port,
             client_username,
