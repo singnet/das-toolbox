@@ -60,9 +60,9 @@ class Command:
         "host",
         "user",
         "port",
-        "key-file",
+        "key_file",
         "password",
-        "connect-timeout",
+        "connect_timeout",
     ]
 
     default_params = [
@@ -147,35 +147,49 @@ class Command:
             params=self.params + self.remote_params + self.default_params,
         )
 
-    def _get_remote_kwargs(self, kwargs) -> tuple[bool, dict, dict]:
+    def _get_remote_execution_context(self):
+        """ Reads remote execution configuration from Click context.
+        Returns ExecutionContext or None if not remote.
         """
-        Gets remote kwargs from kwargs.
-        Params:
-        Returns (bool, kwargs, remote_kwargs):
-            First value is whether the command should be run on a remote server or not.
-        """
-        if not kwargs:
-            return (False, kwargs, {})
+        ctx = click.get_current_context(silent=True)
 
+        if not ctx or not ctx.obj or "execution_context" not in ctx.obj:
+            return None
+
+        execution_context = ctx.obj["execution_context"]
+
+        if not execution_context.is_remote():
+            return None
+
+        return execution_context
+
+    def _get_remote_kwargs_from_context(self) -> tuple[bool, dict]:
+        """
+        Reads remote execution configuration from Click context.
+        Returns (remote_enabled, remote_kwargs)
+        """
+        execution_context = self._get_remote_execution_context()
+
+        if execution_context is None:
+            return (False, {})
+
+        connection = getattr(execution_context, "connection", {})
         connect_kwargs = {}
-        key_file = kwargs.pop("key_file", None)
-        password = kwargs.pop("password", None)
-
-        if key_file:
-            connect_kwargs["key_filename"] = key_file
-        if password:
-            connect_kwargs["password"] = password
+        if connection.get("remote_key_path"):
+            connect_kwargs["key_filename"] = connection["remote_key_path"]
+        if connection.get("remote_password"):
+            connect_kwargs["password"] = connection["remote_password"]
 
         remote_kwargs = {
-            "user": kwargs.pop("user", ""),
-            "port": kwargs.pop("port", 22),
-            "host": kwargs.pop("host", ""),
+            "user": connection.get("remote_user", ""),
+            "port": connection.get("remote_port", 22),
+            "host": connection.get("remote_host", ""),
             "connect_kwargs": connect_kwargs,
-            "connect_timeout": kwargs.pop("connect_timeout", 10),
+            "connect_timeout": connection.get("connect_timeout", 10),
         }
-        remote = kwargs.pop("remote", False)
 
-        return (remote, kwargs, remote_kwargs)
+        return (True, remote_kwargs)
+
 
     def _dict_to_command_line_args(self, d: dict) -> str:
         """
@@ -205,11 +219,15 @@ class Command:
         prefix = "das-cli"
         command_path = " ".join(ctx.command_path.split(" ")[1:])
         extra_args = self._dict_to_command_line_args(kwargs)
-        command = f"{prefix} {command_path} {extra_args}"
+        execution_context = self._get_remote_execution_context()
+        remote_context = execution_context.context and f'--context \'{execution_context.context}\'' or ''
+
+        command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
+        print(command)
         Connection(**remote_kwargs).run(command)
 
     def safe_run(self, **kwargs):
-        remote, kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
+        remote, remote_kwargs = self._get_remote_kwargs_from_context()
 
         for param in getattr(self, "exclude_params", []):
             setattr(self, f"_{param}", kwargs.pop(param, None))

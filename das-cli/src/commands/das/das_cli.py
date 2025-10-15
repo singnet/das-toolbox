@@ -1,11 +1,19 @@
 import os
 import sys
+from common.execution_context import ExecutionContext
+from common.utils import log_exception
 
 import click
 import distro
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    StdoutSeverity,
+    is_executable_bin,
+)
 from settings.config import VERSION
 
 from .das_ubuntu_advanced_packaging_tool import (
@@ -15,8 +23,7 @@ from .das_ubuntu_advanced_packaging_tool import (
 )
 
 
-class PermissionError(Exception):
-    ...  # noqa: E701
+class PermissionError(Exception): ...  # noqa: E701
 
 
 class DasCliUpdateVersion(Command):
@@ -56,7 +63,9 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
 """
 
     @inject
-    def __init__(self, das_ubuntu_advanced_packaging_tool: DasUbuntuAdvancedPackagingTool) -> None:
+    def __init__(
+        self, das_ubuntu_advanced_packaging_tool: DasUbuntuAdvancedPackagingTool
+    ) -> None:
         super().__init__()
         self.package_dir = sys.executable
         self._das_ubuntu_advanced_packaging_tool = das_ubuntu_advanced_packaging_tool
@@ -105,7 +114,9 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
             self.stdout(
                 f"Updating the package {self._das_ubuntu_advanced_packaging_tool.package_name}..."
             )
-            newer_version = self._das_ubuntu_advanced_packaging_tool.install_package(version)
+            newer_version = self._das_ubuntu_advanced_packaging_tool.install_package(
+                version
+            )
         except Exception as e:
             raise DasPackageUpdateError(
                 f"The package '{self._das_ubuntu_advanced_packaging_tool.package_name}' could not be updated. Reason: {str(e)}"
@@ -174,6 +185,7 @@ Run command remotely using password:
         das_cli_update_version: DasCliUpdateVersion,
     ) -> None:
         super().__init__()
+        self.with_execution_context()
         self.version()
         self.add_commands(
             [
@@ -182,4 +194,53 @@ Run command remotely using password:
         )
 
     def version(self) -> None:
-        self.group = click.version_option(VERSION, message="%(prog)s %(version)s")(self.group)
+        self.group = click.version_option(VERSION, message="%(prog)s %(version)s")(
+            self.group
+        )
+
+    def _build_execution_context_from_argv(self, argv=None):
+        if argv is None:
+            argv = sys.argv[1:]
+
+        def get_arg_value(name, default=None):
+            if name in argv:
+                idx = argv.index(name)
+                if idx + 1 < len(argv):
+                    return argv[idx + 1]
+            return default
+
+        remote_host = get_arg_value("--host")
+        remote_port = int(get_arg_value("--port", 22))
+        remote_user = get_arg_value("--user")
+        remote_password = get_arg_value("--password")
+        remote_key_path = get_arg_value("--key-file")
+        remote_connection_timeout = int(get_arg_value("--connect-timeout", 10))
+        context_json = get_arg_value("--context")
+
+        return ExecutionContext(
+            remote_host=remote_host,
+            remote_port=remote_port,
+            remote_user=remote_user,
+            remote_key_path=remote_key_path,
+            remote_password=remote_password,
+            remote_connection_timeout=remote_connection_timeout,
+            context_str=context_json,
+        )
+
+    def with_execution_context(self):
+        original_callback = self.group.callback
+
+        @click.pass_context
+        def callback(ctx, *args, **kwargs):
+            ctx.ensure_object(dict)
+            try:
+                ctx.obj["execution_context"] = self._build_execution_context_from_argv()
+            except Exception as e:
+                log_exception(e)
+                sys.exit(1)
+
+            if original_callback:
+                return ctx.invoke(original_callback, *args, **kwargs)
+
+        self.group.callback = callback
+

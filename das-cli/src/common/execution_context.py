@@ -8,14 +8,20 @@ class ExecutionContext:
   def __init__(
     self,
     remote_host: Optional[str] = None,
-    remote_port: Optional[int] = None,
+    remote_port: Optional[int] = 22,
     remote_user: Optional[str] = None,
+    remote_password: Optional[str] = None,
+    remote_key_path: Optional[str] = None,
+    remote_connection_timeout: int = 10,
     context_str: Optional[str] = None,
   ):
     self.connection = {
       "remote_host": remote_host,
       "remote_port": remote_port,
       "remote_user": remote_user,
+      "remote_password": remote_password,
+      "remote_key_path": remote_key_path,
+      "remote_connection_timeout": remote_connection_timeout,
       "client_ip": get_public_ip(),
       "client_username": get_server_username(),
     }
