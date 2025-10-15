@@ -1,21 +1,23 @@
-from typing import Any, Optional
+from typing import Any
 
 from common.utils import get_schema_hash
 
 from .config.loader import ConfigLoader
 from .config.store import ConfigStore
+from common.config.loader import CompositeLoader, ContextLoader
 
 
 class Settings:
     def __init__(
         self,
         store: ConfigStore,
-        default_loader: Optional[ConfigLoader] = None,
         raise_on_missing_file=False,
         raise_on_schema_mismatch=False,
     ):
         self._store = store
-        self._default_loader = default_loader
+        self._default_loader = CompositeLoader(loaders=[
+            ContextLoader(),
+        ])
 
         if raise_on_missing_file:
             self.raise_on_missing_file()

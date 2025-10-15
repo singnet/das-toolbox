@@ -1,6 +1,8 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Any
+import click
+from common.execution_context import ExecutionContext
 
 
 class ConfigLoader(ABC):
@@ -65,3 +67,23 @@ class EnvVarLoader(ConfigLoader):
                 data[f_key] = f_value
 
         return data
+
+class ContextLoader(ConfigLoader):
+    def __init__(self):
+        ctx = click.get_current_context(silent=True)
+        self._execution_context: ExecutionContext | None = None
+
+        if ctx and ctx.obj and "execution_context" in ctx.obj:
+            self._execution_context = ctx.obj["execution_context"]
+
+    def load(self) -> Dict[str, Any]:
+        if not self._execution_context:
+            return {}
+
+        overrides = {}
+
+        ctx_data = self._execution_context.context
+        for key, value in ctx_data.items():
+            overrides[key] = value
+
+        return overrides
