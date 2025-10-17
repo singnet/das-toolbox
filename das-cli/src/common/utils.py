@@ -167,3 +167,14 @@ def print_table(
             for col in columns
         )
         stdout(line)
+
+def extract_service_name(container_name: str) -> str | None:
+    if not isinstance(container_name, str):
+        return None
+
+    name = container_name
+    if name.startswith("das-cli-"):
+        name = name[len("das-cli-"):]
+
+    parts = name.rsplit("-", 1)
+    return parts[0] if parts else name

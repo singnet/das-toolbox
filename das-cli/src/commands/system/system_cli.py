@@ -42,35 +42,23 @@ EXAMPLES
     def _format_services_status(self, status_dict: dict) -> None:
         rows = []
         for name, info in status_dict.items():
-            ports = info.get("ports", {})
+            port = info.get("port") or "-"
             version = info.get("version", ["-"])[0] if info.get("version") else "-"
-            status = info.get("status", "unknown")
-
-            formatted_ports = []
-            for container_port, mappings in ports.items():
-                if mappings and isinstance(mappings[0], dict):
-                    for mapping in mappings:
-                        host_port = mapping.get("HostPort")
-                        formatted_ports.append(f"{host_port}->{container_port}")
-                elif mappings and isinstance(mappings[0], str):
-                    for host_port in mappings:
-                        formatted_ports.append(f"{host_port}->{container_port}")
-                else:
-                    formatted_ports.append(str(container_port))
-
-            ports_str = ", ".join(formatted_ports) if formatted_ports else "-"
+            status = info.get("status", "unknown") or "-"
+            port_range = info.get("port_range") or "-"
 
             rows.append({
                 "NAME": name,
                 "VERSION": version,
                 "STATUS": status,
-                "PORTS": ports_str,
+                "PORT": port,
+                "PORT RANGE": port_range,
             })
 
         print_table(
             rows,
-            columns=["NAME", "VERSION", "STATUS", "PORTS"],
-            align={"NAME": "<", "VERSION": "<", "STATUS": "^", "PORTS": "<"},
+            columns=["NAME", "VERSION", "STATUS", "PORT", "PORT RANGE"],
+            align={"NAME": "<", "VERSION": "<", "STATUS": "^", "PORT": "<", "PORT RANGE": "<"},
             stdout=self.stdout
         )
 

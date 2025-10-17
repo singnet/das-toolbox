@@ -24,6 +24,7 @@ from .utils import (
     is_executable_bin,
     remove_special_characters,
     retry,
+    extract_service_name,
 )
 
 __all__ = [
@@ -54,6 +55,7 @@ __all__ = [
     "is_executable_bin",
     "remove_special_characters",
     "retry",
+    "extract_service_name",
     "deep_merge_dicts",
     "ContainerMetadata",
     "ContainerImageMetadata",
