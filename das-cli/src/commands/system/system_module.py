@@ -4,8 +4,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .system_cli import SystemCli, SystemContainersManager
-from .system_containers_manager import Settings
+from .system_cli import SystemCli, SystemContainersManager, Settings
 
 
 class SystemModule(Module):

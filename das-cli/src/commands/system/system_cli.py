@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, StdoutType
+from common import Command, CommandGroup, StdoutType, Settings
 from .system_containers_manager import SystemContainersManager
 from common.utils import print_table
 
@@ -33,8 +33,9 @@ EXAMPLES
 """
 
     @inject
-    def __init__(self, system_containers_manager: SystemContainersManager) -> None:
+    def __init__(self, settings: Settings, system_containers_manager: SystemContainersManager) -> None:
         self._system_containers_manager = system_containers_manager
+        self._settings = settings
 
         super().__init__()
 
@@ -65,6 +66,9 @@ EXAMPLES
 
 
     def run(self) -> None:
+        self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
+
         output = self._system_containers_manager.get_services_status()
 
         self.stdout(
