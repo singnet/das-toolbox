@@ -4,7 +4,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .system_cli import SystemCli, SystemContainersManager, Settings
+from .system_cli import Settings, SystemCli, SystemContainersManager
 
 
 class SystemModule(Module):
@@ -13,9 +13,7 @@ class SystemModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (

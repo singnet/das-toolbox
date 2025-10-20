@@ -19,7 +19,6 @@ from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
 from commands.system import SystemModule
-
 from common.docker.docker_network_manager import init_network
 from common.utils import log_exception
 

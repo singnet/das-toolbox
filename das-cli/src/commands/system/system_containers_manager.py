@@ -1,7 +1,8 @@
+import re
+
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
 from common.utils import extract_service_name
-import re
 
 
 class SystemContainersManager(DockerManager):
@@ -23,9 +24,7 @@ class SystemContainersManager(DockerManager):
 
     def _list_service_containers(self, all: bool = False) -> list:
         services = self._get_services()
-        return self.get_docker_client().containers.list(
-            all=all, filters={"name": services}
-        )
+        return self.get_docker_client().containers.list(all=all, filters={"name": services})
 
     def get_services_status(self) -> dict:
         expected_services = self._get_services()
@@ -58,7 +57,6 @@ class SystemContainersManager(DockerManager):
 
         return status
 
-
     def _extract_version(self, container) -> tuple:
         image_tags = getattr(container.image, "tags", [])
         if image_tags:
@@ -69,11 +67,7 @@ class SystemContainersManager(DockerManager):
         return ("unknown",)
 
     def _extract_port_range(self, container) -> str | None:
-        args = (
-            container.attrs.get("Args")
-            or container.attrs.get("Config", {}).get("Cmd")
-            or []
-        )
+        args = container.attrs.get("Args") or container.attrs.get("Config", {}).get("Cmd") or []
 
         if not isinstance(args, list):
             return None
