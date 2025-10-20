@@ -8,9 +8,11 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
-    for service in db attention-broker query-agent; do
-        das-cli "$service" stop
-    done
+    services_stop
+}
+
+teardown() {
+    services_stop
 }
 
 @test "Trying to show the system status with unset configuration file" {
