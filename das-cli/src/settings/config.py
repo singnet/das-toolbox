@@ -2,7 +2,7 @@ import getpass
 import tempfile
 from pathlib import Path
 
-VERSION = '0.5.6'
+VERSION = '0.5.7'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "das-services-network"
@@ -39,7 +39,7 @@ DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
-DAS_VERSION = "0.11.7"
+DAS_VERSION = "0.11.8"
 
 ATTENTION_BROKER_IMAGE_NAME = "trueagi/das"
 ATTENTION_BROKER_IMAGE_VERSION = f"attention-broker-{DAS_VERSION}"
