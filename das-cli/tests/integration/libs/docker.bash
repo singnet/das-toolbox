@@ -39,7 +39,7 @@ function services_stop() {
         return
     fi
 
-    docker rm -f "$services"
+    echo "$services" | xargs docker rm -f
 }
 
 function exec_cmd_on_service() {
