@@ -22,8 +22,8 @@ LOG_FILE_NAME = Path(tempfile.gettempdir()) / f"{getpass.getuser()}-das-cli.log"
 REDIS_IMAGE_NAME = "redis"
 REDIS_IMAGE_VERSION = "7.2.3-alpine"
 
-MONGODB_IMAGE_NAME = "mongo"
-MONGODB_IMAGE_VERSION = "6.0.13-jammy"
+MONGODB_IMAGE_NAME = "mongodb/mongodb-community-server"
+MONGODB_IMAGE_VERSION = "8.2-ubuntu2204"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "0.5.9-metta-parser"
