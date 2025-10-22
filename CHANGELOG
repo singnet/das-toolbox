@@ -15,3 +15,4 @@ Bug fixes:
 General changes:
 [das#681] Port ranges for all agents should be defaulted (PR: #223)
 [das#710] das-cli evolution start should expect the same parameters as the other agents (PR: #224)
+[das#812] Upgrade MongoDB from v6.0.13 to v8.2.1 (PR: #236)
