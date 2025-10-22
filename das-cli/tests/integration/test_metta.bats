@@ -104,6 +104,18 @@ teardown() {
     assert_line --partial "[31m[DockerError] File 'invalid.metta' could not be loaded.[39m"
 }
 
+@test "Loading a MeTTa file without read permission" {
+    local metta_file_path="$test_fixtures_dir/metta/animals.metta"
+
+    chmod -r "$metta_file_path"
+
+    run das-cli metta load "$metta_file_path"
+
+    assert_line --partial "Error: Invalid value for 'PATH': Path '$metta_file_path' is not readable."
+
+    chmod +r "$metta_file_path"
+}
+
 @test "Loading a valid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
     local mongodb_port="$(get_config .services.mongodb.port)"
