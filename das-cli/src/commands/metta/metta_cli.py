@@ -64,7 +64,7 @@ EXAMPLES
                 dir_okay=True,
                 file_okay=True,
                 exists=True,
-                writable=True,
+                writable=False,
                 readable=True,
             ),
         )

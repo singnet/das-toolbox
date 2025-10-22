@@ -10,6 +10,7 @@ Bug fixes:
 [das#700] das-cli db count-atoms command not working (PR: #228)
 [das#721] Changed logs command to print once by default, added --follow for live mode, and fixed remote support (PR: #230)
 [das#679] Remove duplicate command entries in das-client--help output (PR: #232)
+[das#729] Fix error message when metta file is invalid (PR: #235)
 
 General changes:
 [das#681] Port ranges for all agents should be defaulted (PR: #223)
