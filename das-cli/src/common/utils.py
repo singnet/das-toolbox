@@ -8,7 +8,8 @@ import sys
 import time
 from importlib import resources
 from pathlib import Path
-from typing import Callable, Optional
+from textwrap import shorten
+from typing import Any, Callable, Dict, List, Optional
 
 from common.logger import logger
 
@@ -131,3 +132,46 @@ def log_exception(e: Exception) -> None:
     logger().exception(error_message)
 
     print(pretty_message)
+
+
+def print_table(
+    rows: List[Dict[str, Any]],
+    columns: List[str],
+    align: Optional[Dict[str, str]] = None,
+    max_width: int = 25,
+    stdout=print,
+) -> None:
+    if not rows:
+        stdout("No data to display.")
+        return
+
+    col_widths = {
+        col: max(len(col), min(max_width, max(len(str(row.get(col, ""))) for row in rows)))
+        for col in columns
+    }
+
+    if align is None:
+        align = {col: "<" for col in columns}
+
+    header = "  ".join(f"{col:{align.get(col, '<')}{col_widths[col]}}" for col in columns)
+    stdout(header)
+    stdout("-" * len(header))
+
+    for row in rows:
+        line = "  ".join(
+            f"{shorten(str(row.get(col, '-')), width=col_widths[col], placeholder='…'):{align.get(col, '<')}{col_widths[col]}}"
+            for col in columns
+        )
+        stdout(line)
+
+
+def extract_service_name(container_name: str) -> str | None:
+    if not isinstance(container_name, str):
+        return None
+
+    name = container_name
+    if name.startswith("das-cli-"):
+        name = name[len("das-cli-") :]
+
+    parts = name.rsplit("-", 1)
+    return parts[0] if parts else name

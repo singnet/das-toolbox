@@ -32,6 +32,16 @@ function service_stop() {
     docker container rm -f "$container_name" &>/dev/null
 }
 
+function services_stop() {
+    services="$(docker ps | grep das-cli | cut -d" " -f 1)"
+
+    if [ -z "$services" ]; then
+        return
+    fi
+
+    echo "$services" | xargs docker rm -f
+}
+
 function exec_cmd_on_service() {
     local container_name
     local service_name="$1"

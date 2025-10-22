@@ -18,6 +18,7 @@ from .prompt_types import FunctionVersion, ReachableIpAddress, RegexType
 from .settings import Settings
 from .utils import (
     deep_merge_dicts,
+    extract_service_name,
     get_rand_token,
     get_script_name,
     get_server_username,
@@ -54,6 +55,7 @@ __all__ = [
     "is_executable_bin",
     "remove_special_characters",
     "retry",
+    "extract_service_name",
     "deep_merge_dicts",
     "ContainerMetadata",
     "ContainerImageMetadata",
