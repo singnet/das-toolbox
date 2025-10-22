@@ -4,13 +4,13 @@ Highlights:
 [das#681] Add default port ranges for all agents (PR: #223)
 [das#710] Updated das-cli evolution start to require --peer-port and --peer-hostname parameters (previously inferred from Query Agent) (PR #224)
 [das#708] Add cross-platform workflow examples and enable pip installation on Windows, Linux, and macOS (PR: #231)
-[das#729] Fix error message when metta file is invalid (PR: #235)
 
 Bug fixes:
 [HOTFIX] Fix evolution-agent restart command params were shuffled (PR: #227)
 [das#700] das-cli db count-atoms command not working (PR: #228)
 [das#721] Changed logs command to print once by default, added --follow for live mode, and fixed remote support (PR: #230)
 [das#679] Remove duplicate command entries in das-client--help output (PR: #232)
+[das#729] Fix error message when metta file is invalid (PR: #235)
 
 General changes:
 [das#681] Port ranges for all agents should be defaulted (PR: #223)
