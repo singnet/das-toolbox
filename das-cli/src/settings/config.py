@@ -40,4 +40,4 @@ DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
 DAS_IMAGE_VERSION = "0.11.9"
-DAS_IMAGE_NAME=f"trueagi/das"
+DAS_IMAGE_NAME = "trueagi/das"

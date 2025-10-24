@@ -5,7 +5,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import DAS_IMAGE_VERSION, DAS_IMAGE_NAME
+from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 
 class LinkCreationAgentContainerManager(ContainerManager):
