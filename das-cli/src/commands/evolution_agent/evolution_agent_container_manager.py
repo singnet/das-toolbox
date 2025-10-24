@@ -4,7 +4,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import EVOLUTION_AGENT_IMAGE_NAME, EVOLUTION_AGENT_IMAGE_VERSION
+from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 
 class EvolutionAgentContainerManager(ContainerManager):
@@ -19,8 +19,8 @@ class EvolutionAgentContainerManager(ContainerManager):
                 "port": options.get("evolution_agent_port"),
                 "image": ContainerImageMetadata(
                     {
-                        "name": EVOLUTION_AGENT_IMAGE_NAME,
-                        "version": EVOLUTION_AGENT_IMAGE_VERSION,
+                        "name": DAS_IMAGE_NAME,
+                        "version": DAS_IMAGE_VERSION,
                     }
                 ),
             },
@@ -43,7 +43,7 @@ class EvolutionAgentContainerManager(ContainerManager):
 
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address} {attention_broker_address}"
+        return f"evolution_broker {evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address} {attention_broker_address}"
 
     def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()

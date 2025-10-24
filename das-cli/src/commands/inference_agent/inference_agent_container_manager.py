@@ -4,7 +4,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import INFERENCE_AGENT_IMAGE_NAME, INFERENCE_AGENT_IMAGE_VERSION
+from settings.config import DAS_IMAGE_VERSION, DAS_IMAGE_NAME
 
 
 class InferenceAgentContainerManager(ContainerManager):
@@ -19,8 +19,8 @@ class InferenceAgentContainerManager(ContainerManager):
                 "port": options.get("inference_agent_port"),
                 "image": ContainerImageMetadata(
                     {
-                        "name": INFERENCE_AGENT_IMAGE_NAME,
-                        "version": INFERENCE_AGENT_IMAGE_VERSION,
+                        "name": DAS_IMAGE_NAME,
+                        "version": DAS_IMAGE_VERSION,
                     }
                 ),
             },
@@ -41,7 +41,7 @@ class InferenceAgentContainerManager(ContainerManager):
         server_address = f"{inference_agent_hostname}:{inference_agent_port}"
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{server_address} {peer_address} {port_range}"
+        return f"inference_agent_server {server_address} {peer_address} {port_range}"
 
     def start_container(
         self,

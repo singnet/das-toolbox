@@ -5,7 +5,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import LINK_CREATION_AGENT_IMAGE_NAME, LINK_CREATION_AGENT_IMAGE_VERSION
+from settings.config import DAS_IMAGE_VERSION, DAS_IMAGE_NAME
 
 
 class LinkCreationAgentContainerManager(ContainerManager):
@@ -20,8 +20,8 @@ class LinkCreationAgentContainerManager(ContainerManager):
                 "port": options.get("link_creation_agent_port"),
                 "image": ContainerImageMetadata(
                     {
-                        "name": LINK_CREATION_AGENT_IMAGE_NAME,
-                        "version": LINK_CREATION_AGENT_IMAGE_VERSION,
+                        "name": DAS_IMAGE_NAME,
+                        "version": DAS_IMAGE_VERSION,
                     }
                 ),
             },
@@ -42,7 +42,7 @@ class LinkCreationAgentContainerManager(ContainerManager):
         server_address = f"{link_creation_agent_hostname}:{link_creation_agent_port}"
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"{server_address} {peer_address} {port_range}"
+        return f"link_creation_server {server_address} {peer_address} {port_range}"
 
     def _ensure_file_exists(self, path: str) -> None:
         if os.path.exists(path):

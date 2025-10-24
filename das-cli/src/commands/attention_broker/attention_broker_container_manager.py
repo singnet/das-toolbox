@@ -4,7 +4,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import ATTENTION_BROKER_IMAGE_NAME, ATTENTION_BROKER_IMAGE_VERSION
+from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 
 class AttentionBrokerManager(ContainerManager):
@@ -19,8 +19,8 @@ class AttentionBrokerManager(ContainerManager):
                 "port": options.get("attention_broker_port"),
                 "image": ContainerImageMetadata(
                     {
-                        "name": ATTENTION_BROKER_IMAGE_NAME,
-                        "version": ATTENTION_BROKER_IMAGE_VERSION,
+                        "name": DAS_IMAGE_NAME,
+                        "version": DAS_IMAGE_VERSION,
                     }
                 ),
             },
@@ -33,7 +33,7 @@ class AttentionBrokerManager(ContainerManager):
         attention_broker_hostname = self._options.get("attention_broker_hostname", "localhost")
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
 
-        return f"{attention_broker_hostname}:{attention_broker_port}"
+        return f"attention_broker_service {attention_broker_hostname}:{attention_broker_port}"
 
     def start_container(self):
         self.raise_running_container()
