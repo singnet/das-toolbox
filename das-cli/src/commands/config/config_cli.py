@@ -8,6 +8,7 @@ from common import (
     CommandGroup,
     CommandOption,
     IntRange,
+    Choice,
     ReachableIpAddress,
     RemoteContextManager,
     Settings,
@@ -551,6 +552,33 @@ EXAMPLES
             severity=StdoutSeverity.SUCCESS,
         )
 
+    def _atomdb_backend(self) -> dict:
+        backends = {
+            "redis_mongodb": {
+                self._redis,
+                self._mongodb,
+            },
+            "mork_mongodb": {
+                self._mongodb,
+            }
+        }
+
+        atomdb_backend = self.prompt(
+            "Choose the AtomDB backend: ",
+            type=Choice(["redis_mongodb", "mork_mongodb"]),
+            default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
+        )
+
+        backend = backends.get(atomdb_backend) or backends["redis_mongodb"]
+        backend_configs = [func() for func in backend]
+        merged_config = {
+            "services.database.atomdb_backend": atomdb_backend,
+        }
+        for config in backend_configs:
+            merged_config.update(config)
+
+        return merged_config
+
     def run(self, from_env: str):
         self._settings.replace_loader(
             loader=CompositeLoader(
@@ -563,8 +591,7 @@ EXAMPLES
 
         config_steps = [
             self._schema_hash,
-            self._redis,
-            self._mongodb,
+            self._atomdb_backend,
             self._loader,
             self._das_peer,
             self._dbms_peer,
