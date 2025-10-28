@@ -4,7 +4,7 @@ import docker
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import CONTEXT_BROKER_IMAGE_NAME, CONTEXT_BROKER_IMAGE_VERSION
+from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 
 class ContextBrokerContainerManager(ContainerManager):
@@ -19,8 +19,8 @@ class ContextBrokerContainerManager(ContainerManager):
                 "port": options.get("context_broker_port"),
                 "image": ContainerImageMetadata(
                     {
-                        "name": CONTEXT_BROKER_IMAGE_NAME,
-                        "version": CONTEXT_BROKER_IMAGE_VERSION,
+                        "name": DAS_IMAGE_NAME,
+                        "version": DAS_IMAGE_VERSION,
                     }
                 ),
             },
@@ -51,7 +51,7 @@ class ContextBrokerContainerManager(ContainerManager):
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
         attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
 
-        return f"{context_broker_address} {port_range} {peer_address} {attention_broker_address}"
+        return f"context_broker {context_broker_address} {port_range} {peer_address} {attention_broker_address}"
 
     def start_container(
         self,
