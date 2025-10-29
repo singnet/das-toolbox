@@ -28,6 +28,13 @@ class MettaLoaderContainerManager(ContainerManager):
         super().__init__(container)
         self._options = options
 
+    def _gen_metta_loader_command(self, path: str) -> str:
+        filename = os.path.basename(path)
+        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'mork_mongodb' else ""
+        exec_command = f"db_loader {filename} {skip_redis}".strip()
+
+        return exec_command
+
     def start_container(self, path):
         if not os.path.exists(path):
             raise FileNotFoundError(f"The specified file path '{path}' does not exist.")
@@ -41,9 +48,7 @@ class MettaLoaderContainerManager(ContainerManager):
             pass
 
         try:
-            filename = os.path.basename(path)
-            exec_command = f"db_loader {filename}"
-
+            exec_command = self._gen_metta_loader_command(path)
             container = self._start_container(
                 environment={
                     "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),

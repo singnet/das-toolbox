@@ -70,6 +70,7 @@ class MettaModule(Module):
         mongodb_password = self._settings.get("services.mongodb.password")
         redis_hostname = self._settings.get("services.redis.container_name")
         redis_port = self._settings.get("services.redis.port")
+        atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
         return MettaLoaderContainerManager(
             container_name,
@@ -80,5 +81,6 @@ class MettaModule(Module):
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
+                "atomdb_backend": atomdb_backend,
             },
         )

@@ -8,7 +8,6 @@ from common import (
     CommandGroup,
     CommandOption,
     IntRange,
-    Choice,
     ReachableIpAddress,
     RemoteContextManager,
     Settings,
