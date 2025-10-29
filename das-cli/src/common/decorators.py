@@ -1,6 +1,6 @@
 import os
 from functools import wraps
-from typing import Callable, List
+from typing import Callable
 
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -11,7 +11,7 @@ from .settings import Settings
 
 
 def ensure_container_running(
-    cls_container_manager_attrs: List[str],
+    cls_backend_attr: str,
     exception_text: str = "",
     verbose: bool = True,
 ):
@@ -23,45 +23,41 @@ def ensure_container_running(
             settings.raise_on_missing_file()
             settings.raise_on_schema_mismatch()
 
-            container_not_running = False
+            if not hasattr(self, cls_backend_attr):
+                raise ValueError(
+                    f"`{cls_backend_attr}` is not a valid backend attribute."
+                )
 
-            for container_manager_attr in cls_container_manager_attrs:
-                if not hasattr(self, container_manager_attr):
-                    raise ValueError(
-                        f"`{container_manager_attr}` is not a valid container manager attribute."
+            backend = getattr(self, cls_backend_attr)
+
+            if not backend.is_running():
+                if verbose:
+                    self.stdout(
+                        "One or more required services are not running.",
+                        severity=StdoutSeverity.ERROR,
                     )
-
-                container = getattr(self, container_manager_attr)
-
-                container_instance = container.get_container()
-                service_name = container_instance.name
-                service_port = container_instance.port
-
-                if not container.is_running():
-                    if verbose:
-                        self.stdout(
-                            f"{service_name} is not running",
-                            severity=StdoutSeverity.ERROR,
-                        )
-                        self.stdout(
-                            {
-                                "service": service_name,
-                                "action": "check",
-                                "status": "not_running",
-                                "port": service_port,
-                            },
-                            stdout_type=StdoutType.MACHINE_READABLE,
-                        )
-                    container_not_running = True
-                else:
-                    if verbose:
-                        self.stdout(
-                            f"{service_name} is running on port {service_port}",
-                            severity=StdoutSeverity.WARNING,
-                        )
-
-            if container_not_running:
+                    status = backend.status()
+                    for service, is_running in status.items():
+                        if not is_running:
+                            self.stdout(f"- {service}: NOT RUNNING")
+                            self.stdout(
+                                {
+                                    "service": service,
+                                    "action": "check",
+                                    "status": "not_running",
+                                },
+                                stdout_type=StdoutType.MACHINE_READABLE,
+                            )
                 raise DockerContainerNotFoundError(exception_text)
+            else:
+                if verbose:
+                    status = backend.status()
+                    self.stdout(
+                        "All required services are running: ",
+                        severity=StdoutSeverity.WARNING,
+                    )
+                    for service in status.keys():
+                        self.stdout(f"- {service}: running")
 
             return func(self, *args, **kwargs)
 
