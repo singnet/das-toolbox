@@ -28,8 +28,7 @@ class MettaLoaderContainerManager(ContainerManager):
         super().__init__(container)
         self._options = options
 
-    def _gen_metta_loader_command(self, path: str) -> str:
-        filename = os.path.basename(path)
+    def _gen_metta_loader_command(self, filename: str) -> str:
         skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'mork_mongodb' else ""
         exec_command = f"db_loader {filename} {skip_redis}".strip()
 
@@ -48,7 +47,8 @@ class MettaLoaderContainerManager(ContainerManager):
             pass
 
         try:
-            exec_command = self._gen_metta_loader_command(path)
+            filename = os.path.basename(path)
+            exec_command = self._gen_metta_loader_command(filename)
             container = self._start_container(
                 environment={
                     "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),
