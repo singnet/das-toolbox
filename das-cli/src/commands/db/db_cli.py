@@ -2,9 +2,21 @@ from typing import AnyStr, Union
 
 from injector import inject
 
+from commands.db.atomdb_backend import (
+    AtomdbBackend,
+    MorkMongoDBBackend,
+    MongoDBRedisBackend,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -41,9 +53,11 @@ $ das-cli db count-atoms
     @inject
     def __init__(
         self,
+        atomdb_backend: AtomdbBackend,
         mongodb_container_manager: MongodbContainerManager,
         redis_container_manager: RedisContainerManager,
     ) -> None:
+        self._atomdb_backend = atomdb_backend
         self._mongodb_container_manager = mongodb_container_manager
         self._redis_container_manager = redis_container_manager
 
@@ -132,16 +146,18 @@ $ das-cli db count-atoms
         )
 
     @ensure_container_running(
-        [
-            "_mongodb_container_manager",
-            "_redis_container_manager",
-        ],
+        "_atomdb_backend",
         exception_text="\nPlease use 'db start' to start required services before running 'db count-atoms'.",
         verbose=False,
     )
     def run(self) -> None:
-        self._show_mongodb_stats()
-        self._show_redis_stats()
+        for provider in self._atomdb_backend.get_active_providers():
+            if isinstance(provider, MongoDBRedisBackend):
+                self._show_mongodb_stats()
+                self._show_redis_stats()
+
+            elif isinstance(provider, MorkMongoDBBackend):
+                self._show_mongodb_stats()
 
 
 class DbStop(Command):
@@ -187,13 +203,16 @@ $ das-cli db stop --prune
     def __init__(
         self,
         settings: Settings,
+        atomdb_backend: AtomdbBackend,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
     ) -> None:
-        super().__init__()
         self._settings = settings
+        self._atomdb_backend = atomdb_backend
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+
+        super().__init__()
 
     def _get_redis_container(self):
         return self._redis_container_manager.get_container()
@@ -303,9 +322,7 @@ $ das-cli db stop --prune
             )
         except DockerContainerNotFoundError:
             container_name = self._get_mongodb_container().name
-            warning_message = (
-                f"The MongoDB service named {container_name} at {ip} is already stopped."
-            )
+            warning_message = f"The MongoDB service named {container_name} at {ip} is already stopped."
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -369,8 +386,13 @@ $ das-cli db stop --prune
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._redis(prune)
-        self._mongodb(prune)
+        for provider in self._atomdb_backend.get_active_providers():
+            if isinstance(provider, MongoDBRedisBackend):
+                self._redis(prune)
+                self._mongodb(prune)
+
+            elif isinstance(provider, MorkMongoDBBackend):
+                self._mongodb(prune)
 
 
 class DbStart(Command):
@@ -402,13 +424,17 @@ $ das-cli db start
     def __init__(
         self,
         settings: Settings,
+        atomdb_backend: AtomdbBackend,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
     ) -> None:
-        super().__init__()
+        self._atomdb_backend = atomdb_backend
         self._settings = settings
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+
+        super().__init__()
+
 
     def _get_redis_container(self):
         return self._redis_container_manager.get_container()
@@ -627,7 +653,9 @@ $ das-cli db start
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
+        mongodb_cluster_secret_key = self._settings.get(
+            "services.mongodb.cluster_secret_key"
+        )
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
@@ -674,8 +702,13 @@ $ das-cli db start
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._redis()
-        self._mongodb()
+        for provider in self._atomdb_backend.get_active_providers():
+            if isinstance(provider, MongoDBRedisBackend):
+                self._redis()
+                self._mongodb()
+
+            elif isinstance(provider, MorkMongoDBBackend):
+                self._mongodb()
 
 
 class DbRestart(Command):

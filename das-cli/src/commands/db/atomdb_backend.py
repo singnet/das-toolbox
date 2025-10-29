@@ -20,7 +20,7 @@ class BackendProvider(ABC):
 
 
 class MongoDBRedisBackend(BackendProvider):
-    name = "mongodb-redis"
+    name = "redis_mongodb"
 
     def __init__(
         self,
@@ -46,7 +46,7 @@ class MongoDBRedisBackend(BackendProvider):
 
 
 class MorkMongoDBBackend(BackendProvider):
-    name = "mork-mongodb"
+    name = "mork_mongodb"
 
     def __init__(self, mongodb_container_manager: MongodbContainerManager) -> None:
         self._mongodb_container_manager = mongodb_container_manager
@@ -79,3 +79,6 @@ class AtomdbBackend:
 
     def status(self) -> dict:
         return {p.name: p.is_running() for p in self._providers}
+
+    def get_active_providers(self) -> List[BackendProvider]:
+        return self._providers
