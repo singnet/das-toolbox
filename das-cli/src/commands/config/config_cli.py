@@ -47,16 +47,19 @@ SECTIONS
 
     ┌────────────────────┐
     │ 1. schema_hash     │
-    │ 2. Redis           │
-    │ 3. MongoDB         │
-    │ 4. Loader          │
-    │ 5. Jupyter         │
-    │ 6. DAS Peer        │
-    │ 7. DBMS Peer       │
-    │ 8. AttentionBroker │
-    │ 9. Query Agent     │
-    │ 10. Link Agent     │
-    │ 11. Evolution Agent│
+    | 2. AtomDB Backend  │
+    │ 3. Redis           │
+    │ 4. MongoDB         │
+    | 5. MorkDB          │
+    │ 6. Loader          │
+    │ 7. Jupyter         │
+    │ 8. DAS Peer        │
+    │ 9. DBMS Peer       │
+    │ 10. AttentionBroker│
+    │ 11. Query Agent    │
+    │ 12. Link Agent     │
+    │ 13. Evolution Agent│
+    │ 14. Context Broker │
     └────────────────────┘
 
 OPTIONS AND VARIABLES
@@ -69,6 +72,13 @@ SCHEMA HASH CONFIGURATION (schema_hash)
 
 
 SERVICES CONFIGURATION (services.*)
+
+    ATOMDB BACKEND CONFIGURATION (database.atomdb_backend)
+
+        database.atomdb_backend
+            Defines the backend used for AtomDB storage. Supported options are:
+            - redis_mongodb: Uses Redis for caching and MongoDB for persistent storage.
+            - mork_mongodb: Uses MorkDB for caching and MongoDB for persistent storage
 
     REDIS CONFIGURATION (redis.*)
 
@@ -173,6 +183,14 @@ SERVICES CONFIGURATION (services.*)
         mongodb.nodes.[].username
             SSH username to connect to the node.
 
+    MORKDB CONFIGURATION (morkdb.*)
+        morkdb.port
+            Port where the MorkDB server listens.
+            The user must ensure this port is available on the server where das-cli is running.
+
+        morkdb.container_name
+            Specifies the name of the Docker container running the MorkDB server.
+
     LOADER CONFIGURATION (loader.*)
 
         loader.container_name
@@ -230,6 +248,15 @@ SERVICES CONFIGURATION (services.*)
 
         evolution.container_name
             Specifies the name of the Docker container running the Evolution.
+
+    CONTEXT BROKER CONFIGURATION (context_broker.*)
+
+        context_broker.port
+            Listening port for the Context Broker.
+            The user must ensure this port is available on the server.
+
+        context_broker.container_name
+            Specifies the name of the Docker container running the Context Broker.
 
 
 EXAMPLES
@@ -555,6 +582,17 @@ EXAMPLES
             severity=StdoutSeverity.SUCCESS,
         )
 
+    def _morkdb(self) -> Dict:
+        morkdb_port = self.prompt(
+            "Enter the MorkDB port",
+            default=self._settings.get("services.morkdb.port", 40022),
+        )
+
+        return {
+            "services.morkdb.port": morkdb_port,
+            "services.morkdb.container_name": f"das-cli-morkdb-{morkdb_port}",
+        }
+
     def _atomdb_backend(self) -> dict:
         backends = {
             "redis_mongodb": {
@@ -563,6 +601,7 @@ EXAMPLES
             },
             "mork_mongodb": {
                 self._mongodb,
+                self._morkdb,
             },
         }
 
@@ -571,7 +610,8 @@ EXAMPLES
             options={
                 'Redis + MongoDB': 'redis_mongodb',
                 'Mork + MongoDB': 'mork_mongodb',
-            }
+            },
+            default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
         )
 
         backend = backends.get(atomdb_backend) or backends["redis_mongodb"]
