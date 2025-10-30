@@ -1,7 +1,6 @@
 from injector import inject
 
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.atomdb_backend import AtomdbBackend
 from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
@@ -140,16 +139,15 @@ EXAMPLES
         settings: Settings,
         image_manager: ImageManager,
         das_peer_container_manager: DasPeerContainerManager,
-        mongodb_container_manager: MongodbContainerManager,
-        redis_container_manager: RedisContainerManager,
+        atomdb_backend: AtomdbBackend,
+
     ) -> None:
-        super().__init__()
         self._settings = settings
         self._image_manager = image_manager
-
+        self._atomdb_backend = atomdb_backend
         self._das_peer_container_manager = das_peer_container_manager
-        self._mongodb_container_manager = mongodb_container_manager
-        self._redis_container_manager = redis_container_manager
+
+        super().__init__()
 
     def _get_container(self):
         return self._das_peer_container_manager.get_container()
@@ -178,8 +176,7 @@ EXAMPLES
 
     @ensure_container_running(
         [
-            "_mongodb_container_manager",
-            "_redis_container_manager",
+            "_atomdb_backend",
         ],
         exception_text="\nPlease use 'db start' to start required services before running 'das-peer start'.",
     )

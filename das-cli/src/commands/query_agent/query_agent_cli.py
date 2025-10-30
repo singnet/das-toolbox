@@ -1,8 +1,7 @@
 from injector import inject
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.atomdb_backend import AtomdbBackend
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
@@ -141,16 +140,14 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        redis_container_manager: RedisContainerManager,
-        mongodb_container_manager: MongodbContainerManager,
+        atomdb_backend: AtomdbBackend,
         attention_broker_container_manager: AttentionBrokerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._query_agent_container_manager = query_agent_container_manager
-        self._redis_container_manager = redis_container_manager
-        self._mongodb_container_manager = mongodb_container_manager
         self._attention_broker_container_manager = attention_broker_container_manager
+        self._atomdb_backend = atomdb_backend
 
     def _get_container(self):
         return self._query_agent_container_manager.get_container()
@@ -210,8 +207,7 @@ EXAMPLES
 
     @ensure_container_running(
         [
-            "_mongodb_container_manager",
-            "_redis_container_manager",
+            "_atomdb_backend",
             "_attention_broker_container_manager",
         ],
         exception_text="\nPlease start the required services before running 'query-agent start'.\n"
