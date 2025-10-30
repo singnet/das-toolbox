@@ -9,6 +9,7 @@ from commands.db.atomdb_backend import (
 )
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
 from common import (
     Command,
     CommandGroup,
@@ -206,11 +207,13 @@ $ das-cli db stop --prune
         atomdb_backend: AtomdbBackend,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
+        morkdb_container_manager: MorkdbContainerManager,
     ) -> None:
         self._settings = settings
         self._atomdb_backend = atomdb_backend
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+        self._morkdb_container_manager = morkdb_container_manager
 
         super().__init__()
 
@@ -219,6 +222,9 @@ $ das-cli db stop --prune
 
     def _get_mongodb_container(self):
         return self._mongodb_container_manager.get_container()
+
+    def _get_morkdb_container(self):
+        return self._morkdb_container_manager.get_container()
 
     def _redis_node(
         self,
@@ -382,6 +388,63 @@ $ das-cli db stop --prune
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
+    def _morkdb(self, prune: bool = False) -> None:
+        self.stdout("Stopping MorkDB service...")
+
+        try:
+            self._morkdb_container_manager.stop(
+                remove_volume=prune,
+                force=prune,
+            )
+
+            success_message = "MorkDB service stopped successfully"
+
+            self.stdout(
+                success_message,
+                severity=StdoutSeverity.SUCCESS,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="stop",
+                        status="success",
+                        message=success_message,
+                        container=self._get_morkdb_container(),
+                        extra_details={
+                            "prune": prune,
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerNotFoundError:
+            container_name = self._get_morkdb_container().name
+            warning_message = f"The MorkDB service named {container_name} is already stopped."
+            self.stdout(
+                warning_message,
+                severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_message,
+                        container=self._get_morkdb_container(),
+                        extra_details={
+                            "prune": prune,
+                        },
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerError as e:
+            self.stdout(
+                "\nError occurred while trying to stop MorkDB\n",
+                severity=StdoutSeverity.ERROR,
+            )
+            raise e
+
     def run(self, prune: bool = False) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -393,6 +456,7 @@ $ das-cli db stop --prune
 
             elif isinstance(provider, MorkMongoDBBackend):
                 self._mongodb(prune)
+                self._morkdb(prune)
 
 
 class DbStart(Command):
@@ -408,7 +472,6 @@ start - Starts all DBMS containers.
 .SH DESCRIPTION
 
 'das-cli db start' initiates all databases.
-These databases can either be utilized alongside DAS FaaS Function or connected directly to a local DAS instance.
 
 Upon execution, the command will display the ports on which each database is running.
 Note that the port configuration can be modified using the 'das-cli config set' command.
@@ -427,11 +490,13 @@ $ das-cli db start
         atomdb_backend: AtomdbBackend,
         redis_container_manager: RedisContainerManager,
         mongodb_container_manager: MongodbContainerManager,
+        morkdb_container_manager: MorkdbContainerManager,
     ) -> None:
         self._atomdb_backend = atomdb_backend
         self._settings = settings
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
+        self._morkdb_container_manager = morkdb_container_manager
 
         super().__init__()
 
@@ -441,6 +506,9 @@ $ das-cli db start
 
     def _get_mongodb_container(self):
         return self._mongodb_container_manager.get_container()
+
+    def _get_morkdb_container(self):
+        return self._morkdb_container_manager.get_container()
 
     def _redis_node(
         self,
@@ -698,6 +766,55 @@ $ das-cli db start
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
+    def _morkdb(self) -> None:
+        self.stdout("Starting MorkDB service...")
+
+        morkdb_port = self._settings.get("services.morkdb.port")
+
+        try:
+            self._morkdb_container_manager.start_container()
+
+            success_message = f"MorkDB has started successfully on port {morkdb_port}"
+
+            self.stdout(
+                success_message,
+                severity=StdoutSeverity.SUCCESS,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=self._get_morkdb_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerContainerDuplicateError:
+            warning_message = f"MorkDB is already running. It is currently listening on port {morkdb_port}"
+            self.stdout(
+                warning_message,
+                severity=StdoutSeverity.WARNING,
+            )
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_message,
+                        container=self._get_mongodb_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+        except DockerError as e:
+            self.stdout(
+                f"\nError occurred while trying to start MorkDB on port {morkdb_port}.\n",
+                severity=StdoutSeverity.ERROR,
+            )
+
+
     def run(self):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
@@ -709,6 +826,7 @@ $ das-cli db start
 
             elif isinstance(provider, MorkMongoDBBackend):
                 self._mongodb()
+                self._morkdb()
 
 
 class DbRestart(Command):

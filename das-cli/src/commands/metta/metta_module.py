@@ -3,6 +3,7 @@ from typing import List
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -26,8 +27,6 @@ class MettaModule(Module):
         self._settings = Settings(
             store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
         )
-        self._mongodb_manager = self._mongodb_container_manager_factory()
-        self._redis_manager = self._redis_container_manager_factory()
 
         self._dependecy_injection = [
             (
@@ -37,6 +36,10 @@ class MettaModule(Module):
             (
                 MettaLoaderContainerManager,
                 self._metta_loader_container_manager_factory,
+            ),
+            (
+                MorkdbContainerManager,
+                self._morkdb_container_manager_factory,
             ),
             (
                 Settings,
@@ -51,12 +54,17 @@ class MettaModule(Module):
         if backend_name == "redis_mongodb":
             providers.append(
                 MongoDBRedisBackend(
-                    self._mongodb_manager,
-                    self._redis_manager,
+                    self._mongodb_container_manager_factory(),
+                    self._redis_container_manager_factory(),
                 ),
             )
         elif backend_name == "mork_mongodb":
-            providers.append(MorkMongoDBBackend(self._mongodb_manager))
+            providers.append(
+                MorkMongoDBBackend(
+                    self._morkdb_container_manager_factory(),
+                    self._mongodb_container_manager_factory(),
+                )
+            )
 
         return AtomdbBackend(providers)
 
@@ -106,5 +114,16 @@ class MettaModule(Module):
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
                 "atomdb_backend": atomdb_backend,
+            },
+        )
+
+    def _morkdb_container_manager_factory(self) -> MorkdbContainerManager:
+        container_name = self._settings.get("services.morkdb.container_name")
+        morkdb_port = self._settings.get("services.morkdb.port")
+
+        return MorkdbContainerManager(
+            container_name,
+            options={
+                "morkdb_port": morkdb_port,
             },
         )

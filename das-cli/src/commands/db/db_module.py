@@ -6,7 +6,13 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .db_cli import DbCli, MongodbContainerManager, RedisContainerManager, Settings
+from .db_cli import (
+    DbCli,
+    MongodbContainerManager,
+    RedisContainerManager,
+    Settings,
+    MorkdbContainerManager,
+)
 
 from commands.db.atomdb_backend import (
     AtomdbBackend,
@@ -43,6 +49,10 @@ class DbModule(Module):
                 Settings,
                 self._settings,
             ),
+            (
+                MorkdbContainerManager,
+                self._morkdb_container_manager_factory,
+            ),
         ]
 
     def _atomdb_backend_factory(self) -> AtomdbBackend:
@@ -57,7 +67,12 @@ class DbModule(Module):
                 ),
             )
         elif backend_name == "mork_mongodb":
-            providers.append(MorkMongoDBBackend(self._mongodb_container_manager_factory()))
+            providers.append(
+                MorkMongoDBBackend(
+                    self._morkdb_container_manager_factory(),
+                    self._mongodb_container_manager_factory(),
+                )
+            )
 
         return AtomdbBackend(providers)
 
@@ -84,5 +99,16 @@ class DbModule(Module):
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
+            },
+        )
+
+    def _morkdb_container_manager_factory(self) -> MorkdbContainerManager:
+        container_name = self._settings.get("services.morkdb.container_name")
+        morkdb_port = self._settings.get("services.morkdb.port")
+
+        return MorkdbContainerManager(
+            container_name,
+            options={
+                "morkdb_port": morkdb_port,
             },
         )

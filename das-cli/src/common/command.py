@@ -1,7 +1,7 @@
 import json
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, TypedDict
+from typing import Any, Callable, Dict, List, TypedDict, Optional
 
 import click
 import yaml
@@ -229,12 +229,13 @@ class Command:
 
         self.flush_stdout()
 
-    def select(self, text: str, options: list[SelectOption]) -> str:
+    def select(self, text: str, options: list[SelectOption], default: Optional[str] = None) -> str:
         choices = [InquirerChoice(v, name=k) for k, v in options.items()]
         choice = inquirer.select(
             message=text,
             choices=choices,
             pointer="> ",
+            default=default,
         ).execute()
 
         return choice

@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from typing import List
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
+
 
 class BackendProvider(ABC):
     name: str
@@ -39,26 +41,40 @@ class MongoDBRedisBackend(BackendProvider):
         self._mongodb_container_manager.stop()
 
     def is_running(self) -> bool:
-        return (
-            self._mongodb_container_manager.is_running()
-            and self._redis_container_manager.is_running()
+        return all(
+            [
+                self._mongodb_container_manager.is_running(),
+                self._redis_container_manager.is_running(),
+            ]
         )
 
 
 class MorkMongoDBBackend(BackendProvider):
     name = "mork_mongodb"
 
-    def __init__(self, mongodb_container_manager: MongodbContainerManager) -> None:
+    def __init__(
+        self,
+        mongodb_container_manager: MongodbContainerManager,
+        morkdb_container_manager: MorkdbContainerManager,
+    ) -> None:
         self._mongodb_container_manager = mongodb_container_manager
+        self._mork_db_container_manager = morkdb_container_manager
 
     def start(self) -> None:
         self._mongodb_container_manager.start()
+        self._mork_db_container_manager.start()
 
     def stop(self) -> None:
         self._mongodb_container_manager.stop()
+        self._mork_db_container_manager.stop()
 
     def is_running(self) -> bool:
-        return self._mongodb_container_manager.is_running()
+        return all(
+            [
+                self._mongodb_container_manager.is_running(),
+                self._mork_db_container_manager.is_running(),
+            ]
+        )
 
 
 class AtomdbBackend:
