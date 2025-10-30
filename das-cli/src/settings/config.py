@@ -39,5 +39,8 @@ DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
+DAS_MORK_IMAGE_NAME = "trueagi/das"
+DAS_MORK_IMAGE_VERSION = "mork-server-0.10.2"
+
 DAS_IMAGE_VERSION = "0.11.11"
 DAS_IMAGE_NAME = "trueagi/das"
