@@ -258,12 +258,14 @@ Redis: No keys found (0)"
 
 @test "Should count atoms with database disabled" {
     local redis_container_name="$(get_config .services.redis.container_name)"
+    local redis_port="$(get_config .services.redis.port)"
     local mongodb_container_name="$(get_config .services.mongodb.container_name)"
+    local mongodb_port="$(get_config .services.mongodb.port)"
 
     run das-cli db count-atoms
 
-    assert_success "${mongodb_container_name} is not running
-${redis_container_name} is not running
+    assert_success "${mongodb_container_name} is not running on port ${mongodb_port}
+${redis_container_name} is not running on port ${redis_port}
 [31m[DockerContainerNotFoundError]
 Please use 'db start' to start required services before running 'db count-atoms'.[39m"
 }

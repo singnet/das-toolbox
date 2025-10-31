@@ -176,8 +176,8 @@ teardown() {
 
     run das-cli metta load $metta_file_path
 
-    assert_line --partial "das-cli-redis-$redis_port is not running"
-    assert_line --partial "das-cli-mongodb-$mongodb_port is not running"
+    assert_line --partial "das-cli-redis-$redis_port is not running on port ${redis_port}"
+    assert_line --partial "das-cli-mongodb-$mongodb_port is not running on port ${mongodb_port}"
 
     assert_line --partial "Please use 'db start' to start required services before running 'metta load'."
 }
