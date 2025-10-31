@@ -19,46 +19,59 @@ def ensure_container_running(
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
-
             settings.raise_on_missing_file()
             settings.raise_on_schema_mismatch()
 
-            if isinstance(cls_backend_attr, list):
-                backends = [
-                    getattr(self, attr) if hasattr(self, attr) else None
+            backends = (
+                [
+                    getattr(self, attr)
                     for attr in cls_backend_attr
+                    if hasattr(self, attr)
                 ]
-            else:
-                backends = [getattr(self, cls_backend_attr) if hasattr(self, cls_backend_attr) else None]
+                if isinstance(cls_backend_attr, list)
+                else [getattr(self, cls_backend_attr)]
+            )
+
+            container_not_running = False
 
             for backend in backends:
-                if not backend.is_running():
-                    if verbose:
-                        self.stdout(
-                            "One or more required services are not running.",
-                            severity=StdoutSeverity.ERROR,
-                        )
-                        status = backend.status()
-                        for service, is_running in status.items():
-                            if not is_running:
-                                self.stdout(
-                                    {
-                                        "service": service,
-                                        "action": "check",
-                                        "status": "not_running",
-                                    },
-                                    stdout_type=StdoutType.MACHINE_READABLE,
-                                )
-                    raise DockerContainerNotFoundError(exception_text)
-                else:
-                    if verbose:
-                        status = backend.status()
-                        self.stdout(
-                            "All required services are running: ",
-                            severity=StdoutSeverity.WARNING,
-                        )
-                        for service in status.keys():
-                            self.stdout(f"- {service}: running")
+                status_list = (
+                    backend.status()
+                )
+
+                for container_status in status_list:
+                    name = container_status.get("container_name")
+                    image = container_status.get("image")
+                    running = container_status.get("running", False)
+                    healthy = container_status.get("healthy", False)
+                    port = container_status.get("port", "unknown")
+k
+                    if not running or not healthy:
+                        container_not_running = True
+                        if verbose:
+                            self.stdout(
+                                f"{name} is not running on port {port}",
+                                severity=StdoutSeverity.ERROR,
+                            )
+                            self.stdout(
+                                {
+                                    "service": name,
+                                    "action": "check",
+                                    "status": "not_running",
+                                    "image": image,
+                                    "port": port,
+                                },
+                                stdout_type=StdoutType.MACHINE_READABLE,
+                            )
+                    else:
+                        if verbose:
+                            self.stdout(
+                                f"{name} is running on port {port}",
+                                severity=StdoutSeverity.WARNING,
+                            )
+
+            if container_not_running:
+                raise DockerContainerNotFoundError(exception_text)
 
             return func(self, *args, **kwargs)
 

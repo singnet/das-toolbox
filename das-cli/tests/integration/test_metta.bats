@@ -26,7 +26,7 @@ teardown() {
     run das-cli metta check $metta_file_path
 
     assert_line --partial $metta_file_path
-    assert_line --partial "Syntax check OK"
+    assert_line --partial "Checking syntax... OK"
 }
 
 @test "Checking syntax of an invalid MeTTa file" {

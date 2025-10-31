@@ -20,6 +20,10 @@ class BackendProvider(ABC):
     def is_running(self) -> bool:
         raise NotImplementedError
 
+    @abstractmethod
+    def status(self) -> list[dict]:
+        raise NotImplementedError
+
 
 class MongoDBRedisBackend(BackendProvider):
     name = "redis_mongodb"
@@ -47,6 +51,12 @@ class MongoDBRedisBackend(BackendProvider):
                 self._redis_container_manager.is_running(),
             ]
         )
+
+    def status(self) -> list[dict]:
+        return [
+            self._mongodb_container_manager.status(),
+            self._redis_container_manager.status(),
+        ]
 
 
 class MorkMongoDBBackend(BackendProvider):
@@ -76,6 +86,12 @@ class MorkMongoDBBackend(BackendProvider):
             ]
         )
 
+    def status(self) -> list[dict]:
+        return [
+            self._mongodb_container_manager.status(),
+            self._mork_db_container_manager.status(),
+        ]
+
 
 class AtomdbBackend:
     def __init__(self, providers: List[BackendProvider]) -> None:
@@ -93,8 +109,8 @@ class AtomdbBackend:
         status = {p.name: p.is_running() for p in self._providers}
         return all(status.values())
 
-    def status(self) -> dict:
-        return {p.name: p.is_running() for p in self._providers}
+    def status(self) -> list[dict]:
+        return [status for provider in self._providers for status in provider.status()]
 
     def get_active_providers(self) -> List[BackendProvider]:
         return self._providers
