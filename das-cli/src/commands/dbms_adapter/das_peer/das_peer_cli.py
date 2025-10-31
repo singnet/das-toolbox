@@ -140,7 +140,6 @@ EXAMPLES
         image_manager: ImageManager,
         das_peer_container_manager: DasPeerContainerManager,
         atomdb_backend: AtomdbBackend,
-
     ) -> None:
         self._settings = settings
         self._image_manager = image_manager

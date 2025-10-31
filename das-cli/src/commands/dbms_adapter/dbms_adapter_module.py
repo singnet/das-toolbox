@@ -1,9 +1,15 @@
 import os
-
 from typing import List
+
+from commands.db.atomdb_backend import (
+    AtomdbBackend,
+    BackendProvider,
+    MongoDBRedisBackend,
+    MorkMongoDBBackend,
+)
 from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
 from common import Module, Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -12,12 +18,6 @@ from .das_peer.das_peer_cli import DasPeerContainerManager
 from .dbms_adapter_cli import DbmsAdapterCli
 from .dbms_peer.dbms_peer_cli import DbmsPeerContainerManager
 
-from commands.db.atomdb_backend import (
-    AtomdbBackend,
-    BackendProvider,
-    MongoDBRedisBackend,
-    MorkMongoDBBackend,
-)
 
 class DbmsAdapterModule(Module):
     _instance = DbmsAdapterCli

@@ -2,22 +2,21 @@ import os
 from typing import List
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
-from commands.db.atomdb_backend import AtomdbBackend
-from common import Module
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
-
-from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
-
 from commands.db.atomdb_backend import (
     AtomdbBackend,
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
 )
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
+
+from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
+
 
 class QueryAgentModule(Module):
     _instance = QueryAgentCli
@@ -123,7 +122,6 @@ class QueryAgentModule(Module):
             },
         )
 
-
     def _atomdb_backend_factory(self) -> AtomdbBackend:
         backend_name = self._settings.get("services.database.atomdb_backend")
         providers: List[BackendProvider] = []
@@ -144,7 +142,6 @@ class QueryAgentModule(Module):
             )
 
         return AtomdbBackend(providers)
-
 
     def _morkdb_container_manager_factory(self) -> MorkdbContainerManager:
         container_name = self._settings.get("services.morkdb.container_name")

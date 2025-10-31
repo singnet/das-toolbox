@@ -1,7 +1,12 @@
 import os
-
 from typing import List
 
+from commands.db.atomdb_backend import (
+    AtomdbBackend,
+    BackendProvider,
+    MongoDBRedisBackend,
+    MorkMongoDBBackend,
+)
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -9,16 +14,9 @@ from settings.config import SECRETS_PATH
 from .db_cli import (
     DbCli,
     MongodbContainerManager,
+    MorkdbContainerManager,
     RedisContainerManager,
     Settings,
-    MorkdbContainerManager,
-)
-
-from commands.db.atomdb_backend import (
-    AtomdbBackend,
-    BackendProvider,
-    MongoDBRedisBackend,
-    MorkMongoDBBackend,
 )
 
 
@@ -28,9 +26,7 @@ class DbModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (

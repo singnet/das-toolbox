@@ -2,22 +2,11 @@ from typing import AnyStr, Union
 
 from injector import inject
 
-from commands.db.atomdb_backend import (
-    AtomdbBackend,
-    MorkMongoDBBackend,
-    MongoDBRedisBackend,
-)
+from commands.db.atomdb_backend import AtomdbBackend, MongoDBRedisBackend, MorkMongoDBBackend
 from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from commands.db.redis_container_manager import RedisContainerManager
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -328,7 +317,9 @@ $ das-cli db stop --prune
             )
         except DockerContainerNotFoundError:
             container_name = self._get_mongodb_container().name
-            warning_message = f"The MongoDB service named {container_name} at {ip} is already stopped."
+            warning_message = (
+                f"The MongoDB service named {container_name} at {ip} is already stopped."
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -499,7 +490,6 @@ $ das-cli db start
         self._morkdb_container_manager = morkdb_container_manager
 
         super().__init__()
-
 
     def _get_redis_container(self):
         return self._redis_container_manager.get_container()
@@ -721,9 +711,7 @@ $ das-cli db start
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
         mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get(
-            "services.mongodb.cluster_secret_key"
-        )
+        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
 
         for mongodb_node in mongodb_nodes:
             self._mongodb_node(
@@ -792,7 +780,9 @@ $ das-cli db start
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"MorkDB is already running. It is currently listening on port {morkdb_port}"
+            warning_message = (
+                f"MorkDB is already running. It is currently listening on port {morkdb_port}"
+            )
             self.stdout(
                 warning_message,
                 severity=StdoutSeverity.WARNING,
@@ -808,12 +798,11 @@ $ das-cli db start
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-        except DockerError as e:
+        except DockerError:
             self.stdout(
                 f"\nError occurred while trying to start MorkDB on port {morkdb_port}.\n",
                 severity=StdoutSeverity.ERROR,
             )
-
 
     def run(self):
         self._settings.raise_on_missing_file()

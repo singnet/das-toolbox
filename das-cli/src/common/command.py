@@ -1,13 +1,11 @@
 import json
+import sys
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, TypedDict, Optional
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 
 import click
 import yaml
-import sys
-import termios
-
 from fabric import Connection
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice as InquirerChoice
@@ -15,9 +13,11 @@ from InquirerPy.base.control import Choice as InquirerChoice
 from common import Choice
 from common.utils import log_exception
 
+
 class SelectOption(TypedDict):
     name: str
     value: str
+
 
 class StdoutType(Enum):
     DEFAULT = "default"
@@ -254,8 +254,6 @@ class Command:
 
         return choice
 
-
-
     def prompt(
         self,
         text,
@@ -348,9 +346,7 @@ class Command:
         elif self.output_format == "yaml":
             click.echo(yaml.dump(results, sort_keys=False))
 
-    def _print_colored(
-        self, text: str, severity: StdoutSeverity, new_line: bool = True
-    ) -> None:
+    def _print_colored(self, text: str, severity: StdoutSeverity, new_line: bool = True) -> None:
         fg_map = {
             StdoutSeverity.SUCCESS: "green",
             StdoutSeverity.ERROR: "red",

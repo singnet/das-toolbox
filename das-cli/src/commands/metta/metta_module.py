@@ -1,21 +1,20 @@
 import os
 from typing import List
 
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
-from common import Module
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
-
-from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
-
 from commands.db.atomdb_backend import (
     AtomdbBackend,
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
 )
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+from common import Module
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
+
+from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
 
 
 class MettaModule(Module):
@@ -24,9 +23,7 @@ class MettaModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (

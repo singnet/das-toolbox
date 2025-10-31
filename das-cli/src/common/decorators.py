@@ -23,11 +23,7 @@ def ensure_container_running(
             settings.raise_on_schema_mismatch()
 
             backends = (
-                [
-                    getattr(self, attr)
-                    for attr in cls_backend_attr
-                    if hasattr(self, attr)
-                ]
+                [getattr(self, attr) for attr in cls_backend_attr if hasattr(self, attr)]
                 if isinstance(cls_backend_attr, list)
                 else [getattr(self, cls_backend_attr)]
             )
@@ -35,9 +31,7 @@ def ensure_container_running(
             container_not_running = False
 
             for backend in backends:
-                status_list = (
-                    backend.status()
-                )
+                status_list = backend.status()
 
                 for container_status in status_list:
                     name = container_status.get("container_name")
@@ -45,7 +39,7 @@ def ensure_container_running(
                     running = container_status.get("running", False)
                     healthy = container_status.get("healthy", False)
                     port = container_status.get("port", "unknown")
-k
+
                     if not running or not healthy:
                         container_not_running = True
                         if verbose:
