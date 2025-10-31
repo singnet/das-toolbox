@@ -60,8 +60,13 @@ class QueryAgentModule(Module):
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
+        morkdb_hostname = self._settings.get("services.morkdb.container_name")
+        morkdb_port = "8000" # Default MorkDB port
+
         redis_port = self._settings.get("services.redis.port")
         redis_hostname = self._settings.get("services.redis.container_name")
+
+        atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
         attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
@@ -81,6 +86,9 @@ class QueryAgentModule(Module):
                 "mongodb_password": mongodb_password,
                 "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
+                "atomdb_backend": atomdb_backend,
+                "morkdb_port": morkdb_port,
+                "morkdb_hostname": morkdb_hostname,
             },
         )
 

@@ -5,6 +5,7 @@ import docker
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
+from commands.db.atomdb_backend import AtomdbBackendEnum
 
 
 class QueryAgentContainerManager(ContainerManager):
@@ -35,8 +36,12 @@ class QueryAgentContainerManager(ContainerManager):
 
         attention_broker_hostname = self._options.get("attention_broker_hostname", "localhost")
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
+        atomdb_backend = self._options.get("atomdb_backend", "redis_mongodb")        
 
-        return f"query_broker {query_agent_hostname}:{query_agent_port} {port_range} {attention_broker_hostname}:{attention_broker_port}"
+        use_mork = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
+        use_mork_flag = "--use-mork" if use_mork else ""
+
+        return f"query_broker {query_agent_hostname}:{query_agent_port} {port_range} {attention_broker_hostname}:{attention_broker_port} {use_mork_flag}".strip()
 
     def start_container(self, port_range: str):
         self.raise_running_container()
@@ -66,6 +71,8 @@ class QueryAgentContainerManager(ContainerManager):
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
+                    "DAS_MORK_PORT": self._options.get("morkdb_port"),
                 },
                 ports={
                     query_agent_port: query_agent_port,

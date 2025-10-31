@@ -3,7 +3,11 @@ from typing import List
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
+from enum import Enum
 
+class AtomdbBackendEnum(Enum):
+    REDIS_MONGODB = "redis_mongodb"
+    MORK_MONGODB = "mork_mongodb"
 
 class BackendProvider(ABC):
     name: str
@@ -26,7 +30,7 @@ class BackendProvider(ABC):
 
 
 class MongoDBRedisBackend(BackendProvider):
-    name = "redis_mongodb"
+    name = AtomdbBackendEnum.REDIS_MONGODB.value
 
     def __init__(
         self,
@@ -60,7 +64,7 @@ class MongoDBRedisBackend(BackendProvider):
 
 
 class MorkMongoDBBackend(BackendProvider):
-    name = "mork_mongodb"
+    name = AtomdbBackendEnum.MORK_MONGODB.value
 
     def __init__(
         self,
