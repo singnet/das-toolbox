@@ -57,4 +57,6 @@ class DasPeerContainerManager(ContainerManager):
             },
         )
 
+        self.wait_for_container(container)
+
         return container
