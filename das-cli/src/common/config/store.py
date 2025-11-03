@@ -98,7 +98,7 @@ class JsonConfigStore(ConfigStore):
 
     def get(self, key: str, default: Any = None):
         keys = key.split(".")
-        current_dict = self._content
+        current_dict = {**self._content, **self._new_content}
 
         for k in keys:
             current_dict = current_dict.get(k, {})

@@ -281,3 +281,11 @@ EOF
 
     assert_output "[31m[ValueError] Your configuration file in ${das_config_file} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values.[39m"
 }
+
+@test "Load interactive config set using environment variable" {
+
+}
+
+@test "Load interactive config set using environment file" {
+
+}

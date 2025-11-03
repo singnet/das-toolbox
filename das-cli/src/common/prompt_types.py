@@ -8,19 +8,6 @@ from click import Path as ClickPath
 from common.network import is_server_port_available
 
 
-class FunctionVersion(ParamType):
-    name = "function version"
-
-    def convert(self, value, param, ctx):
-        if value != "latest" and not re.match(r"v?\d+\.\d+\.\d+", value):
-            self.fail("The version must follow the format x.x.x (e.g 1.10.9)", param, ctx)
-
-        return value
-
-    def __repr__(self):
-        return "FunctionVersion()"
-
-
 class ReachableIpAddress(ParamType):
     name = "reachable ip address"
 
@@ -96,4 +83,23 @@ class PortRangeType(ParamType):
         if start_port >= end_port:
             self.fail("Invalid port range. Start port must be less than end port.", param, ctx)
 
+        return value
+
+
+class KeyValueType(ParamType):
+    name = "key-value"
+
+    def convert(self, value, param, ctx):
+        if not value or "=" not in value:
+            self.fail("Invalid key-value format. Expected 'key=value'.", param, ctx)
+
+        key, val = value.split("=", 1)
+        return key, val
+
+class VersionType(ParamType):
+    name = "version"
+
+    def convert(self, value, param, ctx):
+        if not re.match(r'^\d+\.\d+\.\d+$', value):
+            self.fail("Invalid version format. Expected 'X.Y.Z' where X, Y, and Z are integers.", param, ctx)
         return value

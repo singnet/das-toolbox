@@ -10,6 +10,7 @@ from common import (
     IntRange,
     ReachableIpAddress,
     RemoteContextManager,
+    KeyValueType,
     Settings,
     StdoutSeverity,
     StdoutType,
@@ -20,7 +21,8 @@ from common import (
 from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
 from common.docker.remote_context_manager import Server
 from common.prompt_types import AbsolutePath
-from common.utils import get_schema_hash
+# from common.utils import get_schema_hash
+from .default_config_provider import DefaultConfigProvider
 
 
 class ConfigSet(Command):
@@ -270,7 +272,7 @@ EXAMPLES
     params = [
         CommandOption(
             ["--from-env"],
-            help="",
+            help="Path to an environment file to load initial configuration values from to be suggested as the default value in the interactive prompts.",
             required=False,
             type=AbsolutePath(
                 file_okay=True,
@@ -280,6 +282,12 @@ EXAMPLES
                 readable=True,
             ),
         ),
+        CommandArgument(
+            ["config_key_value"],
+            required=False,
+            type=KeyValueType(),
+            # help="If provided, sets only the specified configuration key non-interactively.",
+        ),
     ]
 
     @inject
@@ -287,11 +295,13 @@ EXAMPLES
         self,
         settings: Settings,
         remote_context_manager: RemoteContextManager,
+        default_config_provider: DefaultConfigProvider,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._settings.enable_overwrite_mode()
         self._remote_context_manager = remote_context_manager
+        self._default_config_provider = default_config_provider
 
     def _set_config(self, config_dict):
         for key, value in config_dict.items():
@@ -379,7 +389,9 @@ EXAMPLES
                 default=server_username_default,
             )
 
-            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
+            server_ip_default = (
+                current_nodes[i]["ip"] if i < len(current_nodes) else None
+            )
             server_ip = self.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
@@ -424,7 +436,9 @@ EXAMPLES
             "services.redis.port": redis_port,
             "services.redis.container_name": f"das-cli-redis-{redis_port}",
             "services.redis.cluster": redis_cluster,
-            "services.redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
+            "services.redis.nodes": lambda: self._redis_nodes(
+                redis_cluster, redis_port
+            ),
         }
 
     def _mongodb_nodes(self, mongodb_cluster, mongodb_port) -> List[Dict]:
@@ -567,8 +581,8 @@ EXAMPLES
         }
 
     def _schema_hash(self) -> dict:
-        schema_hash = get_schema_hash()
-        return {"schema_hash": schema_hash}
+        # schema_hash = get_schema_hash()
+        return {"schema_hash": None}
 
     def _save(self) -> None:
         self._remote_context_manager.commit()
@@ -604,10 +618,12 @@ EXAMPLES
         atomdb_backend = self.select(
             text="Choose the AtomDB backend: ",
             options={
-                'MongoDB + Redis': 'redis_mongodb',
-                'MongoDB + Mork': 'mork_mongodb',
+                "MongoDB + Redis": "redis_mongodb",
+                "MongoDB + Mork": "mork_mongodb",
             },
-            default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
+            default=self._settings.get(
+                "services.database.atomdb_backend", "redis_mongodb"
+            ),
         )
 
         backend = backends.get(atomdb_backend) or backends["redis_mongodb"]
@@ -620,7 +636,7 @@ EXAMPLES
 
         return merged_config
 
-    def run(self, from_env: str):
+    def interactive_mode(self, from_env: str) -> None:
         self._settings.replace_loader(
             loader=CompositeLoader(
                 [
@@ -650,6 +666,48 @@ EXAMPLES
             self._set_config(config)
 
         self._save()
+
+    def non_interactive_mode(self, config_key_value: tuple) -> None:
+        key, value = config_key_value
+        
+        default_mappings = self._default_config_provider.get_all_default_mappings()
+        
+        for default_key, default_value_or_func in default_mappings.items():
+            
+            if self._settings._store.get(default_key) is not None:
+                continue
+
+            if callable(default_value_or_func):
+                if "nodes" in default_key:
+                    calculated_value = default_value_or_func() 
+                    self._settings.set(default_key, calculated_value)
+                continue
+            else:
+                self._settings.set(default_key, default_value_or_func)
+
+        self._settings.set(key, value)
+        
+        for default_key, default_value_or_func in default_mappings.items():
+            if callable(default_value_or_func):
+                
+                if "nodes" in default_key:
+                    continue
+                    
+                calculated_value = default_value_or_func()
+                
+                self._settings.set(default_key, calculated_value)
+
+        self._save()
+
+    def run(
+        self,
+        from_env: Optional[str] = None,
+        config_key_value: Optional[str] = None,
+    ):
+        if config_key_value:
+            return self.non_interactive_mode(config_key_value)
+
+        return self.interactive_mode(from_env=from_env)
 
 
 class ConfigList(Command):

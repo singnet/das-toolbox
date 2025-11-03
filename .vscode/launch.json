@@ -40,6 +40,20 @@
             ],
             "console": "integratedTerminal",
             "python": "${workspaceFolder}/env/bin/python3"
+        },
+        {
+            "name": "Python Debugger: DAS CLI",
+            "type": "debugpy",
+            "program": "das_cli.py",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/das-cli/src",
+            "args": [
+                "config",
+                "set",
+                "services.mongodb.port=1234"
+            ],
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/env/bin/python3"
         }
     ]
 }

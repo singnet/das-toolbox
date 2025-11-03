@@ -6,7 +6,6 @@ import secrets
 import string
 import sys
 import time
-from importlib import resources
 from pathlib import Path
 from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
@@ -97,31 +96,17 @@ def resolve_file_path(
     return None
 
 
-def calculate_file_hash(file_path: Path) -> str:
-    with open(file_path, "rb") as f:
-        content = f.read()
-    return hashlib.sha256(content).hexdigest()
+def calculate_schema_hash_for_keys(all_keys: List[str]) -> str:
+    sorted_keys = sorted(all_keys)
+    concatenated_keys = ",".join(sorted_keys)
+    hash_object = hashlib.sha256(concatenated_keys.encode("utf-8"))
+    return hash_object.hexdigest()
 
 
-def get_schema_hash() -> str:
-    schema_path = resolve_file_path(
-        "/etc/das-cli/schema.json",
-        fallback_paths=[
-            "settings/schema.json",
-            "../settings/schema.json",
-        ],
-    )
+def calculate_schema_hash(schema: Dict[str, Any]) -> str:
+    all_keys = list(schema.keys())
 
-    if schema_path is not None:
-        return calculate_file_hash(schema_path)
-
-    try:
-        with resources.path("das_cli.settings", "schema.json") as pkg_path:
-            return calculate_file_hash(pkg_path)
-    except (FileNotFoundError, ModuleNotFoundError):
-        pass
-
-    raise FileNotFoundError("Schema file not found in any known location.")
+    return calculate_schema_hash_for_keys(all_keys)
 
 
 def log_exception(e: Exception) -> None:
@@ -146,14 +131,18 @@ def print_table(
         return
 
     col_widths = {
-        col: max(len(col), min(max_width, max(len(str(row.get(col, ""))) for row in rows)))
+        col: max(
+            len(col), min(max_width, max(len(str(row.get(col, ""))) for row in rows))
+        )
         for col in columns
     }
 
     if align is None:
         align = {col: "<" for col in columns}
 
-    header = "  ".join(f"{col:{align.get(col, '<')}{col_widths[col]}}" for col in columns)
+    header = "  ".join(
+        f"{col:{align.get(col, '<')}{col_widths[col]}}" for col in columns
+    )
     stdout(header)
     stdout("-" * len(header))
 
