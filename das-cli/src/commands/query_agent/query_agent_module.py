@@ -61,7 +61,7 @@ class QueryAgentModule(Module):
         mongodb_password = self._settings.get("services.mongodb.password")
 
         morkdb_hostname = self._settings.get("services.morkdb.container_name")
-        morkdb_port = "8000" # Default MorkDB port
+        morkdb_port = "8000"  # Default MorkDB port
 
         redis_port = self._settings.get("services.redis.port")
         redis_hostname = self._settings.get("services.redis.container_name")
@@ -144,8 +144,8 @@ class QueryAgentModule(Module):
         elif backend_name == "mork_mongodb":
             providers.append(
                 MorkMongoDBBackend(
-                    self._morkdb_container_manager_factory(),
                     self._mongodb_container_manager_factory(),
+                    self._morkdb_container_manager_factory(),
                 )
             )
 

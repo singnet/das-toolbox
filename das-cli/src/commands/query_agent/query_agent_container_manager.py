@@ -2,10 +2,10 @@ from typing import Dict
 
 import docker
 
+from commands.db.atomdb_backend import AtomdbBackendEnum
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
-from commands.db.atomdb_backend import AtomdbBackendEnum
 
 
 class QueryAgentContainerManager(ContainerManager):
@@ -36,7 +36,7 @@ class QueryAgentContainerManager(ContainerManager):
 
         attention_broker_hostname = self._options.get("attention_broker_hostname", "localhost")
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
-        atomdb_backend = self._options.get("atomdb_backend", "redis_mongodb")        
+        atomdb_backend = self._options.get("atomdb_backend", "redis_mongodb")
 
         use_mork = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
         use_mork_flag = "--use-mork" if use_mork else ""

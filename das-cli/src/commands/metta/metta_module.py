@@ -58,8 +58,8 @@ class MettaModule(Module):
         elif backend_name == "mork_mongodb":
             providers.append(
                 MorkMongoDBBackend(
-                    self._morkdb_container_manager_factory(),
                     self._mongodb_container_manager_factory(),
+                    self._morkdb_container_manager_factory(),
                 )
             )
 

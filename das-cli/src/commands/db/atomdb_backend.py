@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import List
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
 from enum import Enum
+from typing import List
+
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+
 
 class AtomdbBackendEnum(Enum):
     REDIS_MONGODB = "redis_mongodb"
     MORK_MONGODB = "mork_mongodb"
+
 
 class BackendProvider(ABC):
     name: str
@@ -41,8 +44,8 @@ class MongoDBRedisBackend(BackendProvider):
         self._redis_container_manager = redis_container_manager
 
     def start(self) -> None:
-        self._mongodb_container_manager.start()
-        self._redis_container_manager.start()
+        # TODO: Implement this method here to start the database from the backend instance
+        raise NotImplementedError
 
     def stop(self) -> None:
         self._redis_container_manager.stop()
@@ -75,8 +78,8 @@ class MorkMongoDBBackend(BackendProvider):
         self._mork_db_container_manager = morkdb_container_manager
 
     def start(self) -> None:
-        self._mongodb_container_manager.start()
-        self._mork_db_container_manager.start()
+        # TODO: Implement this method here to start the database from the backend instance
+        raise NotImplementedError
 
     def stop(self) -> None:
         self._mongodb_container_manager.stop()
