@@ -604,8 +604,8 @@ EXAMPLES
         atomdb_backend = self.select(
             text="Choose the AtomDB backend: ",
             options={
-                'Redis + MongoDB': 'redis_mongodb',
-                'Mork + MongoDB': 'mork_mongodb',
+                'MongoDB + Redis': 'redis_mongodb',
+                'MongoDB + Mork': 'mork_mongodb',
             },
             default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
         )

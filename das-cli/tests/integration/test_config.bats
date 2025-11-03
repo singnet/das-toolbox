@@ -56,12 +56,12 @@ setup() {
     ! [ -f "$das_config_file" ]
 
     local atomdb_backend="redis_mongodb"
-    local redis_port="6379"
-    local redis_cluster="no"
     local mongodb_port="27017"
     local mongodb_username="admin"
     local mongodb_password="admin"
     local mongodb_cluster="no"
+    local redis_port="6379"
+    local redis_cluster="no"
     local jupyter_notebook_port="8888"
     local attention_broker_port="37007"
     local query_agent_port="35700"
@@ -72,12 +72,12 @@ setup() {
 
     run das-cli config set <<EOF
 $atomdb_backend
-$redis_port
-$redis_cluster
 $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$redis_port
+$redis_cluster
 $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
@@ -121,12 +121,12 @@ EOF
     local old_context_broker_port="$(get_config ".services.context_broker.port")"
     local old_atomdb_backend="$(get_config ".services.database.atomdb_backend")"
 
-    local redis_port="7000"
-    local redis_cluster="no"
     local mongodb_port="91032"
     local mongodb_username=""
     local mongodb_password="new_password"
     local mongodb_cluster="no"
+    local redis_port="7000"
+    local redis_cluster="no"
     local jupyter_notebook_port="8000"
     local attention_broker_port="38007"
     local query_agent_port="36700"
@@ -138,12 +138,12 @@ EOF
 
     run das-cli config set <<EOF
 $atomdb_backend
-$redis_port
-$redis_cluster
 $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$redis_port
+$redis_cluster
 $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
@@ -205,12 +205,12 @@ EOF
     local old_context_broker_port="$(get_config ".services.context_broker.port")"
 
     local atomdb_backend=""
-    local redis_port=""
-    local redis_cluster=""
     local mongodb_port=""
     local mongodb_username=""
     local mongodb_password=""
     local mongodb_cluster=""
+    local redis_port=""
+    local redis_cluster=""
     local jupyter_notebook_port=""
     local attention_broker_port=""
     local query_agent_port=""
@@ -221,12 +221,12 @@ EOF
 
     run das-cli config set <<EOF
 $atomdb_backend
-$redis_port
-$redis_cluster
 $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$redis_port
+$redis_cluster
 $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
