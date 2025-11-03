@@ -82,6 +82,7 @@ class ContextBrokerModule(Module):
             container_name,
             options={
                 "context_broker_port": context_broker_port,
+                "context_broker_hostname": container_name,
                 "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
                 "redis_port": redis_port,
