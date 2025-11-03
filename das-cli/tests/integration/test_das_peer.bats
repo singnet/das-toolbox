@@ -26,12 +26,15 @@ setup() {
 
 @test "Starting DAS Peer when db is not up" {
     local mongodb_container_name="$(get_config ".services.mongodb.container_name")"
+    local mongodb_port="$(get_config ".services.mongodb.port")"
     local redis_container_name="$(get_config ".services.redis.container_name")"
+    local redis_port="$(get_config ".services.redis.port")"
+
 
     run das-cli dbms-adapter das-peer start
 
-    assert_output "$mongodb_container_name is not running
-$redis_container_name is not running
+    assert_output "$mongodb_container_name is not running on port ${mongodb_port}
+$redis_container_name is not running on port ${redis_port}
 [31m[DockerContainerNotFoundError] 
 Please use 'db start' to start required services before running 'das-peer start'.[39m"
 
@@ -88,8 +91,8 @@ DAS Peer is runnig on port $das_peer_port"
 
     run das-cli dbms-adapter das-peer start
 
-    assert_output "$mongodb_container_name is not running
-$redis_container_name is not running
+    assert_output "$mongodb_container_name is not running on port ${mongodb_port}
+$redis_container_name is not running on port ${redis_port}
 [31m[DockerContainerNotFoundError] 
 Please use 'db start' to start required services before running 'das-peer start'.[39m"
 

@@ -75,6 +75,9 @@
     "context_broker": {
       "port": 40006,
       "container_name": "das-cli-context-broker-40006"
+    },
+    "database": {
+      "atomdb_backend": "redis_mongodb"
     }
   }
 }

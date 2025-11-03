@@ -149,6 +149,17 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerContainerNotFoundError(e.explanation)
 
+    def status(self) -> dict:
+        running = self.is_running()
+        healthy = self.is_container_healthy(self.get_container()) if running else False
+        return {
+            "container_name": self._container.name,
+            "image": self._container.image,
+            "running": running,
+            "healthy": healthy,
+            "port": self._container.port,
+        }
+
     def logs(self, follow: bool = False) -> None:
         container_name = self.get_container().name
         try:

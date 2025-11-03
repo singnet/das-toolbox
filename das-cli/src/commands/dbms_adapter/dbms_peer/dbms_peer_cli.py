@@ -193,7 +193,7 @@ EXAMPLES
         [
             "_das_peer_container_manager",
         ],
-        exception_text="\nThe server is not running. Please start the server by executing `das-peer start` before attempting to run this command.",
+        exception_text="\nThe server is not running. Please start the server by executing `dbms das-peer start` before attempting to run this command.",
         verbose=False,
     )
     def run(

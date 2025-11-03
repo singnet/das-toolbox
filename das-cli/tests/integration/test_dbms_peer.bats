@@ -44,6 +44,31 @@ teardown() {
     assert_line --partial "Error: Invalid value for '--context': File '$test_fixtures_dir' is a directory."
 }
 
+@test "DBMS Peer should not start when server is not up and running" {
+    das-cli dbms-adapter das-peer stop
+
+    run is_service_up das_peer
+
+    assert_failure
+
+    local client_hostname="localhost"
+    local client_port="$postgres_port"
+    local client_username="$postgres_username"
+    local client_password="$postgres_password"
+    local client_database="$postgres_database"
+
+    run das-cli dbms-adapter dbms-peer run \
+        --client-hostname $client_hostname \
+        --client-port $client_port \
+        --client-username $client_username \
+        --client-password $client_password \
+        --client-database $client_database \
+        --context "$context_file_path"
+
+    assert_output "[31m[DockerContainerNotFoundError] 
+The server is not running. Please start the server by executing \`dbms das-peer start\` before attempting to run this command.[39m"
+}
+
 @test "Should run DBMS Peer successfuly" {
     "$(dirname "${BATS_TEST_DIRNAME}")/../scripts/start_postgres.sh" \
         -n $postgres_container_name \

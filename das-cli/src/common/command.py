@@ -1,14 +1,22 @@
 import json
+import sys
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 
 import click
 import yaml
 from fabric import Connection
+from InquirerPy import inquirer
+from InquirerPy.base.control import Choice as InquirerChoice
 
 from common import Choice
 from common.utils import log_exception
+
+
+class SelectOption(TypedDict):
+    name: str
+    value: str
 
 
 class StdoutType(Enum):
@@ -223,6 +231,28 @@ class Command:
             log_exception(e)
 
         self.flush_stdout()
+
+    def select(self, text: str, options: dict[str, str], default: Optional[str] = None) -> str:
+        if not options:
+            raise ValueError("No options provided")
+
+        if not sys.stdin.isatty():
+            first_value = next(iter(options.values()))
+
+            if not first_value and default is not None:
+                return default
+
+            return first_value
+
+        choices = [InquirerChoice(v, name=k) for k, v in options.items()]
+        choice = inquirer.select(
+            message=text,
+            choices=choices,
+            pointer="> ",
+            default=default,
+        ).execute()
+
+        return choice
 
     def prompt(
         self,

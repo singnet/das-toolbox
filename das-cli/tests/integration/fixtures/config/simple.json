@@ -1,5 +1,5 @@
 {
-  "schema_hash": "7861d213288eec0b37e95fc770e5407258006ec617589a7a4d1bc8c32b457d0e",
+  "schema_hash": "6341907e50746d11cc7257e58c69d2fdd1f748e81b206a9741ab021ec99dfbd5",
   "services": {
     "redis": {
       "port": 40020,
@@ -65,6 +65,9 @@
     "context_broker": {
       "port": 40006,
       "container_name": "das-cli-context-broker-40006"
+    },
+    "database": {
+      "atomdb_backend": "redis_mongodb"
     }
   }
 }

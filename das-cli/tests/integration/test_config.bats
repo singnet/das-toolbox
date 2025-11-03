@@ -46,7 +46,8 @@ setup() {
     assert_line --partial "$(get_config ".services.evolution_agent.container_name")"
     assert_line --partial "$(get_config ".services.evolution_agent.port")"
     assert_line --partial "$(get_config ".services.context_broker.port")"
-
+    assert_line --partial "$(get_config ".services.context_broker.container_name")"
+    assert_line --partial "$(get_config ".services.database.atomdb_backend")"
 }
 
 @test "configuring settings without a previously set configuration file" {
@@ -54,12 +55,13 @@ setup() {
 
     ! [ -f "$das_config_file" ]
 
-    local redis_port="6379"
-    local redis_cluster="no"
+    local atomdb_backend="redis_mongodb"
     local mongodb_port="27017"
     local mongodb_username="admin"
     local mongodb_password="admin"
     local mongodb_cluster="no"
+    local redis_port="6379"
+    local redis_cluster="no"
     local jupyter_notebook_port="8888"
     local attention_broker_port="37007"
     local query_agent_port="35700"
@@ -69,12 +71,13 @@ setup() {
     local context_broker_port="40006"
 
     run das-cli config set <<EOF
-$redis_port
-$redis_cluster
+$atomdb_backend
 $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$redis_port
+$redis_cluster
 $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
@@ -116,13 +119,14 @@ EOF
     local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
     local old_context_broker_port="$(get_config ".services.context_broker.port")"
+    local old_atomdb_backend="$(get_config ".services.database.atomdb_backend")"
 
-    local redis_port="7000"
-    local redis_cluster="no"
     local mongodb_port="91032"
     local mongodb_username=""
     local mongodb_password="new_password"
     local mongodb_cluster="no"
+    local redis_port="7000"
+    local redis_cluster="no"
     local jupyter_notebook_port="8000"
     local attention_broker_port="38007"
     local query_agent_port="36700"
@@ -130,14 +134,16 @@ EOF
     local inference_agent_port="8080"
     local evolution_agent_port="24002"
     local context_broker_port="30006"
+    local atomdb_backend="redis_mongodb"
 
     run das-cli config set <<EOF
-$redis_port
-$redis_cluster
+$atomdb_backend
 $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$redis_port
+$redis_cluster
 $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
@@ -147,6 +153,7 @@ $evolution_agent_port
 $context_broker_port
 EOF
 
+    assert_equal "$(get_config ".services.database.atomdb_backend")" "$atomdb_backend"
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
     assert_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
     assert_equal "$(get_config ".services.redis.nodes | length")" 1
@@ -175,12 +182,14 @@ EOF
     assert_not_equal "$inference_agent_port" "$old_inference_agent_port"
     assert_not_equal "$evolution_agent_port" "$old_evolution_agent_port"
     assert_not_equal "$context_broker_port" "$old_context_broker_port"
+    assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
 
 }
 
 @test "setting default values for configuration" {
     [ -f "$das_config_file" ]
 
+    local old_atomdb_backend="$(get_config ".services.database.atomdb_backend")"
     local old_redis_port="$(get_config ".services.redis.port")"
     local old_redis_cluster="$(get_config ".services.redis.cluster")"
     local old_mongodb_port="$(get_config ".services.mongodb.port")"
@@ -195,12 +204,13 @@ EOF
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
     local old_context_broker_port="$(get_config ".services.context_broker.port")"
 
-    local redis_port=""
-    local redis_cluster=""
+    local atomdb_backend=""
     local mongodb_port=""
     local mongodb_username=""
     local mongodb_password=""
     local mongodb_cluster=""
+    local redis_port=""
+    local redis_cluster=""
     local jupyter_notebook_port=""
     local attention_broker_port=""
     local query_agent_port=""
@@ -210,12 +220,13 @@ EOF
     local context_broker_port=""
 
     run das-cli config set <<EOF
-$redis_port
-$redis_cluster
+$atomdb_backend
 $mongodb_port
 $mongodb_username
 $mongodb_password
 $mongodb_cluster
+$redis_port
+$redis_cluster
 $jupyter_notebook_port
 $attention_broker_port
 $query_agent_port
@@ -225,6 +236,7 @@ $evolution_agent_port
 $context_broker_port
 EOF
 
+    assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
     assert_not_equal "$(get_config ".services.redis.port")" "$redis_port"
     assert_not_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
     assert_not_equal "$(get_config ".services.mongodb.port")" "$mongodb_port"

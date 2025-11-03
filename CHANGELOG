@@ -5,6 +5,7 @@ Highlights:
 [das#710] Updated das-cli evolution start to require --peer-port and --peer-hostname parameters (previously inferred from Query Agent) (PR #224)
 [das#708] Add cross-platform workflow examples and enable pip installation on Windows, Linux, and macOS (PR: #231)
 [das#723] Create command das-cli services status (PR: #233)
+[das#822] Add support to MorkDB in das-cli (PR: #238)
 
 Bug fixes:
 [HOTFIX] Fix evolution-agent restart command params were shuffled (PR: #227)
