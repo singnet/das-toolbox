@@ -6,6 +6,7 @@ Highlights:
 [das#708] Add cross-platform workflow examples and enable pip installation on Windows, Linux, and macOS (PR: #231)
 [das#723] Create command das-cli services status (PR: #233)
 [das#822] Add support to MorkDB in das-cli (PR: #238)
+[das#823] Add support for partial variable updates in the config set command (PR: #240)
 
 Bug fixes:
 [HOTFIX] Fix evolution-agent restart command params were shuffled (PR: #227)
