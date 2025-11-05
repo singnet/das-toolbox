@@ -5,13 +5,11 @@ LINT_TARGETS = ./src
 tests-local:
 ifeq ($(strip $(NAME)),)
 ifeq ($(strip $(DAS_CLI_TEST_CLUSTER)),)
-	@echo "Running DBMS Peer integration tests..."
+	@echo "Running integration tests..."
 	@bats tests/integration/*.bats --filter-tags '!cluster'
 else
 	@echo "Running cluster integration tests..."
 	@bats tests/integration/*.bats --filter-tags 'cluster'
-	@echo "Running DBMS Peer integration tests..."
-	@bats tests/integration/*.bats --filter-tags '!cluster'
 endif
 else
 	@echo "Running integration test: $(NAME)"
