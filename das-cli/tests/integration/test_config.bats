@@ -85,6 +85,7 @@ $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
 $context_broker_port
+
 EOF
 
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
@@ -151,6 +152,7 @@ $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
 $context_broker_port
+
 EOF
 
     assert_equal "$(get_config ".services.database.atomdb_backend")" "$atomdb_backend"
@@ -234,8 +236,10 @@ $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
 $context_broker_port
+
 EOF
 
+    assert_line --partial "Configuration file saved"
     assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
     assert_not_equal "$(get_config ".services.redis.port")" "$redis_port"
     assert_not_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
@@ -282,10 +286,10 @@ EOF
     assert_output "[31m[ValueError] Your configuration file in ${das_config_file} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values.[39m"
 }
 
-@test "Load interactive config set using environment variable" {
+# @test "Load interactive config set using environment variable" {
 
-}
+# }
 
-@test "Load interactive config set using environment file" {
+# @test "Load interactive config set using environment file" {
 
-}
+# }

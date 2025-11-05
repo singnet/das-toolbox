@@ -429,8 +429,8 @@ class InteractiveConfigProvider(ConfigProvider):
     def _atomdb_backend(self) -> dict:
         backends = {
             "redis_mongodb": {
-                self._redis,
                 self._mongodb,
+                self._redis,
             },
             "mork_mongodb": {
                 self._mongodb,
@@ -498,7 +498,6 @@ class InteractiveConfigProvider(ConfigProvider):
             config.update(config_step())
 
         final_config = {**self._get_core_defaults(), **config}
-        print(final_config)
 
         return final_config
 

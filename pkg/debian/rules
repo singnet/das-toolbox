@@ -34,8 +34,7 @@ override_dh_auto_install:
 	pip3 install -r $(ROOT_DIR)/gatekeeper/cli/requirements.txt
 
 	# Build das-cli
-	pyinstaller $(ROOT_DIR)/das-cli/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR) \
-		--add-data "$(ROOT_DIR)/das-cli/src/settings/schema.json:settings"
+	pyinstaller $(ROOT_DIR)/das-cli/src/das_cli.py -y -F -n das-cli --distpath $(ARTIFACTS_DIR)
 
 	# Build gatekeeper
 	pyinstaller $(ROOT_DIR)/gatekeeper/api/src/main.py -y -F -n gk-server --distpath $(ARTIFACTS_DIR)
