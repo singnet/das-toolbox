@@ -2,6 +2,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict
+from common.utils import deep_merge_dicts
 
 
 class ConfigStore(ABC):
@@ -53,6 +54,11 @@ class ConfigStore(ABC):
         pass
 
     @abstractmethod
+    def set_content(self, content: Dict[str, Any]) -> None:
+        """Set the entire configuration content"""
+        pass
+
+    @abstractmethod
     def get_path(self) -> str:
         """Get the configuration file path or storage identifier."""
         pass
@@ -73,6 +79,9 @@ class JsonConfigStore(ConfigStore):
 
     def get_content(self) -> dict:
         return {**self._content, **self._new_content}
+
+    def set_content(self, content: Dict[str, Any]) -> None:
+       self._new_content = content 
 
     def get_path(self) -> str:
         return self._file_path
@@ -98,7 +107,7 @@ class JsonConfigStore(ConfigStore):
 
     def get(self, key: str, default: Any = None):
         keys = key.split(".")
-        current_dict = {**self._content, **self._new_content}
+        current_dict = deep_merge_dicts(self._content, self._new_content)
 
         for k in keys:
             current_dict = current_dict.get(k, {})

@@ -232,7 +232,8 @@ class Command:
 
         self.flush_stdout()
 
-    def select(self, text: str, options: dict[str, str], default: Optional[str] = None) -> str:
+    @staticmethod
+    def select(text: str, options: dict[str, str], default: Optional[str] = None) -> str:
         if not options:
             raise ValueError("No options provided")
 
@@ -254,8 +255,8 @@ class Command:
 
         return choice
 
+    @staticmethod
     def prompt(
-        self,
         text,
         default=None,
         hide_input=False,
@@ -280,7 +281,8 @@ class Command:
             show_choices,
         )
 
-    def confirm(self, text: str, **kwarg):
+    @staticmethod
+    def confirm(text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
     def _handle_default_output(self, entry: OutputBufferEntry) -> None:

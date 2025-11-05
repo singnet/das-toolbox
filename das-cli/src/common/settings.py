@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 # from common.utils import get_schema_hash
 
@@ -22,6 +22,9 @@ class Settings:
 
         if raise_on_schema_mismatch:
             self.raise_on_schema_mismatch()
+
+    def set_content(self, content: Dict[str, Any]) -> None:
+        self._store.set_content(content)
 
     def replace_loader(self, loader: ConfigLoader) -> None:
         self._default_loader = loader
