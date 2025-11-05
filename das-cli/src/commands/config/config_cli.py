@@ -21,6 +21,7 @@ from common import (
 from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
 from common.docker.remote_context_manager import Server
 from common.prompt_types import AbsolutePath
+
 # from common.utils import get_schema_hash
 from .default_config_provider import DefaultConfigProvider
 
@@ -667,37 +668,51 @@ EXAMPLES
 
         self._save()
 
-    def non_interactive_mode(self, config_key_value: tuple) -> None:
-        key, value = config_key_value
-        
-        default_mappings = self._default_config_provider.get_all_default_mappings()
-        
+    def _apply_default_values(self, default_mappings: Dict):
         for default_key, default_value_or_func in default_mappings.items():
-            
             if self._settings._store.get(default_key) is not None:
                 continue
 
             if callable(default_value_or_func):
                 if "nodes" in default_key:
-                    calculated_value = default_value_or_func() 
+                    calculated_value = default_value_or_func(self._settings)
                     self._settings.set(default_key, calculated_value)
                 continue
             else:
                 self._settings.set(default_key, default_value_or_func)
 
-        self._settings.set(key, value)
-        
+    def _recalculate_config_dynamic_values(self, default_mappings: Dict):
         for default_key, default_value_or_func in default_mappings.items():
             if callable(default_value_or_func):
-                
+
                 if "nodes" in default_key:
                     continue
-                    
-                calculated_value = default_value_or_func()
-                
+
+                calculated_value = default_value_or_func(self._settings)
+
                 self._settings.set(default_key, calculated_value)
 
-        self._save()
+    def _raise_property_invalid(self, key: str, default_mappings: Dict):
+        properties = default_mappings.keys()
+        if key not in properties:
+            raise AttributeError()
+
+    def non_interactive_mode(self, config_key_value: tuple) -> None:
+        key, value = config_key_value
+
+        try:
+            default_mappings = self._default_config_provider.get_all_default_mappings()
+
+            self._raise_property_invalid(key, default_mappings)
+
+            self._apply_default_values(default_mappings)
+
+            self._settings.set(key, value)
+            self._recalculate_config_dynamic_values(default_mappings)
+
+            self._save()
+        except AttributeError:
+            raise AttributeError(f"'{key}' is not a valid configuration property.")
 
     def run(
         self,
