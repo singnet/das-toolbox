@@ -2,7 +2,6 @@ from typing import Dict, Any, List
 from abc import ABC, abstractmethod
 from common.utils import (
     get_rand_token,
-    calculate_schema_hash,
     get_server_username,
 )
 from common.network import get_public_ip
@@ -11,21 +10,23 @@ from common.docker.remote_context_manager import Server, RemoteContextManager
 from common.command import Command
 from common import IntRange
 from common.prompt_types import ReachableIpAddress
+from common.config.core import (
+    get_core_defaults_dict,
+    default_port_redis,
+    default_port_mongodb,
+    default_port_morkdb,
+    default_port_jupyter,
+    default_port_attention_broker,
+    database_adapter_server_port,
+    default_port_query_agent,
+    default_port_link_agent,
+    default_port_inference_agent,
+    default_port_evolution_agent,
+    default_port_context_broker,
+)
 
 
 class ConfigProvider(ABC):
-    default_port_redis = 40020
-    default_port_mongodb = 40021
-    default_port_jupyter = 40019
-    database_adapter_server_port = 40018
-    default_port_attention_broker = 40001
-    default_port_query_agent = 40002
-    default_port_link_agent = 40003
-    default_port_inference_agent = 40004
-    default_port_evolution_agent = 40005
-    default_port_context_broker = 40006
-    default_port_morkdb = 40022
-
     def __init__(self):
         super().__init__()
 
@@ -53,77 +54,69 @@ class ConfigProvider(ABC):
         ]
 
     def _get_core_defaults(self) -> Dict[str, Any]:
-        core_defaults = {
-            "schema_hash": None,
-            "services.database.atomdb_backend": "redis_mongodb",
-            "services.redis.port": lambda settings: settings.get(
-                "services.redis.port",
-                self.default_port_redis,
-            ),
-            "services.redis.container_name": lambda settings: f"das-cli-redis-{settings.get('services.redis.port', self.default_port_redis)}",
-            "services.redis.cluster": False,
-            "services.redis.nodes": self._default_redis_nodes,
-            "services.mongodb.port": lambda settings: settings.get(
-                "services.mongodb.port",
-                self.default_port_mongodb,
-            ),
-            "services.mongodb.container_name": lambda settings: f"das-cli-mongodb-{settings.get('services.mongodb.port', self.default_port_mongodb)}",
-            "services.mongodb.username": "admin",
-            "services.mongodb.password": "admin",
-            "services.mongodb.cluster": False,
-            "services.mongodb.cluster_secret_key": get_rand_token(num_bytes=15),
-            "services.mongodb.nodes": self._default_mongodb_nodes,
-            "services.morkdb.port": lambda settings: settings.get(
-                "services.morkdb.port",
-                self.default_port_morkdb,
-            ),
-            "services.morkdb.container_name": lambda settings: f"das-cli-morkdb-{settings.get('services.morkdb.port', self.default_port_morkdb)}",
-            "services.loader.container_name": "das-cli-loader",
-            "services.das_peer.port": lambda settings: settings.get(
-                "services.das_peer.port",
-                self.database_adapter_server_port,
-            ),
-            "services.das_peer.container_name": lambda settings: f"das-cli-das-peer-{settings.get('services.das_peer.port', self.database_adapter_server_port)}",
-            "services.dbms_peer.container_name": "das-cli-dbms-peer",
-            "services.jupyter_notebook.port": lambda settings: settings.get(
-                "services.jupyter_notebook.port",
-                self.default_port_jupyter,
-            ),
-            "services.jupyter_notebook.container_name": lambda settings: f"das-cli-jupyter-notebook-{settings.get('services.jupyter_notebook.port', self.default_port_jupyter)}",
-            "services.attention_broker.port": lambda settings: settings.get(
-                "services.attention_broker.port",
-                self.default_port_attention_broker,
-            ),
-            "services.attention_broker.container_name": lambda settings: f"das-cli-attention-broker-{settings.get('services.attention_broker.port', self.default_port_attention_broker)}",
-            "services.query_agent.port": lambda settings: settings.get(
-                "services.query_agent.port",
-                self.default_port_query_agent,
-            ),
-            "services.query_agent.container_name": lambda settings: f"das-cli-query-agent-{settings.get('services.query_agent.port', self.default_port_query_agent)}",
-            "services.link_creation_agent.port": lambda settings: settings.get(
-                "services.link_creation_agent.port",
-                self.default_port_link_agent,
-            ),
-            "services.link_creation_agent.container_name": lambda settings: f"das-cli-link-creation-agent-{settings.get('services.link_creation_agent.port', self.default_port_link_agent)}",
-            "services.inference_agent.port": lambda settings: settings.get(
-                "services.inference_agent.port",
-                self.default_port_inference_agent,
-            ),
-            "services.inference_agent.container_name": lambda settings: f"das-cli-inference-agent-{settings.get('services.inference_agent.port', self.default_port_inference_agent)}",
-            "services.evolution_agent.port": lambda settings: settings.get(
-                "services.evolution_agent.port",
-                self.default_port_evolution_agent,
-            ),
-            "services.evolution_agent.container_name": lambda settings: f"das-cli-evolution-agent-{settings.get('services.evolution_agent.port', self.default_port_evolution_agent)}",
-            "services.context_broker.port": lambda settings: settings.get(
-                "services.context_broker.port",
-                self.default_port_context_broker,
-            ),
-            "services.context_broker.container_name": lambda settings: f"das-cli-context-broker-{settings.get('services.context_broker.port', self.default_port_context_broker)}",
-        }
+        core_defaults = get_core_defaults_dict()
 
-        schema_hash_value = calculate_schema_hash(core_defaults)
-        core_defaults["schema_hash"] = schema_hash_value
+        core_defaults.update(
+            {
+                "services.redis.port": lambda settings: settings.get(
+                    "services.redis.port",
+                    default_port_redis,
+                ),
+                "services.redis.container_name": lambda settings: f"das-cli-redis-{settings.get('services.redis.port', default_port_redis)}",
+                "services.redis.nodes": self._default_redis_nodes,
+                "services.mongodb.port": lambda settings: settings.get(
+                    "services.mongodb.port",
+                    default_port_mongodb,
+                ),
+                "services.mongodb.container_name": lambda settings: f"das-cli-mongodb-{settings.get('services.mongodb.port', default_port_mongodb)}",
+                "services.mongodb.nodes": self._default_mongodb_nodes,
+                "services.morkdb.port": lambda settings: settings.get(
+                    "services.morkdb.port",
+                    default_port_morkdb,
+                ),
+                "services.morkdb.container_name": lambda settings: f"das-cli-morkdb-{settings.get('services.morkdb.port', default_port_morkdb)}",
+                "services.das_peer.port": lambda settings: settings.get(
+                    "services.das_peer.port",
+                    database_adapter_server_port,
+                ),
+                "services.das_peer.container_name": lambda settings: f"das-cli-das-peer-{settings.get('services.das_peer.port', database_adapter_server_port)}",
+                "services.jupyter_notebook.port": lambda settings: settings.get(
+                    "services.jupyter_notebook.port",
+                    default_port_jupyter,
+                ),
+                "services.jupyter_notebook.container_name": lambda settings: f"das-cli-jupyter-notebook-{settings.get('services.jupyter_notebook.port', default_port_jupyter)}",
+                "services.attention_broker.port": lambda settings: settings.get(
+                    "services.attention_broker.port",
+                    default_port_attention_broker,
+                ),
+                "services.attention_broker.container_name": lambda settings: f"das-cli-attention-broker-{settings.get('services.attention_broker.port', default_port_attention_broker)}",
+                "services.query_agent.port": lambda settings: settings.get(
+                    "services.query_agent.port",
+                    default_port_query_agent,
+                ),
+                "services.query_agent.container_name": lambda settings: f"das-cli-query-agent-{settings.get('services.query_agent.port', default_port_query_agent)}",
+                "services.link_creation_agent.port": lambda settings: settings.get(
+                    "services.link_creation_agent.port",
+                    default_port_link_agent,
+                ),
+                "services.link_creation_agent.container_name": lambda settings: f"das-cli-link-creation-agent-{settings.get('services.link_creation_agent.port', default_port_link_agent)}",
+                "services.inference_agent.port": lambda settings: settings.get(
+                    "services.inference_agent.port",
+                    default_port_inference_agent,
+                ),
+                "services.inference_agent.container_name": lambda settings: f"das-cli-inference-agent-{settings.get('services.inference_agent.port', default_port_inference_agent)}",
+                "services.evolution_agent.port": lambda settings: settings.get(
+                    "services.evolution_agent.port",
+                    default_port_evolution_agent,
+                ),
+                "services.evolution_agent.container_name": lambda settings: f"das-cli-evolution-agent-{settings.get('services.evolution_agent.port', default_port_evolution_agent)}",
+                "services.context_broker.port": lambda settings: settings.get(
+                    "services.context_broker.port",
+                    default_port_context_broker,
+                ),
+                "services.context_broker.container_name": lambda settings: f"das-cli-context-broker-{settings.get('services.context_broker.port', default_port_context_broker)}",
+            }
+        )
 
         return core_defaults
 
@@ -428,14 +421,14 @@ class InteractiveConfigProvider(ConfigProvider):
 
     def _atomdb_backend(self) -> dict:
         backends = {
-            "redis_mongodb": {
+            "redis_mongodb": (
                 self._mongodb,
                 self._redis,
-            },
-            "mork_mongodb": {
+            ),
+            "mork_mongodb": (
                 self._mongodb,
                 self._morkdb,
-            },
+            ),
         }
 
         atomdb_backend = Command.select(

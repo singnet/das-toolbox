@@ -1,6 +1,7 @@
 from typing import Any, Optional, Dict
 
-# from common.utils import get_schema_hash
+from common.utils import calculate_schema_hash
+from common.config.core import get_core_defaults_dict
 
 from .config.loader import ConfigLoader
 from .config.store import ConfigStore
@@ -71,12 +72,11 @@ class Settings:
             return value
 
     def raise_on_schema_mismatch(self):
-        # expected_hash = get_schema_hash()
-        # if self._store.get("schema_hash") != expected_hash:
-        #     mismatch_message = f"Your configuration file in {self.get_path()} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
+        expected_hash = calculate_schema_hash(get_core_defaults_dict())
+        if self._store.get("schema_hash") != expected_hash:
+            mismatch_message = f"Your configuration file in {self.get_path()} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
 
-        #     raise ValueError(mismatch_message)
-        pass
+            raise ValueError(mismatch_message)
 
     def raise_on_missing_file(self):
         if not self.exists():
