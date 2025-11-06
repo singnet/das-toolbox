@@ -81,6 +81,7 @@ class ContextBrokerModule(Module):
         return ContextBrokerContainerManager(
             container_name,
             options={
+                "context_broker_hostname": container_name,
                 "context_broker_port": context_broker_port,
                 "context_broker_hostname": container_name,
                 "attention_broker_hostname": attention_broker_hostname,
