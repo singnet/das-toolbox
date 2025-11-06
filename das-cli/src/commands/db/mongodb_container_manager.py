@@ -95,9 +95,6 @@ class MongodbContainerManager(ContainerManager):
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
             },
-            ports={
-                f"{port}/tcp": port,
-            },
             environment={
                 "MONGO_INITDB_ROOT_USERNAME": username,
                 "MONGO_INITDB_ROOT_PASSWORD": password,

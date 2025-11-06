@@ -105,8 +105,8 @@ class MettaModule(Module):
             container_name,
             options={
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
-                "mongodb_hostname": mongodb_hostname,
+                "redis_hostname": "0.0.0.0",
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,

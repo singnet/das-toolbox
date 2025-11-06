@@ -89,11 +89,11 @@ class DbmsAdapterModule(Module):
             container_name,
             options={
                 "das_peer_port": adapter_server_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "redis_port": redis_port,
             },
         )

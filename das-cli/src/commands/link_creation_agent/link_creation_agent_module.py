@@ -73,7 +73,7 @@ class LinkCreationAgentModule(Module):
         return LinkCreationAgentContainerManager(
             container_name,
             options={
-                "link_creation_agent_hostname": container_name,
+                "link_creation_agent_hostname": "0.0.0.0",
                 "link_creation_agent_port": link_creation_agent_port,
                 "link_creation_agent_buffer_file": link_creation_agent_buffer_file,
                 "link_creation_agent_request_interval": link_creation_agent_request_interval,
@@ -82,13 +82,13 @@ class LinkCreationAgentModule(Module):
                 "link_creation_agent_save_links_to_metta_file": link_creation_agent_save_links_to_metta_file,
                 "link_creation_agent_save_links_to_db": link_creation_agent_save_links_to_db,
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "redis_cluster": redis_cluster,
                 "mongodb_port": mongodb_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
             },
         )
@@ -113,12 +113,12 @@ class LinkCreationAgentModule(Module):
             options={
                 "query_agent_port": query_agent_port,
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
             },
         )

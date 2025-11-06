@@ -54,15 +54,15 @@ class InferenceAgentModule(Module):
         return InferenceAgentContainerManager(
             container_name,
             options={
-                "inference_agent_hostname": container_name,
+                "inference_agent_hostname": "0.0.0.0",
                 "inference_agent_port": inference_agent_port,
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
             },
         )
