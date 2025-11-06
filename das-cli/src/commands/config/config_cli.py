@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 from injector import inject
 
@@ -7,20 +7,16 @@ from common import (
     CommandArgument,
     CommandGroup,
     CommandOption,
-    IntRange,
-    ReachableIpAddress,
+    KeyValueType,
     RemoteContextManager,
     Settings,
     StdoutSeverity,
     StdoutType,
-    get_public_ip,
-    get_rand_token,
-    get_server_username,
 )
 from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
-from common.docker.remote_context_manager import Server
 from common.prompt_types import AbsolutePath
-from common.utils import get_schema_hash
+
+from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
 
 class ConfigSet(Command):
@@ -270,7 +266,7 @@ EXAMPLES
     params = [
         CommandOption(
             ["--from-env"],
-            help="",
+            help="Path to an environment file to load initial configuration values from to be suggested as the default value in the interactive prompts.",
             required=False,
             type=AbsolutePath(
                 file_okay=True,
@@ -280,6 +276,12 @@ EXAMPLES
                 readable=True,
             ),
         ),
+        CommandArgument(
+            ["config_key_value"],
+            required=False,
+            type=KeyValueType(),
+            # help="If provided, sets only the specified configuration key non-interactively.",
+        ),
     ]
 
     @inject
@@ -287,288 +289,16 @@ EXAMPLES
         self,
         settings: Settings,
         remote_context_manager: RemoteContextManager,
+        non_interactive_config_provider: NonInteractiveConfigProvider,
+        interactive_config_provider: InteractiveConfigProvider,
     ) -> None:
         super().__init__()
+
         self._settings = settings
         self._settings.enable_overwrite_mode()
         self._remote_context_manager = remote_context_manager
-
-    def _set_config(self, config_dict):
-        for key, value in config_dict.items():
-            if callable(value):
-                self._settings.set(key, value())
-            else:
-                self._settings.set(key, value)
-
-    def _build_localhost_node(
-        self,
-        ip: str = "localhost",
-        use_default_as_context: bool = True,
-    ) -> List[Dict]:
-        server_user = get_server_username()
-
-        node = Server(
-            {
-                "ip": ip,
-                "username": server_user,
-            }
-        )
-
-        if not use_default_as_context:
-            return self._remote_context_manager.create_servers_context([node])
-
-        return [
-            {
-                "context": "default",
-                **node,
-            }
-        ]
-
-    def _build_nodes(self, is_cluster: bool, port: int) -> List[Dict]:
-        if not is_cluster:
-            return self._build_localhost_node()
-
-        nodes = []
-
-        join_current_server = self.confirm(
-            "Do you want to join the current server as an actual node on the network?",
-            default=True,
-        )
-
-        if join_current_server:
-            server_public_ip = get_public_ip()
-
-            if server_public_ip is None:
-                raise Exception(
-                    "The server's public ip could not be solved. Make sure it has internet access."
-                )
-
-            nodes += self._build_localhost_node(
-                server_public_ip,
-                use_default_as_context=True,
-            )
-
-        nodes += self._build_cluster(port, min_nodes=3 - len(nodes))
-
-        return nodes
-
-    def _build_cluster(
-        self,
-        port: int,
-        min_nodes: int = 3,
-    ) -> List[Dict]:
-        current_nodes = self._settings.get("services.redis.nodes", [])
-        current_total_nodes = len(current_nodes)
-        total_nodes_default = current_total_nodes if current_total_nodes > 3 else 3
-
-        total_nodes = self.prompt(
-            f"Enter the total number of nodes for the cluster (>= {min_nodes})",
-            hide_input=False,
-            type=IntRange(min_nodes),
-            default=total_nodes_default,
-        )
-
-        servers: List[Server] = []
-        for i in range(0, total_nodes):
-            server_username_default = (
-                current_nodes[i]["username"] if i < len(current_nodes) else None
-            )
-            server_username = self.prompt(
-                f"Enter the server username for the server-{i + 1}",
-                hide_input=False,
-                default=server_username_default,
-            )
-
-            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
-            server_ip = self.prompt(
-                f"Enter the ip address for the server-{i + 1}",
-                hide_input=False,
-                type=ReachableIpAddress(server_username, port),
-                default=server_ip_default,
-            )
-
-            servers.append(
-                {
-                    "ip": server_ip,
-                    "username": server_username,
-                }
-            )
-
-        return self._remote_context_manager.create_servers_context(servers)
-
-    def _destroy_contexts(self, servers: List[Dict]):
-        server_contexts = [server.get("context", "") for server in servers]
-        self._remote_context_manager.remove_servers_context(server_contexts)
-
-    def _redis_nodes(self, redis_cluster, redis_port) -> List[Dict]:
-        redis_nodes = self._build_nodes(redis_cluster, redis_port)
-
-        self._destroy_contexts(
-            servers=self._settings.get("services.redis.nodes", []),
-        )
-
-        return redis_nodes
-
-    def _redis(self) -> Dict:
-        redis_port = self.prompt(
-            "Enter Redis port",
-            default=self._settings.get("services.redis.port", 40020),
-            type=int,
-        )
-        cluster_default_value = self._settings.get("services.redis.cluster", False)
-        redis_cluster = self.confirm(
-            "Is it a Redis cluster?",
-            default=cluster_default_value,
-        )
-        return {
-            "services.redis.port": redis_port,
-            "services.redis.container_name": f"das-cli-redis-{redis_port}",
-            "services.redis.cluster": redis_cluster,
-            "services.redis.nodes": lambda: self._redis_nodes(redis_cluster, redis_port),
-        }
-
-    def _mongodb_nodes(self, mongodb_cluster, mongodb_port) -> List[Dict]:
-        mongodb_nodes = self._build_nodes(mongodb_cluster, mongodb_port)
-
-        self._destroy_contexts(
-            servers=self._settings.get("services.mongodb.nodes", []),
-        )
-
-        return mongodb_nodes
-
-    def _mongodb(self) -> dict:
-        mongodb_port = self.prompt(
-            "Enter MongoDB port",
-            default=self._settings.get("services.mongodb.port", 40021),
-            type=int,
-        )
-        mongodb_username = self.prompt(
-            "Enter MongoDB username",
-            default=self._settings.get("services.mongodb.username", "admin"),
-        )
-        mongodb_password = self.prompt(
-            "Enter MongoDB password",
-            # hide_input=True, # When hide_input is set I cannot set the answers based on a text file making impossible to test this command
-            default=self._settings.get("services.mongodb.password", "admin"),
-        )
-        cluster_default_value = self._settings.get("services.mongodb.cluster", False)
-        is_mongodb_cluster = self.confirm(
-            "Is it a MongoDB cluster?",
-            default=cluster_default_value,
-        )
-        cluster_secret_key = self._settings.get(
-            "services.mongodb.cluster_secret_key",
-            get_rand_token(num_bytes=15),
-        )
-        return {
-            "services.mongodb.port": mongodb_port,
-            "services.mongodb.container_name": f"das-cli-mongodb-{mongodb_port}",
-            "services.mongodb.username": mongodb_username,
-            "services.mongodb.password": mongodb_password,
-            "services.mongodb.cluster": is_mongodb_cluster,
-            "services.mongodb.nodes": lambda: self._mongodb_nodes(
-                is_mongodb_cluster,
-                mongodb_port,
-            ),
-            "services.mongodb.cluster_secret_key": cluster_secret_key,
-        }
-
-    def _loader(self) -> dict:
-        return {"services.loader.container_name": "das-cli-loader"}
-
-    def _das_peer(self) -> dict:
-        database_adapter_server_port = 40018
-
-        return {
-            "services.das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
-            "services.das_peer.port": database_adapter_server_port,
-        }
-
-    def _dbms_peer(self) -> dict:
-        return {
-            "services.dbms_peer.container_name": "das-cli-dbms-peer",
-        }
-
-    def _jupyter_notebook(self) -> dict:
-        jupyter_notebook_port = self.prompt(
-            "Enter Jupyter Notebook port",
-            default=self._settings.get("services.jupyter.port", 40019),
-        )
-
-        return {
-            "services.jupyter_notebook.port": jupyter_notebook_port,
-            "services.jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{jupyter_notebook_port}",
-        }
-
-    def _attention_broker(self) -> dict:
-        attention_broker_port = self.prompt(
-            "Enter the Attention Broker port",
-            default=self._settings.get("services.attention_broker.port", 40001),
-        )
-
-        return {
-            "services.attention_broker.port": attention_broker_port,
-            "services.attention_broker.container_name": f"das-cli-attention-broker-{attention_broker_port}",
-        }
-
-    def _query_agent(self) -> dict:
-        query_agent_port = self.prompt(
-            "Enter the Query Agent port",
-            default=self._settings.get("services.query_agent.port", 40002),
-        )
-
-        return {
-            "services.query_agent.port": query_agent_port,
-            "services.query_agent.container_name": f"das-cli-query-agent-{query_agent_port}",
-        }
-
-    def _link_creation_agent(self) -> dict:
-        link_creation_agent_port = self.prompt(
-            "Enter the Link Creation Agent Server port",
-            default=self._settings.get("services.link_creation_agent.port", 40003),
-        )
-
-        return {
-            "services.link_creation_agent.container_name": f"das-cli-link-creation-agent-{link_creation_agent_port}",
-            "services.link_creation_agent.port": link_creation_agent_port,
-        }
-
-    def _inference_agent(self) -> dict:
-        inference_agent_port = self.prompt(
-            "Enter the Inference Agent port",
-            default=self._settings.get("services.inference_agent.port", 40004),
-        )
-
-        return {
-            "services.inference_agent.port": inference_agent_port,
-            "services.inference_agent.container_name": f"das-cli-inference-agent-{inference_agent_port}",
-        }
-
-    def _evolution_agent(self) -> dict:
-        evolution_agent_port = self.prompt(
-            "Enter the Evolution agent port",
-            default=self._settings.get("services.evolution_agent.port", 40005),
-        )
-
-        return {
-            "services.evolution_agent.port": evolution_agent_port,
-            "services.evolution_agent.container_name": f"das-cli-evolution-agent-{evolution_agent_port}",
-        }
-
-    def _context_broker(self) -> dict:
-        context_broker_port = self.prompt(
-            "Enter the Context Broker port",
-            default=self._settings.get("services.context_broker.port", 40006),
-        )
-
-        return {
-            "services.context_broker.port": context_broker_port,
-            "services.context_broker.container_name": f"das-cli-context-broker-{context_broker_port}",
-        }
-
-    def _schema_hash(self) -> dict:
-        schema_hash = get_schema_hash()
-        return {"schema_hash": schema_hash}
+        self._non_interactive_config_provider = non_interactive_config_provider
+        self._interactive_config_provider = interactive_config_provider
 
     def _save(self) -> None:
         self._remote_context_manager.commit()
@@ -578,49 +308,7 @@ EXAMPLES
             severity=StdoutSeverity.SUCCESS,
         )
 
-    def _morkdb(self) -> Dict:
-        morkdb_port = self.prompt(
-            "Enter the MorkDB port",
-            default=self._settings.get("services.morkdb.port", 40022),
-        )
-
-        return {
-            "services.morkdb.port": morkdb_port,
-            "services.morkdb.container_name": f"das-cli-morkdb-{morkdb_port}",
-        }
-
-    def _atomdb_backend(self) -> dict:
-        backends = {
-            "redis_mongodb": {
-                self._redis,
-                self._mongodb,
-            },
-            "mork_mongodb": {
-                self._mongodb,
-                self._morkdb,
-            },
-        }
-
-        atomdb_backend = self.select(
-            text="Choose the AtomDB backend: ",
-            options={
-                'MongoDB + Redis': 'redis_mongodb',
-                'MongoDB + Mork': 'mork_mongodb',
-            },
-            default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
-        )
-
-        backend = backends.get(atomdb_backend) or backends["redis_mongodb"]
-        backend_configs = [func() for func in backend]
-        merged_config = {
-            "services.database.atomdb_backend": atomdb_backend,
-        }
-        for config in backend_configs:
-            merged_config.update(config)
-
-        return merged_config
-
-    def run(self, from_env: str):
+    def interactive_mode(self, from_env: Optional[str]) -> None:
         self._settings.replace_loader(
             loader=CompositeLoader(
                 [
@@ -630,26 +318,30 @@ EXAMPLES
             )
         )
 
-        config_steps = [
-            self._schema_hash,
-            self._atomdb_backend,
-            self._loader,
-            self._das_peer,
-            self._dbms_peer,
-            self._jupyter_notebook,
-            self._attention_broker,
-            self._query_agent,
-            self._link_creation_agent,
-            self._inference_agent,
-            self._evolution_agent,
-            self._context_broker,
-        ]
-
-        for config_step in config_steps:
-            config = config_step()
-            self._set_config(config)
-
+        config_mappings = self._interactive_config_provider.get_all_configs()
+        self._interactive_config_provider.apply_default_values(config_mappings)
+        self._interactive_config_provider.recalculate_config_dynamic_values(config_mappings)
         self._save()
+
+    def non_interactive_mode(self, config_key_value: tuple) -> None:
+        key, value = config_key_value
+
+        default_mappings = self._non_interactive_config_provider.get_all_configs()
+        self._non_interactive_config_provider.raise_property_invalid(key)
+        self._non_interactive_config_provider.apply_default_values(default_mappings)
+        self._settings.set(key, value)
+        self._non_interactive_config_provider.recalculate_config_dynamic_values(default_mappings)
+        self._save()
+
+    def run(
+        self,
+        from_env: Optional[str] = None,
+        config_key_value: Optional[tuple] = None,
+    ):
+        if config_key_value:
+            return self.non_interactive_mode(config_key_value)
+
+        return self.interactive_mode(from_env=from_env)
 
 
 class ConfigList(Command):

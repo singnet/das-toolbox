@@ -14,7 +14,7 @@ from .docker.container_manager import ContainerImageMetadata, ContainerMetadata
 from .logger import logger
 from .module import Module
 from .network import get_public_ip
-from .prompt_types import FunctionVersion, ReachableIpAddress, RegexType
+from .prompt_types import KeyValueType, ReachableIpAddress, RegexType, VersionType
 from .settings import Settings
 from .utils import (
     deep_merge_dicts,
@@ -43,7 +43,8 @@ __all__ = [
     "Module",
     "get_public_ip",
     "Choice",
-    "FunctionVersion",
+    "KeyValueType",
+    "VersionType",
     "IntRange",
     "Path",
     "ReachableIpAddress",

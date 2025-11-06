@@ -87,6 +87,7 @@ $evolution_agent_port
 $context_broker_port
 EOF
 
+    assert_line --partial "Configuration file saved -> ${das_config_dir}"
     assert_equal "$(get_config ".services.redis.port")" "$redis_port"
     assert_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
     assert_equal "$(get_config ".services.redis.nodes | length")" 1
@@ -236,6 +237,7 @@ $evolution_agent_port
 $context_broker_port
 EOF
 
+    assert_line --partial "Configuration file saved"
     assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
     assert_not_equal "$(get_config ".services.redis.port")" "$redis_port"
     assert_not_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"

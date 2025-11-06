@@ -1,5 +1,5 @@
 {
-  "schema_hash": "7861d213288eec0b37e95fc770e5407258006ec617589a7a4d1bc8c32b457d0e",
+  "schema_hash": "c92c95b4a6ad6b9e01987ab58b4bcb6a637343915c13602b390501faa51e3110",
   "services": {
     "redis": {
       "port": 40020,
