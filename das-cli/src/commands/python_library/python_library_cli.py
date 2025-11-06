@@ -2,7 +2,7 @@ from enum import Enum
 
 from injector import inject
 
-from common import Choice, Command, CommandGroup, CommandOption, VersionType, StdoutSeverity
+from common import Choice, Command, CommandGroup, CommandOption, StdoutSeverity, VersionType
 
 from .python_library_package import PackageError, PythonLibraryPackage
 

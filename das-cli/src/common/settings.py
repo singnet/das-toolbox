@@ -1,7 +1,7 @@
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
-from common.utils import calculate_schema_hash
 from common.config.core import get_core_defaults_dict
+from common.utils import calculate_schema_hash
 
 from .config.loader import ConfigLoader
 from .config.store import ConfigStore

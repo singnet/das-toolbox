@@ -96,10 +96,15 @@ class KeyValueType(ParamType):
         key, val = value.split("=", 1)
         return key, val
 
+
 class VersionType(ParamType):
     name = "version"
 
     def convert(self, value, param, ctx):
         if not re.match(r'^\d+\.\d+\.\d+$', value):
-            self.fail("Invalid version format. Expected 'X.Y.Z' where X, Y, and Z are integers.", param, ctx)
+            self.fail(
+                "Invalid version format. Expected 'X.Y.Z' where X, Y, and Z are integers.",
+                param,
+                ctx,
+            )
         return value

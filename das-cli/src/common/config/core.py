@@ -1,4 +1,5 @@
 from typing import Any, Dict
+
 from common.utils import calculate_schema_hash, get_rand_token
 
 default_atomdb_backend = "redis_mongodb"
@@ -14,8 +15,9 @@ default_port_evolution_agent = 40005
 default_port_context_broker = 40006
 default_port_morkdb = 40022
 
+
 def get_core_defaults_dict() -> Dict[str, Any]:
-    core_defaults = {
+    core_defaults: Dict[str, Any] = {
         "schema_hash": None,
         "services.database.atomdb_backend": default_atomdb_backend,
         "services.redis.port": default_port_redis,

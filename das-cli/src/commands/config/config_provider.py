@@ -1,34 +1,34 @@
-from typing import Dict, Any, List
 from abc import ABC, abstractmethod
-from common.utils import (
-    get_rand_token,
-    get_server_username,
-)
-from common.network import get_public_ip
-from common.settings import Settings
-from common.docker.remote_context_manager import Server, RemoteContextManager
-from common.command import Command
+from typing import Any, Dict, List
+
 from common import IntRange
-from common.prompt_types import ReachableIpAddress
+from common.command import Command
 from common.config.core import (
-    get_core_defaults_dict,
-    default_port_redis,
+    database_adapter_server_port,
+    default_port_attention_broker,
+    default_port_context_broker,
+    default_port_evolution_agent,
+    default_port_inference_agent,
+    default_port_jupyter,
+    default_port_link_agent,
     default_port_mongodb,
     default_port_morkdb,
-    default_port_jupyter,
-    default_port_attention_broker,
-    database_adapter_server_port,
     default_port_query_agent,
-    default_port_link_agent,
-    default_port_inference_agent,
-    default_port_evolution_agent,
-    default_port_context_broker,
+    default_port_redis,
+    get_core_defaults_dict,
 )
+from common.docker.remote_context_manager import RemoteContextManager, Server
+from common.network import get_public_ip
+from common.prompt_types import ReachableIpAddress
+from common.settings import Settings
+from common.utils import get_rand_token, get_server_username
 
 
 class ConfigProvider(ABC):
-    def __init__(self):
+    def __init__(self, settings: Settings):
         super().__init__()
+
+        self._settings = settings
 
     def _default_redis_nodes(self, _: Settings) -> List[Dict]:
         return self._build_localhost_node()
@@ -130,7 +130,7 @@ class ConfigProvider(ABC):
         if key not in default_mappings.keys():
             raise AttributeError(f"'{key}' is not a valid configuration property.")
 
-    def apply_default_values(self, default_mappings: Dict) -> Dict[str, Any]:
+    def apply_default_values(self, default_mappings: Dict):
         for default_key, default_value_or_func in default_mappings.items():
             if callable(default_value_or_func):
                 if "nodes" in default_key:
@@ -143,10 +143,9 @@ class ConfigProvider(ABC):
     def recalculate_config_dynamic_values(
         self,
         default_mappings: Dict,
-    ) -> Dict[str, Any]:
+    ):
         for default_key, default_value_or_func in default_mappings.items():
             if callable(default_value_or_func):
-
                 if "nodes" in default_key or default_key == "schema_hash":
                     continue
 
@@ -161,7 +160,7 @@ class InteractiveConfigProvider(ConfigProvider):
         settings: Settings,
         remote_context_manager: RemoteContextManager,
     ):
-        super().__init__()
+        super().__init__(settings)
 
         self._settings = settings
         self._remote_context_manager = remote_context_manager
@@ -245,9 +244,7 @@ class InteractiveConfigProvider(ConfigProvider):
                 default=server_username_default,
             )
 
-            server_ip_default = (
-                current_nodes[i]["ip"] if i < len(current_nodes) else None
-            )
+            server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
             server_ip = Command.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
@@ -437,9 +434,7 @@ class InteractiveConfigProvider(ConfigProvider):
                 "MongoDB + Redis": "redis_mongodb",
                 "MongoDB + Mork": "mork_mongodb",
             },
-            default=self._settings.get(
-                "services.database.atomdb_backend", "redis_mongodb"
-            ),
+            default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
         )
 
         backend = backends.get(atomdb_backend) or backends["redis_mongodb"]
@@ -497,7 +492,7 @@ class InteractiveConfigProvider(ConfigProvider):
 
 class NonInteractiveConfigProvider(ConfigProvider):
     def __init__(self, settings: Settings) -> None:
-        super().__init__()
+        super().__init__(settings)
         self._settings = settings
 
     def get_all_configs(self) -> Dict[str, Any]:

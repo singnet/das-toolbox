@@ -5,7 +5,7 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .config_cli import ConfigCli, RemoteContextManager
-from .config_provider import NonInteractiveConfigProvider, InteractiveConfigProvider
+from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
 
 class ConfigModule(Module):

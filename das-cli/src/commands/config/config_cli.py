@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 from injector import inject
 
@@ -7,23 +7,16 @@ from common import (
     CommandArgument,
     CommandGroup,
     CommandOption,
-    IntRange,
-    ReachableIpAddress,
-    RemoteContextManager,
     KeyValueType,
+    RemoteContextManager,
     Settings,
     StdoutSeverity,
     StdoutType,
-    get_public_ip,
-    get_rand_token,
-    get_server_username,
 )
 from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
-from common.docker.remote_context_manager import Server
 from common.prompt_types import AbsolutePath
 
-# from common.utils import get_schema_hash
-from .config_provider import NonInteractiveConfigProvider, InteractiveConfigProvider
+from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
 
 class ConfigSet(Command):
@@ -315,7 +308,7 @@ EXAMPLES
             severity=StdoutSeverity.SUCCESS,
         )
 
-    def interactive_mode(self, from_env: str) -> None:
+    def interactive_mode(self, from_env: Optional[str]) -> None:
         self._settings.replace_loader(
             loader=CompositeLoader(
                 [
@@ -327,9 +320,7 @@ EXAMPLES
 
         config_mappings = self._interactive_config_provider.get_all_configs()
         self._interactive_config_provider.apply_default_values(config_mappings)
-        self._interactive_config_provider.recalculate_config_dynamic_values(
-            config_mappings
-        )
+        self._interactive_config_provider.recalculate_config_dynamic_values(config_mappings)
         self._save()
 
     def non_interactive_mode(self, config_key_value: tuple) -> None:
@@ -339,15 +330,13 @@ EXAMPLES
         self._non_interactive_config_provider.raise_property_invalid(key)
         self._non_interactive_config_provider.apply_default_values(default_mappings)
         self._settings.set(key, value)
-        self._non_interactive_config_provider.recalculate_config_dynamic_values(
-            default_mappings
-        )
+        self._non_interactive_config_provider.recalculate_config_dynamic_values(default_mappings)
         self._save()
 
     def run(
         self,
         from_env: Optional[str] = None,
-        config_key_value: Optional[str] = None,
+        config_key_value: Optional[tuple] = None,
     ):
         if config_key_value:
             return self.non_interactive_mode(config_key_value)

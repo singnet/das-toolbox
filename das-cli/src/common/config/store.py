@@ -2,6 +2,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict
+
 from common.utils import deep_merge_dicts
 
 
@@ -81,7 +82,7 @@ class JsonConfigStore(ConfigStore):
         return {**self._content, **self._new_content}
 
     def set_content(self, content: Dict[str, Any]) -> None:
-       self._new_content = content 
+        self._new_content = content
 
     def get_path(self) -> str:
         return self._file_path
