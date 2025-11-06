@@ -2,7 +2,7 @@ import getpass
 import tempfile
 from pathlib import Path
 
-VERSION = "0.5.7"
+VERSION = '0.5.8'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "das-services-network"
@@ -42,5 +42,5 @@ DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 DAS_MORK_IMAGE_NAME = "trueagi/das"
 DAS_MORK_IMAGE_VERSION = "mork-server-0.10.2"
 
-DAS_IMAGE_VERSION = "0.11.11"
+DAS_IMAGE_VERSION = "0.11.12"
 DAS_IMAGE_NAME = "trueagi/das"
