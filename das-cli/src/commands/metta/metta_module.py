@@ -6,6 +6,7 @@ from commands.db.atomdb_backend import (
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
+    AtomdbBackendEnum,
 )
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
@@ -14,7 +15,12 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .metta_cli import MettaCli, MettaLoaderContainerManager, Settings
+from .metta_cli import (
+    MettaCli,
+    MettaLoaderContainerManager,
+    Settings,
+    MettaMorkLoaderContainerManager,
+)
 
 
 class MettaModule(Module):
@@ -23,7 +29,9 @@ class MettaModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._settings = Settings(
+            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
+        )
 
         self._dependecy_injection = [
             (
@@ -42,20 +50,25 @@ class MettaModule(Module):
                 Settings,
                 self._settings,
             ),
+            (
+                MettaMorkLoaderContainerManager,
+                self._metta_mork_loader_container_manager_factory,
+            ),
         ]
 
     def _atomdb_backend_factory(self) -> AtomdbBackend:
         backend_name = self._settings.get("services.database.atomdb_backend")
         providers: List[BackendProvider] = []
+        backend_name = AtomdbBackendEnum.from_value(backend_name)
 
-        if backend_name == "redis_mongodb":
+        if backend_name == AtomdbBackendEnum.REDIS_MONGODB:
             providers.append(
                 MongoDBRedisBackend(
                     self._mongodb_container_manager_factory(),
                     self._redis_container_manager_factory(),
                 ),
             )
-        elif backend_name == "mork_mongodb":
+        elif backend_name == AtomdbBackendEnum.MORK_MONGODB:
             providers.append(
                 MorkMongoDBBackend(
                     self._mongodb_container_manager_factory(),
@@ -63,7 +76,7 @@ class MettaModule(Module):
                 )
             )
 
-        return AtomdbBackend(providers)
+        return AtomdbBackend(backend_name, providers)
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("services.redis.container_name")
@@ -122,3 +135,10 @@ class MettaModule(Module):
                 "morkdb_port": morkdb_port,
             },
         )
+
+    def _metta_mork_loader_container_manager_factory(
+        self,
+    ) -> MettaMorkLoaderContainerManager:
+        container_name = self._settings.get("services.morkdb_loader.container_name")
+
+        return MettaMorkLoaderContainerManager(container_name)

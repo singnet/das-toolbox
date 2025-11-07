@@ -3,13 +3,21 @@ import os
 
 from injector import inject
 
-from commands.db.atomdb_backend import AtomdbBackend
-from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
+from commands.db.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
+from common import (
+    Command,
+    CommandArgument,
+    CommandGroup,
+    Path,
+    Settings,
+    StdoutSeverity,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
 
 from .metta_loader_container_manager import MettaLoaderContainerManager
+from .metta_mork_loader_container_manager import MettaMorkLoaderContainerManager
 from .metta_syntax_container_manager import MettaSyntaxContainerManager
 
 
@@ -74,12 +82,14 @@ EXAMPLES
         self,
         atomdb_backend: AtomdbBackend,
         metta_loader_container_manager: MettaLoaderContainerManager,
+        metta_mork_loader_container_manager: MettaMorkLoaderContainerManager,
         settings: Settings,
     ) -> None:
         super().__init__()
         self._settings = settings
         self._atomdb_backend = atomdb_backend
         self._metta_loader_container_manager = metta_loader_container_manager
+        self._metta_mork_loader_container_manager = metta_mork_loader_container_manager
 
     def _load_metta_from_file(self, file_path: str):
         if not file_path.endswith(".metta"):
@@ -91,7 +101,18 @@ EXAMPLES
 
         self.stdout(f"Loading metta file {file_path}...")
 
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(
+                f"The specified file path '{file_path}' does not exist."
+            )
+
+        if not os.path.isfile(file_path):
+            raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
+
         self._metta_loader_container_manager.start_container(file_path)
+
+        if self._atomdb_backend.name == AtomdbBackendEnum.MORK_MONGODB:
+            self._metta_mork_loader_container_manager.start_container(file_path)
 
     def _load_metta_from_directory(self, directory_path: str):
         files = glob.glob(f"{directory_path}/*")
@@ -190,7 +211,9 @@ EXAMPLES
         except IsADirectoryError:
             raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
         except FileNotFoundError:
-            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
+            raise FileNotFoundError(
+                f"The specified file path '{file_path}' does not exist."
+            )
         except DockerError:
             self.stdout("Checking syntax... FAILED", severity=StdoutSeverity.ERROR)
 

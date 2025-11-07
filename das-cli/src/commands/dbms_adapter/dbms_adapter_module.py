@@ -6,6 +6,7 @@ from commands.db.atomdb_backend import (
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
+    AtomdbBackendEnum,
 )
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
@@ -106,15 +107,16 @@ class DbmsAdapterModule(Module):
     def _atomdb_backend_factory(self) -> AtomdbBackend:
         backend_name = self._settings.get("services.database.atomdb_backend")
         providers: List[BackendProvider] = []
+        backend_name = AtomdbBackendEnum.from_value(backend_name)
 
-        if backend_name == "redis_mongodb":
+        if backend_name == AtomdbBackendEnum.REDIS_MONGODB:
             providers.append(
                 MongoDBRedisBackend(
                     self._mongodb_container_manager_factory(),
                     self._redis_container_manager_factory(),
                 ),
             )
-        elif backend_name == "mork_mongodb":
+        elif backend_name == AtomdbBackendEnum.MORK_MONGODB:
             providers.append(
                 MorkMongoDBBackend(
                     self._mongodb_container_manager_factory(),
@@ -122,7 +124,7 @@ class DbmsAdapterModule(Module):
                 )
             )
 
-        return AtomdbBackend(providers)
+        return AtomdbBackend(backend_name, providers)
 
     def _morkdb_container_manager_factory(self) -> MorkdbContainerManager:
         container_name = self._settings.get("services.morkdb.container_name")

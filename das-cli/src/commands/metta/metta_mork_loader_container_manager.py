@@ -5,22 +5,22 @@ import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
+from settings.config import DAS_MORK_LOADER_IMAGE_NAME, DAS_MORK_LOADER_IMAGE_VERSION
 
 
-class MettaLoaderContainerManager(ContainerManager):
+class MettaMorkLoaderContainerManager(ContainerManager):
     def __init__(
         self,
-        loader_container_name: str,
+        mork_loader_container_name: str,
         options: Dict = {},
     ) -> None:
         container = Container(
-            loader_container_name,
+            mork_loader_container_name,
             metadata={
                 "port": None,
                 "image": {
-                    "name": METTA_PARSER_IMAGE_NAME,
-                    "version": METTA_PARSER_IMAGE_VERSION,
+                    "name": DAS_MORK_LOADER_IMAGE_NAME,
+                    "version": DAS_MORK_LOADER_IMAGE_VERSION,
                 },
             },
         )
@@ -28,9 +28,8 @@ class MettaLoaderContainerManager(ContainerManager):
         super().__init__(container)
         self._options = options
 
-    def _gen_metta_loader_command(self, filename: str) -> str:
-        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'mork_mongodb' else ""
-        exec_command = f"db_loader {filename} {skip_redis}".strip()
+    def _gen_mork_metta_loader_command(self, filename: str) -> str:
+        exec_command = f"--file {filename}".strip()
 
         return exec_command
 
@@ -42,20 +41,14 @@ class MettaLoaderContainerManager(ContainerManager):
 
         try:
             filename = os.path.basename(path)
-            exec_command = self._gen_metta_loader_command(filename)
+            file_container_path = f"/tmp/mork/{filename}"
+
+            exec_command = self._gen_mork_metta_loader_command(file_container_path)
             container = self._start_container(
-                environment={
-                    "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),
-                    "DAS_REDIS_PORT": self._options.get('redis_port'),
-                    "DAS_MONGODB_HOSTNAME": self._options.get('mongodb_hostname'),
-                    "DAS_MONGODB_PORT": self._options.get('mongodb_port'),
-                    "DAS_MONGODB_USERNAME": self._options.get('mongodb_username'),
-                    "DAS_MONGODB_PASSWORD": self._options.get('mongodb_password'),
-                },
                 command=exec_command,
                 volumes={
                     path: {
-                        "bind": f"/tmp/{filename}",
+                        "bind": file_container_path,
                         "mode": "rw",
                     },
                 },
@@ -67,7 +60,7 @@ class MettaLoaderContainerManager(ContainerManager):
             self.logs()
 
             exit_code = self.get_container_exit_status(container)
-            container.remove(v=True, force=True)
+            # container.remove(v=True, force=True)
 
             if exit_code != 0:
                 raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
