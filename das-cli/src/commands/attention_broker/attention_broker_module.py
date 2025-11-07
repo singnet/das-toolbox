@@ -35,6 +35,6 @@ class AttentionBrokerModule(Module):
             container_name,
             options={
                 "attention_broker_port": attention_broker_port,
-                "attention_broker_hostname": container_name,
+                "attention_broker_hostname": "0.0.0.0",
             },
         )

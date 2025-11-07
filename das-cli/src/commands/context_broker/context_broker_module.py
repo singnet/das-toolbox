@@ -33,15 +33,12 @@ class ContextBrokerModule(Module):
 
     def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
         query_agent_port = str(self._settings.get("services.query_agent.port"))
-        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         container_name = self._settings.get("services.query_agent.container_name")
@@ -50,14 +47,14 @@ class ContextBrokerModule(Module):
             container_name,
             options={
                 "query_agent_port": query_agent_port,
-                "query_agent_hostname": container_name,
+                "query_agent_hostname": "0.0.0.0",
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": attention_broker_hostname,
+                "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
             },
         )
@@ -65,31 +62,28 @@ class ContextBrokerModule(Module):
     def _context_broker_container_manager_factory(self) -> ContextBrokerContainerManager:
         context_broker_port = self._settings.get("services.context_broker.port")
 
-        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = self._settings.get("services.redis.container_name")
 
         container_name = self._settings.get("services.context_broker.container_name")
 
         return ContextBrokerContainerManager(
             container_name,
             options={
-                "context_broker_hostname": container_name,
+                "context_broker_hostname": "0.0.0.0",
                 "context_broker_port": context_broker_port,
-                "context_broker_hostname": container_name,
-                "attention_broker_hostname": attention_broker_hostname,
+                "context_broker_hostname": "0.0.0.0",
+                "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
             },

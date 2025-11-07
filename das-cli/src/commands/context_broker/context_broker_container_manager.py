@@ -73,7 +73,6 @@ class ContextBrokerContainerManager(ContainerManager):
                 peer_port,
                 port_range,
             )
-            context_broker_port = self._options.get("context_broker_port", 0)
 
             container_id = self._start_container(
                 restart_policy={
@@ -81,9 +80,6 @@ class ContextBrokerContainerManager(ContainerManager):
                     "MaximumRetryCount": 5,
                 },
                 command=exec_command,
-                ports={
-                    context_broker_port: context_broker_port,
-                },
                 environment={
                     "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
                     "DAS_MONGODB_PORT": self._options.get("mongodb_port"),

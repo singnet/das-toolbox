@@ -70,17 +70,9 @@ class DbmsAdapterModule(Module):
 
     def _das_peer_container_manager_factory(self) -> DasPeerContainerManager:
         container_name = self._settings.get("services.das_peer.container_name")
-        mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
-        mongodb_container_name = self._settings.get("services.mongodb.container_name")
-        mongodb_hostname = (
-            mongodb_nodes[0]["ip"] if len(mongodb_nodes) > 1 else mongodb_container_name
-        )
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
         mongodb_port = self._settings.get("services.mongodb.port")
-        redis_nodes = self._settings.get("services.redis.nodes", [])
-        redis_container_name = self._settings.get("services.redis.container_name")
-        redis_hostname = redis_nodes[0]["ip"] if len(redis_nodes) > 1 else redis_container_name
         redis_port = self._settings.get("services.redis.port")
 
         adapter_server_port = 30100
@@ -89,11 +81,11 @@ class DbmsAdapterModule(Module):
             container_name,
             options={
                 "das_peer_port": adapter_server_port,
-                "mongodb_hostname": mongodb_hostname,
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "redis_hostname": redis_hostname,
+                "redis_hostname": "0.0.0.0",
                 "redis_port": redis_port,
             },
         )

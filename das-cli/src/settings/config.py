@@ -2,10 +2,10 @@ import getpass
 import tempfile
 from pathlib import Path
 
-VERSION = '0.5.8'
+VERSION = '0.5.9'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
-SERVICES_NETWORK_NAME = "das-services-network"
+SERVICES_NETWORK_NAME = "host"
 
 # PATHS
 

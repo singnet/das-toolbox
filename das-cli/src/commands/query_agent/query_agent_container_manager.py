@@ -54,7 +54,6 @@ class QueryAgentContainerManager(ContainerManager):
 
         try:
             exec_command = self._gen_query_agent_command(port_range)
-            query_agent_port = self._options.get("query_agent_port", 0)
 
             container_id = self._start_container(
                 restart_policy={
@@ -73,9 +72,6 @@ class QueryAgentContainerManager(ContainerManager):
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
                     "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
                     "DAS_MORK_PORT": self._options.get("morkdb_port"),
-                },
-                ports={
-                    query_agent_port: query_agent_port,
                 },
             )
 

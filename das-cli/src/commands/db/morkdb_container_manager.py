@@ -27,15 +27,10 @@ class MorkdbContainerManager(ContainerManager):
     def start_container(self):
         self.raise_running_container()
 
-        port = self._options.get("morkdb_port", 40022)
-
         container = self._start_container(
             restart_policy={
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
-            },
-            ports={
-                f"{port}/tcp": "8000",
             },
         )
 

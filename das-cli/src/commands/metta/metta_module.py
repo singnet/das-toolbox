@@ -93,11 +93,9 @@ class MettaModule(Module):
 
     def _metta_loader_container_manager_factory(self) -> MettaLoaderContainerManager:
         container_name = self._settings.get("services.loader.container_name")
-        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
-        redis_hostname = self._settings.get("services.redis.container_name")
         redis_port = self._settings.get("services.redis.port")
         atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
@@ -105,8 +103,8 @@ class MettaModule(Module):
             container_name,
             options={
                 "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
-                "mongodb_hostname": mongodb_hostname,
+                "redis_hostname": "0.0.0.0",
+                "mongodb_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
