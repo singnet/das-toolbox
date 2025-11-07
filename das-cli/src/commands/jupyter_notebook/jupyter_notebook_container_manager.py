@@ -25,7 +25,15 @@ class JupyterNotebookContainerManager(ContainerManager):
             },
         )
 
+        self._options = options
+
         super().__init__(container)
+
+    def _gen_jupyter_notebook_command(self) -> str:
+        port = self._options.get("jupyter_notebook_port")
+        hostname = self._options.get("jupyter_notebook_hostname")
+
+        return f"jupyter notebook --ip={hostname} --port={port} --no-browser"
 
     def start_container(
         self,
@@ -34,16 +42,13 @@ class JupyterNotebookContainerManager(ContainerManager):
         self.raise_running_container()
 
         volumes = {(working_dir or os.getcwd()): {"bind": "/home/jovyan/work", "mode": "rw"}}
-        jupyter_notebook_port = self.get_container().port
 
         try:
             container = self._start_container(
+                command=self._gen_jupyter_notebook_command(),
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
-                },
-                ports={
-                    "8888/tcp": jupyter_notebook_port,
                 },
                 volumes=volumes,
             )
