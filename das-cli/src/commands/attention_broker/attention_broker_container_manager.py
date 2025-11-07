@@ -37,6 +37,7 @@ class AttentionBrokerManager(ContainerManager):
 
     def start_container(self):
         self.raise_running_container()
+        self.raise_on_port_in_use([int(self._options.get("attention_broker_port", 0))])
 
         try:
             self.stop()

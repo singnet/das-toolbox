@@ -31,9 +31,7 @@ setup() {
 
     run das-cli attention-broker start
     assert_output "Starting Attention Broker service...
-[31m[DockerError] 
-Error occurred while trying to start Attention Broker on port ${attention_broker_port}
-[39m"
+[31m[PortBindingError] Port ${attention_broker_port} on localhost are already in use.[39m"
 
     run stop_listen_port "${attention_broker_port}"
     assert_success
