@@ -3,10 +3,10 @@ from typing import List
 
 from commands.db.atomdb_backend import (
     AtomdbBackend,
+    AtomdbBackendEnum,
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
-    AtomdbBackendEnum,
 )
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
@@ -18,8 +18,8 @@ from settings.config import SECRETS_PATH
 from .metta_cli import (
     MettaCli,
     MettaLoaderContainerManager,
-    Settings,
     MettaMorkLoaderContainerManager,
+    Settings,
 )
 
 
@@ -29,9 +29,7 @@ class MettaModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (

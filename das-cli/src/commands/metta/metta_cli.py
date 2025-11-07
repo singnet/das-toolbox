@@ -4,14 +4,7 @@ import os
 from injector import inject
 
 from commands.db.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
-from common import (
-    Command,
-    CommandArgument,
-    CommandGroup,
-    Path,
-    Settings,
-    StdoutSeverity,
-)
+from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
@@ -102,9 +95,7 @@ EXAMPLES
         self.stdout(f"Loading metta file {file_path}...")
 
         if not os.path.exists(file_path):
-            raise FileNotFoundError(
-                f"The specified file path '{file_path}' does not exist."
-            )
+            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
 
         if not os.path.isfile(file_path):
             raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
@@ -211,9 +202,7 @@ EXAMPLES
         except IsADirectoryError:
             raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"The specified file path '{file_path}' does not exist."
-            )
+            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
         except DockerError:
             self.stdout("Checking syntax... FAILED", severity=StdoutSeverity.ERROR)
 

@@ -15,7 +15,7 @@ class AtomdbBackendEnum(Enum):
     def from_value(
         cls,
         value: Optional[str],
-        default: "AtomdbBackendEnum" = None,
+        default: Optional["AtomdbBackendEnum"] = None,
     ) -> "AtomdbBackendEnum":
         if default is None:
             default = cls.REDIS_MONGODB
@@ -116,9 +116,7 @@ class MorkMongoDBBackend(BackendProvider):
 
 
 class AtomdbBackend:
-    def __init__(
-        self, name: AtomdbBackendEnum, providers: List[BackendProvider]
-    ) -> None:
+    def __init__(self, name: AtomdbBackendEnum, providers: List[BackendProvider]) -> None:
         self.name = name
 
         self._providers = providers

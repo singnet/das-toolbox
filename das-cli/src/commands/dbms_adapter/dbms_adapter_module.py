@@ -3,10 +3,10 @@ from typing import List
 
 from commands.db.atomdb_backend import (
     AtomdbBackend,
+    AtomdbBackendEnum,
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
-    AtomdbBackendEnum,
 )
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
