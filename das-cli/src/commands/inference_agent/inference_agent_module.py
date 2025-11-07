@@ -40,15 +40,12 @@ class InferenceAgentModule(Module):
 
         inference_agent_port = self._settings.get("services.inference_agent.port")
 
-        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         return InferenceAgentContainerManager(

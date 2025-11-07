@@ -151,15 +151,12 @@ class LogsModule(Module):
 
         container_name = self._settings.get("services.evolution_agent.container_name")
 
-        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = self._settings.get("services.redis.container_name")
 
-        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         return EvolutionAgentContainerManager(
@@ -180,16 +177,13 @@ class LogsModule(Module):
     def _context_broker_container_manager_factory(self) -> ContextBrokerContainerManager:
         context_broker_port = self._settings.get("services.context_broker.port")
 
-        attention_broker_hostname = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        mongodb_hostname = self._settings.get("services.mongodb.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        redis_hostname = self._settings.get("services.redis.container_name")
 
         container_name = self._settings.get("services.context_broker.container_name")
 
