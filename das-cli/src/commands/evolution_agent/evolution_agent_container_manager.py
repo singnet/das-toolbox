@@ -2,6 +2,7 @@ from typing import Dict
 
 import docker
 
+from commands.db.atomdb_backend import AtomdbBackendEnum
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
@@ -43,7 +44,12 @@ class EvolutionAgentContainerManager(ContainerManager):
 
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"evolution_broker {evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address} {attention_broker_address}"
+        atomdb_backend = self._options.get("atomdb_backend", "redis_mongodb")
+
+        use_mork = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
+        use_mork_flag = "--use-mork" if use_mork else ""
+
+        return f"evolution_broker {evolution_agent_hostname}:{evolution_agent_port} {port_range} {peer_address} {attention_broker_address} {use_mork_flag}".strip()
 
     def start_container(self, peer_hostname: str, peer_port: int, port_range: str) -> str:
         self.raise_running_container()
@@ -81,6 +87,8 @@ class EvolutionAgentContainerManager(ContainerManager):
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
+                    "DAS_MORK_PORT": self._options.get("morkdb_port"),
                 },
             )
 

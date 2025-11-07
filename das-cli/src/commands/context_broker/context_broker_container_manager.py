@@ -2,6 +2,7 @@ from typing import Dict
 
 import docker
 
+from commands.db.atomdb_backend import AtomdbBackendEnum
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
@@ -51,7 +52,13 @@ class ContextBrokerContainerManager(ContainerManager):
         attention_broker_port = int(self._options.get("attention_broker_port", 0))
         attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
 
-        return f"context_broker {context_broker_address} {port_range} {peer_address} {attention_broker_address}"
+        atomdb_backend = self._options.get("atomdb_backend", "redis_mongodb")
+        
+        use_mork_flag = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB
+
+        morkdb_flag = "--use-mork" if use_mork_flag else ""
+
+        return f"context_broker {context_broker_address} {port_range} {peer_address} {attention_broker_address} {morkdb_flag}".strip()
 
     def start_container(
         self,
@@ -87,6 +94,8 @@ class ContextBrokerContainerManager(ContainerManager):
                     "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
                     "DAS_REDIS_HOSTNAME": self._options.get("redis_hostname"),
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
+                    "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
+                    "DAS_MORK_PORT": self._options.get("morkdb_port"),
                 },
             )
 

@@ -2,6 +2,7 @@ from typing import Dict
 
 import docker
 
+from commands.db.atomdb_backend import AtomdbBackendEnum
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
@@ -41,7 +42,13 @@ class InferenceAgentContainerManager(ContainerManager):
         server_address = f"{inference_agent_hostname}:{inference_agent_port}"
         peer_address = f"{peer_hostname}:{peer_port}"
 
-        return f"inference_agent_server {server_address} {peer_address} {port_range}"
+        atomdb_backend = self._options.get("atomdb_backend")
+
+        use_mork = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
+
+        use_mork_flag = "--use-mork" if use_mork else ""
+
+        return f"inference_agent_server {server_address} {peer_address} {port_range} {use_mork_flag}".strip()
 
     def start_container(
         self,
@@ -82,6 +89,8 @@ class InferenceAgentContainerManager(ContainerManager):
                     "DAS_REDIS_PORT": self._options.get("redis_port"),
                     "DAS_ATTENTION_BROKER_ADDRESS": self._options.get("attention_broker_hostname"),
                     "DAS_ATTENTION_BROKER_PORT": self._options.get("attention_broker_port"),
+                    "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
+                    "DAS_MORK_PORT": self._options.get("morkdb_port"),
                 },
                 command=exec_command,
                 stdin_open=True,

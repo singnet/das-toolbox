@@ -69,6 +69,9 @@ class ContextBrokerModule(Module):
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
+        mork_port = "8000"
+
+        atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
         container_name = self._settings.get("services.context_broker.container_name")
 
@@ -86,5 +89,8 @@ class ContextBrokerModule(Module):
                 "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
+                "atomdb_backend": atomdb_backend,
+                "morkdb_port": mork_port,
+                "morkdb_hostname": "0.0.0.0"
             },
         )

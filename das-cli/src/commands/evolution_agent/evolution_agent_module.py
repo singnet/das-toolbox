@@ -68,6 +68,10 @@ class EvolutionAgentModule(Module):
 
         redis_port = self._settings.get("services.redis.port")
 
+        morkdb_port = "8000" 
+
+        atomdb_backend = self._settings.get("services.database.atomdb_backend")
+
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         query_agent_port = str(self._settings.get("services.query_agent.port"))
@@ -87,5 +91,8 @@ class EvolutionAgentModule(Module):
                 "attention_broker_port": attention_broker_port,
                 "query_agent_port": query_agent_port,
                 "query_agent_hostname": "0.0.0.0",
+                "atomdb_backend": atomdb_backend,
+                "morkdb_port": morkdb_port,
+                "morkdb_hostname": "0.0.0.0",
             },
         )
