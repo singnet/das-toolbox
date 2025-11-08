@@ -30,7 +30,7 @@ MODULES = [
     MettaModule,
     PythonLibraryModule,
     ReleaseNotesModule,
-    DbmsAdapterModule,
+    # DbmsAdapterModule,
     AttentionBrokerModule,
     QueryAgentModule,
     LinkCreationAgentModule,
