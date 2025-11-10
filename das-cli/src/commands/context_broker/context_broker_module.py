@@ -91,6 +91,6 @@ class ContextBrokerModule(Module):
                 "mongodb_password": mongodb_password,
                 "atomdb_backend": atomdb_backend,
                 "morkdb_port": mork_port,
-                "morkdb_hostname": "0.0.0.0"
+                "morkdb_hostname": "0.0.0.0",
             },
         )

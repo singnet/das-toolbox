@@ -53,7 +53,7 @@ class ContextBrokerContainerManager(ContainerManager):
         attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
 
         atomdb_backend = self._options.get("atomdb_backend", "redis_mongodb")
-        
+
         use_mork_flag = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
 
         morkdb_flag = "--use-mork" if use_mork_flag else ""
