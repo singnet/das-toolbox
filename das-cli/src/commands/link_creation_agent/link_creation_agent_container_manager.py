@@ -47,7 +47,7 @@ class LinkCreationAgentContainerManager(ContainerManager):
 
         use_mork = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
 
-        use_mork_flag = "--use-mork" if use_mork else ""
+        use_mork_flag = "--use-mork" if use_mork else "--use-redismongo"
 
         return f"link_creation_server {server_address} {peer_address} {port_range} {use_mork_flag}".strip()
 

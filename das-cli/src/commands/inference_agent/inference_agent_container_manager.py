@@ -42,13 +42,18 @@ class InferenceAgentContainerManager(ContainerManager):
         server_address = f"{inference_agent_hostname}:{inference_agent_port}"
         peer_address = f"{peer_hostname}:{peer_port}"
 
+        attention_broker_hostname = str(self._options.get("attention_broker_hostname", ""))
+        attention_broker_port = int(self._options.get("attention_broker_port", 0))
+
+        attention_broker_address = f"{attention_broker_hostname}:{attention_broker_port}"
+
         atomdb_backend = self._options.get("atomdb_backend")
 
         use_mork = atomdb_backend == AtomdbBackendEnum.MORK_MONGODB.value
 
-        use_mork_flag = "--use-mork" if use_mork else ""
+        use_mork_flag = "--use-mork" if use_mork else "--use-mongodb"
 
-        return f"inference_agent_server {server_address} {peer_address} {port_range} {use_mork_flag}".strip()
+        return f"inference_agent_server {server_address} {peer_address} {port_range} {attention_broker_address} {use_mork_flag}".strip()
 
     def start_container(
         self,
