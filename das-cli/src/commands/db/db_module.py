@@ -3,6 +3,7 @@ from typing import List
 
 from commands.db.atomdb_backend import (
     AtomdbBackend,
+    AtomdbBackendEnum,
     BackendProvider,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
@@ -54,15 +55,16 @@ class DbModule(Module):
     def _atomdb_backend_factory(self) -> AtomdbBackend:
         backend_name = self._settings.get("services.database.atomdb_backend")
         providers: List[BackendProvider] = []
+        backend_name = AtomdbBackendEnum.from_value(backend_name)
 
-        if backend_name == "redis_mongodb":
+        if backend_name == AtomdbBackendEnum.REDIS_MONGODB:
             providers.append(
                 MongoDBRedisBackend(
                     self._mongodb_container_manager_factory(),
                     self._redis_container_manager_factory(),
                 ),
             )
-        elif backend_name == "mork_mongodb":
+        elif backend_name == AtomdbBackendEnum.MORK_MONGODB:
             providers.append(
                 MorkMongoDBBackend(
                     self._mongodb_container_manager_factory(),
@@ -70,7 +72,7 @@ class DbModule(Module):
                 )
             )
 
-        return AtomdbBackend(providers)
+        return AtomdbBackend(backend_name, providers)
 
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("services.redis.container_name")

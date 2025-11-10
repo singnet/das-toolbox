@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
@@ -10,6 +10,21 @@ from commands.db.redis_container_manager import RedisContainerManager
 class AtomdbBackendEnum(Enum):
     REDIS_MONGODB = "redis_mongodb"
     MORK_MONGODB = "mork_mongodb"
+
+    @classmethod
+    def from_value(
+        cls,
+        value: Optional[str],
+        default: Optional["AtomdbBackendEnum"] = None,
+    ) -> "AtomdbBackendEnum":
+        if default is None:
+            default = cls.REDIS_MONGODB
+        if value is None:
+            return default
+        try:
+            return cls(value)
+        except ValueError:
+            return default
 
 
 class BackendProvider(ABC):
@@ -101,7 +116,9 @@ class MorkMongoDBBackend(BackendProvider):
 
 
 class AtomdbBackend:
-    def __init__(self, providers: List[BackendProvider]) -> None:
+    def __init__(self, name: AtomdbBackendEnum, providers: List[BackendProvider]) -> None:
+        self.name = name
+
         self._providers = providers
 
     def start(self) -> None:

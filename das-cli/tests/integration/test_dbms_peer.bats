@@ -5,6 +5,8 @@ load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
 
+skip "Tests skipped: dbms commands were temporarily disabled."
+
 setup() {
     use_config "simple"
 

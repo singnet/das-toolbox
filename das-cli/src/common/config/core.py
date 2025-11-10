@@ -34,6 +34,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
         "services.morkdb.port": default_port_morkdb,
         "services.morkdb.container_name": f"das-cli-morkdb-{default_port_morkdb}",
         "services.loader.container_name": "das-cli-loader",
+        "services.morkdb_loader.container_name": "das-cli-morkdb-loader",
         "services.das_peer.port": database_adapter_server_port,
         "services.das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
         "services.dbms_peer.container_name": "das-cli-dbms-peer",

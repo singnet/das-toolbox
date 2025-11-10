@@ -1,7 +1,7 @@
 from typing import Dict
 
 from common import Container, ContainerManager
-from settings.config import DAS_MORK_IMAGE_NAME, DAS_MORK_IMAGE_VERSION
+from settings.config import DAS_MORK_SERVER_IMAGE_NAME, DAS_MORK_SERVER_IMAGE_VERSION
 
 
 class MorkdbContainerManager(ContainerManager):
@@ -15,8 +15,8 @@ class MorkdbContainerManager(ContainerManager):
             metadata={
                 "port": options.get("morkdb_port"),
                 "image": {
-                    "name": DAS_MORK_IMAGE_NAME,
-                    "version": DAS_MORK_IMAGE_VERSION,
+                    "name": DAS_MORK_SERVER_IMAGE_NAME,
+                    "version": DAS_MORK_SERVER_IMAGE_VERSION,
                 },
             },
         )

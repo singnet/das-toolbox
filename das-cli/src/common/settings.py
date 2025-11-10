@@ -91,7 +91,7 @@ class Settings:
         column_widths = {"Service": 7, "Name": 4, "Value": 5}
 
         def calculate_column_widths(current_dict, service=""):
-            nonlocal column_widths
+            column_widths
 
             for key, value in current_dict.items():
                 if isinstance(value, dict):

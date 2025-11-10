@@ -46,6 +46,10 @@ class InferenceAgentModule(Module):
 
         redis_port = self._settings.get("services.redis.port")
 
+        morkdb_port = self._settings.get("services.morkdb.port")
+
+        atomdb_backend = self._settings.get("services.database.atomdb_backend")
+
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         return InferenceAgentContainerManager(
@@ -61,6 +65,9 @@ class InferenceAgentModule(Module):
                 "mongodb_password": mongodb_password,
                 "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
+                "atomdb_backend": atomdb_backend,
+                "morkdb_port": morkdb_port,
+                "morkdb_hostname": "0.0.0.0",
             },
         )
 
