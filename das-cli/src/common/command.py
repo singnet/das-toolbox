@@ -1,9 +1,9 @@
 import json
 import sys
+from contextlib import suppress
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
-from contextlib import suppress
 
 import click
 import yaml
@@ -156,7 +156,7 @@ class Command:
         return "plain"
 
     def __init__(self) -> None:
-        self._execution_context = None
+        self._execution_context: Optional[ExecutionContext] = None
         self.command = click.Command(
             name=self.name,
             callback=self.safe_run,

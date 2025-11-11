@@ -131,18 +131,14 @@ def print_table(
         return
 
     col_widths = {
-        col: max(
-            len(col), min(max_width, max(len(str(row.get(col, ""))) for row in rows))
-        )
+        col: max(len(col), min(max_width, max(len(str(row.get(col, ""))) for row in rows)))
         for col in columns
     }
 
     if align is None:
         align = {col: "<" for col in columns}
 
-    header = "  ".join(
-        f"{col:{align.get(col, '<')}{col_widths[col]}}" for col in columns
-    )
+    header = "  ".join(f"{col:{align.get(col, '<')}{col_widths[col]}}" for col in columns)
     stdout(header)
     stdout("-" * len(header))
 
