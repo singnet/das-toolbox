@@ -1,8 +1,9 @@
 import json
 import sys
+from contextlib import suppress
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
 
 import click
 import yaml
@@ -11,6 +12,7 @@ from InquirerPy import inquirer
 from InquirerPy.base.control import Choice as InquirerChoice
 
 from common import Choice
+from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
 
 
@@ -68,9 +70,10 @@ class Command:
         "host",
         "user",
         "port",
-        "key-file",
+        "key_file",
         "password",
-        "connect-timeout",
+        "connect_timeout",
+        "context",
     ]
 
     default_params = [
@@ -81,6 +84,12 @@ class Command:
             required=False,
             default="plain",
         ),
+        CommandOption(
+            ["--context"],
+            type=str,
+            help="Serialized execution context (Base64 JSON)",
+            required=False,
+        ),
     ]
 
     remote_params = [
@@ -89,28 +98,28 @@ class Command:
             type=bool,
             default=False,
             is_flag=True,
-            help="whether to run the command on a remote server",
+            help="Whether to run the command on a remote server",
         ),
         CommandOption(
             ["--host", "-H"],
             type=str,
-            help="the login user for the remote connection",
+            help="Remote host to connect to",
             required=False,
         ),
         CommandOption(
-            ["--user", "-H"],
+            ["--user", "-u"],
             type=str,
-            help="the login user for the remote connection",
+            help="SSH username for the remote connection",
             required=False,
         ),
         CommandOption(
-            ["--port", "-H"],
+            ["--port", "-p"],
             type=int,
-            help="the remote port",
+            help="Remote port (default: 22)",
             required=False,
         ),
         CommandOption(
-            ["--key-file"],
+            ["--key-file", "-k"],
             type=str,
             help="Path to the SSH private key file",
             required=False,
@@ -122,7 +131,7 @@ class Command:
             required=False,
         ),
         CommandOption(
-            ["--connect-timeout"],
+            ["--connect-timeout", "-t"],
             type=int,
             help="Timeout for establishing the connection in seconds",
             required=False,
@@ -147,6 +156,7 @@ class Command:
         return "plain"
 
     def __init__(self) -> None:
+        self._execution_context: Optional[ExecutionContext] = None
         self.command = click.Command(
             name=self.name,
             callback=self.safe_run,
@@ -155,35 +165,43 @@ class Command:
             params=self.params + self.remote_params + self.default_params,
         )
 
-    def _get_remote_kwargs(self, kwargs) -> tuple[bool, dict, dict]:
+    def _get_remote_execution_context(self):
+        execution_context = self.get_execution_context()
+
+        if not execution_context.is_remote():
+            return None
+
+        return execution_context
+
+    def _get_remote_kwargs_from_context(self) -> tuple[bool, dict]:
         """
-        Gets remote kwargs from kwargs.
-        Params:
-        Returns (bool, kwargs, remote_kwargs):
-            First value is whether the command should be run on a remote server or not.
+        Reads remote execution configuration from Click context.
+        Returns a tuple: (remote_enabled, remote_kwargs)
         """
-        if not kwargs:
-            return (False, kwargs, {})
+        execution_context = self._get_remote_execution_context()
+
+        if not execution_context:
+            return (False, {})
+
+        ssh_params = execution_context.source.get("ssh_params", {})
+        if not ssh_params.get("host"):
+            return (False, {})
 
         connect_kwargs = {}
-        key_file = kwargs.pop("key_file", None)
-        password = kwargs.pop("password", None)
-
-        if key_file:
-            connect_kwargs["key_filename"] = key_file
-        if password:
-            connect_kwargs["password"] = password
+        if ssh_params.get("key_path"):
+            connect_kwargs["key_filename"] = ssh_params["key_path"]
+        if ssh_params.get("password"):
+            connect_kwargs["password"] = ssh_params["password"]
 
         remote_kwargs = {
-            "user": kwargs.pop("user", ""),
-            "port": kwargs.pop("port", 22),
-            "host": kwargs.pop("host", ""),
+            "user": ssh_params.get("user", ""),
+            "port": ssh_params.get("port", 22),
+            "host": ssh_params["host"],
             "connect_kwargs": connect_kwargs,
-            "connect_timeout": kwargs.pop("connect_timeout", 10),
+            "connect_timeout": ssh_params.get("connection_timeout", 10),
         }
-        remote = kwargs.pop("remote", False)
 
-        return (remote, kwargs, remote_kwargs)
+        return (True, remote_kwargs)
 
     def _dict_to_command_line_args(self, d: dict) -> str:
         """
@@ -208,16 +226,94 @@ class Command:
 
         return " ".join(args)
 
+    def _parse_args_to_dict(self) -> Dict[str, Any]:
+        args = sys.argv[1:]
+
+        result: Dict[str, Any] = {}
+        i = 0
+
+        while i < len(args):
+            arg = args[i]
+
+            if arg.startswith("--"):
+                key = arg[2:].replace("-", "_")
+
+                if (i + 1 >= len(args)) or args[i + 1].startswith("--"):
+                    result[key] = True
+                else:
+                    value = args[i + 1]
+                    if value.isdigit():
+                        value = cast(Any, int(value))
+                    result[key] = value
+                    i += 1
+            i += 1
+
+        return result
+
+    def _get_clean_command(self) -> str:
+        args = sys.argv[1:]
+        global_options = [opt.opts[0] for opt in self.default_params + self.remote_params]
+
+        cleaned_args = []
+        skip_next = False
+        for i, arg in enumerate(args):
+            if skip_next:
+                skip_next = False
+                continue
+
+            if any(arg.startswith(opt) for opt in global_options):
+                if i + 1 < len(args) and not args[i + 1].startswith("--"):
+                    skip_next = True
+                continue
+
+            cleaned_args.append(arg)
+
+        return " ".join(cleaned_args)
+
+    def get_execution_context(self) -> ExecutionContext:
+        if not self._execution_context:
+            cli_options = self._parse_args_to_dict()
+
+            execution_context = None
+            context_str = cli_options.get("context")
+            if context_str:
+                with suppress(Exception):
+                    execution_context = ExecutionContext.from_str(context_str)
+
+            if execution_context is None:
+                ssh_params = None
+                if cli_options.get("remote") or cli_options.get("host") or cli_options.get("user"):
+                    ssh_params = SSHParams(
+                        host=cli_options.get("host", ""),
+                        port=cli_options.get("port", 22),
+                        user=cli_options.get("user", ""),
+                        password=cli_options.get("password", ""),
+                        key_path=cli_options.get("key_path", ""),
+                        connection_timeout=cli_options.get("connection_timeout", 10),
+                    )
+
+                command_path = self._get_clean_command()
+                execution_context = ExecutionContext(
+                    command_path=command_path,
+                    ssh_params=ssh_params,
+                )
+
+            self._execution_context = execution_context
+
+        return self._execution_context
+
     def _remote_run(self, kwargs, remote_kwargs):
-        ctx = click.get_current_context()
         prefix = "das-cli"
-        command_path = " ".join(ctx.command_path.split(" ")[1:])
         extra_args = self._dict_to_command_line_args(kwargs)
-        command = f"{prefix} {command_path} {extra_args}"
+        execution_context = self._get_remote_execution_context()
+        context_encoded = execution_context.to_str(include_ssh=False)
+        command_path = execution_context.command_path
+        remote_context = f"--context '{context_encoded}'"
+        command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
         Connection(**remote_kwargs).run(command)
 
     def safe_run(self, **kwargs):
-        remote, kwargs, remote_kwargs = self._get_remote_kwargs(kwargs)
+        remote, remote_kwargs = self._get_remote_kwargs_from_context()
 
         for param in getattr(self, "exclude_params", []):
             setattr(self, f"_{param}", kwargs.pop(param, None))
@@ -371,6 +467,7 @@ class CommandGroup(Command):
     group: click.Group
 
     def __init__(self) -> None:
+        super().__init__()
         self.group = click.Group(
             self.name,
             help=self.help,

@@ -506,9 +506,10 @@ $ das-cli db start
         redis_port: int,
         redis_cluster: bool,
     ) -> None:
-        node_context = str(redis_node.get("context", ""))
-        node_ip = str(redis_node.get("ip", ""))
-        node_username = str(redis_node.get("username", ""))
+        node_context = redis_node.get("context", "")
+        node_ip = redis_node.get("ip", "")
+        node_username = redis_node.get("username", "")
+        public_ip = self.get_execution_context().source.get("ip") or node_ip
 
         try:
             self._redis_container_manager.set_exec_context(node_context)
@@ -520,7 +521,7 @@ $ das-cli db start
             )
             self._redis_container_manager.unset_exec_context()
 
-            success_message = f"Redis has started successfully on port {redis_port} at {node_ip}, operating under the server user {node_username}."
+            success_message = f"Redis has started successfully on port {redis_port} at {public_ip}, operating under the server user {node_username}."
 
             self.stdout(
                 success_message,
@@ -536,7 +537,7 @@ $ das-cli db start
                         extra_details={
                             "node": {
                                 "context": node_context,
-                                "ip": node_ip,
+                                "ip": public_ip,
                                 "username": node_username,
                             },
                             "cluster": redis_cluster,
@@ -621,9 +622,10 @@ $ das-cli db start
         is_cluster_enabled: bool = False,
         mongodb_cluster_secret_key: Union[AnyStr, None] = None,
     ) -> None:
-        node_context = mongodb_node.get("context")
-        node_ip = mongodb_node.get("ip")
-        node_username = mongodb_node.get("username")
+        node_context = str(mongodb_node.get("context"))
+        node_ip = str(mongodb_node.get("ip"))
+        node_username = str(mongodb_node.get("username"))
+        public_ip = self.get_execution_context().source.get("ip") or node_ip
 
         cluster_node = (
             dict(
@@ -645,7 +647,7 @@ $ das-cli db start
             )
             self._mongodb_container_manager.unset_exec_context()
 
-            success_message = f"MongoDB has started successfully on port {mongodb_port} at {node_ip}, operating under the server user {node_username}."
+            success_message = f"MongoDB has started successfully on port {mongodb_port} at {public_ip}, operating under the server user {node_username}."
 
             self.stdout(
                 success_message,
@@ -661,7 +663,7 @@ $ das-cli db start
                         extra_details={
                             "node": {
                                 "context": node_context,
-                                "ip": node_ip,
+                                "ip": public_ip,
                                 "username": node_username,
                             },
                             "cluster": is_cluster_enabled,

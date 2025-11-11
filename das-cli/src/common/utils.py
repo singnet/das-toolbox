@@ -160,3 +160,7 @@ def extract_service_name(container_name: str) -> str | None:
 
     parts = name.rsplit("-", 1)
     return parts[0] if parts else name
+
+
+def get_platform_info() -> str:
+    return f"{sys.platform} {sys.version.split()[0]}"

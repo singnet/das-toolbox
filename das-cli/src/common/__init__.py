@@ -19,6 +19,7 @@ from .settings import Settings
 from .utils import (
     deep_merge_dicts,
     extract_service_name,
+    get_platform_info,
     get_rand_token,
     get_script_name,
     get_server_username,
@@ -42,6 +43,7 @@ __all__ = [
     "logger",
     "Module",
     "get_public_ip",
+    "get_platform_info",
     "Choice",
     "KeyValueType",
     "VersionType",
