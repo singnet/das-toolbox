@@ -52,6 +52,10 @@ class MettaMorkLoaderContainerManager(ContainerManager):
                         "mode": "rw",
                     },
                 },
+                environment={
+                    "MORK_SERVER_ADDR": self._options.get("morkdb_hostname"),
+                    "MORK_SERVER_PORT": self._options.get('morkdb_port'),
+                },
                 stdin_open=True,
                 tty=True,
                 auto_remove=False,
@@ -63,7 +67,9 @@ class MettaMorkLoaderContainerManager(ContainerManager):
             container.remove(v=True, force=True)
 
             if exit_code != 0:
-                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
+                raise DockerError(
+                    f"File '{os.path.basename(path)}' could not be loaded."
+                )
 
             return None
         except docker.errors.APIError as e:
