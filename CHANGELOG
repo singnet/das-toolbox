@@ -14,6 +14,7 @@ Bug fixes:
 [das#721] Changed logs command to print once by default, added --follow for live mode, and fixed remote support (PR: #230)
 [das#679] Remove duplicate command entries in das-client--help output (PR: #232)
 [das#729] Fix error message when metta file is invalid (PR: #235)
+[FIX] Use --network=host instead of the docker network
 
 General changes:
 [das#681] Port ranges for all agents should be defaulted (PR: #223)
