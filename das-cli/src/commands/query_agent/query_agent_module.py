@@ -60,7 +60,7 @@ class QueryAgentModule(Module):
         mongodb_username = self._settings.get("services.mongodb.username")
         mongodb_password = self._settings.get("services.mongodb.password")
 
-        morkdb_port = "8000"  # Default MorkDB port
+        morkdb_port = self._settings.get("services.morkdb.port")
 
         redis_port = self._settings.get("services.redis.port")
 
