@@ -68,7 +68,7 @@ class EvolutionAgentModule(Module):
 
         redis_port = self._settings.get("services.redis.port")
 
-        morkdb_port = "8000"
+        morkdb_port = self._settings.get("services.morkdb.port")
 
         atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
