@@ -29,7 +29,9 @@ class MettaModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._settings = Settings(
+            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
+        )
 
         self._dependecy_injection = [
             (
@@ -138,5 +140,13 @@ class MettaModule(Module):
         self,
     ) -> MettaMorkLoaderContainerManager:
         container_name = self._settings.get("services.morkdb_loader.container_name")
+        morkdb_port = self._settings.get("services.morkdb.port", 40022)
+        morkdb_hostname = "0.0.0.0"
 
-        return MettaMorkLoaderContainerManager(container_name)
+        return MettaMorkLoaderContainerManager(
+            container_name,
+            options={
+                "morkdb_port": morkdb_port,
+                "morkdb_hostname": morkdb_hostname,
+            },
+        )

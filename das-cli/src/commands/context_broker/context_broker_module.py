@@ -69,7 +69,7 @@ class ContextBrokerModule(Module):
         mongodb_password = self._settings.get("services.mongodb.password")
 
         redis_port = self._settings.get("services.redis.port")
-        mork_port = "8000"
+        mork_port = self._settings.get("services.morkdb.port")
 
         atomdb_backend = self._settings.get("services.database.atomdb_backend")
 

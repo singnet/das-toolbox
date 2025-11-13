@@ -32,6 +32,10 @@ class MorkdbContainerManager(ContainerManager):
                 "Name": "on-failure",
                 "MaximumRetryCount": 5,
             },
+            environment={
+                "MORK_SERVER_PORT": self._options.get("morkdb_port"),
+                "MORK_SERVER_ADDR": self._options.get("morkdb_hostname"),
+            },
         )
 
         return container
