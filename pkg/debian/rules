@@ -46,8 +46,8 @@ override_dh_auto_install:
 
 	# Build hyperon_das.so
 	rm -rf /tmp/das
-	git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das
-	cd /tmp/das && make build-all && find ./lib -maxdepth 1 -type f -name "*.*" -exec cp {} $(USR_LIBS_DIR) \;
+	git clone --depth 1 --branch artur-tiny-image-2 https://github.com/singnet/das.git /tmp/das
+	cd /tmp/das && make build-all && find ./lib -type f -name "*.*" -exec cp {} $(USR_LIBS_DIR) \;
 
 	# Shared library should be looking for its dependencies in the same directory
 	patchelf --set-rpath '$$ORIGIN' $(USR_LIBS_DIR)/hyperon_das.so
