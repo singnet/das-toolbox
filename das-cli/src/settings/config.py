@@ -26,7 +26,7 @@ MONGODB_IMAGE_NAME = "mongodb/mongodb-community-server"
 MONGODB_IMAGE_VERSION = "8.2-ubuntu2204"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.5.9-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "metta-parser-1.0.0"
 
 OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
@@ -40,11 +40,11 @@ DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
 DAS_MORK_SERVER_IMAGE_NAME = "trueagi/das"
-DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-0.10.2"
+DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-1.0.0"
 
 DAS_MORK_LOADER_IMAGE_NAME = "trueagi/das"
-DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-0.10.2"
+DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-1.0.0"
 
-DAS_IMAGE_VERSION = "0.12.2-rc"
+DAS_IMAGE_VERSION = "1.0.0"
 DAS_IMAGE_NAME = "trueagi/das"
 
