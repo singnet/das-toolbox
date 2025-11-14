@@ -26,7 +26,7 @@ MONGODB_IMAGE_NAME = "mongodb/mongodb-community-server"
 MONGODB_IMAGE_VERSION = "8.2-ubuntu2204"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
-METTA_PARSER_IMAGE_VERSION = "0.5.9-metta-parser"
+METTA_PARSER_IMAGE_VERSION = "1.0.0-metta-parser"
 
 OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 
