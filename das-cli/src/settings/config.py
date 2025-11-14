@@ -2,7 +2,7 @@ import getpass
 import tempfile
 from pathlib import Path
 
-VERSION = '0.6.1'
+VERSION = '1.0.0'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "host"
