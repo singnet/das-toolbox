@@ -239,11 +239,6 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
     local mongodb_count=$(grep -oE 'MongoDB\s.*:\s[0-9]+' <<<"$output" | wc -l)
 
     [ "$mongodb_count" -eq 5 ]
-
-    assert_regex "$output" '(Redis\s.*:\s[0-9]+)'
-    local redis_count=$(grep -oE 'Redis\s.*:\s[0-9]+' <<<"$output" | wc -l)
-
-    [ "$redis_count" -eq 5 ]
 }
 
 @test "Should count atoms with empty database" {
@@ -252,8 +247,7 @@ The MongoDB service named ${mongodb_container_name} at localhost is already stop
     run das-cli db count-atoms
 
     assert_success
-    assert_output "MongoDB: No collections found (0)
-Redis: No keys found (0)"
+    assert_output "MongoDB: No collections found (0)"
 }
 
 @test "Should count atoms with database disabled" {

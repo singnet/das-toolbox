@@ -97,44 +97,6 @@ $ das-cli db count-atoms
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-    def _show_redis_stats(self):
-        redis_keys = self._redis_container_manager.get_count_keys().items()
-
-        if len(redis_keys) < 1:
-            self.stdout("Redis: No keys found (0)")
-            return self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="count-atoms",
-                        status="no_keys_found",
-                        message="No Redis keys found.",
-                        container=self._get_redis_container(),
-                        extra_details={
-                            "stats": dict(redis_keys),
-                        },
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-
-        for redis_key, redis_count in redis_keys:
-            self.stdout(f"Redis {redis_key}: {redis_count}")
-
-        self.stdout(
-            dict(
-                DbServiceResponse(
-                    action="count-atoms",
-                    status="success",
-                    message="Count of Redis keys displayed successfully.",
-                    container=self._get_redis_container(),
-                    extra_details={
-                        "stats": dict(redis_keys),
-                    },
-                )
-            ),
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
-
     @ensure_container_running(
         "_atomdb_backend",
         exception_text="\nPlease use 'db start' to start required services before running 'db count-atoms'.",
@@ -144,7 +106,6 @@ $ das-cli db count-atoms
         for provider in self._atomdb_backend.get_active_providers():
             if isinstance(provider, MongoDBRedisBackend):
                 self._show_mongodb_stats()
-                self._show_redis_stats()
 
             elif isinstance(provider, MorkMongoDBBackend):
                 self._show_mongodb_stats()
