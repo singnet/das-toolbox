@@ -1,1 +1,6 @@
+highlights:
 
+
+bug-fixes:
+
+[das#943] remove Redis stats display and related methods; update MongoDB document count retrieval

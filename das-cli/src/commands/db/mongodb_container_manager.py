@@ -157,7 +157,7 @@ class MongodbContainerManager(ContainerManager):
             const collections = db.getCollectionNames();
             const stats = {};
             collections.forEach(function(name) {
-                stats[name] = db.getCollection(name).countDocuments();
+                stats[name] = db.getCollection(name).estimatedDocumentCount();
             });
             JSON.stringify(stats);
         """.strip().replace(
