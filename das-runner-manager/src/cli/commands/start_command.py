@@ -78,10 +78,6 @@ class StartCommand:
                         "bind": f"/home/ubuntu/.cache/shared",
                         "mode": "rw",
                     },
-                    "/var/run/docker.sock": {
-                        "bind": "/var/run/docker.sock",
-                        "mode": "rw",
-                    },
                 }
                 labels = {**labels, "self-hosted-withcache": ""}
 
