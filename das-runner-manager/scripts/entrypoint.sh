@@ -47,7 +47,7 @@ else
 
     containerd --log-level debug &
     sleep 10s
-    dockerd &
+    dockerd --storage-driver=fuse-overlayfs > /var/log/dockerd.log 2>&1 &
     sleep 10s
 
     if ! docker info > /dev/null 2>&1; then

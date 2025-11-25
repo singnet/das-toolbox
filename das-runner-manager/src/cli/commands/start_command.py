@@ -32,6 +32,12 @@ class StartCommand:
             default=0,
             help="Number of runners that should use cache (default: 0)",
         )
+        self.parser.add_argument(
+            "--labels",
+            help="Comma-separated list of labels to assign to the runner",
+            default="",
+            type=str,
+        )
         self.parser.set_defaults(func=self.run)
 
     @handle_connection_refused
@@ -54,13 +60,13 @@ class StartCommand:
         for i in range(0, args.runners):
             home_dir = os.path.expanduser("~")
             volume = {}
-            labels = {}
+            labels = {label.strip(): "" for label in args.labels.split(",") if label.strip()} if args.labels else {}
             container_name = f"{args.repository}-github-runner-{i}"
             network_name = "das-runner-network"
             tmpfs = {}
 
             if i < args.no_cache_runners:
-                labels = {"self-hosted-nocache": ""}
+                labels = {**labels, "self-hosted-nocache": ""}
 
             else:
                 volume = {
@@ -73,7 +79,7 @@ class StartCommand:
                         "mode": "rw",
                     },
                 }
-                labels = {"self-hosted-withcache": ""}
+                labels = {**labels, "self-hosted-withcache": ""}
 
 
             env_vars = {

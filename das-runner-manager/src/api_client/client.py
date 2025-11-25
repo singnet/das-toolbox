@@ -8,31 +8,21 @@ class APIClient:
         self.client = httpx.Client(base_url=self.base_url, timeout=TIMEOUT)
 
     def get(self, endpoint: str, params: dict = None):
-        try:
-            response = self.client.get(endpoint, params=params)
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            raise APIClientException(f"HTTP error occurred: {e}")
-        except httpx.RequestError as e:
-            raise APIClientException(f"An error occurred while requesting: {e}")
+        response = self.client.get(endpoint, params=params)
+        if response.status_code > 400:
+            raise APIClientException(f"API request failed with status code {response.status_code}: {response.text}")
+        return response.json()
 
     def post(self, endpoint: str, json_data: dict):
-        try:
-            response = self.client.post(endpoint, json=json_data)
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            raise APIClientException(f"HTTP error occurred: {e}")
-        except httpx.RequestError as e:
-            raise APIClientException(f"An error occurred while requesting: {e}")
+        response = self.client.post(endpoint, json=json_data)
+
+        if response.status_code > 400:
+            raise APIClientException(f"API request failed with status code {response.status_code}: {response.text}")
+
+        return response.json()
 
     def delete(self, endpoint: str):
-        try:
-            response = self.client.delete(endpoint)
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            raise APIClientException(f"HTTP error occurred: {e}")
-        except httpx.RequestError as e:
-            raise APIClientException(f"An error occurred while requesting: {e}")
+        response = self.client.delete(endpoint)
+        if response.status_code > 400:
+            raise APIClientException(f"API request failed with status code {response.status_code}: {response.text}")
+        return response.json()
