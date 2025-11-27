@@ -40,14 +40,19 @@ class BusNodeContainerManager(ContainerManager):
 
         return command
     
-    def _set_bus_node_container_name(self, service: str, endpoint:str, node_name:str = None) -> None:
-        host, port = endpoint.split(":") if ":" in endpoint else None, None
+    def _set_bus_node_container_name(self, service: str=None, endpoint:str=None, node_name:str = None) -> None:
 
-        container_name = f"das-cli-busnode-{port}-{service}" if node_name is None else node_name
+        if node_name:
+            self._container._name = node_name
 
-        self._container._name = container_name
+        else:
+            host, port = endpoint.split(":")
 
-    def stop(self, node_name) -> None:
+            container_name = f"das-cli-busnode-{port}-{service}" if node_name is None else node_name
+
+            self._container._name = container_name
+
+    def stop(self, node_name=None) -> None:
         self._set_bus_node_container_name("", "", node_name)
 
         super().stop()
@@ -58,11 +63,6 @@ class BusNodeContainerManager(ContainerManager):
         endpoint: str,
         ports_range: str,
     ) -> None:
-        
-        try:
-            self.stop()
-        except (DockerContainerNotFoundError, DockerError):
-            pass
 
         try:
 
