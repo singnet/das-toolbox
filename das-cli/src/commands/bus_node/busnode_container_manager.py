@@ -34,11 +34,27 @@ class BusNodeContainerManager(ContainerManager):
         service: str,
         endpoint: str,
         ports_range: str,
+        **kwargs
     ) -> str:
 
-        command = f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
+        bus_command = f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
 
-        return command
+        match service:
+            case "query-engine":
+                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+            case "evolution-agent":
+                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+                bus_command += f" --bus-endpoint={kwargs["bus_endpoint"]}"
+            case "link-creation-agent":
+                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+                bus_command += f" --bus-endpoint={kwargs["bus_endpoint"]}"
+            case "inference-agent":
+                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+                bus_command += f" --bus-endpoint={kwargs["bus_endpoint"]}"
+        
+        bus_command.strip()
+
+        return bus_command
     
     def _set_bus_node_container_name(self, service: str=None, endpoint:str=None, node_name:str = None) -> None:
 
@@ -48,7 +64,7 @@ class BusNodeContainerManager(ContainerManager):
         else:
             host, port = endpoint.split(":")
 
-            container_name = f"das-cli-busnode-{port}-{service}" if node_name is None else node_name
+            container_name = f"das-cli-busnode-{service}-{port}" if node_name is None else node_name
 
             self._container._name = container_name
 
@@ -62,6 +78,7 @@ class BusNodeContainerManager(ContainerManager):
         service: str,
         endpoint: str,
         ports_range: str,
+        **kwargs
     ) -> None:
 
         try:
@@ -70,6 +87,7 @@ class BusNodeContainerManager(ContainerManager):
                 service,
                 endpoint,
                 ports_range,
+                **kwargs
             )
 
             self._set_bus_node_container_name(service,endpoint)

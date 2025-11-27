@@ -12,12 +12,14 @@ from commands.db.atomdb_backend import (
 from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
+
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
-
 
 class QueryAgentModule(Module):
     _instance = QueryAgentCli
@@ -39,6 +41,10 @@ class QueryAgentModule(Module):
             (
                 MongodbContainerManager,
                 self._mongodb_container_manager_factory,
+            ),
+            (
+                BusNodeContainerManager,
+                self._bus_node_container_manager_factory
             ),
             (
                 AtomdbBackend,
@@ -157,5 +163,30 @@ class QueryAgentModule(Module):
             container_name,
             options={
                 "morkdb_port": morkdb_port,
+            },
+        )
+    
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
+        default_container_name = "das-cli-busnode"
+
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+        mongodb_hostname = "0.0.0.0"
+
+        redis_port = self._settings.get("services.redis.port")
+        redis_hostname = "0.0.0.0"
+        redis_use_cluster = self._settings.get("services.redis.cluster")
+
+        return BusNodeContainerManager(
+            default_container_name,
+            options= {
+                "mongodb_hostname": mongodb_hostname,
+                "mongodb_port": mongodb_port,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+                "redis_port": redis_port,
+                "redis_hostname": redis_hostname,
+                "redis_use_cluster": redis_use_cluster,
             },
         )

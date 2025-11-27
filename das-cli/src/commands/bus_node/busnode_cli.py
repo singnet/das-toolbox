@@ -29,6 +29,7 @@ EXAMPLES
 """
 
     params = [
+        #Required params for every bus-node
         CommandOption(
             ["--service"],
             help="Service to be instantiated via bus node (eg. context-broker, attention-broker)",
@@ -46,7 +47,8 @@ EXAMPLES
             help="Port range for the bus node to use (eg. 46000:46999)",
             type=str,
             required=True,
-        )
+        ),
+
     ]
 
     @inject
@@ -63,24 +65,28 @@ EXAMPLES
 
 
     def _start_bus_node(self,
-                        service:str, 
-                        endpoint:str, 
-                        ports_range:str
+                        service,
+                        endpoint,
+                        ports_range,
+                        **kwargs
                     ) -> str:
         
-        container = self._busnode_container_manager.start_container(service, endpoint, ports_range)
+        container = self._busnode_container_manager.start_container(service, endpoint, ports_range, **kwargs)
         return container
 
     def run(
             self,
-            service: str,
-            endpoint: str,
-            ports_range: str
+            service,
+            endpoint,
+            ports_range,
+            **kwargs
         ):
-        
+
+        print(kwargs)
+
         self.stdout(f"Starting bus-node for service {service} at {endpoint} with port range {ports_range}...")
 
-        container = self._start_bus_node(service, endpoint, ports_range)
+        container = self._start_bus_node(service, endpoint, ports_range, **kwargs)
 
         if container is not None:
             self.stdout(f"Bus-node for service {service} started successfully.", StdoutSeverity.SUCCESS)

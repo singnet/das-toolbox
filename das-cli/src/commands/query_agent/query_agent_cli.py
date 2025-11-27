@@ -14,6 +14,9 @@ from common.prompt_types import PortRangeType
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
+from commands.bus_node.busnode_cli import StartBusNodeCommand, StopBusNodeCommand
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+
 
 class QueryAgentStop(Command):
     name = "stop"
@@ -273,6 +276,61 @@ EXAMPLES
         self._query_agent_start.run(port_range)
 
 
+class QueryAgentStartBusNode(StartBusNodeCommand):
+
+    name = "bus-node-start"
+
+    short_help = "Starts the query-agent through the bus-node interface"
+
+    params = StartBusNodeCommand.params + [
+        CommandOption(
+            ["--attention-broker-endpoint"],
+            help = "Defines the attention-broker endpoint for the bus-node to connect.",
+            type = str,
+            required = True
+        ) 
+    ]
+
+    @inject
+    def __init__(
+        self, 
+        bus_node_container_manager:BusNodeContainerManager
+    ):
+
+        super().__init__(bus_node_container_manager)
+
+    def run(
+            self:str, 
+            service:str, 
+            endpoint:str, 
+            ports_range:str,
+            **kwargs
+    ):
+        super().run(service, endpoint, ports_range, **kwargs)
+
+
+class QueryAgentStopBusNode(StopBusNodeCommand):
+
+    name = "bus-node-stop"
+
+    short_help = "Stops a specified bus-node running the query-agent"
+
+    params = StopBusNodeCommand.params
+
+    @inject
+    def __init__(self, 
+                 bus_node_container_manager:BusNodeContainerManager
+        ):
+
+        super().__init__(bus_node_container_manager)
+
+    def run(
+            self, 
+            node_name:str
+        ):
+
+        super().run(node_name)
+
 class QueryAgentCli(CommandGroup):
     name = "query-agent"
 
@@ -330,6 +388,8 @@ EXAMPLES
         query_agent_start: QueryAgentStart,
         query_agent_stop: QueryAgentStop,
         query_agent_restart: QueryAgentRestart,
+        query_agent_busnode_start: QueryAgentStartBusNode,
+        query_agent_busnode_stop: QueryAgentStopBusNode
     ) -> None:
         super().__init__()
         self.add_commands(
@@ -337,5 +397,7 @@ EXAMPLES
                 query_agent_start,
                 query_agent_stop,
                 query_agent_restart,
+                query_agent_busnode_start,
+                query_agent_busnode_stop
             ]
         )
