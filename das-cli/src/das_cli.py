@@ -9,6 +9,7 @@ from commands.das import DasModule
 from commands.db import DbModule
 
 # from commands.dbms_adapter import DbmsAdapterModule
+from commands.busnode import BusNodeModule
 from commands.evolution_agent import EvolutionAgentModule
 from commands.example import ExampleModule
 from commands.inference_agent import InferenceAgentModule
@@ -39,6 +40,7 @@ MODULES = [
     EvolutionAgentModule,
     ContextBrokerModule,
     SystemModule,
+    BusNodeModule
 ]
 
 

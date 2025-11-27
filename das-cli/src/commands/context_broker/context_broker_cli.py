@@ -257,7 +257,7 @@ class ContextBrokerRestart(Command):
         ),
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="46000:46999",
             type=PortRangeType(),
         ),
