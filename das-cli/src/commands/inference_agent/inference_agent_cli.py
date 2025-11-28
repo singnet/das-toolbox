@@ -11,6 +11,8 @@ from common.prompt_types import PortRangeType
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+
 
 class InferenceAgentStop(Command):
     name = "stop"
@@ -42,21 +44,23 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        inference_agent_manager: InferenceAgentContainerManager,
+        #inference_agent_manager: InferenceAgentContainerManager,
+        bus_node_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._inference_agent_manager = inference_agent_manager
+        #self._inference_agent_manager = inference_agent_manager
+        self._inference_agent_bus_node_manager = bus_node_manager
 
     def _get_container(self):
-        return self._inference_agent_manager.get_container()
+        return self._inference_agent_bus_node_manager.get_container()
 
     def _inference_agent(self):
         container = self._get_container()
 
         try:
             self.stdout("Stopping Inference Agent service...")
-            self._inference_agent_manager.stop()
+            self._inference_agent_bus_node_manager.stop()
 
             success_message = "Inference Agent service stopped"
 
@@ -109,19 +113,19 @@ class InferenceAgentStart(Command):
     params = [
         CommandOption(
             ["--peer-hostname"],
-            help="The address of the peer to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
+            help="The address of the node to connect to.",
+            prompt="Enter node hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
-            help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
+            help="The port of the node to connect to.",
+            prompt="Enter node port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the node.",
             default="44000:44999",
             type=PortRangeType(),
         ),
@@ -155,35 +159,35 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        inference_agent_container_manager: InferenceAgentContainerManager,
+        bus_node_container_manager: BusNodeContainerManager,
         attention_broker_container_manager: AttentionBrokerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._inference_agent_container_manager = inference_agent_container_manager
+        self._inference_agent_bus_node_manager = bus_node_container_manager
         self._attention_broker_container_manager = attention_broker_container_manager
 
     def _get_container(self):
-        return self._inference_agent_container_manager.get_container()
+        return self._inference_agent_bus_node_manager.get_container()
 
     def _inference_agent(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ) -> None:
         container = self._get_container()
 
         self.stdout("Starting Inference Agent service...")
 
+        inf_a_port = self._settings.get("services.inference_agent.port")
+
         try:
-            self._inference_agent_container_manager.start_container(
-                peer_hostname,
-                peer_port,
+            self._inference_agent_bus_node_manager.start_container(
                 port_range,
+                **kwargs
             )
 
-            success_message = f"Inference Agent started listening on the ports {container.port}"
+            success_message = f"Inference Agent started listening on the ports {inf_a_port}"
 
             self.stdout(
                 success_message,
@@ -230,17 +234,15 @@ EXAMPLES
     )
     def run(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         self._inference_agent(
-            peer_hostname,
-            peer_port,
             port_range,
+            **kwargs
         )
 
 
@@ -250,19 +252,19 @@ class InferenceAgentRestart(Command):
     params = [
         CommandOption(
             ["--peer-hostname"],
-            help="The address of the peer to connect to.",
+            help="The address of the node to connect to.",
             prompt="Enter peer hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
-            help="The port of the peer to connect to.",
+            help="The port of the node to connect to.",
             prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="44000:44999",
             type=PortRangeType(),
         ),
