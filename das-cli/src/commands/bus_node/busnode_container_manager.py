@@ -49,25 +49,25 @@ class BusNodeContainerManager(ContainerManager):
             case "evolution-agent":
 
                 attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["bus_hostname"]}:{kwargs["bus_port"]}"
+                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
                 
-                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
                 bus_command += f" --bus-endpoint={bus_endpoint}"
 
             case "link-creation-agent":
 
                 attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["bus_hostname"]}:{kwargs["bus_port"]}"
+                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
 
-                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
                 bus_command += f" --bus-endpoint={bus_endpoint}"
 
             case "inference-agent":
 
                 attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["bus_hostname"]}:{kwargs["bus_port"]}"
+                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
 
-                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
                 bus_command += f" --bus-endpoint={bus_endpoint}"
         
         bus_command.strip()
