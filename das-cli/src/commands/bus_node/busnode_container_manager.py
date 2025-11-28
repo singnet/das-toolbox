@@ -50,7 +50,7 @@ class BusNodeContainerManager(ContainerManager):
 
                 attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
                 bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
-                
+
                 bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
                 bus_command += f" --bus-endpoint={bus_endpoint}"
 
@@ -63,6 +63,14 @@ class BusNodeContainerManager(ContainerManager):
                 bus_command += f" --bus-endpoint={bus_endpoint}"
 
             case "inference-agent":
+
+                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
+
+                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+                bus_command += f" --bus-endpoint={bus_endpoint}"
+
+            case "context-broker":
 
                 attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
                 bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
