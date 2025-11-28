@@ -140,10 +140,16 @@ class LinkCreationAgentModule(Module):
 
             morkdb_port = self._settings.get("services.morkdb.port")
 
+            service_name = "link-creation-agent"
+            service_endpoint = f"{(self._settings.get("services.link_creation_agent.port"))}"
+
+            attention_broker_port = self._settings.get("settings.attention_broker.port")
+
             return BusNodeContainerManager(
                 default_container_name,
                 options={
-                    "service": "inference-agent",
+                    "service": service_name,
+                    "endpoint": service_endpoint,
                     "redis_hostname": "0.0.0.0",
                     "redis_port": redis_port,
                     "mongodb_port": mongodb_port,
@@ -151,5 +157,7 @@ class LinkCreationAgentModule(Module):
                     "mongodb_username": mongodb_username,
                     "mongodb_password": mongodb_password,
                     "morkdb_port": morkdb_port,
+                    "attention_broker_hostname": "0.0.0.0",
+                    "attention_broker_port": attention_broker_port
                 },
             )
