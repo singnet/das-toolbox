@@ -29,7 +29,7 @@ class BusNodeContainerManager(ContainerManager):
         super().__init__(container)
     
 
-    def _gen_bus_node_command(
+    def _gen_default_bus_node_command(
         self,
         service: str,
         endpoint: str,
@@ -39,52 +39,46 @@ class BusNodeContainerManager(ContainerManager):
 
         bus_command = f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
 
-        match service:
-            case "query-engine":
+        # match service:
+        #     case "query-engine":
 
-                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+        #         attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
 
-                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+        #         bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
 
-            case "evolution-agent":
+        #     case "evolution-agent":
 
-                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
+        #         attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+        #         bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
 
-                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
-                bus_command += f" --bus-endpoint={bus_endpoint}"
+        #         bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+        #         bus_command += f" --bus-endpoint={bus_endpoint}"
 
-            case "link-creation-agent":
+        #     case "link-creation-agent":
 
-                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
+        #         attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+        #         bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
 
-                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
-                bus_command += f" --bus-endpoint={bus_endpoint}"
+        #         bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+        #         bus_command += f" --bus-endpoint={bus_endpoint}"
 
-            case "inference-agent":
+        #     case "inference-agent":
 
-                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
+        #         attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+        #         bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
 
-                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
-                bus_command += f" --bus-endpoint={bus_endpoint}"
+        #         bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+        #         bus_command += f" --bus-endpoint={bus_endpoint}"
 
-            case "context-broker":
+        #     case "context-broker":
 
-                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
-                bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
+        #         attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+        #         bus_endpoint = f"{kwargs["peer_hostname"]}:{kwargs["peer_port"]}"
 
-                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
-                bus_command += f" --bus-endpoint={bus_endpoint}"
-        
-        bus_command.strip()
+        #         bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+        #         bus_command += f" --bus-endpoint={bus_endpoint}"
 
         return bus_command
-
-    def stop(self,) -> None:
-
-        super().stop()
 
     def start_container(
         self,

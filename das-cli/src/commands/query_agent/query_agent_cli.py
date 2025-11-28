@@ -14,7 +14,8 @@ from common.prompt_types import PortRangeType
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+from .query_agent_bus_manager import QueryAgentBusNodeManager
+
 
 
 class QueryAgentStop(Command):
@@ -46,19 +47,19 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        query_agent_manager: QueryAgentContainerManager,
+        query_agent_bus_manager: QueryAgentBusNodeManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._query_agent_manager = query_agent_manager
+        self._query_agent_bus_manager = query_agent_bus_manager
 
     def _get_container(self):
-        return self._query_agent_manager.get_container()
+        return self._query_agent_bus_manager.get_container()
 
     def _query_agent(self):
         try:
             self.stdout("Stopping Query Agent service...")
-            self._query_agent_manager.stop()
+            self._query_agent_bus_manager.stop()
 
             success_message = "Query Agent service stopped"
             self.stdout(
@@ -141,7 +142,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        BusNodeContainerManager: BusNodeContainerManager,
+        BusNodeContainerManager: QueryAgentBusNodeManager,
         AttentionBrokerManager: AttentionBrokerManager,
         AtomDbBackend: AtomdbBackend,
         
@@ -230,7 +231,7 @@ class QueryAgentRestart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="42000:42999",
             type=PortRangeType(),
         ),

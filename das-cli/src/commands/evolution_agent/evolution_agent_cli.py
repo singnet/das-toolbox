@@ -15,7 +15,7 @@ from common.prompt_types import PortRangeType
 
 from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+from .evolution_agent_bus_manager import EvolutionAgentBusNodeManager
 
 class EvolutionAgentStop(Command):
     name = "stop"
@@ -49,7 +49,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        bus_node_container_manager: BusNodeContainerManager,
+        bus_node_container_manager: EvolutionAgentBusNodeManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -162,7 +162,7 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        bus_node_container_manager: BusNodeContainerManager,
+        bus_node_container_manager: EvolutionAgentBusNodeManager,
     ) -> None:
         super().__init__()
         self._settings = settings

@@ -9,7 +9,8 @@ from common.prompt_types import PortRangeType
 
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+from .context_broker_bus_manager import ContextBrokerBusNodeManager
+
 
 class ContextBrokerStop(Command):
     name = "stop"
@@ -40,7 +41,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        context_broker_bus_node_manager: BusNodeContainerManager
+        context_broker_bus_node_manager: ContextBrokerBusNodeManager
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -150,7 +151,7 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        context_broker_bus_node_manager: BusNodeContainerManager
+        context_broker_bus_node_manager: ContextBrokerBusNodeManager
     ) -> None:
         super().__init__()
         self._settings = settings

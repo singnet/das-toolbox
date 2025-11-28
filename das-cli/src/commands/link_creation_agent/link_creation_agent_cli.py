@@ -13,7 +13,8 @@ from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
 )
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+
 
 
 class LinkCreationAgentStop(Command):

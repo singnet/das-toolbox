@@ -11,7 +11,8 @@ from .link_creation_agent_cli import (
     Settings,
 )
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+
 
 class LinkCreationAgentModule(Module):
     _instance = LinkCreationAgentCli

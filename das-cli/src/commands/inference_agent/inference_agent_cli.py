@@ -11,7 +11,8 @@ from common.prompt_types import PortRangeType
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+from .inference_agent_bus_manager import InferenceAgentBusNodeManager
+
 
 
 class InferenceAgentStop(Command):
@@ -44,12 +45,10 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        #inference_agent_manager: InferenceAgentContainerManager,
-        bus_node_manager: BusNodeContainerManager,
+        bus_node_manager: InferenceAgentBusNodeManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        #self._inference_agent_manager = inference_agent_manager
         self._inference_agent_bus_node_manager = bus_node_manager
 
     def _get_container(self):
@@ -159,7 +158,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        bus_node_container_manager: BusNodeContainerManager,
+        bus_node_container_manager: InferenceAgentBusNodeManager,
         attention_broker_container_manager: AttentionBrokerManager,
     ) -> None:
         super().__init__()

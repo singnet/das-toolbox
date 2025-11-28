@@ -11,7 +11,9 @@ from .inference_agent_cli import (
     Settings,
 )
 
-from commands.bus_node.busnode_container_manager import BusNodeContainerManager
+
+from .inference_agent_bus_manager import InferenceAgentBusNodeManager
+
 
 
 class InferenceAgentModule(Module):
@@ -28,7 +30,7 @@ class InferenceAgentModule(Module):
                 self._inference_agent_container_manager_factory,
             ),
             (
-                BusNodeContainerManager,
+                InferenceAgentBusNodeManager,
                 self._bus_node_container_manager_factory
             ),
             (
@@ -92,7 +94,7 @@ class InferenceAgentModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
+    def _bus_node_container_manager_factory(self) -> InferenceAgentBusNodeManager:
         default_container_name = self._settings.get("services.inference_agent.container_name")
 
         mongodb_port = self._settings.get("services.mongodb.port")
@@ -107,7 +109,7 @@ class InferenceAgentModule(Module):
         service_name = "inference-agent"
         service_endpoint = f"0.0.0.0:{self._settings.get("services.inference_agent.port")}"
 
-        return BusNodeContainerManager(
+        return InferenceAgentBusNodeManager(
             default_container_name,
             options= {
                 "attention_broker_hostname": "0.0.0.0",
