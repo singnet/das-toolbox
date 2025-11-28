@@ -14,7 +14,6 @@ from common.prompt_types import PortRangeType
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
-from commands.bus_node.busnode_cli import StartBusNodeCommand, StopBusNodeCommand
 from commands.bus_node.busnode_container_manager import BusNodeContainerManager
 
 
@@ -110,7 +109,7 @@ class QueryAgentStart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="42000:42999",
             type=PortRangeType(),
         ),
@@ -142,28 +141,29 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        query_agent_container_manager: QueryAgentContainerManager,
-        atomdb_backend: AtomdbBackend,
-        attention_broker_container_manager: AttentionBrokerManager,
+        BusNodeContainerManager: BusNodeContainerManager,
+        AttentionBrokerManager: AttentionBrokerManager,
+        AtomDbBackend: AtomdbBackend,
+        
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._query_agent_container_manager = query_agent_container_manager
-        self._attention_broker_container_manager = attention_broker_container_manager
-        self._atomdb_backend = atomdb_backend
+        self._bus_node_container_manager = BusNodeContainerManager
+        self._attention_broker_manager = AttentionBrokerManager
+        self._atomdb_backend = AtomDbBackend
 
     def _get_container(self):
-        return self._query_agent_container_manager.get_container()
+        return self._bus_node_container_manager()
 
-    def _query_agent(self, port_range: str) -> None:
+    def _query_engine_node(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Query Agent service...")
 
         query_agent_port = self._settings.get("services.query_agent.port")
 
         try:
-            self._query_agent_container_manager.start_container(port_range)
+            self._bus_node_container_manager.start_container(port_range, **kwargs)
 
-            success_message = f"Query Agent started on port {query_agent_port}"
+            success_message = f"Query Agent Node started on port {query_agent_port}."
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
@@ -217,11 +217,11 @@ EXAMPLES
         "Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
-    def run(self, port_range: str) -> None:
+    def run(self, port_range: str, **kwargs) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._query_agent(port_range)
+        self._query_engine_node(port_range, **kwargs)
 
 
 class QueryAgentRestart(Command):
@@ -273,63 +273,7 @@ EXAMPLES
 
     def run(self, port_range: str):
         self._query_agent_stop.run()
-        self._query_agent_start.run(port_range)
-
-
-class QueryAgentStartBusNode(StartBusNodeCommand):
-
-    name = "bus-node-start"
-
-    short_help = "Starts the query-agent through the bus-node interface"
-
-    params = StartBusNodeCommand.params + [
-        CommandOption(
-            ["--attention-broker-endpoint"],
-            help = "Defines the attention-broker endpoint for the bus-node to connect.",
-            type = str,
-            required = True
-        ) 
-    ]
-
-    @inject
-    def __init__(
-        self, 
-        bus_node_container_manager:BusNodeContainerManager
-    ):
-
-        super().__init__(bus_node_container_manager)
-
-    def run(
-            self:str, 
-            service:str, 
-            endpoint:str, 
-            ports_range:str,
-            **kwargs
-    ):
-        super().run(service, endpoint, ports_range, **kwargs)
-
-
-class QueryAgentStopBusNode(StopBusNodeCommand):
-
-    name = "bus-node-stop"
-
-    short_help = "Stops a specified bus-node running the query-agent"
-
-    params = StopBusNodeCommand.params
-
-    @inject
-    def __init__(self, 
-                 bus_node_container_manager:BusNodeContainerManager
-        ):
-
-        super().__init__(bus_node_container_manager)
-
-    def run(
-            self, 
-            node_name:str
-        ):
-
-        super().run(node_name)
+        self._query_agent_start.run(port_range=port_range)
 
 class QueryAgentCli(CommandGroup):
     name = "query-agent"
@@ -388,8 +332,6 @@ EXAMPLES
         query_agent_start: QueryAgentStart,
         query_agent_stop: QueryAgentStop,
         query_agent_restart: QueryAgentRestart,
-        query_agent_busnode_start: QueryAgentStartBusNode,
-        query_agent_busnode_stop: QueryAgentStopBusNode
     ) -> None:
         super().__init__()
         self.add_commands(
@@ -397,7 +339,5 @@ EXAMPLES
                 query_agent_start,
                 query_agent_stop,
                 query_agent_restart,
-                query_agent_busnode_start,
-                query_agent_busnode_stop
             ]
         )

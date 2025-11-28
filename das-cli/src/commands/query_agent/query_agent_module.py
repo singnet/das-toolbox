@@ -167,7 +167,8 @@ class QueryAgentModule(Module):
         )
     
     def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
-        default_container_name = "das-cli-busnode"
+
+        default_container_name = self._settings.get("services.query_agent.container_name")
 
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")
@@ -178,9 +179,18 @@ class QueryAgentModule(Module):
         redis_hostname = "0.0.0.0"
         redis_use_cluster = self._settings.get("services.redis.cluster")
 
+        service_name = "query-engine"
+        service_endpoint = f"0.0.0.0:{self._settings.get("services.query_agent.port")}"
+
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
         return BusNodeContainerManager(
             default_container_name,
             options= {
+                "attention_broker_hostname": "0.0.0.0",
+                "attention_broker_port": attention_broker_port,
+                "service": service_name,
+                "endpoint": service_endpoint,
                 "mongodb_hostname": mongodb_hostname,
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
