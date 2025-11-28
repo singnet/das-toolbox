@@ -7,6 +7,7 @@ from settings.config import SECRETS_PATH
 
 from .evolution_agent_cli import EvolutionAgentCli, EvolutionAgentContainerManager, Settings
 
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
 
 class EvolutionAgentModule(Module):
     _instance = EvolutionAgentCli
@@ -24,6 +25,10 @@ class EvolutionAgentModule(Module):
             (
                 EvolutionAgentContainerManager,
                 self._evolution_agent_container_manager_factory,
+            ),
+            (
+               BusNodeContainerManager,
+               self._bus_node_container_manager_factory   
             ),
             (
                 Settings,
@@ -96,3 +101,36 @@ class EvolutionAgentModule(Module):
                 "morkdb_hostname": "0.0.0.0",
             },
         )
+
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
+            default_container_name = self._settings.get("services.evolution_agent.container_name")
+
+            mongodb_port = self._settings.get("services.mongodb.port")
+            mongodb_username = self._settings.get("services.mongodb.username")
+            mongodb_password = self._settings.get("services.mongodb.password")
+
+            redis_port = self._settings.get("services.redis.port")
+
+            morkdb_port = self._settings.get("services.morkdb.port")
+
+            service_name = "evolution-agent"
+            service_endpoint = f"0.0.0.0:{self._settings.get("services.evolution_agent.port")}"
+
+            attention_broker_port = self._settings.get("services.attention_broker.port")
+
+            return BusNodeContainerManager(
+                default_container_name,
+                options={
+                    "service": service_name,
+                    "endpoint": service_endpoint,
+                    "attention_broker_port": attention_broker_port,
+                    "attention_broker_hostname": '0.0.0.0',
+                    "redis_hostname": "0.0.0.0",
+                    "redis_port": redis_port,
+                    "mongodb_port": mongodb_port,
+                    "mongodb_hostname": "0.0.0.0",
+                    "mongodb_username": mongodb_username,
+                    "mongodb_password": mongodb_password,
+                    "morkdb_port": morkdb_port,
+                },
+            )

@@ -15,6 +15,7 @@ from common.prompt_types import PortRangeType
 
 from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
 
 class EvolutionAgentStop(Command):
     name = "stop"
@@ -48,19 +49,19 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        evolution_agent_container_manager: EvolutionAgentContainerManager,
+        bus_node_container_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._evolution_agent_container_manager = evolution_agent_container_manager
+        self._evolution_agent_bus_node_manager = bus_node_container_manager
 
     def _get_container(self):
-        return self._evolution_agent_container_manager.get_container()
+        return self._evolution_agent_bus_node_manager.get_container()
 
     def _evolution_agent(self):
         try:
             self.stdout("Stopping Evolution Agent service...")
-            self._evolution_agent_container_manager.stop()
+            self._evolution_agent_bus_node_manager.stop()
 
             success_message = "Evolution Agent service stopped"
 
@@ -80,7 +81,7 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
-            container_name = self._evolution_agent_container_manager.get_container().name
+            container_name = self._evolution_agent_bus_node_manager.get_container().name
             warning_message = (
                 f"The Evolution Agent service named {container_name} is already stopped."
             )
@@ -113,19 +114,19 @@ class EvolutionAgentStart(Command):
     params = [
         CommandOption(
             ["--peer-hostname"],
-            help="The address of the peer to connect to.",
+            help="The address of the node to connect to.",
             prompt="Enter peer hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
-            help="The port of the peer to connect to.",
+            help="The port of the node to connect to.",
             prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
             ["--port-range"],
-            help="The lower and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the node.",
             default="45000:45999",
             type=PortRangeType(),
         ),
@@ -161,35 +162,33 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        evolution_agent_container_manager: EvolutionAgentContainerManager,
+        bus_node_container_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._evolution_agent_container_manager = evolution_agent_container_manager
         self._query_agent_container_manager = query_agent_container_manager
+        self._evolution_agent_bus_node_manager = bus_node_container_manager
 
     def _get_container(self):
-        return self._evolution_agent_container_manager.get_container()
+        return self._evolution_agent_bus_node_manager.get_container()
 
     def _evolution_agent(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ) -> None:
         self.stdout("Starting Evolution Agent service...")
 
         container = self._get_container()
-        evolution_agent_port = container.port
+        port = self._settings.get("services.evolution_agent.port")
 
         try:
-            self._evolution_agent_container_manager.start_container(
-                peer_hostname,
-                peer_port,
+            self._evolution_agent_bus_node_manager.start_container(
                 port_range,
+                **kwargs
             )
 
-            success_message = f"Evolution Agent started on port {evolution_agent_port}"
+            success_message = f"Evolution Agent started on port {port}"
 
             self.stdout(
                 success_message,
@@ -208,7 +207,7 @@ EXAMPLES
             )
         except DockerContainerDuplicateError:
             warning_message = (
-                f"Evolution Agent is already running. It's listening on port {evolution_agent_port}"
+                f"Evolution Agent is already running. It's listening on port {port}"
             )
 
             self.stdout(
@@ -228,7 +227,7 @@ EXAMPLES
             )
         except DockerError:
             message = (
-                f"Failed to start Evolution Agent. Please ensure that the port {evolution_agent_port} is not already in use "
+                f"Failed to start Evolution Agent. Please ensure that the port {port} is not already in use "
                 "and that the required services are running."
             )
             raise DockerError(message)
@@ -243,17 +242,15 @@ EXAMPLES
     )
     def run(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         self._evolution_agent(
-            peer_hostname,
-            peer_port,
             port_range,
+            **kwargs
         )
 
 
@@ -318,12 +315,11 @@ EXAMPLES
 
     def run(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ):
         self._evolution_agent_stop.run()
-        self._evolution_agent_start.run(peer_hostname, peer_port, port_range)
+        self._evolution_agent_start.run(port_range, **kwargs)
 
 
 class EvolutionAgentCli(CommandGroup):
