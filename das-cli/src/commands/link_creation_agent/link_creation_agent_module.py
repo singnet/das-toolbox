@@ -141,7 +141,7 @@ class LinkCreationAgentModule(Module):
             morkdb_port = self._settings.get("services.morkdb.port")
 
             service_name = "link-creation-agent"
-            service_endpoint = f"{(self._settings.get("services.link_creation_agent.port"))}"
+            service_endpoint = f"0.0.0.0:{(self._settings.get("services.link_creation_agent.port"))}"
 
             attention_broker_port = self._settings.get("settings.attention_broker.port")
 

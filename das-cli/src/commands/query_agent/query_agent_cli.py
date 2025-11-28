@@ -153,7 +153,7 @@ EXAMPLES
         self._atomdb_backend = AtomDbBackend
 
     def _get_container(self):
-        return self._bus_node_container_manager()
+        return self._bus_node_container_manager.get_container()
 
     def _query_engine_node(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Query Agent service...")

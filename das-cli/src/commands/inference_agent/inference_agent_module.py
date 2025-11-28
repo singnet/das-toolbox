@@ -105,7 +105,7 @@ class InferenceAgentModule(Module):
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         service_name = "inference-agent"
-        service_endpoint = str(self._settings.get("services.inference_agent.port"))
+        service_endpoint = f"0.0.0.0:{self._settings.get("services.inference_agent.port")}"
 
         return BusNodeContainerManager(
             default_container_name,
