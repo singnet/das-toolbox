@@ -9,6 +9,7 @@ from common.prompt_types import PortRangeType
 
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
 
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
 
 class ContextBrokerStop(Command):
     name = "stop"
@@ -39,19 +40,19 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        context_broker_manager: ContextBrokerContainerManager,
+        context_broker_bus_node_manager: BusNodeContainerManager
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._context_broker_manager = context_broker_manager
+        self._context_broker_bus_node_manager = context_broker_bus_node_manager
 
     def _get_container(self):
-        return self._context_broker_manager.get_container()
+        return self._context_broker_bus_node_manager.get_container()
 
     def _context_broker(self):
         try:
             self.stdout("Stopping Context Broker service...")
-            self._context_broker_manager.stop()
+            self._context_broker_bus_node_manager.stop()
 
             success_message = "Context Broker service stopped"
             self.stdout(
@@ -104,19 +105,19 @@ class ContextBrokerStart(Command):
     params = [
         CommandOption(
             ["--peer-hostname"],
-            help="The address of the peer to connect to.",
+            help="The address of the node to connect to.",
             prompt="Enter peer hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
-            help="The port of the peer to connect to.",
+            help="The port of the node to connect to.",
             prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="46000:46999",
             type=PortRangeType(),
         ),
@@ -149,31 +150,29 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        context_broker_container_manager: ContextBrokerContainerManager,
+        context_broker_bus_node_manager: BusNodeContainerManager
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._context_broker_container_manager = context_broker_container_manager
+        self._context_broker_bus_node_manager = context_broker_bus_node_manager
         self._query_agent_container_manager = query_agent_container_manager
 
     def _get_container(self):
-        return self._context_broker_container_manager.get_container()
+        return self._context_broker_bus_node_manager.get_container()
 
     def _context_broker(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ) -> None:
         self.stdout("Starting Context Broker service...")
 
         context_broker_port = self._settings.get("services.context_broker.port")
 
         try:
-            self._context_broker_container_manager.start_container(
-                peer_hostname,
-                peer_port,
+            self._context_broker_bus_node_manager.start_container(
                 port_range,
+                **kwargs
             )
 
             success_message = f"Context Broker started on port {context_broker_port}"
@@ -225,17 +224,15 @@ EXAMPLES
     )
     def run(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         self._context_broker(
-            peer_hostname,
-            peer_port,
             port_range,
+            **kwargs
         )
 
 
@@ -300,12 +297,11 @@ EXAMPLES
 
     def run(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ) -> None:
         self._context_broker_stop.run()
-        self._context_broker_start.run(peer_hostname, peer_port, port_range)
+        self._context_broker_start.run(port_range, **kwargs)
 
 
 class ContextBrokerCli(CommandGroup):
