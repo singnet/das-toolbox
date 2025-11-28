@@ -102,17 +102,25 @@ class InferenceAgentModule(Module):
         redis_port = self._settings.get("services.redis.port")
 
         morkdb_port = self._settings.get("services.morkdb.port")
+        attention_broker_port = self._settings.get("services.attention_broker.port")
+
+        service_name = "inference-agent"
+        service_endpoint = str(self._settings.get("services.inference_agent.port"))
 
         return BusNodeContainerManager(
             default_container_name,
-            options={
-                "service": "inference-agent",
-                "redis_hostname": "0.0.0.0",
-                "redis_port": redis_port,
-                "mongodb_port": mongodb_port,
+            options= {
+                "attention_broker_hostname": "0.0.0.0",
+                "attention_broker_port": attention_broker_port,
+                "service": service_name,
+                "endpoint": service_endpoint,
                 "mongodb_hostname": "0.0.0.0",
+                "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "morkdb_port": morkdb_port,
+                "redis_port": redis_port,
+                "redis_hostname": "0.0.0.0",
             },
         )
+    
+    

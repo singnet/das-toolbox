@@ -305,15 +305,13 @@ EXAMPLES
 
     def run(
         self,
-        peer_hostname: str,
-        peer_port: int,
         port_range: str,
+        **kwargs
     ):
         self._inference_agent_stop.run()
         self._inference_agent_start.run(
-            peer_hostname,
-            peer_port,
             port_range,
+            **kwargs
         )
 
 
