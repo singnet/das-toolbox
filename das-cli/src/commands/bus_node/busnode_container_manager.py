@@ -41,47 +41,53 @@ class BusNodeContainerManager(ContainerManager):
 
         match service:
             case "query-engine":
-                bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
+
+                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+
+                bus_command += f" --attention-broker-endpoint={attention_broker_endpoint}"
+
             case "evolution-agent":
+
+                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+                bus_endpoint = f"{kwargs["bus_hostname"]}:{kwargs["bus_port"]}"
+                
                 bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
-                bus_command += f" --bus-endpoint={kwargs["bus_endpoint"]}"
+                bus_command += f" --bus-endpoint={bus_endpoint}"
+
             case "link-creation-agent":
+
+                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+                bus_endpoint = f"{kwargs["bus_hostname"]}:{kwargs["bus_port"]}"
+
                 bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
-                bus_command += f" --bus-endpoint={kwargs["bus_endpoint"]}"
+                bus_command += f" --bus-endpoint={bus_endpoint}"
+
             case "inference-agent":
+
+                attention_broker_endpoint = f"{self._options.get("attention_broker_hostname")}:{self._options.get("attention_broker_port")}"
+                bus_endpoint = f"{kwargs["bus_hostname"]}:{kwargs["bus_port"]}"
+
                 bus_command += f" --attention-broker-endpoint={kwargs["attention_broker_endpoint"]}"
-                bus_command += f" --bus-endpoint={kwargs["bus_endpoint"]}"
+                bus_command += f" --bus-endpoint={bus_endpoint}"
         
         bus_command.strip()
 
         return bus_command
-    
-    def _set_bus_node_container_name(self, service: str=None, endpoint:str=None, node_name:str = None) -> None:
 
-        if node_name:
-            self._container._name = node_name
-
-        else:
-            host, port = endpoint.split(":")
-
-            container_name = f"das-cli-busnode-{service}-{port}" if node_name is None else node_name
-
-            self._container._name = container_name
-
-    def stop(self, node_name=None) -> None:
-        self._set_bus_node_container_name("", "", node_name)
+    def stop(self,) -> None:
 
         super().stop()
 
     def start_container(
         self,
-        service: str,
-        endpoint: str,
         ports_range: str,
         **kwargs
     ) -> None:
 
         try:
+
+            service = self._options.get("service")
+            endpoint = self._options.get("endpoint")
 
             bus_node_command = self._gen_bus_node_command(
                 service,
@@ -89,8 +95,6 @@ class BusNodeContainerManager(ContainerManager):
                 ports_range,
                 **kwargs
             )
-
-            self._set_bus_node_container_name(service,endpoint)
 
             container = self._start_container(
                 restart_policy={
