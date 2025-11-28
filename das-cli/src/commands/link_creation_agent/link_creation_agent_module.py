@@ -11,6 +11,7 @@ from .link_creation_agent_cli import (
     Settings,
 )
 
+from commands.bus_node.busnode_container_manager import BusNodeContainerManager
 
 class LinkCreationAgentModule(Module):
     _instance = LinkCreationAgentCli
@@ -28,6 +29,10 @@ class LinkCreationAgentModule(Module):
             (
                 QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
+            ),
+            (
+                BusNodeContainerManager,
+                self._bus_node_container_manager_factory
             ),
             (
                 Settings,
@@ -123,3 +128,28 @@ class LinkCreationAgentModule(Module):
                 "attention_broker_port": attention_broker_port,
             },
         )
+
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
+            default_container_name = self._settings.get("services.link_creation_agent.container_name")
+
+            mongodb_port = self._settings.get("services.mongodb.port")
+            mongodb_username = self._settings.get("services.mongodb.username")
+            mongodb_password = self._settings.get("services.mongodb.password")
+
+            redis_port = self._settings.get("services.redis.port")
+
+            morkdb_port = self._settings.get("services.morkdb.port")
+
+            return BusNodeContainerManager(
+                default_container_name,
+                options={
+                    "service": "inference-agent",
+                    "redis_hostname": "0.0.0.0",
+                    "redis_port": redis_port,
+                    "mongodb_port": mongodb_port,
+                    "mongodb_hostname": "0.0.0.0",
+                    "mongodb_username": mongodb_username,
+                    "mongodb_password": mongodb_password,
+                    "morkdb_port": morkdb_port,
+                },
+            )
