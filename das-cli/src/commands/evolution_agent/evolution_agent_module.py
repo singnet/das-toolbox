@@ -5,9 +5,9 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .evolution_agent_cli import EvolutionAgentCli, EvolutionAgentContainerManager, Settings
-
 from .evolution_agent_bus_manager import EvolutionAgentBusNodeManager
+from .evolution_agent_cli import EvolutionAgentCli, Settings
+from .evolution_agent_container_manager import EvolutionAgentContainerManager
 
 
 class EvolutionAgentModule(Module):
@@ -27,10 +27,7 @@ class EvolutionAgentModule(Module):
                 EvolutionAgentContainerManager,
                 self._evolution_agent_container_manager_factory,
             ),
-            (
-               EvolutionAgentBusNodeManager,
-               self._bus_node_container_manager_factory   
-            ),
+            (EvolutionAgentBusNodeManager, self._bus_node_container_manager_factory),
             (
                 Settings,
                 self._settings,
@@ -104,34 +101,36 @@ class EvolutionAgentModule(Module):
         )
 
     def _bus_node_container_manager_factory(self) -> EvolutionAgentBusNodeManager:
-            default_container_name = self._settings.get("services.evolution_agent.container_name")
+        default_container_name = self._settings.get("services.evolution_agent.container_name")
 
-            mongodb_port = self._settings.get("services.mongodb.port")
-            mongodb_username = self._settings.get("services.mongodb.username")
-            mongodb_password = self._settings.get("services.mongodb.password")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
 
-            redis_port = self._settings.get("services.redis.port")
+        redis_port = self._settings.get("services.redis.port")
 
-            morkdb_port = self._settings.get("services.morkdb.port")
+        morkdb_port = self._settings.get("services.morkdb.port")
 
-            service_name = "evolution-agent"
-            service_endpoint = f"0.0.0.0:{self._settings.get("services.evolution_agent.port")}"
+        service_name = "evolution-agent"
+        service_port = self._settings.get("services.evolution_agent.port")
+        service_endpoint = f"0.0.0.0:{self._settings.get('services.evolution_agent.port')}"
 
-            attention_broker_port = self._settings.get("services.attention_broker.port")
+        attention_broker_port = self._settings.get("services.attention_broker.port")
 
-            return EvolutionAgentBusNodeManager(
-                default_container_name,
-                options={
-                    "service": service_name,
-                    "endpoint": service_endpoint,
-                    "attention_broker_port": attention_broker_port,
-                    "attention_broker_hostname": '0.0.0.0',
-                    "redis_hostname": "0.0.0.0",
-                    "redis_port": redis_port,
-                    "mongodb_port": mongodb_port,
-                    "mongodb_hostname": "0.0.0.0",
-                    "mongodb_username": mongodb_username,
-                    "mongodb_password": mongodb_password,
-                    "morkdb_port": morkdb_port,
-                },
-            )
+        return EvolutionAgentBusNodeManager(
+            default_container_name,
+            options={
+                "service": service_name,
+                "service_port": service_port,
+                "service_endpoint": service_endpoint,
+                "attention_broker_port": attention_broker_port,
+                "attention_broker_hostname": '0.0.0.0',
+                "redis_hostname": "0.0.0.0",
+                "redis_port": redis_port,
+                "mongodb_port": mongodb_port,
+                "mongodb_hostname": "0.0.0.0",
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+                "morkdb_port": morkdb_port,
+            },
+        )

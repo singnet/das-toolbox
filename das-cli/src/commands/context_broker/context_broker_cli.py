@@ -1,15 +1,13 @@
 from injector import inject
 
-from commands.context_broker.context_broker_container_manager import ContextBrokerContainerManager
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
-
 from .context_broker_bus_manager import ContextBrokerBusNodeManager
+from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
 
 
 class ContextBrokerStop(Command):
@@ -39,9 +37,7 @@ EXAMPLES
 
     @inject
     def __init__(
-        self,
-        settings: Settings,
-        context_broker_bus_node_manager: ContextBrokerBusNodeManager
+        self, settings: Settings, context_broker_bus_node_manager: ContextBrokerBusNodeManager
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -151,7 +147,7 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        context_broker_bus_node_manager: ContextBrokerBusNodeManager
+        context_broker_bus_node_manager: ContextBrokerBusNodeManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -161,20 +157,13 @@ EXAMPLES
     def _get_container(self):
         return self._context_broker_bus_node_manager.get_container()
 
-    def _context_broker(
-        self,
-        port_range: str,
-        **kwargs
-    ) -> None:
+    def _context_broker(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Context Broker service...")
 
         context_broker_port = self._settings.get("services.context_broker.port")
 
         try:
-            self._context_broker_bus_node_manager.start_container(
-                port_range,
-                **kwargs
-            )
+            self._context_broker_bus_node_manager.start_container(port_range, **kwargs)
 
             success_message = f"Context Broker started on port {context_broker_port}"
             self.stdout(
@@ -223,18 +212,11 @@ EXAMPLES
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ) -> None:
+    def run(self, port_range: str, **kwargs) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._context_broker(
-            port_range,
-            **kwargs
-        )
+        self._context_broker(port_range, **kwargs)
 
 
 class ContextBrokerRestart(Command):
@@ -296,11 +278,7 @@ EXAMPLES
         self._context_broker_start = context_broker_start
         self._context_broker_stop = context_broker_stop
 
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ) -> None:
+    def run(self, port_range: str, **kwargs) -> None:
         self._context_broker_stop.run()
         self._context_broker_start.run(port_range, **kwargs)
 

@@ -16,6 +16,7 @@ setup() {
 teardown() {
     das-cli db stop
     das-cli attention-broker stop
+    das-cli query-agent stop
 }
 
 @test "Fails to start the Query Agent when configuration file is not set" {

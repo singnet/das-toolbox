@@ -4,16 +4,13 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
+from .inference_agent_bus_manager import InferenceAgentBusNodeManager
 from .inference_agent_cli import (
     AttentionBrokerManager,
     InferenceAgentCli,
-    InferenceAgentContainerManager,
     Settings,
 )
-
-
-from .inference_agent_bus_manager import InferenceAgentBusNodeManager
-
+from .inference_agent_container_manager import InferenceAgentContainerManager
 
 
 class InferenceAgentModule(Module):
@@ -29,10 +26,7 @@ class InferenceAgentModule(Module):
                 InferenceAgentContainerManager,
                 self._inference_agent_container_manager_factory,
             ),
-            (
-                InferenceAgentBusNodeManager,
-                self._bus_node_container_manager_factory
-            ),
+            (InferenceAgentBusNodeManager, self._bus_node_container_manager_factory),
             (
                 AttentionBrokerManager,
                 self._attention_broker_container_manager_factory,
@@ -59,7 +53,6 @@ class InferenceAgentModule(Module):
         atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
         attention_broker_port = self._settings.get("services.attention_broker.port")
-
 
         return InferenceAgentContainerManager(
             container_name,
@@ -103,19 +96,20 @@ class InferenceAgentModule(Module):
 
         redis_port = self._settings.get("services.redis.port")
 
-        morkdb_port = self._settings.get("services.morkdb.port")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
         service_name = "inference-agent"
-        service_endpoint = f"0.0.0.0:{self._settings.get("services.inference_agent.port")}"
+        service_port = self._settings.get("services.inference_agent.port")
+        service_endpoint = f"0.0.0.0:{self._settings.get('services.inference_agent.port')}"
 
         return InferenceAgentBusNodeManager(
             default_container_name,
-            options= {
+            options={
                 "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
                 "service": service_name,
-                "endpoint": service_endpoint,
+                "service_port": service_port,
+                "service_endpoint": service_endpoint,
                 "mongodb_hostname": "0.0.0.0",
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,
@@ -124,5 +118,3 @@ class InferenceAgentModule(Module):
                 "redis_hostname": "0.0.0.0",
             },
         )
-    
-    

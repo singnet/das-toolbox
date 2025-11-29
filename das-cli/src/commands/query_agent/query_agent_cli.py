@@ -2,7 +2,6 @@ from injector import inject
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.atomdb_backend import AtomdbBackend
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -12,10 +11,8 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
-from .query_agent_container_service_response import QueryAgentContainerServiceResponse
-
 from .query_agent_bus_manager import QueryAgentBusNodeManager
-
+from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
 
 class QueryAgentStop(Command):
@@ -145,7 +142,6 @@ EXAMPLES
         BusNodeContainerManager: QueryAgentBusNodeManager,
         AttentionBrokerManager: AttentionBrokerManager,
         AtomDbBackend: AtomdbBackend,
-        
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -164,7 +160,7 @@ EXAMPLES
         try:
             self._bus_node_container_manager.start_container(port_range, **kwargs)
 
-            success_message = f"Query Agent Node started on port {query_agent_port}."
+            success_message = f"Query Agent started on port {query_agent_port}"
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
@@ -212,7 +208,7 @@ EXAMPLES
     @ensure_container_running(
         [
             "_atomdb_backend",
-            "_attention_broker_container_manager",
+            "_attention_broker_manager",
         ],
         exception_text="\nPlease start the required services before running 'query-agent start'.\n"
         "Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.",
@@ -275,6 +271,7 @@ EXAMPLES
     def run(self, port_range: str):
         self._query_agent_stop.run()
         self._query_agent_start.run(port_range=port_range)
+
 
 class QueryAgentCli(CommandGroup):
     name = "query-agent"

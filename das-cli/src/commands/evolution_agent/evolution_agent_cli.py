@@ -1,8 +1,5 @@
 from injector import inject
 
-from commands.evolution_agent.evolution_agent_container_manager import (
-    EvolutionAgentContainerManager,
-)
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
@@ -13,9 +10,9 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
+from .evolution_agent_bus_manager import EvolutionAgentBusNodeManager
 from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
-from .evolution_agent_bus_manager import EvolutionAgentBusNodeManager
 
 class EvolutionAgentStop(Command):
     name = "stop"
@@ -172,21 +169,14 @@ EXAMPLES
     def _get_container(self):
         return self._evolution_agent_bus_node_manager.get_container()
 
-    def _evolution_agent(
-        self,
-        port_range: str,
-        **kwargs
-    ) -> None:
+    def _evolution_agent(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Evolution Agent service...")
 
         container = self._get_container()
         port = self._settings.get("services.evolution_agent.port")
 
         try:
-            self._evolution_agent_bus_node_manager.start_container(
-                port_range,
-                **kwargs
-            )
+            self._evolution_agent_bus_node_manager.start_container(port_range, **kwargs)
 
             success_message = f"Evolution Agent started on port {port}"
 
@@ -206,9 +196,7 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = (
-                f"Evolution Agent is already running. It's listening on port {port}"
-            )
+            warning_message = f"Evolution Agent is already running. It's listening on port {port}"
 
             self.stdout(
                 warning_message,
@@ -240,18 +228,11 @@ EXAMPLES
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ):
+    def run(self, port_range: str, **kwargs):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._evolution_agent(
-            port_range,
-            **kwargs
-        )
+        self._evolution_agent(port_range, **kwargs)
 
 
 class EvolutionAgentRestart(Command):
@@ -313,11 +294,7 @@ EXAMPLES
         self._evolution_agent_start = evolution_agent_start
         self._evolution_agent_stop = evolution_agent_stop
 
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ):
+    def run(self, port_range: str, **kwargs):
         self._evolution_agent_stop.run()
         self._evolution_agent_start.run(port_range, **kwargs)
 

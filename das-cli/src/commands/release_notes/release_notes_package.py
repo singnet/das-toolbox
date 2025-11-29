@@ -7,12 +7,10 @@ from common import remove_special_characters
 from settings.config import RELEASE_NOTES_URL
 
 
-class ReleaseNoteError(Exception):
-    ...  # noqa: E701
+class ReleaseNoteError(Exception): ...  # noqa: E701
 
 
-class ReleaseNoteNotFound(ReleaseNoteError):
-    ...  # noqa: E701
+class ReleaseNoteNotFound(ReleaseNoteError): ...  # noqa: E701
 
 
 class Library:

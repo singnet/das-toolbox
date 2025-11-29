@@ -1,63 +1,43 @@
-from common.docker import Container, ContainerManager
-from common.docker.exceptions import *
-from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 from typing import Dict
-from common import ContainerImageMetadata, ContainerMetadata
+
 import docker
+
+from common.docker import ContainerManager
+from common.docker.exceptions import DockerContainerDuplicateError
+
 
 class BusNodeContainerManager(ContainerManager):
 
     def __init__(
         self,
-        default_container_name: str,
+        container,
         options: Dict = {},
     ) -> None:
-        container = Container(
-            default_container_name,
-            metadata={
-                "port": options.get("busnode_port"),
-                "image":ContainerImageMetadata(
-                    {
-                        "name": DAS_IMAGE_NAME,
-                        "version": DAS_IMAGE_VERSION,
-                    }
-                ),
-            },
-        )
         self._options = options
 
         super().__init__(container)
-    
 
     def _gen_default_bus_node_command(
-        self,
-        service: str,
-        endpoint: str,
-        ports_range: str,
-        **kwargs
+        self, service: str, endpoint: str, ports_range: str, **kwargs
     ) -> str:
 
-        bus_command = f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
+        bus_command = (
+            f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
+        )
 
         return bus_command
 
-    def start_container(
-        self,
-        ports_range: str,
-        **kwargs
-    ) -> None:
+    def start_container(self, ports_range: str, **kwargs) -> None:
+
+        self.raise_running_container()
+        self.raise_on_port_in_use([self._options.get("service_port")])
 
         try:
 
             service = self._options.get("service")
-            endpoint = self._options.get("endpoint")
+            endpoint = self._options.get("service_endpoint")
 
-            bus_node_command = self._gen_bus_node_command(
-                service,
-                endpoint,
-                ports_range,
-                **kwargs
-            )
+            bus_node_command = self._gen_bus_node_command(service, endpoint, ports_range, **kwargs)  # type: ignore[attr-defined]
 
             container = self._start_container(
                 restart_policy={

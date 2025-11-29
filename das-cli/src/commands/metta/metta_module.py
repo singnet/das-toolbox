@@ -29,9 +29,7 @@ class MettaModule(Module):
     def __init__(self) -> None:
         super().__init__()
 
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependecy_injection = [
             (

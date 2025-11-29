@@ -1,18 +1,13 @@
 from injector import inject
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
-from commands.inference_agent.inference_agent_container_manager import (
-    InferenceAgentContainerManager,
-)
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
-
 from .inference_agent_bus_manager import InferenceAgentBusNodeManager
-
+from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
 
 class InferenceAgentStop(Command):
@@ -169,11 +164,7 @@ EXAMPLES
     def _get_container(self):
         return self._inference_agent_bus_node_manager.get_container()
 
-    def _inference_agent(
-        self,
-        port_range: str,
-        **kwargs
-    ) -> None:
+    def _inference_agent(self, port_range: str, **kwargs) -> None:
         container = self._get_container()
 
         self.stdout("Starting Inference Agent service...")
@@ -181,10 +172,7 @@ EXAMPLES
         inf_a_port = self._settings.get("services.inference_agent.port")
 
         try:
-            self._inference_agent_bus_node_manager.start_container(
-                port_range,
-                **kwargs
-            )
+            self._inference_agent_bus_node_manager.start_container(port_range, **kwargs)
 
             success_message = f"Inference Agent started listening on the ports {inf_a_port}"
 
@@ -231,18 +219,11 @@ EXAMPLES
         "Run 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ):
+    def run(self, port_range: str, **kwargs):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._inference_agent(
-            port_range,
-            **kwargs
-        )
+        self._inference_agent(port_range, **kwargs)
 
 
 class InferenceAgentRestart(Command):
@@ -302,16 +283,9 @@ EXAMPLES
         self._inference_agent_start = inference_agent_start
         self._inference_agent_stop = inference_agent_stop
 
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ):
+    def run(self, port_range: str, **kwargs):
         self._inference_agent_stop.run()
-        self._inference_agent_start.run(
-            port_range,
-            **kwargs
-        )
+        self._inference_agent_start.run(port_range, **kwargs)
 
 
 class InferenceAgentCli(CommandGroup):

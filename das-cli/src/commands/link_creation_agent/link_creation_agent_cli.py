@@ -1,20 +1,15 @@
 from injector import inject
 
-from commands.link_creation_agent.link_creation_agent_container_manager import (
-    LinkCreationAgentContainerManager,
-)
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
+from .link_creation_agent_bus_manager import LCAgentBusNodeManager
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
 )
-
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-
 
 
 class LinkCreationAgentStop(Command):
@@ -47,11 +42,11 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        link_creation_agent_manager: LinkCreationAgentContainerManager,
+        link_creation_bus_node_manager: LCAgentBusNodeManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._link_creation_agent_manager = link_creation_agent_manager
+        self._link_creation_agent_manager = link_creation_bus_node_manager
 
     def _get_container(self):
         return self._link_creation_agent_manager.get_container()
@@ -113,13 +108,13 @@ class LinkCreationAgentStart(Command):
     params = [
         CommandOption(
             ["--peer-hostname"],
-            help="The address of the node to connect to.",
+            help="The address of the peer to connect to.",
             prompt="Enter peer hostname (e.g., 192.168.1.100)",
             type=str,
         ),
         CommandOption(
             ["--peer-port"],
-            help="The port of the node to connect to.",
+            help="The port of the peer to connect to.",
             prompt="Enter peer port (e.g., 40002)",
             type=int,
         ),
@@ -160,7 +155,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        link_creation_bus_node_manager: BusNodeContainerManager,
+        link_creation_bus_node_manager: LCAgentBusNodeManager,
         query_agent_container_manager: QueryAgentContainerManager,
     ) -> None:
         super().__init__()
@@ -171,21 +166,14 @@ EXAMPLES
     def _get_container(self):
         return self._link_creation_bus_node_manager.get_container()
 
-    def _link_creation_agent(
-        self,
-        port_range: str,
-        **kwargs
-    ) -> None:
+    def _link_creation_agent(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Link Creation Agent service...")
 
         try:
             container = self._get_container()
-            port = self._settings.get("services.link_creation_agent.port")
+            port = container.port
 
-            self._link_creation_bus_node_manager.start_container(
-                port_range,
-                **kwargs
-            )
+            self._link_creation_bus_node_manager.start_container(port_range, **kwargs)
 
             success_message = f"Link Creation Agent started listening on the ports {port}"
             self.stdout(
@@ -204,7 +192,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"Link Creation Agent is already running. It's listening on the ports {port}"
+            warning_message = (
+                f"Link Creation Agent is already running. It's listening on the ports {port}"
+            )
 
             self.stdout(
                 warning_message,
@@ -230,18 +220,11 @@ EXAMPLES
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ):
+    def run(self, port_range: str, **kwargs):
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._link_creation_agent(
-            port_range,
-            **kwargs
-        )
+        self._link_creation_agent(port_range, **kwargs)
 
 
 class LinkCreationAgentRestart(Command):
@@ -302,16 +285,9 @@ EXAMPLES
         self._link_creation_agent_start = link_creation_agent_start
         self._link_creation_agent_stop = link_creation_agent_stop
 
-    def run(
-        self,
-        port_range: str,
-        **kwargs
-    ):
+    def run(self, port_range: str, **kwargs):
         self._link_creation_agent_stop.run()
-        self._link_creation_agent_start.run(
-            port_range,
-            **kwargs
-        )
+        self._link_creation_agent_start.run(port_range, **kwargs)
 
 
 class LinkCreationAgentCli(CommandGroup):

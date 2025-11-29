@@ -4,12 +4,10 @@ import subprocess
 import requests
 
 
-class PackageError(Exception):
-    ...  # noqa: E701
+class PackageError(Exception): ...  # noqa: E701
 
 
-class PackageNotFoundError(PackageError):
-    ...  # noqa: E701
+class PackageNotFoundError(PackageError): ...  # noqa: E701
 
 
 class PythonLibraryPackage:
