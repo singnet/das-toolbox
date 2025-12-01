@@ -1,26 +1,26 @@
 from injector import inject
+
+from commands.db.atomdb_backend import (
+    AtomdbBackend,
+)
+from common import (
+    Command,
+    CommandGroup,
+    CommandOption,
+    Settings,
+    StdoutSeverity,
+    StdoutType,
+)
 from common.decorators import ensure_container_running
-from common import CommandGroup, CommandArgument, CommandOption, Command, StdoutSeverity, StdoutType, Settings
-from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
-from common.prompt_types import PortRangeType
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
 )
-from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.atomdb_backend import AtomdbBackend
-from commands.db.morkdb_container_manager import MorkdbContainerManager
+from common.prompt_types import PortRangeType
 
-from commands.db.atomdb_backend import (
-    AtomdbBackend,
-    AtomdbBackendEnum,
-    BackendProvider,
-    MongoDBRedisBackend,
-    MorkMongoDBBackend,
-)
+from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
+from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
 
 
 class AtomDbBrokerStart(Command):
@@ -62,17 +62,17 @@ EXAMPLES
 
     @inject
     def __init__(
-            self,
-            atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager,
-            atomdb_backend: AtomdbBackend,
-            settings: Settings
-        ):
+        self,
+        atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager,
+        atomdb_backend: AtomdbBackend,
+        settings: Settings,
+    ):
 
         self._atomdb_broker_bus_manager = atomdb_broker_bus_manager
         self._atomdb_backend = atomdb_backend
         self._settings = settings
         super().__init__()
-    
+
     def _get_container(self):
         return self._atomdb_broker_bus_manager.get_container()
 
@@ -81,16 +81,13 @@ EXAMPLES
         container = self._get_container()
         port = container.port
 
-        self.stdout(f"Starting AtomDB Broker service...")
+        self.stdout("Starting AtomDB Broker service...")
 
         try:
             self._atomdb_broker_bus_manager.start_container(port_range, **kwargs)
             message = f"AtomDB Broker started on port {port}"
 
-            self.stdout(
-                message, 
-                severity=StdoutSeverity.SUCCESS
-            )
+            self.stdout(message, severity=StdoutSeverity.SUCCESS)
 
             self.stdout(
                 dict(
@@ -98,19 +95,16 @@ EXAMPLES
                         action="start",
                         status="success",
                         message=message,
-                        container=self._get_container()
+                        container=self._get_container(),
                     )
                 ),
-                stdout_type= StdoutType.MACHINE_READABLE
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerContainerDuplicateError:
             message = f"AtomDB Broker is already running. It's listening on port {port}"
 
-            self.stdout(
-                message,
-                severity = StdoutSeverity.WARNING
-            )
+            self.stdout(message, severity=StdoutSeverity.WARNING)
 
             self.stdout(
                 dict(
@@ -118,10 +112,10 @@ EXAMPLES
                         action="start",
                         status="already_running",
                         message=message,
-                        container=self._get_container()
+                        container=self._get_container(),
                     )
                 ),
-                stdout_type = StdoutType.MACHINE_READABLE
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerError:
@@ -146,8 +140,6 @@ EXAMPLES
         self._start_container(port_range, **kwargs)
 
 
-
-
 class AtomDbBrokerStop(Command):
     name = "stop"
 
@@ -160,7 +152,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli atomdb-broker stop 
+    das-cli atomdb-broker stop
 
 DESCRIPTION
 
@@ -177,11 +169,7 @@ EXAMPLES
 '''
 
     @inject
-    def __init__(
-            self,
-            atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager,
-            settings: Settings
-        ):
+    def __init__(self, atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager, settings: Settings):
 
         self._settings = settings
         self._atomdb_broker_bus_manager = atomdb_broker_bus_manager
@@ -192,18 +180,14 @@ EXAMPLES
 
     def _stop_container(self):
         container = self._get_container()
-        port = container.port
 
-        self.stdout(f"Stopping AtomDB Broker service...")
+        self.stdout("Stopping AtomDB Broker service...")
 
         try:
             self._atomdb_broker_bus_manager.stop()
-            exec_message = f"AtomDB Broker service stopped"
-            
-            self.stdout(
-                exec_message,
-                severity= StdoutSeverity.SUCCESS
-            )
+            exec_message = "AtomDB Broker service stopped"
+
+            self.stdout(exec_message, severity=StdoutSeverity.SUCCESS)
 
             self.stdout(
                 dict(
@@ -211,20 +195,17 @@ EXAMPLES
                         action="stop",
                         status="already_stopped",
                         message=exec_message,
-                        container=self._get_container(),
+                        container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
 
             message = f"The AtomDB Broker service named {container_name} is already stopped."
 
-            self.stdout(
-                message,
-                severity= StdoutSeverity.WARNING
-            )
+            self.stdout(message, severity=StdoutSeverity.WARNING)
 
             self.stdout(
                 dict(
@@ -235,7 +216,7 @@ EXAMPLES
                         container=self._get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE
+                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
@@ -243,6 +224,7 @@ EXAMPLES
         self._settings.raise_on_schema_mismatch()
 
         self._stop_container()
+
 
 class AtomDbBrokerRestart(Command):
     name = "restart"
@@ -282,22 +264,19 @@ EXAMPLES
 """
 
     @inject
-    def __init__(self, 
-        atomdb_broker_start: AtomDbBrokerStart, 
-        atomdb_broker_stop: AtomDbBrokerStop
+    def __init__(
+        self, atomdb_broker_start: AtomDbBrokerStart, atomdb_broker_stop: AtomDbBrokerStop
     ):
 
         self._atomdb_broker_start = atomdb_broker_start
         self._atomdb_broker_stop = atomdb_broker_stop
         super().__init__()
 
-    def run(self,
-        port_range,
-        **kwargs
-    ):
-        
+    def run(self, port_range, **kwargs):
+
         self._atomdb_broker_stop.run()
         self._atomdb_broker_start.run(port_range, **kwargs)
+
 
 class AtomDbBrokerCli(CommandGroup):
     name = "atomdb-broker"
@@ -343,10 +322,10 @@ EXAMPLES
 
     @inject
     def __init__(
-        self, 
-        atom_db_broker_start: AtomDbBrokerStart, 
-        atom_db_broker_stop: AtomDbBrokerStop, 
-        atom_db_broker_restart: AtomDbBrokerRestart
+        self,
+        atom_db_broker_start: AtomDbBrokerStart,
+        atom_db_broker_stop: AtomDbBrokerStop,
+        atom_db_broker_restart: AtomDbBrokerRestart,
     ) -> None:
         super().__init__()
         self.add_commands(

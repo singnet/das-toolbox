@@ -1,17 +1,5 @@
-from common import Module
-from common import Settings
-from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
-from common.config.store import JsonConfigStore
-
 import os
 from typing import List
-
-from settings.config import SECRETS_PATH
-from .atomdb_broker_cli import AtomDbBrokerCli
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.db.atomdb_backend import AtomdbBackend
-from commands.db.morkdb_container_manager import MorkdbContainerManager
 
 from commands.db.atomdb_backend import (
     AtomdbBackend,
@@ -20,6 +8,16 @@ from commands.db.atomdb_backend import (
     MongoDBRedisBackend,
     MorkMongoDBBackend,
 )
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.morkdb_container_manager import MorkdbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+from common import Module, Settings
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
+
+from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
+from .atomdb_broker_cli import AtomDbBrokerCli
+
 
 class AtomDbBrokerModule(Module):
     _instance = AtomDbBrokerCli
@@ -41,7 +39,7 @@ class AtomDbBrokerModule(Module):
             (
                 Settings,
                 self._settings,
-            )
+            ),
         ]
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
@@ -76,7 +74,7 @@ class AtomDbBrokerModule(Module):
                 "morkdb_port": morkdb_port,
             },
         )
-    
+
     def _redis_container_manager_factory(self) -> RedisContainerManager:
         container_name = self._settings.get("services.redis.container_name")
         redis_port = self._settings.get("services.redis.port")
@@ -102,7 +100,7 @@ class AtomDbBrokerModule(Module):
                 "mongodb_password": mongodb_password,
             },
         )
-    
+
     def _morkdb_container_manager_factory(self) -> MorkdbContainerManager:
         container_name = self._settings.get("services.morkdb.container_name")
         morkdb_port = self._settings.get("services.morkdb.port")
