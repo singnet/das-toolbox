@@ -20,6 +20,7 @@ from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
 from commands.system import SystemModule
+from commands.atomdb_broker.atomdb_broker_module import AtomDbBrokerModule
 from common.utils import log_exception
 
 MODULES = [
@@ -39,6 +40,7 @@ MODULES = [
     EvolutionAgentModule,
     ContextBrokerModule,
     SystemModule,
+    AtomDbBrokerModule,
 ]
 
 
