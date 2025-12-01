@@ -15,6 +15,7 @@ from common.config.core import (
     default_port_morkdb,
     default_port_query_agent,
     default_port_redis,
+    default_port_atomdb_broker,
     get_core_defaults_dict,
 )
 from common.docker.remote_context_manager import RemoteContextManager, Server
@@ -115,6 +116,11 @@ class ConfigProvider(ABC):
                     default_port_context_broker,
                 ),
                 "services.context_broker.container_name": lambda settings: f"das-cli-context-broker-{settings.get('services.context_broker.port', default_port_context_broker)}",
+                "services.atomdb_broker.port": lambda settings: settings.get(
+                    "services.atomdb_broker.port",
+                    default_port_atomdb_broker
+                ),
+                "services.atomdb_broker.container_name": lambda settings: f"das-cli-atomdb-broker-{settings.get('services.atomdb_broker.port', default_port_atomdb_broker)}"
             }
         )
 
@@ -466,6 +472,16 @@ class InteractiveConfigProvider(ConfigProvider):
         return {
             "services.morkdb.port": morkdb_port,
         }
+    
+    def _atomdb_broker(self) -> Dict:
+        atomdb_broker_port = Command.prompt(
+            "Enter the AtomDb Broker port",
+            default=self._settings.get("services.atomdb_broker.port", 40007)
+        )
+
+        return {
+            "services.atomdb_broker.port": atomdb_broker_port
+        }
 
     def get_all_configs(self) -> Dict[str, Any]:
         config: Dict[str, Any] = {}
@@ -480,6 +496,7 @@ class InteractiveConfigProvider(ConfigProvider):
             self._inference_agent,
             self._evolution_agent,
             self._context_broker,
+            self._atomdb_broker,
         ]
 
         for config_step in config_steps:

@@ -14,6 +14,7 @@ default_port_inference_agent = 40004
 default_port_evolution_agent = 40005
 default_port_context_broker = 40006
 default_port_morkdb = 40022
+default_port_atomdb_broker = 40007
 
 
 def get_core_defaults_dict() -> Dict[str, Any]:
@@ -52,6 +53,8 @@ def get_core_defaults_dict() -> Dict[str, Any]:
         "services.evolution_agent.container_name": f"das-cli-evolution-agent-{default_port_evolution_agent}",
         "services.context_broker.port": default_port_context_broker,
         "services.context_broker.container_name": f"das-cli-context-broker-{default_port_context_broker}",
+        "services.atomdb_broker.port": default_port_atomdb_broker,
+        "services.atomdb_broker.container_name": f"das-cli-atomdb-broker-{default_port_atomdb_broker}",
     }
 
     schema_hash_value = calculate_schema_hash(core_defaults)
