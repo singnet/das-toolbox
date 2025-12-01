@@ -1,4 +1,5 @@
 from injector import inject
+from common.decorators import ensure_container_running
 from common import CommandGroup, CommandArgument, CommandOption, Command, StdoutSeverity, StdoutType, Settings
 from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
 from common.prompt_types import PortRangeType
@@ -8,6 +9,18 @@ from common.docker.exceptions import (
     DockerError,
 )
 from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
+from commands.db.mongodb_container_manager import MongodbContainerManager
+from commands.db.redis_container_manager import RedisContainerManager
+from commands.db.atomdb_backend import AtomdbBackend
+from commands.db.morkdb_container_manager import MorkdbContainerManager
+
+from commands.db.atomdb_backend import (
+    AtomdbBackend,
+    AtomdbBackendEnum,
+    BackendProvider,
+    MongoDBRedisBackend,
+    MorkMongoDBBackend,
+)
 
 
 class AtomDbBrokerStart(Command):
@@ -51,10 +64,12 @@ EXAMPLES
     def __init__(
             self,
             atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager,
+            atomdb_backend: AtomdbBackend,
             settings: Settings
         ):
 
         self._atomdb_broker_bus_manager = atomdb_broker_bus_manager
+        self._atomdb_backend = atomdb_backend
         self._settings = settings
         super().__init__()
     
@@ -117,7 +132,17 @@ EXAMPLES
 
             raise DockerError(message)
 
+    @ensure_container_running(
+        [
+            "_atomdb_backend",
+        ],
+        exception_text="\nPlease start the required services before running 'atomdb-broker start'.\n"
+        "Run 'db start' to start the databases",
+        verbose=False,
+    )
     def run(self, port_range, **kwargs):
+        self._settings.raise_on_missing_file()
+        self._settings.raise_on_schema_mismatch()
         self._start_container(port_range, **kwargs)
 
 
