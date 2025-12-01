@@ -40,7 +40,7 @@ class AtomDbBrokerStart(Command):
     help = '''
 NAME
 
-    das-cli atomdb-broker start - Start the Evolution Agent service
+    das-cli atomdb-broker start - Start the atomdb-broker service
 
 SYNOPSIS
 
@@ -81,11 +81,11 @@ EXAMPLES
         container = self._get_container()
         port = container.port
 
-        self.stdout(f"Starting AtomDb Broker at port {port}...")
+        self.stdout(f"Starting AtomDB Broker service...")
 
         try:
             self._atomdb_broker_bus_manager.start_container(port_range, **kwargs)
-            message = f"AtomDB has sucessfully started at port {port}"
+            message = f"AtomDB Broker started on port {port}"
 
             self.stdout(
                 message, 
@@ -194,28 +194,32 @@ EXAMPLES
         container = self._get_container()
         port = container.port
 
-        self.stdout(f"Stopping AtomDB Broker at port {port}...")
+        self.stdout(f"Stopping AtomDB Broker service...")
 
         try:
             self._atomdb_broker_bus_manager.stop()
-            message = f"Stopped AtomDB Broker at port {port}"
+            exec_message = f"AtomDB Broker service stopped"
             
+            self.stdout(
+                exec_message,
+                severity= StdoutSeverity.SUCCESS
+            )
 
             self.stdout(
                 dict(
                     AtomDbBrokerServiceReponse(
                         action="stop",
                         status="already_stopped",
-                        message=message,
+                        message=exec_message,
                         container=self._get_container(),
                     )
                 ),
-                stdout_type= StdoutType.MACHINE_READABLE
+                stdout_type=StdoutType.MACHINE_READABLE
             )
-        except DockerContainerDuplicateError:
+        except DockerContainerNotFoundError:
             container_name = self._get_container().name
 
-            message = f"The Evolution Agent service named {container_name} is already stopped."
+            message = f"The AtomDB Broker service named {container_name} is already stopped."
 
             self.stdout(
                 message,
@@ -223,7 +227,7 @@ EXAMPLES
             )
 
             self.stdout(
-                dict = (
+                dict(
                     AtomDbBrokerServiceReponse(
                         action="stop",
                         status="already_stopped",
