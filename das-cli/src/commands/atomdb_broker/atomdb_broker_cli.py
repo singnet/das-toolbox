@@ -19,7 +19,7 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
-from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
 
 
@@ -63,7 +63,7 @@ EXAMPLES
     @inject
     def __init__(
         self,
-        atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager,
+        atomdb_broker_bus_manager: BusNodeContainerManager,
         atomdb_backend: AtomdbBackend,
         settings: Settings,
     ):
@@ -169,7 +169,7 @@ EXAMPLES
 '''
 
     @inject
-    def __init__(self, atomdb_broker_bus_manager: AtomDbBrokerBusNodeManager, settings: Settings):
+    def __init__(self, atomdb_broker_bus_manager: BusNodeContainerManager, settings: Settings):
 
         self._settings = settings
         self._atomdb_broker_bus_manager = atomdb_broker_bus_manager

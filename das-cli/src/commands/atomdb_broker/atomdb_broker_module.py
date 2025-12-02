@@ -15,7 +15,8 @@ from common import Module, Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .atomdb_broker_bus_manager import AtomDbBrokerBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from .atomdb_broker_cli import AtomDbBrokerCli
 
 
@@ -26,11 +27,12 @@ class AtomDbBrokerModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
-                AtomDbBrokerBusNodeManager,
-                self._bus_node_container_manager_factory,
+                BusNodeContainerManager,
+                self._bus_node_factory.build(use_settings="atomdb_broker", service_name="atomdb-broker")
             ),
             (
                 AtomdbBackend,

@@ -4,7 +4,7 @@ class BusNodeCommandRegistry:
 
     def __init__(self):
         self._commands: Dict[str, Callable[..., str]] = {
-            "atomdb-broker": self._gen_default_cmd,
+            "atomdb-broker": self._cmd_atomdb_broker,
             "query-engine": self._cmd_query_engine,
             "evolution-agent": self._cmd_evolution_agent,
             "link-creation-agent": self._cmd_link_creation_agent,
@@ -20,7 +20,7 @@ class BusNodeCommandRegistry:
             raise ValueError(f"No handler registered for service '{service}'")
         else:
             cmd = handler(service, endpoint, ports_range, options, **args)
-            
+
             return cmd
         
 
@@ -28,8 +28,11 @@ class BusNodeCommandRegistry:
 
         return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
 
-    def _cmd_atomdb_broker(self, service, endpoint, ports_range, **args):
-        pass
+    def _cmd_atomdb_broker(self, service, endpoint, ports_range, options, **args):
+
+        base = self._gen_default_cmd(service, endpoint, ports_range)
+
+        return base
 
     def _cmd_query_engine(self, service, endpoint, ports_range, options, **args):
 
