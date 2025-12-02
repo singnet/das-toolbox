@@ -4,28 +4,36 @@ import docker
 
 from common.docker import ContainerManager
 from common.docker.exceptions import DockerContainerDuplicateError
-
+from .busnode_command_registry import BusNodeCommandRegistry
+from common import Container, ContainerImageMetadata, ContainerMetadata
+from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 class BusNodeContainerManager(ContainerManager):
 
     def __init__(
         self,
-        container,
+        container: Container,
+        default_container_name: str,
         options: Dict = {},
     ) -> None:
+        
         self._options = options
 
-        super().__init__(container)
+        self._cmd_registry = BusNodeCommandRegistry()
 
-    def _gen_default_bus_node_command(
-        self, service: str, endpoint: str, ports_range: str, **kwargs
-    ) -> str:
-
-        bus_command = (
-            f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
+        container = Container(
+            default_container_name,
+            metadata=ContainerMetadata(
+                port=self._options.get("service_port"),
+                image=ContainerImageMetadata({
+                        "name":DAS_IMAGE_NAME,
+                        "version":DAS_IMAGE_VERSION
+                    }
+                )
+            )
         )
 
-        return bus_command
+        super().__init__(container)
 
     def start_container(self, ports_range: str, **kwargs) -> None:
 
@@ -37,7 +45,7 @@ class BusNodeContainerManager(ContainerManager):
             service = self._options.get("service")
             endpoint = self._options.get("service_endpoint")
 
-            bus_node_command = self._gen_bus_node_command(service, endpoint, ports_range, **kwargs)  # type: ignore[attr-defined]
+            bus_node_command = self._cmd_registry.build(service, endpoint, ports_range, **kwargs)
 
             container = self._start_container(
                 restart_policy={
@@ -60,3 +68,6 @@ class BusNodeContainerManager(ContainerManager):
 
         except docker.errors.APIError as e:
             raise DockerContainerDuplicateError(e.explanation)
+        
+        except ValueError:
+            raise ValueError("The service provided couldn't be found")
