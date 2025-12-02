@@ -5,7 +5,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .link_creation_agent_bus_manager import LCAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .link_creation_agent_cli import (
     LinkCreationAgentCli,
     Settings,
@@ -30,7 +30,9 @@ class LinkCreationAgentModule(Module):
                 QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
             ),
-            (LCAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager,
+                self._bus_node_container_manager_factory),
             (
                 Settings,
                 self._settings,
@@ -126,7 +128,7 @@ class LinkCreationAgentModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> LCAgentBusNodeManager:
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
         default_container_name = self._settings.get("services.link_creation_agent.container_name")
 
         mongodb_port = self._settings.get("services.mongodb.port")
@@ -143,7 +145,7 @@ class LinkCreationAgentModule(Module):
 
         attention_broker_port = self._settings.get("settings.attention_broker.port")
 
-        return LCAgentBusNodeManager(
+        return BusNodeContainerManager(
             default_container_name,
             options={
                 "service": service_name,

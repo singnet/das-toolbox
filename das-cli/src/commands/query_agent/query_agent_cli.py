@@ -11,7 +11,7 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
-from .query_agent_bus_manager import QueryAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
 
@@ -44,7 +44,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        query_agent_bus_manager: QueryAgentBusNodeManager,
+        query_agent_bus_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -139,7 +139,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        BusNodeContainerManager: QueryAgentBusNodeManager,
+        BusNodeContainerManager: BusNodeContainerManager,
         AttentionBrokerManager: AttentionBrokerManager,
         AtomDbBackend: AtomdbBackend,
     ) -> None:

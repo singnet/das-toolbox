@@ -12,7 +12,6 @@ class BusNodeContainerManager(ContainerManager):
 
     def __init__(
         self,
-        container: Container,
         default_container_name: str,
         options: Dict = {},
     ) -> None:
@@ -45,7 +44,13 @@ class BusNodeContainerManager(ContainerManager):
             service = self._options.get("service")
             endpoint = self._options.get("service_endpoint")
 
-            bus_node_command = self._cmd_registry.build(service, endpoint, ports_range, **kwargs)
+            bus_node_command = self._cmd_registry.build(
+                service, 
+                endpoint, 
+                ports_range, 
+                self._options, 
+                **kwargs
+            )
 
             container = self._start_container(
                 restart_policy={

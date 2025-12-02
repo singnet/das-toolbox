@@ -5,7 +5,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .context_broker_bus_manager import ContextBrokerBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .context_broker_cli import ContextBrokerCli, Settings
 from .context_broker_container_manager import ContextBrokerContainerManager
 
@@ -28,7 +28,7 @@ class ContextBrokerModule(Module):
                 self._context_broker_container_manager_factory,
             ),
             (
-                ContextBrokerBusNodeManager,
+                BusNodeContainerManager,
                 self._bus_node_container_manager_factory,
             ),
             (
@@ -101,7 +101,7 @@ class ContextBrokerModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> ContextBrokerBusNodeManager:
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
         default_container_name = self._settings.get("services.context_broker.container_name")
 
         mongodb_port = self._settings.get("services.mongodb.port")
@@ -118,7 +118,7 @@ class ContextBrokerModule(Module):
 
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        return ContextBrokerBusNodeManager(
+        return BusNodeContainerManager(
             default_container_name,
             options={
                 "service": service_name,

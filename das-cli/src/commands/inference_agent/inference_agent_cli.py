@@ -6,7 +6,7 @@ from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from .inference_agent_bus_manager import InferenceAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
 
@@ -40,7 +40,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        bus_node_manager: InferenceAgentBusNodeManager,
+        bus_node_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -153,7 +153,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        bus_node_container_manager: InferenceAgentBusNodeManager,
+        bus_node_container_manager: BusNodeContainerManager,
         attention_broker_container_manager: AttentionBrokerManager,
     ) -> None:
         super().__init__()

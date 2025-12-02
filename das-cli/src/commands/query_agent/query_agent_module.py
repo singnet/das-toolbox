@@ -14,9 +14,9 @@ from commands.db.morkdb_container_manager import MorkdbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from settings.config import SECRETS_PATH
 
-from .query_agent_bus_manager import QueryAgentBusNodeManager
 from .query_agent_cli import QueryAgentCli, Settings
 from .query_agent_container_manager import QueryAgentContainerManager
 
@@ -42,7 +42,9 @@ class QueryAgentModule(Module):
                 MongodbContainerManager,
                 self._mongodb_container_manager_factory,
             ),
-            (QueryAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_container_manager_factory),
             (
                 AtomdbBackend,
                 self._atomdb_backend_factory,
@@ -163,7 +165,7 @@ class QueryAgentModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> QueryAgentBusNodeManager:
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
 
         default_container_name = self._settings.get("services.query_agent.container_name")
 
@@ -182,7 +184,7 @@ class QueryAgentModule(Module):
 
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        return QueryAgentBusNodeManager(
+        return BusNodeContainerManager(
             default_container_name,
             options={
                 "attention_broker_hostname": "0.0.0.0",

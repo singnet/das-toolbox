@@ -4,7 +4,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .inference_agent_bus_manager import InferenceAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .inference_agent_cli import (
     AttentionBrokerManager,
     InferenceAgentCli,
@@ -26,7 +26,9 @@ class InferenceAgentModule(Module):
                 InferenceAgentContainerManager,
                 self._inference_agent_container_manager_factory,
             ),
-            (InferenceAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_container_manager_factory),
             (
                 AttentionBrokerManager,
                 self._attention_broker_container_manager_factory,
@@ -87,7 +89,7 @@ class InferenceAgentModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> InferenceAgentBusNodeManager:
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
         default_container_name = self._settings.get("services.inference_agent.container_name")
 
         mongodb_port = self._settings.get("services.mongodb.port")
@@ -102,7 +104,7 @@ class InferenceAgentModule(Module):
         service_port = self._settings.get("services.inference_agent.port")
         service_endpoint = f"0.0.0.0:{self._settings.get('services.inference_agent.port')}"
 
-        return InferenceAgentBusNodeManager(
+        return BusNodeContainerManager(
             default_container_name,
             options={
                 "attention_broker_hostname": "0.0.0.0",

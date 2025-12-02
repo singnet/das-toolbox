@@ -5,7 +5,7 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .evolution_agent_bus_manager import EvolutionAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .evolution_agent_cli import EvolutionAgentCli, Settings
 from .evolution_agent_container_manager import EvolutionAgentContainerManager
 
@@ -27,7 +27,9 @@ class EvolutionAgentModule(Module):
                 EvolutionAgentContainerManager,
                 self._evolution_agent_container_manager_factory,
             ),
-            (EvolutionAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_container_manager_factory),
             (
                 Settings,
                 self._settings,
@@ -100,7 +102,7 @@ class EvolutionAgentModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> EvolutionAgentBusNodeManager:
+    def _bus_node_container_manager_factory(self) -> BusNodeContainerManager:
         default_container_name = self._settings.get("services.evolution_agent.container_name")
 
         mongodb_port = self._settings.get("services.mongodb.port")
@@ -117,7 +119,7 @@ class EvolutionAgentModule(Module):
 
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        return EvolutionAgentBusNodeManager(
+        return BusNodeContainerManager(
             default_container_name,
             options={
                 "service": service_name,
