@@ -6,7 +6,7 @@ from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from .context_broker_bus_manager import ContextBrokerBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
 
 
@@ -37,7 +37,7 @@ EXAMPLES
 
     @inject
     def __init__(
-        self, settings: Settings, context_broker_bus_node_manager: ContextBrokerBusNodeManager
+        self, settings: Settings, context_broker_bus_node_manager: BusNodeContainerManager
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -147,7 +147,7 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        context_broker_bus_node_manager: ContextBrokerBusNodeManager,
+        context_broker_bus_node_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings

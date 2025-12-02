@@ -5,7 +5,9 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .link_creation_agent_bus_manager import LCAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+
 from .link_creation_agent_cli import (
     LinkCreationAgentCli,
     Settings,
@@ -20,6 +22,7 @@ class LinkCreationAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
@@ -30,7 +33,10 @@ class LinkCreationAgentModule(Module):
                 QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
             ),
-            (LCAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager,
+                self._bus_node_factory.build(use_settings="link_creation_agent", service_name="link-creation-agent")
+            ),
             (
                 Settings,
                 self._settings,
@@ -121,41 +127,6 @@ class LinkCreationAgentModule(Module):
                 "mongodb_hostname": "0.0.0.0",
                 "mongodb_username": mongodb_username,
                 "mongodb_password": mongodb_password,
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-            },
-        )
-
-    def _bus_node_container_manager_factory(self) -> LCAgentBusNodeManager:
-        default_container_name = self._settings.get("services.link_creation_agent.container_name")
-
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        redis_port = self._settings.get("services.redis.port")
-
-        morkdb_port = self._settings.get("services.morkdb.port")
-
-        service_name = "link-creation-agent"
-        service_port = self._settings.get("services.link_creation_agent.port")
-        service_endpoint = f"0.0.0.0:{(self._settings.get('services.link_creation_agent.port'))}"
-
-        attention_broker_port = self._settings.get("settings.attention_broker.port")
-
-        return LCAgentBusNodeManager(
-            default_container_name,
-            options={
-                "service": service_name,
-                "service_port": service_port,
-                "service_endpoint": service_endpoint,
-                "redis_hostname": "0.0.0.0",
-                "redis_port": redis_port,
-                "mongodb_port": mongodb_port,
-                "mongodb_hostname": "0.0.0.0",
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-                "morkdb_port": morkdb_port,
                 "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
             },

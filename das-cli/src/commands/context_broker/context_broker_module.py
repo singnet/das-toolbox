@@ -5,7 +5,9 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .context_broker_bus_manager import ContextBrokerBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+
 from .context_broker_cli import ContextBrokerCli, Settings
 from .context_broker_container_manager import ContextBrokerContainerManager
 
@@ -17,6 +19,7 @@ class ContextBrokerModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
@@ -28,8 +31,8 @@ class ContextBrokerModule(Module):
                 self._context_broker_container_manager_factory,
             ),
             (
-                ContextBrokerBusNodeManager,
-                self._bus_node_container_manager_factory,
+                BusNodeContainerManager,
+                self._bus_node_factory.build(use_settings="context_broker", service_name="context-broker")
             ),
             (
                 Settings,
@@ -101,37 +104,3 @@ class ContextBrokerModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> ContextBrokerBusNodeManager:
-        default_container_name = self._settings.get("services.context_broker.container_name")
-
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        redis_port = self._settings.get("services.redis.port")
-
-        morkdb_port = self._settings.get("services.morkdb.port")
-
-        service_name = "context-broker"
-        service_port = self._settings.get("services.context_broker.port")
-        service_endpoint = f"0.0.0.0:{(self._settings.get('services.context_broker.port'))}"
-
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        return ContextBrokerBusNodeManager(
-            default_container_name,
-            options={
-                "service": service_name,
-                "service_port": service_port,
-                "service_endpoint": service_endpoint,
-                "redis_hostname": "0.0.0.0",
-                "redis_port": redis_port,
-                "mongodb_port": mongodb_port,
-                "mongodb_hostname": "0.0.0.0",
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-                "morkdb_port": morkdb_port,
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-            },
-        )

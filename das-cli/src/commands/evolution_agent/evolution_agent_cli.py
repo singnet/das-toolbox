@@ -10,7 +10,7 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
-from .evolution_agent_bus_manager import EvolutionAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
 
@@ -46,7 +46,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        bus_node_container_manager: EvolutionAgentBusNodeManager,
+        bus_node_container_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -159,7 +159,7 @@ EXAMPLES
         self,
         settings: Settings,
         query_agent_container_manager: QueryAgentContainerManager,
-        bus_node_container_manager: EvolutionAgentBusNodeManager,
+        bus_node_container_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings

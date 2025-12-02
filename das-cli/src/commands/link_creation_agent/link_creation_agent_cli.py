@@ -6,7 +6,7 @@ from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from .link_creation_agent_bus_manager import LCAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
 )
@@ -42,7 +42,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        link_creation_bus_node_manager: LCAgentBusNodeManager,
+        link_creation_bus_node_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
@@ -155,7 +155,7 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        link_creation_bus_node_manager: LCAgentBusNodeManager,
+        link_creation_bus_node_manager: BusNodeContainerManager,
         query_agent_container_manager: QueryAgentContainerManager,
     ) -> None:
         super().__init__()

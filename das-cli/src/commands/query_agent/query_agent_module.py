@@ -14,9 +14,10 @@ from commands.db.morkdb_container_manager import MorkdbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
-from .query_agent_bus_manager import QueryAgentBusNodeManager
 from .query_agent_cli import QueryAgentCli, Settings
 from .query_agent_container_manager import QueryAgentContainerManager
 
@@ -28,6 +29,7 @@ class QueryAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
@@ -42,7 +44,10 @@ class QueryAgentModule(Module):
                 MongodbContainerManager,
                 self._mongodb_container_manager_factory,
             ),
-            (QueryAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_factory.build(use_settings="query_agent", service_name="query-engine")
+            ),
             (
                 AtomdbBackend,
                 self._atomdb_backend_factory,
@@ -160,42 +165,5 @@ class QueryAgentModule(Module):
             container_name,
             options={
                 "morkdb_port": morkdb_port,
-            },
-        )
-
-    def _bus_node_container_manager_factory(self) -> QueryAgentBusNodeManager:
-
-        default_container_name = self._settings.get("services.query_agent.container_name")
-
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-        mongodb_hostname = "0.0.0.0"
-
-        redis_port = self._settings.get("services.redis.port")
-        redis_hostname = "0.0.0.0"
-        redis_use_cluster = self._settings.get("services.redis.cluster")
-
-        service_name = "query-engine"
-        service_port = self._settings.get("services.query_agent.port")
-        service_endpoint = f"0.0.0.0:{self._settings.get('services.query_agent.port')}"
-
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        return QueryAgentBusNodeManager(
-            default_container_name,
-            options={
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-                "service": service_name,
-                "service_port": service_port,
-                "service_endpoint": service_endpoint,
-                "mongodb_hostname": mongodb_hostname,
-                "mongodb_port": mongodb_port,
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-                "redis_port": redis_port,
-                "redis_hostname": redis_hostname,
-                "redis_use_cluster": redis_use_cluster,
             },
         )

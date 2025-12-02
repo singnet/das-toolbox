@@ -4,7 +4,9 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .inference_agent_bus_manager import InferenceAgentBusNodeManager
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+
 from .inference_agent_cli import (
     AttentionBrokerManager,
     InferenceAgentCli,
@@ -20,13 +22,17 @@ class InferenceAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
                 InferenceAgentContainerManager,
                 self._inference_agent_container_manager_factory,
             ),
-            (InferenceAgentBusNodeManager, self._bus_node_container_manager_factory),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_factory.build(use_settings="inference_agent", service_name="inference-agent")
+            ),
             (
                 AttentionBrokerManager,
                 self._attention_broker_container_manager_factory,
@@ -87,34 +93,3 @@ class InferenceAgentModule(Module):
             },
         )
 
-    def _bus_node_container_manager_factory(self) -> InferenceAgentBusNodeManager:
-        default_container_name = self._settings.get("services.inference_agent.container_name")
-
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        redis_port = self._settings.get("services.redis.port")
-
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        service_name = "inference-agent"
-        service_port = self._settings.get("services.inference_agent.port")
-        service_endpoint = f"0.0.0.0:{self._settings.get('services.inference_agent.port')}"
-
-        return InferenceAgentBusNodeManager(
-            default_container_name,
-            options={
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-                "service": service_name,
-                "service_port": service_port,
-                "service_endpoint": service_endpoint,
-                "mongodb_hostname": "0.0.0.0",
-                "mongodb_port": mongodb_port,
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-                "redis_port": redis_port,
-                "redis_hostname": "0.0.0.0",
-            },
-        )
