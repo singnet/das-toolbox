@@ -2,6 +2,7 @@ from injector import inject
 
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
@@ -10,7 +11,6 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
 

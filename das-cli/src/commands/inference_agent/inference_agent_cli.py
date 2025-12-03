@@ -2,11 +2,11 @@ from injector import inject
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
 
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 
 

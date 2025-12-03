@@ -12,11 +12,11 @@ from commands.db.mongodb_container_manager import MongodbContainerManager
 from commands.db.morkdb_container_manager import MorkdbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module, Settings
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from .atomdb_broker_cli import AtomDbBrokerCli
 
 
@@ -32,7 +32,9 @@ class AtomDbBrokerModule(Module):
         self._dependecy_injection = [
             (
                 BusNodeContainerManager,
-                self._bus_node_factory.build(use_settings="atomdb_broker", service_name="atomdb-broker")
+                self._bus_node_factory.build(
+                    use_settings="atomdb_broker", service_name="atomdb-broker"
+                ),
             ),
             (
                 AtomdbBackend,
@@ -61,7 +63,7 @@ class AtomDbBrokerModule(Module):
         service_port = self._settings.get("services.atomdb_broker.port")
         service_endpoint = f"0.0.0.0:{self._settings.get('services.atomdb_broker.port')}"
 
-        return AtomDbBrokerBusNodeManager(
+        return BusNodeContainerManager(
             default_container_name,
             options={
                 "service": service_name,

@@ -1,4 +1,5 @@
-from typing import Dict, Callable
+from typing import Callable, Dict
+
 
 class BusNodeCommandRegistry:
 
@@ -11,7 +12,7 @@ class BusNodeCommandRegistry:
             "inference-agent": self._cmd_inference_agent,
             "context-broker": self._cmd_context_broker,
         }
-    
+
     def build(self, service, endpoint, ports_range, options, **args):
 
         handler = self._commands.get(service)
@@ -22,7 +23,6 @@ class BusNodeCommandRegistry:
             cmd = handler(service, endpoint, ports_range, options, **args)
 
             return cmd
-        
 
     def _gen_default_cmd(self, service, endpoint, ports_range):
 
@@ -37,7 +37,9 @@ class BusNodeCommandRegistry:
     def _cmd_query_engine(self, service, endpoint, ports_range, options, **args):
 
         base = self._gen_default_cmd(service, endpoint, ports_range)
-        attention_broker = f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        attention_broker = (
+            f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        )
 
         return f"{base} --attention-broker-endpoint={attention_broker}"
 
@@ -45,7 +47,9 @@ class BusNodeCommandRegistry:
 
         base = self._gen_default_cmd(service, endpoint, ports_range)
 
-        attention_broker = f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        attention_broker = (
+            f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
         return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
@@ -53,8 +57,10 @@ class BusNodeCommandRegistry:
     def _cmd_link_creation_agent(self, service, endpoint, ports_range, options, **args):
 
         base = self._gen_default_cmd(service, endpoint, ports_range)
-        
-        attention_broker = f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+
+        attention_broker = (
+            f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
         return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
@@ -62,17 +68,21 @@ class BusNodeCommandRegistry:
     def _cmd_inference_agent(self, service, endpoint, ports_range, options, **args):
 
         base = self._gen_default_cmd(service, endpoint, ports_range)
-        
-        attention_broker = f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+
+        attention_broker = (
+            f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
         return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
-    
+
     def _cmd_context_broker(self, service, endpoint, ports_range, options, **args):
 
         base = self._gen_default_cmd(service, endpoint, ports_range)
-        
-        attention_broker = f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+
+        attention_broker = (
+            f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
+        )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
         return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"

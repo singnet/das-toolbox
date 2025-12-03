@@ -2,11 +2,10 @@ import os
 
 from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
-
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
 
 from .evolution_agent_cli import EvolutionAgentCli, Settings
 from .evolution_agent_container_manager import EvolutionAgentContainerManager
@@ -31,8 +30,10 @@ class EvolutionAgentModule(Module):
                 self._evolution_agent_container_manager_factory,
             ),
             (
-                BusNodeContainerManager, 
-                self._bus_node_factory.build(use_settings="evolution_agent", service_name="evolution-agent")
+                BusNodeContainerManager,
+                self._bus_node_factory.build(
+                    use_settings="evolution_agent", service_name="evolution-agent"
+                ),
             ),
             (
                 Settings,
