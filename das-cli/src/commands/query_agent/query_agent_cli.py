@@ -12,6 +12,7 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
 

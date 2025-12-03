@@ -16,6 +16,8 @@ from common import Module
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, Settings
@@ -45,10 +47,8 @@ class QueryAgentModule(Module):
                 self._mongodb_container_manager_factory,
             ),
             (
-                BusNodeContainerManager,
-                self._bus_node_factory.build(
-                    use_settings="query_agent", service_name="query-engine"
-                ),
+                BusNodeContainerManager, 
+                self._bus_node_factory.build(use_settings="query_agent", service_name="query-engine")
             ),
             (
                 AtomdbBackend,

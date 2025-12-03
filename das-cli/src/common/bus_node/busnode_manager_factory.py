@@ -1,18 +1,15 @@
-import os
-
 from common import Settings
+from .busnode_container_manager import BusNodeContainerManager
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
+import os 
 
-from .busnode_container_manager import BusNodeContainerManager
-
-
-class BusNodeContainerManagerFactory:
+class BusNodeContainerManagerFactory():
 
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
-    def build(self, use_settings: str, service_name: str) -> BusNodeContainerManager:
+    def build(self, use_settings:str, service_name:str) -> BusNodeContainerManager:
 
         default_container_name = self._settings.get(f"services.{use_settings}.container_name")
 
