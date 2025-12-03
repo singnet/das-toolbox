@@ -5,9 +5,9 @@ load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
 
-skip "Tests skipped: dbms commands were temporarily disabled."
-
 setup() {
+    skip "Tests skipped: dbms commands were temporarily disabled."
+
     use_config "simple"
 
     das-cli db restart
@@ -23,6 +23,8 @@ setup() {
 }
 
 teardown() {
+    skip "Tests skipped: dbms commands were temporarily disabled."
+
     "$(dirname "${BATS_TEST_DIRNAME}")/../scripts/stop_postgres.sh" \
         -n $postgres_container_name
 }

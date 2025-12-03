@@ -2,7 +2,6 @@ from injector import inject
 
 from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.atomdb_backend import AtomdbBackend
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -12,6 +11,7 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
 
@@ -44,19 +44,19 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        query_agent_manager: QueryAgentContainerManager,
+        query_agent_bus_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._query_agent_manager = query_agent_manager
+        self._query_agent_bus_manager = query_agent_bus_manager
 
     def _get_container(self):
-        return self._query_agent_manager.get_container()
+        return self._query_agent_bus_manager.get_container()
 
     def _query_agent(self):
         try:
             self.stdout("Stopping Query Agent service...")
-            self._query_agent_manager.stop()
+            self._query_agent_bus_manager.stop()
 
             success_message = "Query Agent service stopped"
             self.stdout(
@@ -107,7 +107,7 @@ class QueryAgentStart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="42000:42999",
             type=PortRangeType(),
         ),
@@ -139,26 +139,26 @@ EXAMPLES
     def __init__(
         self,
         settings: Settings,
-        query_agent_container_manager: QueryAgentContainerManager,
-        atomdb_backend: AtomdbBackend,
-        attention_broker_container_manager: AttentionBrokerManager,
+        BusNodeContainerManager: BusNodeContainerManager,
+        AttentionBrokerManager: AttentionBrokerManager,
+        AtomDbBackend: AtomdbBackend,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._query_agent_container_manager = query_agent_container_manager
-        self._attention_broker_container_manager = attention_broker_container_manager
-        self._atomdb_backend = atomdb_backend
+        self._bus_node_container_manager = BusNodeContainerManager
+        self._attention_broker_manager = AttentionBrokerManager
+        self._atomdb_backend = AtomDbBackend
 
     def _get_container(self):
-        return self._query_agent_container_manager.get_container()
+        return self._bus_node_container_manager.get_container()
 
-    def _query_agent(self, port_range: str) -> None:
+    def _query_engine_node(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Query Agent service...")
 
         query_agent_port = self._settings.get("services.query_agent.port")
 
         try:
-            self._query_agent_container_manager.start_container(port_range)
+            self._bus_node_container_manager.start_container(port_range, **kwargs)
 
             success_message = f"Query Agent started on port {query_agent_port}"
             self.stdout(
@@ -208,17 +208,17 @@ EXAMPLES
     @ensure_container_running(
         [
             "_atomdb_backend",
-            "_attention_broker_container_manager",
+            "_attention_broker_manager",
         ],
         exception_text="\nPlease start the required services before running 'query-agent start'.\n"
         "Run 'db start' to start the databases and 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
-    def run(self, port_range: str) -> None:
+    def run(self, port_range: str, **kwargs) -> None:
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
-        self._query_agent(port_range)
+        self._query_engine_node(port_range, **kwargs)
 
 
 class QueryAgentRestart(Command):
@@ -227,7 +227,7 @@ class QueryAgentRestart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="42000:42999",
             type=PortRangeType(),
         ),
@@ -270,7 +270,7 @@ EXAMPLES
 
     def run(self, port_range: str):
         self._query_agent_stop.run()
-        self._query_agent_start.run(port_range)
+        self._query_agent_start.run(port_range=port_range)
 
 
 class QueryAgentCli(CommandGroup):

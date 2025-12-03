@@ -14,9 +14,12 @@ from commands.db.morkdb_container_manager import MorkdbContainerManager
 from commands.db.redis_container_manager import RedisContainerManager
 from common import Module
 from common.config.store import JsonConfigStore
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
-from .query_agent_cli import QueryAgentCli, QueryAgentContainerManager, Settings
+from .query_agent_cli import QueryAgentCli, Settings
+from .query_agent_container_manager import QueryAgentContainerManager
 
 
 class QueryAgentModule(Module):
@@ -26,6 +29,7 @@ class QueryAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
@@ -39,6 +43,10 @@ class QueryAgentModule(Module):
             (
                 MongodbContainerManager,
                 self._mongodb_container_manager_factory,
+            ),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_factory.build(use_settings="query_agent", service_name="query-engine")
             ),
             (
                 AtomdbBackend,

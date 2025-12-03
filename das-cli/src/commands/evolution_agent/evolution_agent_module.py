@@ -5,7 +5,11 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .evolution_agent_cli import EvolutionAgentCli, EvolutionAgentContainerManager, Settings
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+
+from .evolution_agent_cli import EvolutionAgentCli, Settings
+from .evolution_agent_container_manager import EvolutionAgentContainerManager
 
 
 class EvolutionAgentModule(Module):
@@ -15,6 +19,7 @@ class EvolutionAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
@@ -24,6 +29,10 @@ class EvolutionAgentModule(Module):
             (
                 EvolutionAgentContainerManager,
                 self._evolution_agent_container_manager_factory,
+            ),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_factory.build(use_settings="evolution_agent", service_name="evolution-agent")
             ),
             (
                 Settings,

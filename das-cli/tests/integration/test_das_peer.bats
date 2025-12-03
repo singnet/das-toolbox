@@ -1,7 +1,5 @@
 #!/usr/local/bin/bats
 
-skip "Tests skipped: das-peer commands were temporarily disabled."
-
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
@@ -9,6 +7,8 @@ load 'libs/docker'
 
 setup() {
     use_config "simple"
+
+    skip "Tests skipped: peer were temporarily disabled."
 
     das-cli dbms-adapter das-peer stop
     das-cli db stop

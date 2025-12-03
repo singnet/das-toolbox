@@ -4,12 +4,15 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+
 from .inference_agent_cli import (
     AttentionBrokerManager,
     InferenceAgentCli,
-    InferenceAgentContainerManager,
     Settings,
 )
+from .inference_agent_container_manager import InferenceAgentContainerManager
 
 
 class InferenceAgentModule(Module):
@@ -19,11 +22,16 @@ class InferenceAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
                 InferenceAgentContainerManager,
                 self._inference_agent_container_manager_factory,
+            ),
+            (
+                BusNodeContainerManager, 
+                self._bus_node_factory.build(use_settings="inference_agent", service_name="inference-agent")
             ),
             (
                 AttentionBrokerManager,
@@ -55,6 +63,8 @@ class InferenceAgentModule(Module):
         return InferenceAgentContainerManager(
             container_name,
             options={
+                "attention_broker_hostname": "0.0.0.0",
+                "attention_broker_port": attention_broker_port,
                 "inference_agent_hostname": "0.0.0.0",
                 "inference_agent_port": inference_agent_port,
                 "redis_port": redis_port,
@@ -82,3 +92,4 @@ class InferenceAgentModule(Module):
                 "attention_broker_port": attention_broker_port,
             },
         )
+

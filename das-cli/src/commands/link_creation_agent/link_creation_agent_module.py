@@ -5,11 +5,14 @@ from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
+from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+
 from .link_creation_agent_cli import (
     LinkCreationAgentCli,
-    LinkCreationAgentContainerManager,
     Settings,
 )
+from .link_creation_agent_container_manager import LinkCreationAgentContainerManager
 
 
 class LinkCreationAgentModule(Module):
@@ -19,6 +22,7 @@ class LinkCreationAgentModule(Module):
         super().__init__()
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependecy_injection = [
             (
@@ -28,6 +32,10 @@ class LinkCreationAgentModule(Module):
             (
                 QueryAgentContainerManager,
                 self._query_agent_container_manager_factory,
+            ),
+            (
+                BusNodeContainerManager,
+                self._bus_node_factory.build(use_settings="link_creation_agent", service_name="link-creation-agent")
             ),
             (
                 Settings,

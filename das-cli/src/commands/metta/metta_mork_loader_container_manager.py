@@ -67,9 +67,7 @@ class MettaMorkLoaderContainerManager(ContainerManager):
             container.remove(v=True, force=True)
 
             if exit_code != 0:
-                raise DockerError(
-                    f"File '{os.path.basename(path)}' could not be loaded."
-                )
+                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
 
             return None
         except docker.errors.APIError as e:
