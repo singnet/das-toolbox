@@ -2,6 +2,7 @@ import copy
 
 from injector import Injector
 
+from commands.atomdb_broker.atomdb_broker_module import AtomDbBrokerModule
 from commands.attention_broker import AttentionBrokerModule
 from commands.config import ConfigModule
 from commands.context_broker import ContextBrokerModule
@@ -39,6 +40,7 @@ MODULES = [
     EvolutionAgentModule,
     ContextBrokerModule,
     SystemModule,
+    AtomDbBrokerModule,
 ]
 
 

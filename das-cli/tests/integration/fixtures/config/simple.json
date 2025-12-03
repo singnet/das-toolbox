@@ -1,58 +1,64 @@
 {
-  "schema_hash": "cea3bdfd0bf2ec7d23d0a57dc7cac9c3baef141911e3c62bac10494caee58ccc",
+  "schema_hash": "e98c086a52c829cd6aae38fc2f54255146b7ccccb3426f96b4b052b226e39a1b",
   "services": {
+    "database": {
+      "atomdb_backend": "redis_mongodb"
+    },
     "redis": {
       "port": 40020,
-      "container_name": "das-cli-redis-40020",
       "cluster": false,
       "nodes": [
         {
           "context": "default",
           "ip": "localhost",
-          "username": "rafaellevi"
+          "username": "bernardo"
         }
-      ]
+      ],
+      "container_name": "das-cli-redis-40020"
     },
     "mongodb": {
-      "cluster": false,
       "port": 40021,
-      "container_name": "das-cli-mongodb-40021",
       "username": "admin",
       "password": "admin",
-      "cluster_secret_key": "eri290eiw299e0-92",
+      "cluster": false,
+      "cluster_secret_key": "lTcm2X8l2QpIkUR",
       "nodes": [
         {
           "context": "default",
           "ip": "localhost",
-          "username": "rafaellevi"
+          "username": "bernardo"
         }
-      ]
+      ],
+      "container_name": "das-cli-mongodb-40021"
     },
     "loader": {
       "container_name": "das-cli-loader"
+    },
+    "morkdb_loader": {
+      "container_name": "das-cli-morkdb-loader"
+    },
+    "das_peer": {
+      "port": 40018,
+      "container_name": "das-cli-das-peer-40018"
+    },
+    "dbms_peer": {
+      "container_name": "das-cli-dbms-peer"
     },
     "jupyter_notebook": {
       "port": 40019,
       "container_name": "das-cli-jupyter-notebook-40019"
     },
-    "das_peer": {
-      "container_name": "das-cli-das-peer-40018",
-      "port": 40018
-    },
-    "dbms_peer": {
-      "container_name": "das-cli-dbms-peer"
-    },
     "attention_broker": {
-      "port": 37007,
-      "container_name": "das-cli-attention-broker-37007"
+      "port": 40001,
+      "container_name": "das-cli-attention-broker-40001"
     },
     "query_agent": {
       "port": 40002,
       "container_name": "das-cli-query-agent-40002"
     },
     "link_creation_agent": {
-      "container_name": "das-cli-link-creation-agent-40003",
-      "port": 40003
+      "port": 40003,
+      "container_name": "das-cli-link-creation-agent-40003"
     },
     "inference_agent": {
       "port": 40004,
@@ -66,8 +72,13 @@
       "port": 40006,
       "container_name": "das-cli-context-broker-40006"
     },
-    "database": {
-      "atomdb_backend": "redis_mongodb"
+    "atomdb_broker": {
+      "port": 40007,
+      "container_name": "das-cli-atomdb-broker-40007"
+    },
+    "morkdb": {
+      "port": 40022,
+      "container_name": "das-cli-morkdb-40022"
     }
   }
 }
