@@ -15,6 +15,8 @@ from common import Choice
 from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
 
+from invoke.exceptions import UnexpectedExit
+
 
 class SelectOption(TypedDict):
     name: str
@@ -310,7 +312,14 @@ class Command:
         command_path = execution_context.command_path
         remote_context = f"--context '{context_encoded}'"
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
-        Connection(**remote_kwargs).run(command)
+
+        try:
+            Connection(**remote_kwargs).run(command)
+        except UnexpectedExit as e:
+            self.stdout(
+                "[ERROR] The command was not found on the remote machine, please verify that das-cli is installed.",
+                severity=StdoutSeverity.ERROR,
+            )
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
