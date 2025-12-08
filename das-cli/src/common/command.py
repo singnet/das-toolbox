@@ -288,7 +288,7 @@ class Command:
                         port=cli_options.get("port", 22),
                         user=cli_options.get("user", ""),
                         password=cli_options.get("password", ""),
-                        key_path=cli_options.get("key_path", ""),
+                        key_path=cli_options.get("key_file", ""),
                         connection_timeout=cli_options.get("connection_timeout", 10),
                     )
 
