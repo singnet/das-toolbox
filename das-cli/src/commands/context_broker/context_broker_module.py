@@ -7,9 +7,6 @@ from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFacto
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
-
 from .context_broker_cli import ContextBrokerCli, Settings
 from .context_broker_container_manager import ContextBrokerContainerManager
 
@@ -34,7 +31,9 @@ class ContextBrokerModule(Module):
             ),
             (
                 BusNodeContainerManager,
-                self._bus_node_factory.build(use_settings="context_broker", service_name="context-broker")
+                self._bus_node_factory.build(
+                    use_settings="context_broker", service_name="context-broker"
+                ),
             ),
             (
                 Settings,
@@ -105,4 +104,3 @@ class ContextBrokerModule(Module):
                 "morkdb_hostname": "0.0.0.0",
             },
         )
-

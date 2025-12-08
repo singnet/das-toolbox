@@ -267,7 +267,7 @@ $ das-cli db stop --prune
         username,
         prune: bool = False,
     ) -> None:
-        
+
         server_ip = self.get_execution_context().source.get("ip") or ip
 
         try:

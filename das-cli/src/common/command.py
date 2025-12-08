@@ -10,12 +10,11 @@ import yaml
 from fabric import Connection
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice as InquirerChoice
+from invoke.exceptions import UnexpectedExit
 
 from common import Choice
 from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
-
-from invoke.exceptions import UnexpectedExit
 
 
 class SelectOption(TypedDict):
@@ -315,7 +314,7 @@ class Command:
 
         try:
             Connection(**remote_kwargs).run(command)
-        except UnexpectedExit as e:
+        except UnexpectedExit:
             self.stdout(
                 "[ERROR] The command was not found on the remote machine, please verify that das-cli is installed.",
                 severity=StdoutSeverity.ERROR,

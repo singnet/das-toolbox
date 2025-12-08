@@ -7,9 +7,6 @@ from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFacto
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
-
 from .link_creation_agent_cli import (
     LinkCreationAgentCli,
     Settings,
@@ -37,7 +34,9 @@ class LinkCreationAgentModule(Module):
             ),
             (
                 BusNodeContainerManager,
-                self._bus_node_factory.build(use_settings="link_creation_agent", service_name="link-creation-agent")
+                self._bus_node_factory.build(
+                    use_settings="link_creation_agent", service_name="link-creation-agent"
+                ),
             ),
             (
                 Settings,

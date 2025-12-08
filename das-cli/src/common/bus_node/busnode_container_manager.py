@@ -2,11 +2,13 @@ from typing import Dict
 
 import docker
 
+from common import Container, ContainerImageMetadata, ContainerMetadata
 from common.docker import ContainerManager
 from common.docker.exceptions import DockerContainerDuplicateError
-from .busnode_command_registry import BusNodeCommandRegistry
-from common import Container, ContainerImageMetadata, ContainerMetadata
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
+
+from .busnode_command_registry import BusNodeCommandRegistry
+
 
 class BusNodeContainerManager(ContainerManager):
 
@@ -15,7 +17,7 @@ class BusNodeContainerManager(ContainerManager):
         default_container_name: str,
         options: Dict = {},
     ) -> None:
-        
+
         self._options = options
 
         self._cmd_registry = BusNodeCommandRegistry()
@@ -24,12 +26,10 @@ class BusNodeContainerManager(ContainerManager):
             default_container_name,
             metadata=ContainerMetadata(
                 port=self._options.get("service_port"),
-                image=ContainerImageMetadata({
-                        "name":DAS_IMAGE_NAME,
-                        "version":DAS_IMAGE_VERSION
-                    }
-                )
-            )
+                image=ContainerImageMetadata(
+                    {"name": DAS_IMAGE_NAME, "version": DAS_IMAGE_VERSION}
+                ),
+            ),
         )
 
         super().__init__(container)
@@ -45,11 +45,7 @@ class BusNodeContainerManager(ContainerManager):
             endpoint = self._options.get("service_endpoint")
 
             bus_node_command = self._cmd_registry.build(
-                service, 
-                endpoint, 
-                ports_range, 
-                self._options, 
-                **kwargs
+                service, endpoint, ports_range, self._options, **kwargs
             )
 
             container = self._start_container(
@@ -73,6 +69,6 @@ class BusNodeContainerManager(ContainerManager):
 
         except docker.errors.APIError as e:
             raise DockerContainerDuplicateError(e.explanation)
-        
+
         except ValueError:
             raise ValueError("The service provided couldn't be found")
