@@ -1,5 +1,8 @@
-from typing import Callable, Dict
-
+from typing import Dict, Callable
+from common import Settings
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH 
+import os
 
 class BusNodeCommandRegistry:
 
@@ -12,6 +15,8 @@ class BusNodeCommandRegistry:
             "inference-agent": self._cmd_inference_agent,
             "context-broker": self._cmd_context_broker,
         }
+        
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self, service, endpoint, ports_range, options, **args):
 
@@ -24,9 +29,15 @@ class BusNodeCommandRegistry:
 
             return cmd
 
-    def _gen_default_cmd(self, service, endpoint, ports_range):
+    def _check_using_morkdb(self):
+        atomdb = self._settings.get("services.database.atomdb_backend")
 
-        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range}"
+        return "--use-mork" if atomdb == "mork_mongodb" else " "
+
+    def _gen_default_cmd(self, service, endpoint, ports_range):
+        use_mork = self._check_using_morkdb()
+
+        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {use_mork}".strip()
 
     def _cmd_atomdb_broker(self, service, endpoint, ports_range, options, **args):
 
