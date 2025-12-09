@@ -16,6 +16,7 @@ from common import Choice
 from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
 
+from settings.config import USER_DAS_PATH, SECRETS_PATH
 
 class SelectOption(TypedDict):
     name: str
@@ -303,6 +304,17 @@ class Command:
 
         return self._execution_context
 
+    def _check_remote_config(self, remote_kwargs): ## DEIXAR ISSO COMO IDEIA, MAS É UMA BOA PENSAR DIREITO.
+
+        local_config = json.loads(SECRETS_PATH.read_text())
+
+        REMOTE_SECRETS_PATH = "$HOME/.das/config.json"
+
+        result = Connection(**remote_kwargs).run(f"cat {REMOTE_SECRETS_PATH}", hide=True)
+        remote_config = json.loads(result.stdout) 
+
+        print(local_config == remote_config)
+
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
         extra_args = self._dict_to_command_line_args(kwargs)
@@ -313,8 +325,13 @@ class Command:
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
 
         try:
-            Connection(**remote_kwargs).run(command)
-        except UnexpectedExit:
+            print("TESTANDO CHECK REMOTE")
+            self._check_remote_config(remote_kwargs)
+            #Connection(**remote_kwargs).run(command)
+        except UnexpectedExit as e:
+
+            print(e.result)
+
             self.stdout(
                 "[ERROR] The command was not found on the remote machine, please verify that das-cli is installed.",
                 severity=StdoutSeverity.ERROR,
