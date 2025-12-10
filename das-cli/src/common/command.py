@@ -330,17 +330,25 @@ class Command:
 
         REMOTE_SECRETS_PATH = "$HOME/.das/config.json"
 
-        raw_local_config = json.loads(SECRETS_PATH.read_text())
-        local_config = self._normalize_config(raw_local_config)
+        try:
+            raw_local_config = json.loads(SECRETS_PATH.read_text())
+            local_config = self._normalize_config(raw_local_config)
 
-        result = Connection(**remote_kwargs).run(f"cat {REMOTE_SECRETS_PATH}", hide=True)
-        raw_remote_config = json.loads(result.stdout) 
-        remote_config = self._normalize_config(raw_remote_config)
+        except Exception:
+            raise FileNotFoundError(f"Local configuration file not found at {SECRETS_PATH}")
+
+        try:
+            result = Connection(**remote_kwargs).run(f"cat {REMOTE_SECRETS_PATH}", hide=True)
+            raw_remote_config = json.loads(result.stdout) 
+            remote_config = self._normalize_config(raw_remote_config)
+
+        except UnexpectedExit:
+            raise FileNotFoundError(f"Remote configuration file not found at {REMOTE_SECRETS_PATH}")
 
         if (local_config == remote_config):
             return
         else:
-            raise InvalidRemoteConfiguration()
+            raise InvalidRemoteConfiguration("Remote configuration file does not match the local configuration file.")
         
 
     def _remote_run(self, kwargs, remote_kwargs):
@@ -357,12 +365,17 @@ class Command:
             Connection(**remote_kwargs).run(command)
         except UnexpectedExit:
             self.stdout(
-                "[ERROR] das-cli could not be found on the ",
+                "[ERROR] das-cli is missing on the remote machine. Verify the installation.",
                 severity=StdoutSeverity.ERROR,
             )
-        except InvalidRemoteConfiguration:
+        except InvalidRemoteConfiguration as e:
             self.stdout(
-                "[ERROR] Remote configuration file does not match the local configuration file.",
+                f"[ERROR] {e}",
+                severity=StdoutSeverity.ERROR
+            )
+        except FileNotFoundError as e:
+            self.stdout(
+                f"[ERROR] {e}",
                 severity=StdoutSeverity.ERROR
             )
 

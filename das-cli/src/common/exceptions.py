@@ -11,5 +11,5 @@ class PortBindingError(Exception):
 class InvalidRemoteConfiguration(Exception):
     """Raised when remote configuration is not the same as the local configuration"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
