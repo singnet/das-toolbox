@@ -8,6 +8,7 @@ class PortBindingError(Exception):
         ports_str = ", ".join(map(str, ports))
         super().__init__(f"{port_label} {ports_str} on {host} are already in use.")
 
+
 class InvalidRemoteConfiguration(Exception):
     """Raised when remote configuration is not the same as the local configuration"""
 

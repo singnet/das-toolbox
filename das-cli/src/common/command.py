@@ -13,13 +13,11 @@ from InquirerPy.base.control import Choice as InquirerChoice
 from invoke.exceptions import UnexpectedExit
 
 from common import Choice
+from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
+from settings.config import SECRETS_PATH
 
-from settings.config import USER_DAS_PATH, SECRETS_PATH
-
-from common.exceptions import InvalidRemoteConfiguration
-import difflib
 
 class SelectOption(TypedDict):
     name: str
@@ -319,9 +317,7 @@ class Command:
 
         if "database" in services:
             db = services["database"]
-            keep = {
-                "atomdb_backend": db.get("atomdb_backend")
-            }
+            keep = {"atomdb_backend": db.get("atomdb_backend")}
             services["database"] = keep
 
         return config
@@ -339,17 +335,18 @@ class Command:
 
         try:
             result = Connection(**remote_kwargs).run(f"cat {REMOTE_SECRETS_PATH}", hide=True)
-            raw_remote_config = json.loads(result.stdout) 
+            raw_remote_config = json.loads(result.stdout)
             remote_config = self._normalize_config(raw_remote_config)
 
         except UnexpectedExit:
             raise FileNotFoundError(f"Remote configuration file not found at {REMOTE_SECRETS_PATH}")
 
-        if (local_config == remote_config):
+        if local_config == remote_config:
             return
         else:
-            raise InvalidRemoteConfiguration("Remote configuration file does not match the local configuration file.")
-        
+            raise InvalidRemoteConfiguration(
+                "Remote configuration file does not match the local configuration file."
+            )
 
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
@@ -369,15 +366,9 @@ class Command:
                 severity=StdoutSeverity.ERROR,
             )
         except InvalidRemoteConfiguration as e:
-            self.stdout(
-                f"[ERROR] {e}",
-                severity=StdoutSeverity.ERROR
-            )
+            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
         except FileNotFoundError as e:
-            self.stdout(
-                f"[ERROR] {e}",
-                severity=StdoutSeverity.ERROR
-            )
+            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
