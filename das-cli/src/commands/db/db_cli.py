@@ -184,7 +184,6 @@ $ das-cli db stop --prune
         prune: bool = False,
     ):
         server_ip = self.get_execution_context().source.get("ip") or ip
-        print(f"SERVER IP: {server_ip}")
 
         try:
             self._redis_container_manager.set_exec_context(context)
@@ -640,7 +639,7 @@ $ das-cli db start
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}."
+            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {public_ip} under the server user {node_username}."
 
             self.stdout(
                 warning_message,

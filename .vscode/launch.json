@@ -72,6 +72,17 @@
                 "--key-file", 
                 "/home/bernardo/.ssh/vultrkey"
             ]
+        },
+        {
+            "name": "Debug DAS CLI DB",
+            "type": "debugpy",
+            "program": "das_cli.py",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/das-cli/src",
+            "args": [
+                "db", 
+                "start", 
+            ]
         }
     ]
 }
