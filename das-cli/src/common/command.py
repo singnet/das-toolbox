@@ -13,8 +13,10 @@ from InquirerPy.base.control import Choice as InquirerChoice
 from invoke.exceptions import UnexpectedExit
 
 from common import Choice
+from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
+from settings.config import SECRETS_PATH
 
 
 class SelectOption(TypedDict):
@@ -303,6 +305,49 @@ class Command:
 
         return self._execution_context
 
+    def _normalize_config(self, config: dict) -> dict:
+        services = config.get("services", {})
+
+        for service_name, service_data in services.items():
+            if "nodes" in service_data:
+                service_data.pop("nodes")
+
+            if "cluster_secret_key" in service_data:
+                service_data.pop("cluster_secret_key")
+
+        if "database" in services:
+            db = services["database"]
+            keep = {"atomdb_backend": db.get("atomdb_backend")}
+            services["database"] = keep
+
+        return config
+
+    def _check_remote_config(self, remote_kwargs):
+
+        REMOTE_SECRETS_PATH = "$HOME/.das/config.json"
+
+        try:
+            raw_local_config = json.loads(SECRETS_PATH.read_text())
+            local_config = self._normalize_config(raw_local_config)
+
+        except Exception:
+            raise FileNotFoundError(f"Local configuration file not found at {SECRETS_PATH}")
+
+        try:
+            result = Connection(**remote_kwargs).run(f"cat {REMOTE_SECRETS_PATH}", hide=True)
+            raw_remote_config = json.loads(result.stdout)
+            remote_config = self._normalize_config(raw_remote_config)
+
+        except UnexpectedExit:
+            raise FileNotFoundError(f"Remote configuration file not found at {REMOTE_SECRETS_PATH}")
+
+        if local_config == remote_config:
+            return
+        else:
+            raise InvalidRemoteConfiguration(
+                "Remote configuration file does not match the local configuration file."
+            )
+
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
         extra_args = self._dict_to_command_line_args(kwargs)
@@ -313,12 +358,17 @@ class Command:
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
 
         try:
+            self._check_remote_config(remote_kwargs)
             Connection(**remote_kwargs).run(command)
         except UnexpectedExit:
             self.stdout(
-                "[ERROR] The command was not found on the remote machine, please verify that das-cli is installed.",
+                "[ERROR] das-cli is missing on the remote machine. Verify the installation.",
                 severity=StdoutSeverity.ERROR,
             )
+        except InvalidRemoteConfiguration as e:
+            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
+        except FileNotFoundError as e:
+            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()

@@ -1,8 +1,10 @@
-from typing import Dict, Callable
+import os
+from typing import Callable, Dict
+
 from common import Settings
 from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH 
-import os
+from settings.config import SECRETS_PATH
+
 
 class BusNodeCommandRegistry:
 
@@ -15,7 +17,7 @@ class BusNodeCommandRegistry:
             "inference-agent": self._cmd_inference_agent,
             "context-broker": self._cmd_context_broker,
         }
-        
+
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self, service, endpoint, ports_range, options, **args):
