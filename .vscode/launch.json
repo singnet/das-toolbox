@@ -54,6 +54,35 @@
             ],
             "console": "integratedTerminal",
             "python": "${workspaceFolder}/env/bin/python3"
+        },
+        {
+            "name": "Debug DAS CLI remote command",
+            "type": "debugpy",
+            "program": "das_cli.py",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/das-cli/src",
+            "args": [
+                "db", 
+                "start", 
+                "--remote", 
+                "--host", 
+                "45.32.130.104", 
+                "--user", 
+                "root", 
+                "--key-file", 
+                "/home/bernardo/.ssh/vultrkey"
+            ]
+        },
+        {
+            "name": "Debug DAS CLI DB",
+            "type": "debugpy",
+            "program": "das_cli.py",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/das-cli/src",
+            "args": [
+                "db", 
+                "start", 
+            ]
         }
     ]
 }

@@ -6,9 +6,6 @@ from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFacto
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
-
 from .inference_agent_cli import (
     AttentionBrokerManager,
     InferenceAgentCli,
@@ -32,8 +29,10 @@ class InferenceAgentModule(Module):
                 self._inference_agent_container_manager_factory,
             ),
             (
-                BusNodeContainerManager, 
-                self._bus_node_factory.build(use_settings="inference_agent", service_name="inference-agent")
+                BusNodeContainerManager,
+                self._bus_node_factory.build(
+                    use_settings="inference_agent", service_name="inference-agent"
+                ),
             ),
             (
                 AttentionBrokerManager,
@@ -94,4 +93,3 @@ class InferenceAgentModule(Module):
                 "attention_broker_port": attention_broker_port,
             },
         )
-

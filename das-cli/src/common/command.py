@@ -10,6 +10,7 @@ import yaml
 from fabric import Connection
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice as InquirerChoice
+from invoke.exceptions import UnexpectedExit
 
 from common import Choice
 from common.execution_context import ExecutionContext, SSHParams
@@ -288,7 +289,7 @@ class Command:
                         port=cli_options.get("port", 22),
                         user=cli_options.get("user", ""),
                         password=cli_options.get("password", ""),
-                        key_path=cli_options.get("key_path", ""),
+                        key_path=cli_options.get("key_file", ""),
                         connection_timeout=cli_options.get("connection_timeout", 10),
                     )
 
@@ -310,7 +311,14 @@ class Command:
         command_path = execution_context.command_path
         remote_context = f"--context '{context_encoded}'"
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
-        Connection(**remote_kwargs).run(command)
+
+        try:
+            Connection(**remote_kwargs).run(command)
+        except UnexpectedExit:
+            self.stdout(
+                "[ERROR] The command was not found on the remote machine, please verify that das-cli is installed.",
+                severity=StdoutSeverity.ERROR,
+            )
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()

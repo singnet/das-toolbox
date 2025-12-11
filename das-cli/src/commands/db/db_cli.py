@@ -183,6 +183,8 @@ $ das-cli db stop --prune
         username,
         prune: bool = False,
     ):
+        server_ip = self.get_execution_context().source.get("ip") or ip
+
         try:
             self._redis_container_manager.set_exec_context(context)
             self._redis_container_manager.stop(
@@ -192,13 +194,13 @@ $ das-cli db stop --prune
             self._redis_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The Redis service at {ip} has been stopped by the server user {username}",
+                f"The Redis service at {server_ip} has been stopped by the server user {username}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
             container_name = self._get_redis_container().name
             self.stdout(
-                f"The Redis service named {container_name} at {ip} is already stopped.",
+                f"The Redis service named {container_name} at {server_ip} is already stopped.",
                 severity=StdoutSeverity.WARNING,
             )
             self.stdout(
@@ -206,7 +208,7 @@ $ das-cli db stop --prune
                     DbServiceResponse(
                         action="stop",
                         status="already_stopped",
-                        message=f"The Redis service named {container_name} at {ip} is already stopped.",
+                        message=f"The Redis service named {container_name} at {server_ip} is already stopped.",
                         container=self._get_redis_container(),
                         extra_details={
                             "node": {
@@ -264,6 +266,9 @@ $ das-cli db stop --prune
         username,
         prune: bool = False,
     ) -> None:
+
+        server_ip = self.get_execution_context().source.get("ip") or ip
+
         try:
             self._mongodb_container_manager.set_exec_context(context)
             self._mongodb_container_manager.stop(
@@ -273,13 +278,13 @@ $ das-cli db stop --prune
             self._mongodb_container_manager.unset_exec_context()
 
             self.stdout(
-                f"The MongoDB service at {ip} has been stopped by the server user {username}",
+                f"The MongoDB service at {server_ip} has been stopped by the server user {username}",
                 severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
             container_name = self._get_mongodb_container().name
             warning_message = (
-                f"The MongoDB service named {container_name} at {ip} is already stopped."
+                f"The MongoDB service named {container_name} at {server_ip} is already stopped."
             )
             self.stdout(
                 warning_message,
@@ -634,7 +639,7 @@ $ das-cli db start
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {node_ip} under the server user {node_username}."
+            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {public_ip} under the server user {node_username}."
 
             self.stdout(
                 warning_message,

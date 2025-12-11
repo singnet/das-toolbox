@@ -33,7 +33,7 @@ class DockerManager:
 
             host = None
             try:
-                endpoints = context.get("Endpoints") or context.get("endpoints") or {}
+                endpoints = context.endpoints
                 docker_ep = endpoints.get("docker") or endpoints.get("Docker") or {}
                 host = docker_ep.get("Host") or docker_ep.get("host") or docker_ep.get("Host")
             except Exception:
