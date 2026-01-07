@@ -477,7 +477,7 @@ $ das-cli db start
         node_username = redis_node.get("username", "")
         public_ip = self.get_execution_context().source.get("ip") or node_ip
 
-        try:  
+        try:
 
             if node_context and node_context != "default":
                 self._redis_container_manager.set_exec_context(node_context)
@@ -517,7 +517,7 @@ $ das-cli db start
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-            
+
         except DockerContainerDuplicateError:
             warning_message = f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}."
             self.stdout(

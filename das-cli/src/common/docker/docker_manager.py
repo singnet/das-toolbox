@@ -4,8 +4,6 @@ from typing import Union
 
 import docker
 
-from .exceptions import DockerContextError, DockerDaemonConnectionError
-
 
 class DockerManager:
     _exec_context: Union[str, None]
@@ -23,7 +21,7 @@ class DockerManager:
         if not use or use.lower() == "default":
             try:
                 return docker.from_env()
-            except:
+            except Exception:
                 if platform.system() == "Windows":
                     return docker.DockerClient(base_url="npipe:////./pipe/docker_engine")
                 raise
@@ -34,7 +32,7 @@ class DockerManager:
                 endpoints = context.endpoints
                 docker_ep = endpoints.get("docker") or endpoints.get("Docker") or {}
                 host = docker_ep.get("Host") or docker_ep.get("host")
-                
+
                 if host:
                     return docker.DockerClient(base_url=host)
         except Exception:
@@ -44,7 +42,7 @@ class DockerManager:
             original_ctx = os.environ.get("DOCKER_CONTEXT")
             os.environ["DOCKER_CONTEXT"] = use
             client = docker.from_env()
-            client.ping() 
+            client.ping()
             return client
         except Exception as e:
             raise Exception(f"Não foi possível conectar ao contexto {use}: {e}")
