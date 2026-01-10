@@ -4,8 +4,6 @@ from typing import Union
 
 import docker
 
-from .exceptions import DockerContextError, DockerDaemonConnectionError
-
 
 class DockerManager:
     _exec_context: Union[str, None]
@@ -20,66 +18,39 @@ class DockerManager:
         self._exec_context = exec_context
 
     def _get_client(self, use: Union[str, None] = None) -> docker.DockerClient:
-        system = platform.system()
-
-        if use:
-            try:
-                context = docker.ContextAPI.get_context(use)
-            except Exception:
-                context = None
-
-            if context is None:
-                raise DockerContextError(f"Docker context {use} not found")
-
-            host = None
-            try:
-                endpoints = context.endpoints
-                docker_ep = endpoints.get("docker") or endpoints.get("Docker") or {}
-                host = docker_ep.get("Host") or docker_ep.get("host") or docker_ep.get("Host")
-            except Exception:
-                host = None
-
-            if host:
-                try:
-                    return docker.DockerClient(base_url=host)
-                except docker.errors.DockerException:
-                    raise DockerDaemonConnectionError(
-                        f"Docker daemon for context '{use}' not reachable at {host}"
-                    )
-
-            try:
-                prev_ctx = os.environ.get("DOCKER_CONTEXT")
-                os.environ["DOCKER_CONTEXT"] = use
-                try:
-                    return docker.from_env()
-                finally:
-                    if prev_ctx is None:
-                        os.environ.pop("DOCKER_CONTEXT", None)
-                    else:
-                        os.environ["DOCKER_CONTEXT"] = prev_ctx
-            except docker.errors.DockerException:
-                raise DockerDaemonConnectionError(
-                    f"Docker context '{use}' found but client could not be created from environment"
-                )
-
-        if system != "Windows":
+        if not use or use.lower() == "default":
             try:
                 return docker.from_env()
-            except docker.errors.DockerException:
-                raise DockerDaemonConnectionError("Docker daemon not reachable. Is Docker running?")
+            except Exception:
+                if platform.system() == "Windows":
+                    return docker.DockerClient(base_url="npipe:////./pipe/docker_engine")
+                raise
 
         try:
-            return docker.DockerClient(base_url="npipe:////./pipe/docker_engine")
-        except docker.errors.DockerException:
+            context = docker.ContextAPI.get_context(use)
+            if context:
+                endpoints = context.endpoints
+                docker_ep = endpoints.get("docker") or endpoints.get("Docker") or {}
+                host = docker_ep.get("Host") or docker_ep.get("host")
+
+                if host:
+                    return docker.DockerClient(base_url=host)
+        except Exception:
             pass
 
         try:
-            return docker.DockerClient(base_url="tcp://127.0.0.1:2375")
-        except docker.errors.DockerException:
-            raise DockerDaemonConnectionError(
-                "Docker daemon not reachable on Windows. "
-                "Ensure Docker Desktop is running, or expose the daemon on tcp://localhost:2375."
-            )
+            original_ctx = os.environ.get("DOCKER_CONTEXT")
+            os.environ["DOCKER_CONTEXT"] = use
+            client = docker.from_env()
+            client.ping()
+            return client
+        except Exception as e:
+            raise Exception(f"Não foi possível conectar ao contexto {use}: {e}")
+        finally:
+            if original_ctx:
+                os.environ["DOCKER_CONTEXT"] = original_ctx
+            else:
+                os.environ.pop("DOCKER_CONTEXT", None)
 
     def get_docker_client(self) -> docker.DockerClient:
         return self._get_client(self._exec_context)
