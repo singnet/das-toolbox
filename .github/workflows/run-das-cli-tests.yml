@@ -66,8 +66,8 @@ jobs:
           name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox' }}
           path: dist/*
           if-no-files-found: "error"
-
-  # integration-tests:
+        
+  # das-cli-integration-tests:
   #   runs-on: self-hosted
   #   needs: build-das-toolbox
   #   steps:
@@ -102,3 +102,20 @@ jobs:
   #     - name: Runnign integration tests
   #       run: make tests-local
   #       working-directory: das-cli
+
+  das-agents-integration-tests:
+    runs-on: self-hosted
+    needs: 
+      - build-das-toolbox
+      - das-cli-integration-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Download das-toolbox artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
+          path: dist

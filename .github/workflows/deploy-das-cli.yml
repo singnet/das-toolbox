@@ -32,46 +32,45 @@ jobs:
   #         tags: trueagi/das:latest-jupyter-notebook
 
   build-with-code-quality:
-    if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/run-das-cli-tests.yml
     with:
       version: ${{github.event.inputs.version}}
       binary-artifact-name: das-toolbox
 
-  tag:
-    needs: build-with-code-quality
-    if: github.ref == 'refs/heads/master'
-    uses: singnet/das/.github/workflows/run-semver.yml@master
-    with:
-      version: ${{ github.event.inputs.version }}
-      version-strategy: bump-version-from-variable-value
-      job-image-namespace: trueagi
-      job-image-version-semver: semantic-versioning
-      main-branch: master
-      version-tag-regex-pattern: /^\d+\.\d+\.\d+$/
-      version-require-confirmation: "true"
-      title: New version of das-toolbox
-      deliverable: Debian package named das-toolbox
-    secrets: inherit
+  # tag:
+  #   needs: build-with-code-quality
+  #   if: github.ref == 'refs/heads/master'
+  #   uses: singnet/das/.github/workflows/run-semver.yml@master
+  #   with:
+  #     version: ${{ github.event.inputs.version }}
+  #     version-strategy: bump-version-from-variable-value
+  #     job-image-namespace: trueagi
+  #     job-image-version-semver: semantic-versioning
+  #     main-branch: master
+  #     version-tag-regex-pattern: /^\d+\.\d+\.\d+$/
+  #     version-require-confirmation: "true"
+  #     title: New version of das-toolbox
+  #     deliverable: Debian package named das-toolbox
+  #   secrets: inherit
 
-  deploy-das-toolbox:
-    runs-on: self-hosted
-    if: github.ref == 'refs/heads/master'
-    needs: build-with-code-quality
-    steps:
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+  # deploy-das-toolbox:
+  #   runs-on: self-hosted
+  #   if: github.ref == 'refs/heads/master'
+  #   needs: build-with-code-quality
+  #   steps:
+  #     - name: Set up SSH
+  #       run: |
+  #         mkdir -p ~/.ssh
+  #         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+  #         chmod 600 ~/.ssh/id_rsa
+  #         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Download das-toolbox artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: das-toolbox 
-          path: packages
+  #     - name: Download das-toolbox artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: das-toolbox 
+  #         path: packages
 
-      - name: Copy files to server
-        run: |
-          scp -r packages/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ vars.SERVER_DEB_PACKAGES_PATH }}
+  #     - name: Copy files to server
+  #       run: |
+  #         scp -r packages/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ vars.SERVER_DEB_PACKAGES_PATH }}
