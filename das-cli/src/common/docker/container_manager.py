@@ -112,7 +112,7 @@ class ContainerManager(DockerManager):
     def raise_on_port_in_use(self, ports: List) -> None:
         for port in ports:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                port_in_use = s.connect_ex(("localhost", port)) == 0
+                port_in_use = s.connect_ex(("localhost", int(port))) == 0
 
                 if port_in_use:
                     raise PortBindingError([port])
