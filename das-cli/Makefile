@@ -17,6 +17,10 @@ else
 	@echo "Test $(NAME) completed"
 endif
 
+tests-integration:
+	@echo "Running all integration tests..."
+	@pytest tests/agents_integration --maxfail=1 -vvv
+
 docker-build-test:
 	@echo "Building Docker test image..."
 	@docker build -f Dockerfile.test -t das-cli-runner:latest .
