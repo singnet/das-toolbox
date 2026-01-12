@@ -23,5 +23,5 @@ types-requests==2.32.0.20241016
 types-PyYAML==6.0.12
 
 # agent integration tests
-pytest==9.2.0
-hyperon==0.2.9
+pytest==9.0.2
+hyperon>=0.2.9
