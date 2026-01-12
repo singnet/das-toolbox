@@ -100,22 +100,42 @@ jobs:
           cd -
           sudo apt -y update && sudo apt -y install socat lsof
 
-      - name: Runnign integration tests
+      - name: Running integration tests
         run: make tests-local
         working-directory: das-cli
 
   agents-integration-tests:
-    runs-on: self-hosted
-    needs: 
-      - das-cli-integration-tests
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
+  runs-on: self-hosted
+  needs:
+    - das-cli-integration-tests
 
-      - name: Download das-toolbox artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
-      
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ~3.11
+        cache: pip
+
+    - name: Download das-toolbox artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ github.event.inputs.binary-artifact-name || 'das-toolbox' }}
+        path: dist
+
+    - name: Install das-toolbox package
+      run: |-
+        sudo apt -y --autoremove --purge remove das-toolbox || true
+        sudo apt -y install ./$(find dist -name "*.deb" -type f | head -n 1)
+
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
+      working-directory: das-cli
+
+    - name: Run agents integration tests (pytest)
+      run: make tests-integration
+      working-directory: das-cli
