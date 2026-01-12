@@ -8,6 +8,7 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
+    das-cli db start
     das-cli atomdb-broker stop
 }
 

@@ -69,6 +69,7 @@ setup() {
     local inference_agent_port="8080"
     local evolution_agent_port="24002"
     local context_broker_port="40006"
+    local atomdb_broker_port="40007"
 
     run das-cli config set <<EOF
 $atomdb_backend
@@ -85,6 +86,7 @@ $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
 $context_broker_port
+$atomdb_broker_port
 EOF
 
     assert_line --partial "Configuration file saved -> ${das_config_dir}"
@@ -121,6 +123,7 @@ EOF
     local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
     local old_context_broker_port="$(get_config ".services.context_broker.port")"
     local old_atomdb_backend="$(get_config ".services.database.atomdb_backend")"
+    local old_atomdb_broker_port="$(get_config ".services.database.atomdb_broker.port")"
 
     local mongodb_port="91032"
     local mongodb_username=""
@@ -136,6 +139,7 @@ EOF
     local evolution_agent_port="24002"
     local context_broker_port="30006"
     local atomdb_backend="redis_mongodb"
+    local atomdb_broker_port="40027"
 
     run das-cli config set <<EOF
 $atomdb_backend
@@ -152,6 +156,7 @@ $link_creation_agent_port
 $inference_agent_port
 $evolution_agent_port
 $context_broker_port
+$atomdb_broker_port
 EOF
 
     assert_equal "$(get_config ".services.database.atomdb_backend")" "$atomdb_backend"
@@ -184,6 +189,7 @@ EOF
     assert_not_equal "$evolution_agent_port" "$old_evolution_agent_port"
     assert_not_equal "$context_broker_port" "$old_context_broker_port"
     assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
+    assert_not_equal "$atomdb_broker_port", "old_atomdb_broker_port"
 
 }
 
