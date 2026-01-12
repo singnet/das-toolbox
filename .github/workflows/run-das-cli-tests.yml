@@ -67,38 +67,55 @@ jobs:
           path: dist/*
           if-no-files-found: "error"
 
-  # integration-tests:
-  #   runs-on: self-hosted
-  #   needs: build-das-toolbox
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
+  das-cli-integration-tests:
+    runs-on: self-hosted
+    needs: 
+      - build-das-toolbox
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
-  #     - name: Download das-toolbox artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
-  #         path: dist
+      - name: Download das-toolbox artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
+          path: dist
 
-  #     - name: Installing das-toolbox package
-  #       run: |-
-  #         sudo apt -y --autoremove --purge remove das-toolbox || true
-  #         sudo apt -y --allow-downgrades install ./$(find . -name *.deb -type f | head -n 1)
+      - name: Installing das-toolbox package
+        run: |-
+          sudo apt -y --autoremove --purge remove das-toolbox || true
+          sudo apt -y --allow-downgrades install ./$(find . -name *.deb -type f | head -n 1)
 
-  #     - name: Install requirements
-  #       run: |-
-  #         if [ -d "/tmp/bats-core" ]; then
-  #           sudo rm -rf /tmp/bats-core
-  #         fi
-  #         cd /tmp
-  #         git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
-  #         cd bats-core
-  #         sudo ./install.sh /usr/local
-  #         cd -
-  #         sudo apt -y update && sudo apt -y install socat lsof
+      - name: Install requirements
+        run: |-
+          if [ -d "/tmp/bats-core" ]; then
+            sudo rm -rf /tmp/bats-core
+          fi
+          cd /tmp
+          git clone --depth=1 --branch v1.11.0 https://github.com/bats-core/bats-core.git
+          cd bats-core
+          sudo ./install.sh /usr/local
+          cd -
+          sudo apt -y update && sudo apt -y install socat lsof
 
-  #     - name: Runnign integration tests
-  #       run: make tests-local
-  #       working-directory: das-cli
+      - name: Runnign integration tests
+        run: make tests-local
+        working-directory: das-cli
+
+  agents-integration-tests:
+    runs-on: self-hosted
+    needs: 
+      - das-cli-integration-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Download das-toolbox artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
+      
