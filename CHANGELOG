@@ -1,4 +1,8 @@
 Changelog:
 
-fixes:
-[FIX] Added missing mork support on bus-node command
+Highlights:
+[DAS#862] das-cli remote commands checks if config files in local and remote hosts are equal
+
+Bug fixes:
+[DAS#994] Fix das-toolbox redis cluster issues.
+[DAS#642] Investigate and resolve remote DB startup issues with das-cli
