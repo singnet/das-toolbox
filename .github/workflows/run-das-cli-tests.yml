@@ -4,17 +4,31 @@ name: Perform Lint and run tests
 on:
   workflow_dispatch:
     inputs:
+
+      version:
+        required: false
+        description: DAS-TOOLBOX version
+        type: string
+      
+      run-agent-integration-tests:
+        required: false
+        description: Whether to run agent integration tests
+        type: boolean
+        default: false
+
+  workflow_call:
+    inputs:
+
       version:
         required: false
         description: DAS-TOOLBOX version
         type: string
 
-  workflow_call:
-    inputs:
-      version:
+      run-agent-integration-tests:
         required: false
-        description: DAS-TOOLBOX version
-        type: string
+        description: Whether to run agent integration tests
+        type: boolean
+        default: false
 
       binary-artifact-name:
         required: false
@@ -105,37 +119,40 @@ jobs:
         working-directory: das-cli
 
   agents-integration-tests:
-  runs-on: self-hosted
-  needs:
-    - das-cli-integration-tests
+    runs-on: self-hosted
 
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: true
+    needs:
+      - das-cli-integration-tests
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ~3.11
-        cache: pip
+    if: ${{ github.event.inputs.run-agent-integration-tests == true }}
 
-    - name: Download das-toolbox artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ github.event.inputs.binary-artifact-name || 'das-toolbox' }}
-        path: dist
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
-    - name: Install das-toolbox package
-      run: |-
-        sudo apt -y --autoremove --purge remove das-toolbox || true
-        sudo apt -y install ./$(find dist -name "*.deb" -type f | head -n 1)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ~3.11
+          cache: pip
 
-    - name: Install Python dependencies
-      run: pip install -r requirements.txt
-      working-directory: das-cli
+      - name: Download das-toolbox artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.binary-artifact-name || 'das-toolbox' }}
+          path: dist
 
-    - name: Run agents integration tests (pytest)
-      run: make tests-integration
-      working-directory: das-cli
+      - name: Install das-toolbox package
+        run: |-
+          sudo apt -y --autoremove --purge remove das-toolbox || true
+          sudo apt -y install ./$(find dist -name "*.deb" -type f | head -n 1)
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+        working-directory: das-cli
+
+      - name: Run agents integration tests (pytest)
+        run: make tests-integration
+        working-directory: das-cli
