@@ -6,3 +6,4 @@ venv/
 build
 bin/
 *.egg-info
+.env/
