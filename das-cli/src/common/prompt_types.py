@@ -108,3 +108,27 @@ class VersionType(ParamType):
                 ctx,
             )
         return value
+
+class ValidUsername(ParamType):
+    name = "valid-username"
+
+    def __init__(self):
+        super().__init__()
+
+    _re = re.compile(r'^[a-z_][a-z0-9_-]{0,31}$')
+    _blocked_usernames = {"root"}
+
+    def convert(self, value, param, ctx):
+
+        if not self._re.match(value):
+            self.fail(
+                "Invalid username. Usernames must start with a letter or underscore, "
+                "followed by letters, digits, underscores, or hyphens, and be up to 32 characters long.",
+                param,
+                ctx,
+            )
+
+        if value in self._blocked_usernames:
+            self.fail(f"Connecting directly via {value} user is discouraged, try setting up a different user.", param, ctx)
+
+        return value

@@ -16,6 +16,7 @@ from common import Choice
 from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
 from common.utils import log_exception
+from common.prompt_types import ValidUsername
 from settings.config import SECRETS_PATH
 
 
@@ -111,7 +112,7 @@ class Command:
         ),
         CommandOption(
             ["--user", "-u"],
-            type=str,
+            type=ValidUsername(),
             help="SSH username for the remote connection",
             required=False,
         ),
