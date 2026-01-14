@@ -105,7 +105,7 @@ class Command:
             help="Whether to run the command on a remote server",
         ),
         CommandOption(
-            ["--host", "-H"],
+            ["--host"],
             type=str,
             help="Remote host to connect to",
             required=False,
@@ -230,30 +230,6 @@ class Command:
 
         return " ".join(args)
 
-    def _parse_args_to_dict(self) -> Dict[str, Any]:
-        args = sys.argv[1:]
-
-        result: Dict[str, Any] = {}
-        i = 0
-
-        while i < len(args):
-            arg = args[i]
-
-            if arg.startswith("--"):
-                key = arg[2:].replace("-", "_")
-
-                if (i + 1 >= len(args)) or args[i + 1].startswith("--"):
-                    result[key] = True
-                else:
-                    value = args[i + 1]
-                    if value.isdigit():
-                        value = cast(Any, int(value))
-                    result[key] = value
-                    i += 1
-            i += 1
-
-        return result
-
     def _get_clean_command(self) -> str:
         args = sys.argv[1:]
         global_options = [opt.opts[0] for opt in self.default_params + self.remote_params]
@@ -275,8 +251,12 @@ class Command:
         return " ".join(cleaned_args)
 
     def get_execution_context(self) -> ExecutionContext:
+
+        ctx = click.get_current_context()
+
         if not self._execution_context:
-            cli_options = self._parse_args_to_dict()
+            
+            cli_options = ctx.params if ctx else {}
 
             execution_context = None
             context_str = cli_options.get("context")
