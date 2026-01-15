@@ -6,7 +6,7 @@ from typing import Optional
 from click import ParamType
 from click import Path as ClickPath
 
-from common.network import is_server_port_available
+from common.network import is_server_port_available, is_ssh_server_reachable
 
 
 class ReachableIpAddress(ParamType):
@@ -17,20 +17,24 @@ class ReachableIpAddress(ParamType):
         self.username = username
 
     def convert(self, value, param, ctx):
-        if not is_server_port_available(
-            username=self.username,
-            host=value,
-            start_port=22,
-        ):
-            self.fail("%s is not reachable via SSH." % (value,), param, ctx)
 
         if not is_server_port_available(
             username=self.username,
             host=value,
-            start_port=self.port,
+            start_port=22,
+            end_port=self.port,
+        ):
+            self.fail("It appears that the port %s on %s is not open." % (self.port, value,), param, ctx)
+
+        if not is_ssh_server_reachable(
+            {
+                "username": self.username,
+                "ip": value,
+                "port": self.port,
+            }
         ):
             self.fail(
-                "It appears that the port %s on %s is not open." % (self.port, value),
+                "%s is not reachable via SSH." % (value),
                 param,
                 ctx,
             )

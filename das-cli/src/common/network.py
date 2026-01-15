@@ -32,9 +32,17 @@ def is_server_port_available(
     start_port: int,
     end_port: Union[int, None] = None,
 ):
-    def server_range_up(host, start_port, end_port):
+    
+    def server_port_up(host, start_port, end_port):
         port_range = f"{start_port}:{end_port}" if end_port else str(start_port)
-        command = f"ssh {username}@{host} \"sudo ufw status | grep '{port_range}.*ALLOW'\""
+        command = (
+            f"ssh {username}@{host} "
+            f"'nc -z -w 5 localhost {port_range}'"
+        )
+
+        #Using netcat instead of sudo ufw because it would break using any non root user.
+
+        print(port_range)
 
         result = subprocess.call(
             command,
@@ -42,9 +50,12 @@ def is_server_port_available(
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        return result == 0
 
-    return server_range_up(host, start_port, end_port)
+        print("RESULT: ", result)
+
+        return result != 1
+
+    return server_port_up(host, start_port, end_port)
 
 
 def is_ssh_server_reachable(server: dict) -> bool:
