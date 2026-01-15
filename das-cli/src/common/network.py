@@ -34,15 +34,15 @@ def is_server_port_available(
 ):
     
     def server_port_up(host, start_port, end_port):
-        port_range = f"{start_port}:{end_port}" if end_port else str(start_port)
+        
+        node_port = end_port
+
         command = (
             f"ssh {username}@{host} "
-            f"'nc -z -w 5 localhost {port_range}'"
+            f"'nc -z -w 5 localhost {node_port}'"
         )
 
         #Using netcat instead of sudo ufw because it would break using any non root user.
-
-        print(port_range)
 
         result = subprocess.call(
             command,
@@ -51,9 +51,7 @@ def is_server_port_available(
             stderr=subprocess.DEVNULL,
         )
 
-        print("RESULT: ", result)
-
-        return result != 1
+        return False if result == 0 else True # nc return 0 if it connects to port, means its listening and not available.
 
     return server_port_up(host, start_port, end_port)
 
