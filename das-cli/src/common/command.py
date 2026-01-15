@@ -3,7 +3,7 @@ import sys
 from contextlib import suppress
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 
 import click
 import yaml
@@ -15,8 +15,8 @@ from invoke.exceptions import UnexpectedExit
 from common import Choice
 from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
-from common.utils import log_exception
 from common.prompt_types import ValidUsername
+from common.utils import log_exception
 from settings.config import SECRETS_PATH
 
 
@@ -255,7 +255,7 @@ class Command:
         ctx = click.get_current_context()
 
         if not self._execution_context:
-            
+
             cli_options = ctx.params if ctx else {}
 
             execution_context = None

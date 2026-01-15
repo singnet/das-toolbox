@@ -109,6 +109,7 @@ class VersionType(ParamType):
             )
         return value
 
+
 class ValidUsername(ParamType):
     name = "valid-username"
 
@@ -129,6 +130,10 @@ class ValidUsername(ParamType):
             )
 
         if value in self._blocked_usernames:
-            self.fail(f"Connecting directly via {value} user is discouraged, try setting up a different user.", param, ctx)
+            self.fail(
+                f"Connecting directly via {value} user is discouraged, try setting up a different user.",
+                param,
+                ctx,
+            )
 
         return value
