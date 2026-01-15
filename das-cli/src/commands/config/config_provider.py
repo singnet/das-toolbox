@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 from common import IntRange
 from common.command import Command
+from common.prompt_types import ValidUsername
 from common.config.core import (
     database_adapter_server_port,
     default_port_atomdb_broker,
@@ -240,16 +241,20 @@ class InteractiveConfigProvider(ConfigProvider):
 
         servers: List[Server] = []
         for i in range(0, total_nodes):
+
             server_username_default = (
                 current_nodes[i]["username"] if i < len(current_nodes) else None
             )
+
             server_username = Command.prompt(
                 f"Enter the server username for the server-{i + 1}",
                 hide_input=False,
+                type=ValidUsername(),
                 default=server_username_default,
             )
 
             server_ip_default = current_nodes[i]["ip"] if i < len(current_nodes) else None
+
             server_ip = Command.prompt(
                 f"Enter the ip address for the server-{i + 1}",
                 hide_input=False,
