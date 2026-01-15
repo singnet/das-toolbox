@@ -1,5 +1,6 @@
 import os
 import re
+import json
 from typing import Optional
 
 from click import ParamType
@@ -89,11 +90,30 @@ class PortRangeType(ParamType):
 class KeyValueType(ParamType):
     name = "key-value"
 
+    def check_if_nodes_config(self, key:str, val:str) -> bool:
+        return "nodes" in key and "root" in val
+
+    def convert_value_to_json(self, value: str) -> dict:
+        return json.loads(value)
+
     def convert(self, value, param, ctx):
+
         if not value or "=" not in value:
             self.fail("Invalid key-value format. Expected 'key=value'.", param, ctx)
 
-        key, val = value.split("=", 1)
+        key, raw_value = value.split("=", 1)
+        raw_value = raw_value.strip()
+        val = raw_value
+
+        if raw_value.startswith(("{", "[")):
+            try:
+                val = self.convert_value_to_json(raw_value)
+            except json.JSONDecodeError:
+                self.fail("Invalid JSON format for value.", param, ctx) 
+
+        if self.check_if_nodes_config(key, val):
+            self.fail("Using 'root' in node configuration is discouraged. Try setting a different username.", param, ctx)
+
         return key, val
 
 
