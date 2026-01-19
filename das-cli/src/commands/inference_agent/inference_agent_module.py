@@ -11,7 +11,7 @@ from .inference_agent_cli import (
     InferenceAgentCli,
     Settings,
 )
-from .inference_agent_container_manager import InferenceAgentContainerManager
+from ...common.container_manager.inference_agent_container_manager import InferenceAgentContainerManager
 
 
 class InferenceAgentModule(Module):

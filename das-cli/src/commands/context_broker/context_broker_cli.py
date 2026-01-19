@@ -1,6 +1,6 @@
 from injector import inject
 
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running

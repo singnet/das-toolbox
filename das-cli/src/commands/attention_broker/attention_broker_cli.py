@@ -1,6 +1,6 @@
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity, StdoutType
 from common.docker.exceptions import (
     DockerContainerDuplicateError,

@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.atomdb_backend import (
     AtomdbBackend,
     AtomdbBackendEnum,
@@ -19,7 +19,7 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, Settings
-from .query_agent_container_manager import QueryAgentContainerManager
+from ...common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 
 
 class QueryAgentModule(Module):

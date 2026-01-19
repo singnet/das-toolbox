@@ -1,6 +1,6 @@
 import os
 
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory

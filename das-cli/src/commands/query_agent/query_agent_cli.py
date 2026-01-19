@@ -1,6 +1,6 @@
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
+from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.atomdb_backend import AtomdbBackend
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
