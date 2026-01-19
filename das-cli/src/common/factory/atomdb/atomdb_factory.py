@@ -14,11 +14,13 @@ class AtomDbContainerManagerFactory:
 
     def build(self):
         atomdb_backend = self._settings.get("services.database.atomdb_backend")
+
         if atomdb_backend == "redis_mongodb":
             return MongoDBRedisBackend(
                 MongoDbContainerManagerFactory().build(),
                 RedisContainerManagerFactory().build(),
             )
+        
         elif atomdb_backend == "mork_mongodb":
             return MorkMongoDBBackend(
                 MongoDbContainerManagerFactory().build(),

@@ -5,7 +5,7 @@ from common.container_manager.morkdb_container_manager import MorkdbContainerMan
 from settings.config import SECRETS_PATH
 
 class MorkDbContainerManagerFactory:
-    
+
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 

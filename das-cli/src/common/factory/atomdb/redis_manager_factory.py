@@ -5,7 +5,7 @@ from settings.config import SECRETS_PATH
 from common.container_manager.redis_container_manager import RedisContainerManager
 
 class RedisContainerManagerFactory:
-    
+
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 

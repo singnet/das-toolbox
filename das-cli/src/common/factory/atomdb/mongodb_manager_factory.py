@@ -5,7 +5,7 @@ from settings.config import SECRETS_PATH
 import os
 
 class MongoDbContainerManagerFactory:
-    
+
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
