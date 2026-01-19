@@ -1,0 +1,24 @@
+from common.container_manager.mongodb_container_manager import MongodbContainerManager
+from common import Settings
+from common.config.store import JsonConfigStore
+from settings.config import SECRETS_PATH
+import os
+
+class MongoDbContainerManagerFactory:
+    
+    def __init__(self):
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+
+    def build(self):
+        container_name = self._settings.get("services.mongodb.container_name")
+        mongodb_port = self._settings.get("services.mongodb.port")
+        mongodb_username = self._settings.get("services.mongodb.username")
+        mongodb_password = self._settings.get("services.mongodb.password")
+        return MongodbContainerManager(
+            container_name,
+            options={
+                "mongodb_port": mongodb_port,
+                "mongodb_username": mongodb_username,
+                "mongodb_password": mongodb_password,
+            },
+        )
