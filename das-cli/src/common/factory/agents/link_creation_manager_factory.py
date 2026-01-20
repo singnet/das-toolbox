@@ -1,8 +1,11 @@
 import os
-from settings.config import SECRETS_PATH
+
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.agents.link_creation_agent_container_manager import LinkCreationAgentContainerManager
+from common.container_manager.agents.link_creation_agent_container_manager import (
+    LinkCreationAgentContainerManager,
+)
+from settings.config import SECRETS_PATH
 
 
 class LinkCreationAgentManagerFactory:
@@ -12,9 +15,6 @@ class LinkCreationAgentManagerFactory:
 
     def build(self):
 
-        container_name = self._settings.get(f"services.link_creation_agent.container_name")
+        container_name = self._settings.get("services.link_creation_agent.container_name")
 
-        return LinkCreationAgentContainerManager(
-            container_name,
-            options={}
-        )
+        return LinkCreationAgentContainerManager(container_name, options={})

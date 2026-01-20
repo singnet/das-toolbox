@@ -3,15 +3,21 @@ import os
 
 from injector import inject
 
-from common.factory.atomdb.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
 from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
+from common.container_manager.metta.metta_loader_container_manager import (
+    MettaLoaderContainerManager,
+)
+from common.container_manager.metta.metta_mork_loader_container_manager import (
+    MettaMorkLoaderContainerManager,
+)
+from common.container_manager.metta.metta_syntax_container_manager import (
+    MettaSyntaxContainerManager,
+)
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
+from common.factory.atomdb.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
 from common.prompt_types import AbsolutePath
 
-from common.container_manager.metta.metta_loader_container_manager import MettaLoaderContainerManager
-from common.container_manager.metta.metta_mork_loader_container_manager import MettaMorkLoaderContainerManager
-from common.container_manager.metta.metta_syntax_container_manager import MettaSyntaxContainerManager
 
 class MettaLoad(Command):
     name = "load"

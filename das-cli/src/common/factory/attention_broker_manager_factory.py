@@ -1,8 +1,11 @@
 import os
-from settings.config import SECRETS_PATH
+
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.agents.attention_broker_container_manager import AttentionBrokerManager
+from common.container_manager.agents.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
+from settings.config import SECRETS_PATH
 
 
 class AttentionBrokerManagerFactory:
@@ -18,6 +21,6 @@ class AttentionBrokerManagerFactory:
             container_name,
             options={
                 "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port
-            }
+                "attention_broker_port": attention_broker_port,
+            },
         )

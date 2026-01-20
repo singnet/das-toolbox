@@ -1,8 +1,10 @@
 import os
-from common.container_manager.dbms.dbms_peer_container_manager import DbmsPeerContainerManager
-from settings.config import SECRETS_PATH
+
 from common import Settings
 from common.config.store import JsonConfigStore
+from common.container_manager.dbms.dbms_peer_container_manager import DbmsPeerContainerManager
+from settings.config import SECRETS_PATH
+
 
 class DbmsPeerManagerFactory:
 

@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 
 from common import IntRange
 from common.command import Command
-from common.prompt_types import ValidUsername
 from common.config.core import (
     database_adapter_server_port,
     default_port_atomdb_broker,
@@ -21,7 +20,7 @@ from common.config.core import (
 )
 from common.docker.remote_context_manager import RemoteContextManager, Server
 from common.network import get_public_ip
-from common.prompt_types import ReachableIpAddress
+from common.prompt_types import ReachableIpAddress, ValidUsername
 from common.settings import Settings
 from common.utils import get_rand_token, get_server_username
 

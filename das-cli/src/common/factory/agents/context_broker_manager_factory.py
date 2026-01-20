@@ -1,9 +1,12 @@
-from settings.config import SECRETS_PATH
+import os
+
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.agents.context_broker_container_manager import ContextBrokerContainerManager
+from common.container_manager.agents.context_broker_container_manager import (
+    ContextBrokerContainerManager,
+)
+from settings.config import SECRETS_PATH
 
-import os
 
 class ContextBrokerManagerFactory:
 
@@ -12,9 +15,6 @@ class ContextBrokerManagerFactory:
 
     def build(self):
 
-        container_name = self._settings.get(f"services.evolution_agent.container_name")
+        container_name = self._settings.get("services.evolution_agent.container_name")
 
-        return ContextBrokerContainerManager(
-            container_name,
-            options={}
-        )
+        return ContextBrokerContainerManager(container_name, options={})

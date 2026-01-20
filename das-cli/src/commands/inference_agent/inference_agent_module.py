@@ -1,9 +1,10 @@
 import os
 
 from common import Module
-from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
+from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
+from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
 from .inference_agent_cli import (
@@ -11,10 +12,6 @@ from .inference_agent_cli import (
     InferenceAgentCli,
     Settings,
 )
-
-from common.container_manager.agents.inference_agent_container_manager import InferenceAgentContainerManager
-
-from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
 
 
 class InferenceAgentModule(Module):

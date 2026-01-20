@@ -1,16 +1,16 @@
 import os
-from common.container_manager.agents.jupyter_notebook_container_manager import JupyterNotebookContainerManager
-from settings.config import SECRETS_PATH
+
 from common import Settings
 from common.config.store import JsonConfigStore
-
 from common.container_manager.system_containers_manager import SystemContainersManager
+from settings.config import SECRETS_PATH
 
-class SystemContainerManagerFactory():
+
+class SystemContainerManagerFactory:
 
     def __init__(self):
-        self._settings = JsonConfigStore(file_path=SECRETS_PATH)
-        
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+
     def build(self):
 
         return SystemContainersManager(

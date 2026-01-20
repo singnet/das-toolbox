@@ -1,10 +1,12 @@
-
 import os
 
-from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.metta.metta_loader_container_manager import MettaLoaderContainerManager
+from common.container_manager.metta.metta_loader_container_manager import (
+    MettaLoaderContainerManager,
+)
+from settings.config import SECRETS_PATH
+
 
 class MettaLoaderManagerFactory:
 
@@ -12,7 +14,7 @@ class MettaLoaderManagerFactory:
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-        
+
         container_name = self._settings.get("services.loader.container_name")
         mongodb_port = self._settings.get("services.mongodb.port")
         mongodb_username = self._settings.get("services.mongodb.username")

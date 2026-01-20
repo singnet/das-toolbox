@@ -1,8 +1,11 @@
 import os
-from settings.config import SECRETS_PATH
+
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.agents.evolution_agent_container_manager import EvolutionAgentContainerManager
+from common.container_manager.agents.evolution_agent_container_manager import (
+    EvolutionAgentContainerManager,
+)
+from settings.config import SECRETS_PATH
 
 
 class EvolutionAgentManagerFactory:
@@ -12,9 +15,6 @@ class EvolutionAgentManagerFactory:
 
     def build(self):
 
-        container_name = self._settings.get(f"services.evolution_agent.container_name")
+        container_name = self._settings.get("services.evolution_agent.container_name")
 
-        return EvolutionAgentContainerManager(
-            container_name,
-            options={}
-        )
+        return EvolutionAgentContainerManager(container_name, options={})

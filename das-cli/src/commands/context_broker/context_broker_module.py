@@ -1,15 +1,15 @@
 import os
 
 from common import Module
-from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
+from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
+from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
+from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
 from .context_broker_cli import ContextBrokerCli, Settings
 
-from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
-from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
 
 class ContextBrokerModule(Module):
     _instance = ContextBrokerCli
@@ -21,10 +21,7 @@ class ContextBrokerModule(Module):
         self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependency_list = [
-            (
-                QueryAgentContainerManager,
-                QueryAgentManagerFactory().build()
-            ),
+            (QueryAgentContainerManager, QueryAgentManagerFactory().build()),
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(

@@ -1,9 +1,9 @@
 from injector import inject
 
-from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from settings.config import DAS_PEER_IMAGE_NAME, DAS_PEER_IMAGE_VERSION
 
 from .das_peer_container_manager import DasPeerContainerManager

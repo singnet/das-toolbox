@@ -2,11 +2,10 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
+from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
 from settings.config import SECRETS_PATH
 
 from .attention_broker_cli import AttentionBrokerCli, AttentionBrokerManager, Settings
-
-from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
 
 
 class AttentionBrokerModule(Module):
@@ -18,10 +17,7 @@ class AttentionBrokerModule(Module):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
         self._dependency_list = [
-            (
-                AttentionBrokerManager,
-                AttentionBrokerManagerFactory().build()
-            ),
+            (AttentionBrokerManager, AttentionBrokerManagerFactory().build()),
             (
                 Settings,
                 self._settings,

@@ -1,6 +1,9 @@
 from injector import inject
 
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common.container_manager.agents.jupyter_notebook_container_manager import (
+    JupyterNotebookContainerManager,
+)
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
@@ -11,7 +14,6 @@ from common.prompt_types import AbsolutePath
 from .jupyter_notebook_agent_container_service_response import (
     JupyterNotebookContainerServiceResponse,
 )
-from common.container_manager.agents.jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
 class JupyterNotebookStart(Command):

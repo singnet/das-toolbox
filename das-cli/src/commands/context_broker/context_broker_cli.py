@@ -1,7 +1,7 @@
 from injector import inject
 
-from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError

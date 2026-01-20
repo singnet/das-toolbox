@@ -1,16 +1,13 @@
 import os
-from typing import List
 
+from common import Module, Settings
+from common.config.store import JsonConfigStore
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.factory.atomdb.atomdb_backend import (
     AtomdbBackend,
 )
-
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
-
-from common import Module, Settings
-from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
-from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .atomdb_broker_cli import AtomDbBrokerCli

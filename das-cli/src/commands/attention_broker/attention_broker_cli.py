@@ -1,7 +1,9 @@
 from injector import inject
 
-from common.container_manager.agents.attention_broker_container_manager import AttentionBrokerManager
 from common import Command, CommandGroup, Settings, StdoutSeverity, StdoutType
+from common.container_manager.agents.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
@@ -170,7 +172,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"Attention Broker is already running. It's listening on port {ab_port}"
+            warning_message = (
+                f"Attention Broker is already running. It's listening on port {ab_port}"
+            )
 
             self.stdout(
                 warning_message,
@@ -188,7 +192,9 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError:
-            error_message = f"\nError occurred while trying to start Attention Broker on port {ab_port}\n"
+            error_message = (
+                f"\nError occurred while trying to start Attention Broker on port {ab_port}\n"
+            )
             raise DockerError(error_message)
 
     def run(self):

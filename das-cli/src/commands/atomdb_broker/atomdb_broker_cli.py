@@ -1,8 +1,5 @@
 from injector import inject
 
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-)
 from common import (
     Command,
     CommandGroup,
@@ -11,7 +8,6 @@ from common import (
     StdoutSeverity,
     StdoutType,
 )
-
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -19,7 +15,9 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
-
+from common.factory.atomdb.atomdb_backend import (
+    AtomdbBackend,
+)
 from common.prompt_types import PortRangeType
 
 from .atomdb_broker_service_response import AtomDbBrokerServiceReponse

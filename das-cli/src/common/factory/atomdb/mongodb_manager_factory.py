@@ -1,8 +1,10 @@
-from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
+import os
+
 from common import Settings
 from common.config.store import JsonConfigStore
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from settings.config import SECRETS_PATH
-import os
+
 
 class MongoDbContainerManagerFactory:
 
