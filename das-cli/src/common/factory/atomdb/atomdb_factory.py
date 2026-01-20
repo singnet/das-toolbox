@@ -5,7 +5,7 @@ from common.config.store import JsonConfigStore
 from .mongodb_manager_factory import MongoDbContainerManagerFactory
 from .morkdb_manager_factory import MorkDbContainerManagerFactory
 from .redis_manager_factory import RedisContainerManagerFactory
-from commands.db.atomdb_backend import MongoDBRedisBackend, MorkMongoDBBackend
+from .atomdb_backend import AtomdbBackend, AtomdbBackendEnum, MongoDBRedisBackend, MorkMongoDBBackend
 
 class AtomDbContainerManagerFactory:
 
@@ -13,16 +13,16 @@ class AtomDbContainerManagerFactory:
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-        atomdb_backend = self._settings.get("services.database.atomdb_backend")
 
-        if atomdb_backend == "redis_mongodb":
-            return MongoDBRedisBackend(
-                MongoDbContainerManagerFactory().build(),
-                RedisContainerManagerFactory().build(),
-            )
-        
-        elif atomdb_backend == "mork_mongodb":
-            return MorkMongoDBBackend(
-                MongoDbContainerManagerFactory().build(),
-                MorkDbContainerManagerFactory().build(),
-            )
+        backend_config = self._settings.get("services.database.atomdb_backend")
+        backend_config = AtomdbBackendEnum.from_value(backend_config)
+
+        if backend_config == AtomdbBackendEnum.REDIS_MONGODB:
+            providers = [MongoDBRedisBackend(MongoDbContainerManagerFactory().build(), RedisContainerManagerFactory().build())]
+
+            return AtomdbBackend(backend_config, providers)
+                
+        elif backend_config == AtomdbBackendEnum.MORK_MONGODB:
+            providers = [MorkMongoDBBackend(MongoDbContainerManagerFactory().build(), MorkDbContainerManagerFactory().build())]
+
+            return AtomdbBackend(backend_config, providers)
