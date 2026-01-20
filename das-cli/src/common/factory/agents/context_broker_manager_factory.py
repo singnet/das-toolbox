@@ -15,6 +15,6 @@ class ContextBrokerManagerFactory:
 
     def build(self):
 
-        container_name = self._settings.get("services.evolution_agent.container_name")
+        container_name = self._settings.get("services.context_broker.container_name")
 
         return ContextBrokerContainerManager(container_name, options={})

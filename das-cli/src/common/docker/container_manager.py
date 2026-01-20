@@ -162,6 +162,7 @@ class ContainerManager(DockerManager):
 
     def logs(self, follow: bool = False) -> None:
         container_name = self.get_container().name
+        
         try:
             container = self.get_docker_client().containers.get(container_name)
         except docker.errors.NotFound:

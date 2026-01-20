@@ -52,34 +52,34 @@ class LogsModule(Module):
             ),
             (
                 RedisContainerManager,
-                lambda: RedisContainerManagerFactory().build(),
+                RedisContainerManagerFactory().build(),
             ),
             (
                 MongodbContainerManager,
-                lambda: MongoDbContainerManagerFactory().build(),
+                MongoDbContainerManagerFactory().build(),
             ),
             (
                 AttentionBrokerManager,
-                lambda: AttentionBrokerManagerFactory().build(),
+                AttentionBrokerManagerFactory().build(),
             ),
             (
                 QueryAgentContainerManager,
-                lambda: QueryAgentManagerFactory().build(),
+                QueryAgentManagerFactory().build(),
             ),
             (
                 LinkCreationAgentContainerManager,
-                lambda: LinkCreationAgentManagerFactory().build(),
+                LinkCreationAgentManagerFactory().build(),
             ),
             (
                 InferenceAgentContainerManager,
-                lambda: InferenceAgentManagerFactory().build(),
+                InferenceAgentManagerFactory().build(),
             ),
             (
                 EvolutionAgentContainerManager,
-                lambda: EvolutionAgentManagerFactory().build(),
+                EvolutionAgentManagerFactory().build(),
             ),
             (
                 ContextBrokerContainerManager,
-                lambda: ContextBrokerManagerFactory().build(),
+                ContextBrokerManagerFactory().build(),
             ),
         ]
