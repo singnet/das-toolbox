@@ -4,7 +4,7 @@ from common import Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .busnode_container_manager import BusNodeContainerManager
+from ..container_manager.busnode_container_manager import BusNodeContainerManager
 
 
 class BusNodeContainerManagerFactory:
