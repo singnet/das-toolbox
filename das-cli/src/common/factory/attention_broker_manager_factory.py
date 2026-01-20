@@ -2,7 +2,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
+from common.container_manager.agents.attention_broker_container_manager import AttentionBrokerManager
 
 
 class AttentionBrokerManagerFactory:

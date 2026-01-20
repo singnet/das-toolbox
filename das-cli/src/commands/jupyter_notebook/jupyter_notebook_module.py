@@ -6,7 +6,7 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .jupyter_notebook_cli import JupyterNotebookCli
-from common.container_manager.jupyter_notebook_container_manager import JupyterNotebookContainerManager
+from common.container_manager.agents.jupyter_notebook_container_manager import JupyterNotebookContainerManager
 from common.factory.jupyter_notebook_manager_factory import JupyterNotebookManagerFactory
 
 

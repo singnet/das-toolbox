@@ -2,7 +2,7 @@ import os
 from common import Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
-from common.container_manager.redis_container_manager import RedisContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 
 class RedisContainerManagerFactory:
 

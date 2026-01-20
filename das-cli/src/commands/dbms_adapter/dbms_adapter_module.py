@@ -9,9 +9,9 @@ from common.factory.atomdb.atomdb_backend import (
     MorkMongoDBBackend,
 )
 
-from common.container_manager.morkdb_container_manager import MorkdbContainerManager
-from common.container_manager.redis_container_manager import RedisContainerManager
-from common.container_manager.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 
 from common import Module, Settings
 from common.config.store import JsonConfigStore

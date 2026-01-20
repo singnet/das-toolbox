@@ -18,9 +18,9 @@ from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManage
 from common.factory.atomdb.morkdb_manager_factory import MorkDbContainerManagerFactory
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
 
-from common.container_manager.redis_container_manager import RedisContainerManager
-from common.container_manager.mongodb_container_manager import MongodbContainerManager
-from common.container_manager.morkdb_container_manager import MorkdbContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
 
 
 class DbModule(Module):

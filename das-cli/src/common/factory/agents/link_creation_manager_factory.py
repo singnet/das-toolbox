@@ -2,7 +2,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.link_creation_agent_container_manager import LinkCreationAgentContainerManager
+from common.container_manager.agents.link_creation_agent_container_manager import LinkCreationAgentContainerManager
 
 
 class LinkCreationAgentManagerFactory:

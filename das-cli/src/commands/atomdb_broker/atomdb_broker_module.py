@@ -8,8 +8,8 @@ from common.factory.atomdb.atomdb_backend import (
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
 
 from common import Module, Settings
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
+from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 

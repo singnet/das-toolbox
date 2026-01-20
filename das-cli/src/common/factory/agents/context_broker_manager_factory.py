@@ -1,7 +1,7 @@
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.context_broker_container_manager import ContextBrokerContainerManager
+from common.container_manager.agents.context_broker_container_manager import ContextBrokerContainerManager
 
 import os
 

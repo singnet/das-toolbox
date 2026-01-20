@@ -1,8 +1,8 @@
 import os
 
 from common import Module
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
+from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
@@ -10,7 +10,7 @@ from .link_creation_agent_cli import (
     LinkCreationAgentCli,
     Settings,
 )
-from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
 from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
 
 class LinkCreationAgentModule(Module):

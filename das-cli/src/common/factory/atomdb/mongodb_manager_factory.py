@@ -1,4 +1,4 @@
-from common.container_manager.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common import Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH

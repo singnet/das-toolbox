@@ -2,7 +2,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.evolution_agent_container_manager import EvolutionAgentContainerManager
+from common.container_manager.agents.evolution_agent_container_manager import EvolutionAgentContainerManager
 
 
 class EvolutionAgentManagerFactory:

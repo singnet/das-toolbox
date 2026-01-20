@@ -2,7 +2,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
 
 
 class QueryAgentManagerFactory:

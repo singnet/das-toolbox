@@ -4,9 +4,9 @@ from injector import inject
 
 from common.factory.atomdb.atomdb_backend import AtomdbBackend, MongoDBRedisBackend, MorkMongoDBBackend
 
-from common.container_manager.redis_container_manager import RedisContainerManager
-from common.container_manager.mongodb_container_manager import MongodbContainerManager
-from common.container_manager.morkdb_container_manager import MorkdbContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
 
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running

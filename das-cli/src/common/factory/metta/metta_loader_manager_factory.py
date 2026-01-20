@@ -4,7 +4,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.metta_loader_container_manager import MettaLoaderContainerManager
+from common.container_manager.metta.metta_loader_container_manager import MettaLoaderContainerManager
 
 class MettaLoaderManagerFactory:
 

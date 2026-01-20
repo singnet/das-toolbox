@@ -1,7 +1,7 @@
 from common import Settings
 from common.config.store import JsonConfigStore
 import os
-from common.container_manager.morkdb_container_manager import MorkdbContainerManager
+from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
 from settings.config import SECRETS_PATH
 
 class MorkDbContainerManagerFactory:

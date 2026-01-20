@@ -11,7 +11,7 @@ from common import (
     StdoutSeverity,
     StdoutType,
 )
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,

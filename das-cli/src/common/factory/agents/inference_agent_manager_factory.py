@@ -2,7 +2,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.container_manager.inference_agent_container_manager import InferenceAgentContainerManager
+from common.container_manager.agents.inference_agent_container_manager import InferenceAgentContainerManager
 
 class InferenceAgentManagerFactory:
 

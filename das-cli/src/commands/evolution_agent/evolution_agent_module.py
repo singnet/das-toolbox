@@ -2,15 +2,15 @@ import os
 from typing import Annotated
 
 from common import Module
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
-from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
+from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .evolution_agent_cli import EvolutionAgentCli, Settings
 
 from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
-from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
 
 class EvolutionAgentModule(Module):
     _instance = EvolutionAgentCli
