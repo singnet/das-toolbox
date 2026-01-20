@@ -11,7 +11,7 @@ from common.prompt_types import AbsolutePath
 from .jupyter_notebook_agent_container_service_response import (
     JupyterNotebookContainerServiceResponse,
 )
-from ...common.container_manager.jupyter_notebook_container_manager import JupyterNotebookContainerManager
+from common.container_manager.jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
 class JupyterNotebookStart(Command):

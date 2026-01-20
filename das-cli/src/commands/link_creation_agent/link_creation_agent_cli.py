@@ -11,7 +11,6 @@ from .link_creation_agent_container_service_response import (
     LinkCreationAgentContainerServiceResponse,
 )
 
-
 class LinkCreationAgentStop(Command):
     name = "stop"
 

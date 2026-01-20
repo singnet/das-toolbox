@@ -4,14 +4,8 @@ from typing import List
 from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
 from commands.db.atomdb_backend import (
     AtomdbBackend,
-    AtomdbBackendEnum,
-    BackendProvider,
-    MongoDBRedisBackend,
-    MorkMongoDBBackend,
 )
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
+
 from common import Module
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
@@ -19,8 +13,15 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, Settings
-from ...common.container_manager.query_agent_container_manager import QueryAgentContainerManager
+from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 
+from common.container_manager.redis_container_manager import RedisContainerManager
+from common.container_manager.mongodb_container_manager import MongodbContainerManager
+
+from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
+from common.factory.atomdb.redis_manager_factory import RedisContainerManagerFactory
+from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
+from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
 
 class QueryAgentModule(Module):
     _instance = QueryAgentCli
@@ -33,16 +34,12 @@ class QueryAgentModule(Module):
 
         self._dependecy_injection = [
             (
-                QueryAgentContainerManager,
-                self._query_agent_container_manager_factory,
-            ),
-            (
                 RedisContainerManager,
-                self._redis_container_manager_factory,
+                AtomDbContainerManagerFactory().build()
             ),
             (
                 MongodbContainerManager,
-                self._mongodb_container_manager_factory,
+                MongoDbContainerManagerFactory().build(),
             ),
             (
                 BusNodeContainerManager,
@@ -52,120 +49,14 @@ class QueryAgentModule(Module):
             ),
             (
                 AtomdbBackend,
-                self._atomdb_backend_factory,
+                AtomDbContainerManagerFactory().build(),
             ),
             (
                 AttentionBrokerManager,
-                self._attention_broker_container_manager_factory,
+                AttentionBrokerManagerFactory().build()
             ),
             (
                 Settings,
                 self._settings,
             ),
         ]
-
-    def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
-        query_agent_port = str(self._settings.get("services.query_agent.port"))
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        morkdb_port = self._settings.get("services.morkdb.port")
-
-        redis_port = self._settings.get("services.redis.port")
-
-        atomdb_backend = self._settings.get("services.database.atomdb_backend")
-
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        container_name = self._settings.get("services.query_agent.container_name")
-
-        return QueryAgentContainerManager(
-            container_name,
-            options={
-                "query_agent_port": query_agent_port,
-                "query_agent_hostname": "0.0.0.0",
-                "redis_port": redis_port,
-                "redis_hostname": "0.0.0.0",
-                "mongodb_port": mongodb_port,
-                "mongodb_hostname": "0.0.0.0",
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-                "atomdb_backend": atomdb_backend,
-                "morkdb_port": morkdb_port,
-                "morkdb_hostname": "0.0.0.0",
-            },
-        )
-
-    def _redis_container_manager_factory(self) -> RedisContainerManager:
-        container_name = self._settings.get("services.redis.container_name")
-        redis_port = self._settings.get("services.redis.port")
-
-        return RedisContainerManager(
-            container_name,
-            options={
-                "redis_port": redis_port,
-            },
-        )
-
-    def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
-        container_name = self._settings.get("services.mongodb.container_name")
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        return MongodbContainerManager(
-            container_name,
-            options={
-                "mongodb_port": mongodb_port,
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-            },
-        )
-
-    def _attention_broker_container_manager_factory(self) -> AttentionBrokerManager:
-        attention_broker_port = str(self._settings.get("services.attention_broker.port"))
-
-        container_name = self._settings.get("services.attention_broker.container_name")
-
-        return AttentionBrokerManager(
-            container_name,
-            options={
-                "attention_broker_port": attention_broker_port,
-            },
-        )
-
-    def _atomdb_backend_factory(self) -> AtomdbBackend:
-        backend_name = self._settings.get("services.database.atomdb_backend")
-        providers: List[BackendProvider] = []
-        backend_name = AtomdbBackendEnum.from_value(backend_name)
-
-        if backend_name == AtomdbBackendEnum.REDIS_MONGODB:
-            providers.append(
-                MongoDBRedisBackend(
-                    self._mongodb_container_manager_factory(),
-                    self._redis_container_manager_factory(),
-                ),
-            )
-        elif backend_name == AtomdbBackendEnum.MORK_MONGODB:
-            providers.append(
-                MorkMongoDBBackend(
-                    self._mongodb_container_manager_factory(),
-                    self._morkdb_container_manager_factory(),
-                )
-            )
-
-        return AtomdbBackend(backend_name, providers)
-
-    def _morkdb_container_manager_factory(self) -> MorkdbContainerManager:
-        container_name = self._settings.get("services.morkdb.container_name")
-        morkdb_port = self._settings.get("services.morkdb.port")
-
-        return MorkdbContainerManager(
-            container_name,
-            options={
-                "morkdb_port": morkdb_port,
-            },
-        )

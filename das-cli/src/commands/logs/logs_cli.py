@@ -4,8 +4,10 @@ from injector import inject
 
 from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
 from common.container_manager.context_broker_container_manager import ContextBrokerContainerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
+
+from common.container_manager.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.redis_container_manager import RedisContainerManager
+
 from commands.evolution_agent.evolution_agent_container_manager import (
     EvolutionAgentContainerManager,
 )

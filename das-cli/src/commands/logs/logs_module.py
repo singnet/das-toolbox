@@ -1,19 +1,12 @@
 import os
+from typing_extensions import Annotated
 
-from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
-from common.container_manager.context_broker_container_manager import ContextBrokerContainerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.evolution_agent.evolution_agent_container_manager import (
-    EvolutionAgentContainerManager,
-)
-from common.container_manager.inference_agent_container_manager import (
-    InferenceAgentContainerManager,
-)
-from common.container_manager.link_creation_agent_container_manager import (
-    LinkCreationAgentContainerManager,
-)
-from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
+from common.factory.generic_manager_factory import GenericContainerManagerFactory
+from common.docker.container_manager import ContainerManager
+
+from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
+from common.factory.atomdb.redis_manager_factory import RedisContainerManagerFactory
+
 from common import Module
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
@@ -33,6 +26,16 @@ class LogsModule(Module):
             )
         )
 
+        AttentionBrokerManager = Annotated[ContainerManager, "attention_broker"]
+        QueryAgentContainerManager = Annotated[ContainerManager, "query_agent"]
+        RedisContainerManager = Annotated[ContainerManager, "redis"]
+        MongodbContainerManager = Annotated[ContainerManager, "mongodb"]
+        AttentionBrokerManager = Annotated[ContainerManager, "attention_broker"]
+        LinkCreationAgentContainerManager = Annotated[ContainerManager, "link_creation_agent"]
+        InferenceAgentContainerManager = Annotated[ContainerManager, "inference_agent"]
+        EvolutionAgentContainerManager = Annotated[ContainerManager, "evolution_agent"]
+        ContextBrokerContainerManager = Annotated[ContainerManager, "context_broker"]
+
         self._dependecy_injection = [
             (
                 Settings,
@@ -40,164 +43,34 @@ class LogsModule(Module):
             ),
             (
                 RedisContainerManager,
-                self._redis_container_manager_factory,
+                RedisContainerManagerFactory().build(),
             ),
             (
                 MongodbContainerManager,
-                self._mongodb_container_manager_factory,
+                MongoDbContainerManagerFactory().build(),
             ),
             (
                 AttentionBrokerManager,
-                self._attention_broker_manager_factory,
+                GenericContainerManagerFactory().build(service_name="attention_broker")
             ),
             (
                 QueryAgentContainerManager,
-                self._query_agent_container_manager_factory,
+                GenericContainerManagerFactory().build(service_name="query_agent")
             ),
             (
                 LinkCreationAgentContainerManager,
-                self._link_creation_agent_container_manager_factory,
+                GenericContainerManagerFactory().build(service_name="link_creation_agent")
             ),
             (
                 InferenceAgentContainerManager,
-                self._inference_agent_container_manager_factory,
+                GenericContainerManagerFactory().build(service_name="inference_agent")
             ),
             (
                 EvolutionAgentContainerManager,
-                self._evolution_agent_container_manager_factory,
+                GenericContainerManagerFactory().build(service_name="evolution_agent")
             ),
             (
                 ContextBrokerContainerManager,
-                self._context_broker_container_manager_factory,
+                GenericContainerManagerFactory().build(service_name="context_broker")
             ),
         ]
-
-    def _mongodb_container_manager_factory(self) -> MongodbContainerManager:
-        mongodb_container_name = self._settings.get("services.mongodb.container_name")
-        mongodb_port = self._settings.get("services.mongodb.port")
-
-        return MongodbContainerManager(
-            mongodb_container_name,
-            options={
-                "mongodb_port": mongodb_port,
-            },
-        )
-
-    def _redis_container_manager_factory(self) -> RedisContainerManager:
-        redis_container_name = self._settings.get("services.redis.container_name")
-        redis_port = self._settings.get("services.redis.port")
-
-        return RedisContainerManager(
-            redis_container_name,
-            options={
-                "redis_port": redis_port,
-            },
-        )
-
-    def _inference_agent_container_manager_factory(
-        self,
-    ) -> InferenceAgentContainerManager:
-        inference_agent_container_name = self._settings.get(
-            "services.inference_agent.container_name"
-        )
-        inference_agent_port = self._settings.get("services.inference_agent.port")
-
-        return InferenceAgentContainerManager(
-            inference_agent_container_name,
-            options={
-                "inference_agent_port": inference_agent_port,
-            },
-        )
-
-    def _link_creation_agent_container_manager_factory(
-        self,
-    ) -> LinkCreationAgentContainerManager:
-        link_creation_agent_container_name = self._settings.get(
-            "services.link_creation_agent.container_name"
-        )
-        link_creation_agent_port = self._settings.get("services.link_creation_agent.port")
-
-        return LinkCreationAgentContainerManager(
-            link_creation_agent_container_name,
-            options={
-                "link_creation_agent_server_port": link_creation_agent_port,
-            },
-        )
-
-    def _query_agent_container_manager_factory(self) -> QueryAgentContainerManager:
-        query_agent_container_name = self._settings.get("services.query_agent.container_name")
-        query_agent_port = self._settings.get("services.query_agent.port")
-
-        return QueryAgentContainerManager(
-            query_agent_container_name,
-            options={
-                "query_agent_port": query_agent_port,
-            },
-        )
-
-    def _attention_broker_manager_factory(self) -> AttentionBrokerManager:
-        attention_broker_container = self._settings.get("services.attention_broker.container_name")
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        return AttentionBrokerManager(
-            attention_broker_container,
-            options={
-                "attention_broker_port": attention_broker_port,
-            },
-        )
-
-    def _evolution_agent_container_manager_factory(self) -> EvolutionAgentContainerManager:
-        evolution_agent_port = str(self._settings.get("services.evolution_agent.port"))
-
-        container_name = self._settings.get("services.evolution_agent.container_name")
-
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        redis_port = self._settings.get("services.redis.port")
-
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        return EvolutionAgentContainerManager(
-            container_name,
-            options={
-                "evolution_agent_port": evolution_agent_port,
-                "redis_port": redis_port,
-                "redis_hostname": "0.0.0.0",
-                "mongodb_port": mongodb_port,
-                "mongodb_hostname": "0.0.0.0",
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-            },
-        )
-
-    def _context_broker_container_manager_factory(self) -> ContextBrokerContainerManager:
-        context_broker_port = self._settings.get("services.context_broker.port")
-
-        attention_broker_port = self._settings.get("services.attention_broker.port")
-
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-
-        redis_port = self._settings.get("services.redis.port")
-
-        container_name = self._settings.get("services.context_broker.container_name")
-
-        return ContextBrokerContainerManager(
-            container_name,
-            options={
-                "context_broker_port": context_broker_port,
-                "attention_broker_hostname": "0.0.0.0",
-                "attention_broker_port": attention_broker_port,
-                "redis_port": redis_port,
-                "redis_hostname": "0.0.0.0",
-                "mongodb_port": mongodb_port,
-                "mongodb_hostname": "0.0.0.0",
-                "mongodb_username": mongodb_username,
-                "mongodb_password": mongodb_password,
-            },
-        )

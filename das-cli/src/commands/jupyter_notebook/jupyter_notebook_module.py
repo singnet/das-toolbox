@@ -6,7 +6,8 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .jupyter_notebook_cli import JupyterNotebookCli
-from ...common.container_manager.jupyter_notebook_container_manager import JupyterNotebookContainerManager
+from common.container_manager.jupyter_notebook_container_manager import JupyterNotebookContainerManager
+from common.factory.jupyter_notebook_manager_factory import JupyterNotebookManagerFactory
 
 
 class JupyterNotebookModule(Module):
@@ -20,25 +21,10 @@ class JupyterNotebookModule(Module):
         self._dependecy_injection = [
             (
                 JupyterNotebookContainerManager,
-                self._jupyter_notebook_container_manager_factory,
+                JupyterNotebookManagerFactory().build()
             ),
             (
                 Settings,
                 self._settings,
             ),
         ]
-
-    def _jupyter_notebook_container_manager_factory(
-        self,
-    ) -> JupyterNotebookContainerManager:
-        container_name = self._settings.get("services.jupyter_notebook.container_name")
-        jupyter_notebook_port = self._settings.get("services.jupyter_notebook.port")
-        jupyter_notebook_hostname = "0.0.0.0"
-
-        return JupyterNotebookContainerManager(
-            container_name,
-            options={
-                "jupyter_notebook_port": jupyter_notebook_port,
-                "jupyter_notebook_hostname": jupyter_notebook_hostname,
-            },
-        )

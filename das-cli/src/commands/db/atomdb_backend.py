@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Optional
 
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
+from common.container_manager.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.redis_container_manager import RedisContainerManager
+from common.container_manager.morkdb_container_manager import MorkdbContainerManager
 
 
 class AtomdbBackendEnum(Enum):

@@ -9,10 +9,9 @@ from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
 from common.prompt_types import AbsolutePath
 
-from .metta_loader_container_manager import MettaLoaderContainerManager
-from .metta_mork_loader_container_manager import MettaMorkLoaderContainerManager
-from .metta_syntax_container_manager import MettaSyntaxContainerManager
-
+from common.container_manager.metta_loader_container_manager import MettaLoaderContainerManager
+from common.container_manager.metta_mork_loader_container_manager import MettaMorkLoaderContainerManager
+from common.container_manager.metta_syntax_container_manager import MettaSyntaxContainerManager
 
 class MettaLoad(Command):
     name = "load"

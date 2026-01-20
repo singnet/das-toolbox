@@ -3,9 +3,11 @@ from typing import AnyStr, Union
 from injector import inject
 
 from commands.db.atomdb_backend import AtomdbBackend, MongoDBRedisBackend, MorkMongoDBBackend
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
+
+from common.container_manager.redis_container_manager import RedisContainerManager
+from common.container_manager.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.morkdb_container_manager import MorkdbContainerManager
+
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (

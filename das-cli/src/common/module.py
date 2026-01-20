@@ -5,7 +5,7 @@ from injector import Module as InjectorModule
 
 
 class Module(InjectorModule):
-    _dependecy_injection: List = []
+    _dependecy_injection: List = [tuple[Any, Any]]
     _instance: Any
 
     def __init__(self) -> None:
