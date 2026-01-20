@@ -2,7 +2,7 @@ import os
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.docker.container_manager import ContainerManager
+from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
 
 
 class AttentionBrokerManagerFactory:
@@ -14,11 +14,10 @@ class AttentionBrokerManagerFactory:
         container_name = self._settings.get("services.attention_broker.container_name")
         attention_broker_port = self._settings.get("services.attention_broker.port")
 
-        return ContainerManager(
-            container={
-                "name": container_name,
-                "metadata": {
-                    "port": attention_broker_port
-                }
+        return AttentionBrokerManager(
+            container_name,
+            options={
+                "attention_broker_hostname": "0.0.0.0",
+                "attention_broker_port": attention_broker_port
             }
         )
