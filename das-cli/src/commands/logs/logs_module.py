@@ -38,7 +38,7 @@ class LogsModule(Module):
             )
         )
 
-        self._dependecy_injection = [
+        self._dependency_list = [
             (
                 Settings,
                 self._settings,

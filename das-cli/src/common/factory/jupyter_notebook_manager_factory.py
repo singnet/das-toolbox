@@ -3,7 +3,6 @@ from common.container_manager.agents.jupyter_notebook_container_manager import J
 from settings.config import SECRETS_PATH
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.docker.container_manager import ContainerManager
 
 class JupyterNotebookManagerFactory:
 

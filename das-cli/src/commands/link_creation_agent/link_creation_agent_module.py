@@ -23,7 +23,7 @@ class LinkCreationAgentModule(Module):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._bus_node_factory = BusNodeContainerManagerFactory()
 
-        self._dependecy_injection = [
+        self._dependency_list = [
             (
                 QueryAgentContainerManager,
                 QueryAgentManagerFactory().build()

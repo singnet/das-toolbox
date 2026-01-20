@@ -12,9 +12,9 @@ from common import Module, Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .das_peer.das_peer_cli import DasPeerContainerManager
+from common.container_manager.dbms.dbms_peer_container_manager import DbmsPeerContainerManager
+from common.container_manager.dbms.das_peer_container_manager import DasPeerContainerManager
 from .dbms_adapter_cli import DbmsAdapterCli
-from .dbms_peer.dbms_peer_cli import DbmsPeerContainerManager
 
 
 class DbmsAdapterModule(Module):
@@ -25,7 +25,7 @@ class DbmsAdapterModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
-        self._dependecy_injection = [
+        self._dependency_list = [
             (
                 AtomdbBackend,
                 AtomDbContainerManagerFactory().build(),

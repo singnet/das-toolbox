@@ -5,6 +5,6 @@ from .example_cli import ExampleCli, ExampleLocal
 
 class ExampleModule(Module):
     _instance = ExampleCli
-    _dependecy_injection = [
+    _dependency_list = [
         (ExampleLocal, lambda: ExampleLocal(get_script_name())),
     ]

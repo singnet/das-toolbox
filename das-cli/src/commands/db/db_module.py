@@ -31,7 +31,7 @@ class DbModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
-        self._dependecy_injection = [
+        self._dependency_list = [
             (
                 RedisContainerManager,
                 RedisContainerManagerFactory().build()

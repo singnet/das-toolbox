@@ -17,7 +17,7 @@ class ConfigModule(Module):
         self._settings = self._settings_factory()
         self._remote_context_manager = RemoteContextManager()
 
-        self._dependecy_injection = [
+        self._dependency_list = [
             (Settings, lambda: self._settings),
             (NonInteractiveConfigProvider, self._non_interactive_config_provider_factory),
             (InteractiveConfigProvider, self._interactive_config_provider_factory),
