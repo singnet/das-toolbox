@@ -3,7 +3,7 @@ import os
 
 from injector import inject
 
-from commands.db.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
+from common.factory.atomdb.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
 from common import Command, CommandArgument, CommandGroup, Path, Settings, StdoutSeverity
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError

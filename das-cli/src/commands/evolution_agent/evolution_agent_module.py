@@ -1,7 +1,6 @@
 import os
 from typing import Annotated
 
-from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 from common import Module
 from common.bus_node.busnode_container_manager import BusNodeContainerManager
 from common.bus_node.busnode_manager_factory import BusNodeContainerManagerFactory
@@ -10,8 +9,8 @@ from settings.config import SECRETS_PATH
 
 from .evolution_agent_cli import EvolutionAgentCli, Settings
 
-from common.factory.generic_manager_factory import GenericContainerManagerFactory
-from common.docker.container_manager import ContainerManager
+from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
+from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 
 class EvolutionAgentModule(Module):
     _instance = EvolutionAgentCli
@@ -22,12 +21,10 @@ class EvolutionAgentModule(Module):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._bus_node_factory = BusNodeContainerManagerFactory()
 
-        QueryAgentContainerManager = Annotated[ContainerManager, "query_agent"]
-
         self._dependecy_injection = [
             (
                 QueryAgentContainerManager,
-                GenericContainerManagerFactory().build(service_name="query_agent"),
+                QueryAgentManagerFactory().build(),
             ),
             (
                 BusNodeContainerManager,

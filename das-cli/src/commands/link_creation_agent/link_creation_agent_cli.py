@@ -54,6 +54,7 @@ EXAMPLES
         container = self._get_container()
 
         try:
+
             self.stdout("Stopping Link Creation Agent service...")
             self._link_creation_agent_manager.stop()
 
@@ -74,6 +75,7 @@ EXAMPLES
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerNotFoundError:
             warning_message = (
                 f"The Link Creation Agent service named {container.name} is already stopped."

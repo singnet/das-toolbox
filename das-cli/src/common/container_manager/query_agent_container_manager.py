@@ -2,7 +2,7 @@ from typing import Dict
 
 import docker
 
-from commands.db.atomdb_backend import AtomdbBackendEnum
+from common.factory.atomdb.atomdb_backend import AtomdbBackendEnum
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION

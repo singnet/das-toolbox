@@ -2,7 +2,7 @@ from typing import AnyStr, Union
 
 from injector import inject
 
-from commands.db.atomdb_backend import AtomdbBackend, MongoDBRedisBackend, MorkMongoDBBackend
+from common.factory.atomdb.atomdb_backend import AtomdbBackend, MongoDBRedisBackend, MorkMongoDBBackend
 
 from common.container_manager.redis_container_manager import RedisContainerManager
 from common.container_manager.mongodb_container_manager import MongodbContainerManager
@@ -783,10 +783,12 @@ $ das-cli db start
             )
 
     def run(self):
+
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         for provider in self._atomdb_backend.get_active_providers():
+
             if isinstance(provider, MongoDBRedisBackend):
                 self._redis()
                 self._mongodb()

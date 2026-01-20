@@ -1,6 +1,6 @@
 from injector import inject
 
-from commands.db.atomdb_backend import (
+from common.factory.atomdb.atomdb_backend import (
     AtomdbBackend,
 )
 from common import (

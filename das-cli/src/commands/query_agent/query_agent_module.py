@@ -2,7 +2,7 @@ import os
 from typing import List
 
 from common.container_manager.attention_broker_container_manager import AttentionBrokerManager
-from commands.db.atomdb_backend import (
+from common.factory.atomdb.atomdb_backend import (
     AtomdbBackend,
 )
 
@@ -13,7 +13,6 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, Settings
-from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 
 from common.container_manager.redis_container_manager import RedisContainerManager
 from common.container_manager.mongodb_container_manager import MongodbContainerManager

@@ -146,13 +146,13 @@ EXAMPLES
     def _attention_broker(self) -> None:
         self.stdout("Starting Attention Broker service...")
 
-        container = self._get_container()
-        attention_broker_port = container.port
+        container = self._attention_broker_container_manager.get_container()
+        ab_port = self._attention_broker_container_manager._options.get("attention_broker_port")
 
         try:
             self._attention_broker_container_manager.start_container()
 
-            success_message = f"Attention Broker started on port {attention_broker_port}"
+            success_message = f"Attention Broker started on port {ab_port}"
 
             self.stdout(
                 success_message,
@@ -170,7 +170,7 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = f"Attention Broker is already running. It's listening on port {attention_broker_port}"
+            warning_message = f"Attention Broker is already running. It's listening on port {ab_port}"
 
             self.stdout(
                 warning_message,
@@ -188,7 +188,7 @@ EXAMPLES
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError:
-            error_message = f"\nError occurred while trying to start Attention Broker on port {attention_broker_port}\n"
+            error_message = f"\nError occurred while trying to start Attention Broker on port {ab_port}\n"
             raise DockerError(error_message)
 
     def run(self):

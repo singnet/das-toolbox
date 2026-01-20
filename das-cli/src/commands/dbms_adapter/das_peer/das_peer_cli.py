@@ -1,6 +1,6 @@
 from injector import inject
 
-from commands.db.atomdb_backend import AtomdbBackend
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common import Command, CommandGroup, ImageManager, Settings, StdoutSeverity, StdoutType
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError

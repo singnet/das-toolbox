@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from commands.db.atomdb_backend import (
+from common.factory.atomdb.atomdb_backend import (
     AtomdbBackend,
 )
 

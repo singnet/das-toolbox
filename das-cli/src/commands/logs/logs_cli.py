@@ -8,15 +8,10 @@ from common.container_manager.context_broker_container_manager import ContextBro
 from common.container_manager.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.redis_container_manager import RedisContainerManager
 
-from commands.evolution_agent.evolution_agent_container_manager import (
-    EvolutionAgentContainerManager,
-)
-from common.container_manager.inference_agent_container_manager import (
-    InferenceAgentContainerManager,
-)
-from common.container_manager.link_creation_agent_container_manager import (
-    LinkCreationAgentContainerManager,
-)
+from common.container_manager.evolution_agent_container_manager import EvolutionAgentContainerManager
+
+from common.container_manager.inference_agent_container_manager import InferenceAgentContainerManager
+from common.container_manager.link_creation_agent_container_manager import LinkCreationAgentContainerManager
 from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.decorators import ensure_container_running

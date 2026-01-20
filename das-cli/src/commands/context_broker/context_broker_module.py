@@ -8,10 +8,8 @@ from settings.config import SECRETS_PATH
 
 from .context_broker_cli import ContextBrokerCli, Settings
 
-from common.factory.generic_manager_factory import GenericContainerManagerFactory
-from common.docker.container_manager import ContainerManager
-
-from typing_extensions import Annotated
+from common.container_manager.query_agent_container_manager import QueryAgentContainerManager
+from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
 
 class ContextBrokerModule(Module):
     _instance = ContextBrokerCli
@@ -22,12 +20,10 @@ class ContextBrokerModule(Module):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._bus_node_factory = BusNodeContainerManagerFactory()
 
-        QueryAgentContainerManager = Annotated[ContainerManager, "query_agent"]
-
         self._dependecy_injection = [
             (
                 QueryAgentContainerManager,
-                GenericContainerManagerFactory().build(service_name="query_agent")
+                QueryAgentManagerFactory().build()
             ),
             (
                 BusNodeContainerManager,
