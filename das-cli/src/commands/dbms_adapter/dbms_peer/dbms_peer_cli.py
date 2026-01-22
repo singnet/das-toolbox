@@ -1,6 +1,6 @@
 from injector import inject
 
-from commands.dbms_adapter.das_peer.das_peer_container_manager import DasPeerContainerManager
+from common.container_manager.dbms.das_peer_container_manager import DasPeerContainerManager
 from common import (
     Command,
     CommandGroup,
@@ -15,7 +15,7 @@ from common.decorators import ensure_container_running
 from common.prompt_types import AbsolutePath
 from settings.config import DBMS_PEER_IMAGE_NAME, DBMS_PEER_IMAGE_VERSION
 
-from .dbms_peer_container_manager import DbmsPeerContainerManager
+from common.container_manager.dbms.dbms_peer_container_manager import DbmsPeerContainerManager
 from .dbms_peer_container_service_response import DbmsPeerContainerServiceResponse
 
 

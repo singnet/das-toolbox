@@ -16,31 +16,14 @@ from common.prompt_types import PortRangeType
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 
+from .query_agent_docs import *
 
 class QueryAgentStop(Command):
     name = "stop"
 
-    short_help = "Stop the Query Agent service."
+    short_help = SHORT_HELP_STOP
 
-    help = """
-NAME
-
-    stop - Stop the Query Agent service
-
-SYNOPSIS
-
-    das-cli query-agent stop
-
-DESCRIPTION
-
-    Stops the running Query Agent service.
-
-EXAMPLES
-
-    To stop a running Query Agent service:
-
-    $ das-cli query-agent stop
-"""
+    help = HELP_STOP
 
     @inject
     def __init__(
@@ -115,27 +98,9 @@ class QueryAgentStart(Command):
         ),
     ]
 
-    short_help = "Start the Query Agent service."
+    short_help = SHORT_HELP_START
 
-    help = """
-NAME
-
-    start - Start the Query Agent service
-
-SYNOPSIS
-
-    das-cli query-agent start [--port-range <start:end>]
-
-DESCRIPTION
-
-    Initializes and runs the Query Agent service.
-
-EXAMPLES
-
-    To start the Query Agent service:
-
-        $ das-cli query-agent start --port-range 42000:42999
-"""
+    help = HELP_START
 
     @inject
     def __init__(
@@ -217,8 +182,7 @@ EXAMPLES
         verbose=False,
     )
     def run(self, port_range: str, **kwargs) -> None:
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         self._query_engine_node(port_range, **kwargs)
 
@@ -235,30 +199,9 @@ class QueryAgentRestart(Command):
         ),
     ]
 
-    short_help = "Restart the Query Agent service."
+    short_help = SHORT_HELP_RESTART
 
-    help = """
-NAME
-
-    restart - Restart the Query Agent service
-
-SYNOPSIS
-
-    das-cli query-agent restart [--port-range <start:end>]
-
-DESCRIPTION
-
-    Stops and then starts the Query Agent service.
-
-    This command ensures a frinstance of the Query Agent is running.
-
-EXAMPLES
-
-    To restart the Query Agent service:
-
-        $ das-cli query-agent restart --port-range 42000:42999
-
-"""
+    help = HELP_RESTART
 
     @inject
     def __init__(
@@ -280,51 +223,8 @@ class QueryAgentCli(CommandGroup):
 
     aliases = ["qa", "query"]
 
-    short_help = "Manage the Query Agent service."
-
-    help = """
-NAME
-
-    query-agent - Manage the Query Agent service
-
-SYNOPSIS
-
-    das-cli query-agent <command> [options]
-
-DESCRIPTION
-
-    Provides commands to control the Query Agent service.
-
-    Use this command group to start, stop, or restart the service.
-
-COMMANDS
-
-    start
-
-        Start the Query Agent service.
-
-    stop
-
-        Stop the Query Agent service.
-
-    restart
-
-        Restart the Query Agent service.
-
-EXAMPLES
-
-    Start the Query Agent service:
-
-        $ das-cli query-agent start --port-range 42000:42999
-
-    Stop the Query Agent service:
-
-        $ das-cli query-agent stop
-
-    Restart the Query Agent service:
-
-        $ das-cli query-agent restart --port-range 42000:42999
-"""
+    short_help = SHORT_HELP_QA
+    help = HELP_QA
 
     @inject
     def __init__(

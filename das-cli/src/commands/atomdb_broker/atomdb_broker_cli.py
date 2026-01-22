@@ -22,6 +22,7 @@ from common.prompt_types import PortRangeType
 
 from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
 
+from .atomdb_broker_docs import *
 
 class AtomDbBrokerStart(Command):
     name = "start"
@@ -35,30 +36,9 @@ class AtomDbBrokerStart(Command):
         ),
     ]
 
-    short_help = "Starts the AtomDb Broker agent"
+    short_help = SHORT_HELP_START
 
-    help = '''
-NAME
-
-    das-cli atomdb-broker start - Start the atomdb-broker service
-
-SYNOPSIS
-
-    das-cli atomdb-broker start [--port-range <start:end>]
-
-DESCRIPTION
-
-    Starts the AtomDb Broker service in a Docker container. If the service is already running,
-    a warning will be shown.
-
-    The service begins listening on the configured port.
-
-EXAMPLES
-
-    Start the AtomDb Broker service:
-
-        $ das-cli atomdb-broker start --port-range 47000:47999
-'''
+    help = HELP_START
 
     @inject
     def __init__(
@@ -135,38 +115,16 @@ EXAMPLES
         verbose=False,
     )
     def run(self, port_range, **kwargs):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
         self._start_container(port_range, **kwargs)
 
 
 class AtomDbBrokerStop(Command):
     name = "stop"
 
-    short_help = "Starts the AtomDb Broker agent"
+    short_help = SHORT_HELP_STOP
 
-    help = '''
-NAME
-
-    das-cli atomdb-broker stop - Stop the AtomDB Broker service
-
-SYNOPSIS
-
-    das-cli atomdb-broker stop
-
-DESCRIPTION
-
-    Stops the currently running AtomDB Broker container. This halts the processing of messages
-    and deactivates the service until it is explicitly started again.
-
-    If the service is already stopped, a warning message is displayed.
-
-EXAMPLES
-
-    Stops the AtomDb Broker service:
-
-        $ das-cli atomdb-broker stop
-'''
+    help = HELP_STOP
 
     @inject
     def __init__(self, atomdb_broker_bus_manager: BusNodeContainerManager, settings: Settings):
@@ -220,9 +178,7 @@ EXAMPLES
             )
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._stop_container()
 
 
@@ -238,42 +194,19 @@ class AtomDbBrokerRestart(Command):
         ),
     ]
 
-    short_help = "Restart the AtomDB Broker service."
+    short_help = HELP_RESTART
 
-    help = """
-NAME
-
-    das-cli atomdb-broker restart - Restart the AtomDB Broker service
-
-SYNOPSIS
-
-    das-cli atomdb-broker restart
-
-DESCRIPTION
-
-    This command combines a stop and a start operation to ensure that the
-    AtomDB Broker is restarted cleanly.
-
-    Useful for refreshing configurations or recovering from faults.
-
-EXAMPLES
-
-    Restart the AtomDB Broker service:
-
-        $ das-cli atomdb-broker restart
-"""
+    help = SHORT_HELP_RESTART
 
     @inject
     def __init__(
         self, atomdb_broker_start: AtomDbBrokerStart, atomdb_broker_stop: AtomDbBrokerStop
     ):
-
         self._atomdb_broker_start = atomdb_broker_start
         self._atomdb_broker_stop = atomdb_broker_stop
         super().__init__()
 
     def run(self, port_range, **kwargs):
-
         self._atomdb_broker_stop.run()
         self._atomdb_broker_start.run(port_range, **kwargs)
 
@@ -281,44 +214,9 @@ EXAMPLES
 class AtomDbBrokerCli(CommandGroup):
     name = "atomdb-broker"
 
-    short_help = "Control the lifecycle of the AtomDB Broker service."
+    short_help = SHORT_HELP_ATOMDB_BROKER
 
-    help = """
-NAME
-
-    das-cli atomdb-broker - Manage the AtomDB Broker service
-
-SYNOPSIS
-
-    das-cli atomdb-broker [COMMAND]
-
-DESCRIPTION
-
-    This command group allows you to manage the lifecycle of the AtomDB Broker service,
-
-COMMANDS
-    start
-        Start the AtomDB Broker service and begin message processing.
-
-    stop
-        Stop the currently running AtomDB Broker container.
-
-    restart
-        Restart the AtomDB Broker container (stop followed by start).
-
-EXAMPLES
-    Start the broker:
-
-        $ das-cli atomdb-broker start
-
-    Stop the broker:
-
-        $ das-cli atomdb-broker stop
-
-    Restart the broker:
-
-        $ das-cli atomdb-broker restart
-"""
+    help = HELP_ATOMDB_BROKER
 
     @inject
     def __init__(

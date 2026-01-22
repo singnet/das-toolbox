@@ -14,6 +14,7 @@ from .das_ubuntu_advanced_packaging_tool import (
     DasUbuntuAdvancedPackagingTool,
 )
 
+from .das_cli_docs import * 
 
 class PermissionError(Exception): ...  # noqa: E701
 
@@ -21,38 +22,9 @@ class PermissionError(Exception): ...  # noqa: E701
 class DasCliUpdateVersion(Command):
     name = "update-version"
 
-    short_help = "Update the DAS CLI version (Ubuntu only)."
+    short_help = SHORT_HELP_UPD_VERSION
 
-    help = """
-NAME
-
-update-version - Update the DAS CLI version (Ubuntu only)
-
-DESCRIPTION
-
-This command updates the DAS CLI to the latest version available via the APT repository.
-It is intended for Ubuntu Linux distributions only and must be run with sudo privileges.
-
-.SH OPTIONS
---version, -v     Specify the version of the package to install (format: x.y.z).
-                  If omitted, the latest available version will be installed.
-
-REQUIREMENTS
-
-- Must be executed as a compiled binary, not as a Python script.
-- Requires root privileges (sudo).
-- The CLI must have been installed via APT.
-
-EXAMPLES
-
-Update the DAS CLI to the latest version available via APT:
-
-    $ sudo das-cli update-version
-
-Update the DAS CLI to a specific version (e.g. 1.2.3):
-
-    $ sudo das-cli update-version --version=1.2.3
-"""
+    help = HELP_UPD_VERSION
 
     @inject
     def __init__(self, das_ubuntu_advanced_packaging_tool: DasUbuntuAdvancedPackagingTool) -> None:
@@ -104,7 +76,7 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
 
         return installed_version
     
-    
+
     def _check_cli_version(self, current_version, newer_version):
 
         if current_version != newer_version:
@@ -143,47 +115,8 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
 class DasCli(CommandGroup):
     name = "das-cli"
 
-    short_help = "'das-cli' offers a suite of commands to efficiently manage a wide range of tasks including management of containerized services"
-
-    help = """
-NAME
-
-das-cli - Command-line interface for managing DAS services
-
-DESCRIPTION
-
-'das-cli' offers a suite of commands to efficiently manage a wide range of tasks, including:
-
-- Containerized service orchestration
-- OpenFaaS function management
-- Knowledge base operations
-- System package management (via APT)
-
-REMOTE EXECUTION
-
-Any command can be executed on a remote server via SSH by enabling the --remote flag and providing connection parameters.
-
-OPTIONS FOR REMOTE EXECUTION
-
---remote              Run the command on a remote server over SSH
---host, -H            Hostname or IP address of the remote server
---user, -H            SSH login user
---port, -H            SSH port (default: 22)
---key-file            Path to the SSH private key file (for key-based authentication)
---password            SSH password (not recommended for production)
---connect-timeout     SSH connection timeout in seconds (default: 10)
-
-EXAMPLES
-
-Run command remotely using SSH key:
-
-    $ das-cli deploy --remote --host 192.168.0.10 --user ubuntu --key-file ~/.ssh/id_rsa
-
-Run command remotely using password:
-
-    $ das-cli update --remote --host 10.0.0.2 --user root --password yourpassword
-
-"""
+    short_help = SHORT_HELP_DAS_CLI
+    help = HELP_DAS_CLI
 
     @inject
     def __init__(
