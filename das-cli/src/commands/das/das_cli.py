@@ -8,13 +8,13 @@ from injector import inject
 from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
 from settings.config import VERSION
 
+from .das_cli_docs import HELP_DAS_CLI, HELP_UPD_VERSION, SHORT_HELP_DAS_CLI, SHORT_HELP_UPD_VERSION
 from .das_ubuntu_advanced_packaging_tool import (
     DasNotFoundError,
     DasPackageUpdateError,
     DasUbuntuAdvancedPackagingTool,
 )
 
-from .das_cli_docs import * 
 
 class PermissionError(Exception): ...  # noqa: E701
 
@@ -41,7 +41,6 @@ class DasCliUpdateVersion(Command):
         )
     ]
 
-
     def _check_is_executable(self):
         is_executable = is_executable_bin()
 
@@ -50,7 +49,6 @@ class DasCliUpdateVersion(Command):
                 "This command should be executed as an executable rather than as a Python script."
             )
 
-
     def _check_linux_distro(self):
         if distro.id() != "ubuntu":
             self.stdout(
@@ -58,13 +56,11 @@ class DasCliUpdateVersion(Command):
                 severity=StdoutSeverity.WARNING,
             )
 
-
     def _check_sudo_permission(self):
         is_sudo = "SUDO_USER" in os.environ
 
         if not is_sudo:
             raise PermissionError("Requires 'root' permissions to execute")
-    
 
     def _check_installed_via_apt(self):
         installed_version = self._das_ubuntu_advanced_packaging_tool.get_package_version()
@@ -75,7 +71,6 @@ class DasCliUpdateVersion(Command):
             )
 
         return installed_version
-    
 
     def _check_cli_version(self, current_version, newer_version):
 
@@ -111,6 +106,7 @@ class DasCliUpdateVersion(Command):
             ) from e
 
         self._check_cli_version(current_version, newer_version)
+
 
 class DasCli(CommandGroup):
     name = "das-cli"

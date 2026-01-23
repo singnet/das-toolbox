@@ -18,7 +18,15 @@ from common.docker.exceptions import DockerError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
 from common.prompt_types import AbsolutePath
 
-from .metta_docs import *
+from .metta_docs import (
+    HELP_CHECK,
+    HELP_LOAD,
+    HELP_METTA,
+    SHORT_HELP_CHECK,
+    SHORT_HELP_LOAD,
+    SHORT_HELP_METTA,
+)
+
 
 class MettaLoad(Command):
     name = "load"

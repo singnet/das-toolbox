@@ -4,9 +4,9 @@ from injector import inject
 
 from common import CommandGroup, CommandOption, RegexType, StdoutSeverity
 
+from .release_notes_docs import HELP_RELEASE_NOTES, SHORT_HELP_RELEASE_NOTES
 from .release_notes_package import Library, ReleaseNotesPackage
 
-from .release_notes_docs import *
 
 class ReleaseNotesCli(CommandGroup):
     name = "release-notes"

@@ -4,7 +4,8 @@ from common import Command, CommandGroup, Settings, StdoutType
 from common.container_manager.system_containers_manager import SystemContainersManager
 from common.utils import print_table
 
-from .system_docs import *
+from .system_docs import HELP_STATUS, HELP_SYSTEM, SHORT_HELP_STATUS, SHORT_HELP_SYSTEM
+
 
 class SystemStatus(Command):
     name = "status"

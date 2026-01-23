@@ -11,9 +11,18 @@ from common.docker.exceptions import (
 )
 from common.prompt_types import PortRangeType
 
+from .evolution_agent_docs import (
+    HELP_EVOLUTION_AGENT,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_EVOLUTION_AGENT,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 from .evolution_agent_service_response import EvolutionAgentServiceResponse
 
-from .evolution_agent_docs import * 
 
 class EvolutionAgentStop(Command):
     name = "stop"

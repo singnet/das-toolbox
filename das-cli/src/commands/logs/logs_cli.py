@@ -24,7 +24,29 @@ from common.container_manager.atomdb.redis_container_manager import RedisContain
 from common.decorators import ensure_container_running
 from settings.config import LOG_FILE_NAME
 
-from .logs_docs import *
+from .logs_docs import (
+    HELP_AB,
+    HELP_CB,
+    HELP_DAS_LOGS,
+    HELP_EA,
+    HELP_IA,
+    HELP_LCA,
+    HELP_LOGS,
+    HELP_MONGODB,
+    HELP_QA,
+    HELP_REDIS,
+    SHORT_HELP_AB,
+    SHORT_HELP_CB,
+    SHORT_HELP_DAS_LOGS,
+    SHORT_HELP_EA,
+    SHORT_HELP_IA,
+    SHORT_HELP_LCA,
+    SHORT_HELP_LOGS,
+    SHORT_HELP_MONGODB,
+    SHORT_HELP_QA,
+    SHORT_HELP_REDIS,
+)
+
 
 class LogsDas(Command):
     name = "das"
@@ -155,7 +177,7 @@ class LogsAttentionBroker(Command):
 
     aliases = ["ab"]
 
-    short_help = SHORT_HELP_QA
+    short_help = SHORT_HELP_AB
 
     help = HELP_AB
 

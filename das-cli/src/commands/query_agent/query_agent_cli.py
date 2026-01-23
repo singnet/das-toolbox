@@ -15,8 +15,17 @@ from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
 
 from .query_agent_container_service_response import QueryAgentContainerServiceResponse
+from .query_agent_docs import (
+    HELP_QA,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_QA,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 
-from .query_agent_docs import *
 
 class QueryAgentStop(Command):
     name = "stop"

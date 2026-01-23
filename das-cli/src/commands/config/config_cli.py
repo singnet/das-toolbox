@@ -16,9 +16,16 @@ from common import (
 from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
 from common.prompt_types import AbsolutePath
 
+from .config_docs import (
+    HELP_CONFIG,
+    HELP_CONFIG_LIST,
+    HELP_CONFIG_SET,
+    SHORT_HELP_CONFIG,
+    SHORT_HELP_CONFIG_LIST,
+    SHORT_HELP_CONFIG_SET,
+)
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
-from .config_docs import *
 
 class ConfigSet(Command):
     name = "set"
@@ -113,7 +120,7 @@ class ConfigList(Command):
 
     aliases = ["ls"]
 
-    short_help = SHORT_HELP_CONFIG_SET
+    short_help = SHORT_HELP_CONFIG_LIST
 
     help = HELP_CONFIG_LIST
 

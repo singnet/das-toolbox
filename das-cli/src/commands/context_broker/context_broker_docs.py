@@ -40,7 +40,7 @@ EXAMPLES
         $ das-cli context-broker start --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
 """
 
-SHORT_HELP_START = "Start the Context Broker service." 
+SHORT_HELP_START = "Start the Context Broker service."
 
 HELP_RESTART = """
 NAME

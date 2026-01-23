@@ -1,4 +1,3 @@
-from ctypes.wintypes import SHORT
 from injector import inject
 
 from common import Command, CommandGroup, Settings, StdoutSeverity, StdoutType
@@ -11,9 +10,18 @@ from common.docker.exceptions import (
     DockerError,
 )
 
+from .attention_broker_docs import (
+    HELP_ATTENTION_BROKER,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_ATTENTION_BROKER,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 from .attention_broker_service_response import AttentionBrokerServiceResponse
 
-from .attention_broker_docs import *
 
 class AttentionBrokerStop(Command):
     name = "stop"
@@ -21,7 +29,7 @@ class AttentionBrokerStop(Command):
     short_help = SHORT_HELP_STOP
 
     help = HELP_STOP
-    
+
     @inject
     def __init__(
         self,
@@ -166,7 +174,7 @@ class AttentionBrokerRestart(Command):
 
     short_help = SHORT_HELP_RESTART
 
-    help = SHORT_HELP_RESTART
+    help = HELP_RESTART
 
     @inject
     def __init__(

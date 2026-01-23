@@ -21,7 +21,6 @@ $ das-cli db count-atoms
 SHORT_HELP_DB_COUNT_ATOMS = "Displays counts of MongoDB atoms and Redis key patterns."
 
 
-
 HELP_DB_STOP = """
 .SH NAME
 
@@ -48,7 +47,6 @@ $ das-cli db stop --prune
 SHORT_HELP_DB_STOP = "Stops all DBMS containers."
 
 
-
 HELP_DB_START = """
 .SH NAME
 
@@ -69,7 +67,6 @@ $ das-cli db start
 """
 
 SHORT_HELP_DB_START = "Starts all DBMS containers."
-
 
 
 HELP_DB_RESTART = """
@@ -96,7 +93,6 @@ $ das-cli db restart --prune
 """
 
 SHORT_HELP_DB_RESTART = "Restart all DBMS containers."
-
 
 
 HELP_DB_CLI = """

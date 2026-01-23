@@ -1,5 +1,3 @@
-
-
 SHORT_HELP_START = "Starts the AtomDb Broker agent"
 
 HELP_START = '''
