@@ -2,7 +2,8 @@ from injector import inject
 
 from common import Command, CommandGroup, StdoutType
 
-from .example_docs import *
+from .example_docs import HELP_EX_LOCAL, HELP_EXAMPLE, SHORT_HELP_EX_LOCAL, SHORT_HELP_EXAMPLE
+
 
 class ExampleLocal(Command):
     name = "local"

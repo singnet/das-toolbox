@@ -18,7 +18,15 @@ from common.docker.exceptions import DockerError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend, AtomdbBackendEnum
 from common.prompt_types import AbsolutePath
 
-from .metta_docs import *
+from .metta_docs import (
+    HELP_CHECK,
+    HELP_LOAD,
+    HELP_METTA,
+    SHORT_HELP_CHECK,
+    SHORT_HELP_LOAD,
+    SHORT_HELP_METTA,
+)
+
 
 class MettaLoad(Command):
     name = "load"
@@ -95,8 +103,7 @@ class MettaLoad(Command):
         verbose=True,
     )
     def run(self, path: str):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         self._load_metta(path)
 
@@ -149,8 +156,7 @@ class MettaCheck(Command):
             self.validate_file(file_path)
 
     def run(self, path: str):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         if os.path.isdir(path):
             self.validate_directory(

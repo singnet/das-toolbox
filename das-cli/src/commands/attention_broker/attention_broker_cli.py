@@ -1,4 +1,3 @@
-from ctypes.wintypes import SHORT
 from injector import inject
 
 from common import Command, CommandGroup, Settings, StdoutSeverity, StdoutType
@@ -11,9 +10,18 @@ from common.docker.exceptions import (
     DockerError,
 )
 
+from .attention_broker_docs import (
+    HELP_ATTENTION_BROKER,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_ATTENTION_BROKER,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 from .attention_broker_service_response import AttentionBrokerServiceResponse
 
-from .attention_broker_docs import *
 
 class AttentionBrokerStop(Command):
     name = "stop"
@@ -21,7 +29,7 @@ class AttentionBrokerStop(Command):
     short_help = SHORT_HELP_STOP
 
     help = HELP_STOP
-    
+
     @inject
     def __init__(
         self,
@@ -108,12 +116,12 @@ class AttentionBrokerStart(Command):
         self.stdout("Starting Attention Broker service...")
 
         container = self._attention_broker_container_manager.get_container()
-        ab_port = self._attention_broker_container_manager._options.get("attention_broker_port")
+        port = container.port
 
         try:
             self._attention_broker_container_manager.start_container()
 
-            success_message = f"Attention Broker started on port {ab_port}"
+            success_message = f"Attention Broker started on port {port}"
 
             self.stdout(
                 success_message,
@@ -132,7 +140,7 @@ class AttentionBrokerStart(Command):
             )
         except DockerContainerDuplicateError:
             warning_message = (
-                f"Attention Broker is already running. It's listening on port {ab_port}"
+                f"Attention Broker is already running. It's listening on port {port}"
             )
 
             self.stdout(
@@ -152,7 +160,7 @@ class AttentionBrokerStart(Command):
             )
         except DockerError:
             error_message = (
-                f"\nError occurred while trying to start Attention Broker on port {ab_port}\n"
+                f"\nError occurred while trying to start Attention Broker on port {port}\n"
             )
             raise DockerError(error_message)
 
@@ -166,7 +174,7 @@ class AttentionBrokerRestart(Command):
 
     short_help = SHORT_HELP_RESTART
 
-    help = SHORT_HELP_RESTART
+    help = HELP_RESTART
 
     @inject
     def __init__(

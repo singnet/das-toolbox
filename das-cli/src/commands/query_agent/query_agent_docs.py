@@ -1,4 +1,3 @@
-
 HELP_START = """
 NAME
 

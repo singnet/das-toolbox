@@ -83,7 +83,7 @@ class Settings:
             raise FileNotFoundError(
                 f"Configuration file not found in {self.get_path()}. You can run the command `config set` to create a configuration file."
             )
-        
+
     def validate_configuration_file(self):
         self.raise_on_missing_file()
         self.raise_on_schema_mismatch()

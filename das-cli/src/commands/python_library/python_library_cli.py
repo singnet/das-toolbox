@@ -4,9 +4,20 @@ from injector import inject
 
 from common import Choice, Command, CommandGroup, CommandOption, StdoutSeverity, VersionType
 
+from .pylib_docs import (
+    HELP_LIB_LIST,
+    HELP_LIB_SET,
+    HELP_LIB_UPD,
+    HELP_LIB_VERSION,
+    HELP_PYLIB,
+    SHORT_HELP_LIB_LIST,
+    SHORT_HELP_LIB_SET,
+    SHORT_HELP_LIB_UPD,
+    SHORT_HELP_LIB_VERSION,
+    SHORT_HELP_PYLIB,
+)
 from .python_library_package import PackageError, PythonLibraryPackage
 
-from .pylib_docs import * 
 
 class LibraryEnum(Enum):
     HYPERON_DAS = "hyperon-das"

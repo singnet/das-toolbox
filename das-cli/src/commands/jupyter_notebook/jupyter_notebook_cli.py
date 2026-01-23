@@ -63,8 +63,7 @@ class JupyterNotebookStart(Command):
         return self._jupyter_notebook_container_manager.get_container()
 
     def run(self, working_dir: str | None = None):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         self.stdout("Starting Jupyter Notebook...")
 

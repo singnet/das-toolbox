@@ -10,8 +10,17 @@ from common.docker.exceptions import DockerContainerDuplicateError, DockerContai
 from common.prompt_types import PortRangeType
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
+from .inference_agent_docs import (
+    HELP_INFERENCE,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_INFERENCE,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 
-from .inference_agent_docs import * 
 
 class InferenceAgentStop(Command):
     name = "stop"
@@ -79,9 +88,7 @@ class InferenceAgentStop(Command):
             )
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._inference_agent()
 
 

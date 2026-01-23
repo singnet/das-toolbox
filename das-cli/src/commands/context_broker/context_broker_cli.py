@@ -8,8 +8,17 @@ from common.docker.exceptions import DockerContainerDuplicateError, DockerContai
 from common.prompt_types import PortRangeType
 
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
+from .context_broker_docs import (
+    HELP_CONTEXT_BROKER,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_CONTEXT_BROKER,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 
-from .context_broker_docs import *
 
 class ContextBrokerStop(Command):
     name = "stop"

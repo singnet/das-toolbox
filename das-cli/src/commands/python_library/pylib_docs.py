@@ -100,7 +100,9 @@ EXAMPLES
     $ das-cli python-library set --hyperon-das-atomdb=0.4.0
 """
 
-SHORT_HELP_LIB_SET = "Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries"
+SHORT_HELP_LIB_SET = (
+    "Allow setting specific versions for both hyperon-das and hyperon-das-atomdb libraries"
+)
 
 HELP_LIB_UPD = "Update both hyperon-das and hyperon-das-atomdb to the newest available or to a specific version."
 
