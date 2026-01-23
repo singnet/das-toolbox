@@ -114,7 +114,6 @@ class DbStop(Command):
     ]
 
     short_help = SHORT_HELP_DB_COUNT_ATOMS
-
     help = HELP_DB_STOP
 
     @inject
@@ -131,263 +130,87 @@ class DbStop(Command):
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
         self._morkdb_container_manager = morkdb_container_manager
-
         super().__init__()
 
-    def _get_redis_container(self):
-        return self._redis_container_manager.get_container()
+    def _get_container(self, service: str):
+        return {
+            "redis": self._redis_container_manager.get_container,
+            "mongodb": self._mongodb_container_manager.get_container,
+            "morkdb": self._morkdb_container_manager.get_container,
+        }[service.lower()]()
 
-    def _get_mongodb_container(self):
-        return self._mongodb_container_manager.get_container()
+    def _stop_node(self, manager, context: str, ip: str, username: str, prune: bool, service_name: str):
 
-    def _get_morkdb_container(self):
-        return self._morkdb_container_manager.get_container()
-
-    def _redis_node(
-        self,
-        context,
-        ip,
-        username,
-        prune: bool = False,
-    ):
         server_ip = self.get_execution_context().source.get("ip") or ip
 
         try:
-            self._redis_container_manager.set_exec_context(context)
-            self._redis_container_manager.stop(
-                remove_volume=prune,
-                force=prune,
-            )
-            self._redis_container_manager.unset_exec_context()
-
-            self.stdout(
-                f"The Redis service at {server_ip} has been stopped by the server user {username}",
-                severity=StdoutSeverity.SUCCESS,
-            )
+            manager.set_exec_context(context)
+            manager.stop(remove_volume=prune, force=prune)
+            manager.unset_exec_context()
+            self.stdout(f"The {service_name} service at {server_ip} has been stopped by {username}",
+                        severity=StdoutSeverity.SUCCESS)
+            
         except DockerContainerNotFoundError:
-            container_name = self._get_redis_container().name
-            self.stdout(
-                f"The Redis service named {container_name} at {server_ip} is already stopped.",
-                severity=StdoutSeverity.WARNING,
-            )
+            container_name = manager.get_container().name
+            warning_msg = f"The {service_name} service named {container_name} at {server_ip} is already stopped."
+            self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
             self.stdout(
                 dict(
                     DbServiceResponse(
                         action="stop",
                         status="already_stopped",
-                        message=f"The Redis service named {container_name} at {server_ip} is already stopped.",
-                        container=self._get_redis_container(),
+                        message=warning_msg,
+                        container=manager.get_container(),
                         extra_details={
-                            "node": {
-                                "context": context,
-                                "ip": ip,
-                                "username": username,
-                            },
-                            "prune": prune,
+                            "node": {"context": context, "ip": ip, "username": username},
                         },
                     )
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-    def _redis(self, prune: bool = False) -> None:
-        self.stdout("Stopping Redis service...")
+    def _stop_service(self, manager, nodes: list, service_name: str, prune: bool = False, cluster: bool = False):
 
-        redis_nodes = self._settings.get("services.redis.nodes", [])
-        redis_cluster = self._settings.get("services.redis.cluster", False)
-        redis_container = self._get_redis_container()
+        self.stdout(f"Stopping {service_name} service...")
 
         try:
-            for redis_node in redis_nodes:
-                self._redis_node(**redis_node, prune=prune)
+            for node in nodes:
+                self._stop_node(manager, **node, prune=prune, service_name=service_name)
         except DockerError as e:
-            self.stdout(
-                "\nError occurred while trying to stop Redis\n",
-                severity=StdoutSeverity.ERROR,
-            )
+            self.stdout(f"\nError occurred while trying to stop {service_name}\n", severity=StdoutSeverity.ERROR)
             raise e
 
-        success_message = "Redis service stopped successfully"
-
+        success_msg = f"{service_name} service stopped successfully"
         self.stdout(
             dict(
                 DbServiceResponse(
                     action="stop",
                     status="success",
-                    message=success_message,
-                    extra_details={
-                        "cluster": redis_cluster,
-                        "nodes": redis_nodes,
-                        "prune": prune,
-                    },
-                    container=redis_container,
+                    message=success_msg,
+                    container=self._get_container(service_name),
+                    extra_details={"cluster": cluster, "nodes": nodes, "prune": prune},
                 )
             ),
             stdout_type=StdoutType.MACHINE_READABLE,
         )
-
-    def _mongodb_node(
-        self,
-        context,
-        ip,
-        username,
-        prune: bool = False,
-    ) -> None:
-
-        server_ip = self.get_execution_context().source.get("ip") or ip
-
-        try:
-            self._mongodb_container_manager.set_exec_context(context)
-            self._mongodb_container_manager.stop(
-                remove_volume=prune,
-                force=prune,
-            )
-            self._mongodb_container_manager.unset_exec_context()
-
-            self.stdout(
-                f"The MongoDB service at {server_ip} has been stopped by the server user {username}",
-                severity=StdoutSeverity.SUCCESS,
-            )
-
-        except DockerContainerNotFoundError:
-            container_name = self._get_mongodb_container().name
-            warning_message = (
-                f"The MongoDB service named {container_name} at {server_ip} is already stopped."
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="stop",
-                        status="already_stopped",
-                        message=warning_message,
-                        container=self._get_mongodb_container(),
-                        extra_details={
-                            "node": {
-                                "context": context,
-                                "ip": ip,
-                                "username": username,
-                            }
-                        },
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-
-    def _mongodb(self, prune: bool = False) -> None:
-        self.stdout("Stopping MongoDB service...")
-
-        mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
-        mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-
-        try:
-            for mongodb_node in mongodb_nodes:
-                self._mongodb_node(**mongodb_node, prune=prune)
-
-        except DockerError as e:
-            self.stdout(
-                "\nError occurred while trying to stop MongoDB\n",
-                severity=StdoutSeverity.ERROR,
-            )
-            raise e
-
-        success_message = "MongoDB service stopped successfully"
-
-        self.stdout(
-            dict(
-                DbServiceResponse(
-                    action="stop",
-                    status="success",
-                    message=success_message,
-                    extra_details={
-                        "cluster": mongodb_cluster,
-                        "nodes": mongodb_nodes,
-                        "prune": prune,
-                    },
-                    container=self._get_mongodb_container(),
-                )
-            ),
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
-
-    def _morkdb(self, prune: bool = False) -> None:
-        self.stdout("Stopping MorkDB service...")
-
-        try:
-            self._morkdb_container_manager.stop(
-                remove_volume=prune,
-                force=prune,
-            )
-
-            success_message = "MorkDB service stopped successfully"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="stop",
-                        status="success",
-                        message=success_message,
-                        container=self._get_morkdb_container(),
-                        extra_details={
-                            "prune": prune,
-                        },
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-        except DockerContainerNotFoundError:
-            container_name = self._get_morkdb_container().name
-            warning_message = f"The MorkDB service named {container_name} is already stopped."
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="stop",
-                        status="already_stopped",
-                        message=warning_message,
-                        container=self._get_morkdb_container(),
-                        extra_details={
-                            "prune": prune,
-                        },
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-        except DockerError as e:
-            self.stdout(
-                "\nError occurred while trying to stop MorkDB\n",
-                severity=StdoutSeverity.ERROR,
-            )
-            raise e
 
     def run(self, prune: bool = False) -> None:
         self._settings.validate_configuration_file()
 
         for provider in self._atomdb_backend.get_active_providers():
+
             if isinstance(provider, MongoDBRedisBackend):
-                self._redis(prune)
-                self._mongodb(prune)
+                self._stop_service(self._redis_container_manager, self._settings.get("services.redis.nodes", []), "Redis", prune, self._settings.get("services.redis.cluster", False))
+                self._stop_service(self._mongodb_container_manager, self._settings.get("services.mongodb.nodes", []), "MongoDB", prune, self._settings.get("services.mongodb.cluster", False))
 
             elif isinstance(provider, MorkMongoDBBackend):
-                self._mongodb(prune)
-                self._morkdb(prune)
+                self._stop_service(self._mongodb_container_manager, self._settings.get("services.mongodb.nodes", []), "MongoDB", prune, self._settings.get("services.mongodb.cluster", False))
+                self._stop_service(self._morkdb_container_manager, [{}], "MorkDB", prune)
 
 
 class DbStart(Command):
     name = "start"
-
     short_help = SHORT_HELP_DB_START
-
     help = HELP_DB_START
 
     @inject
@@ -399,351 +222,157 @@ class DbStart(Command):
         mongodb_container_manager: MongodbContainerManager,
         morkdb_container_manager: MorkdbContainerManager,
     ) -> None:
-        self._atomdb_backend = atomdb_backend
         self._settings = settings
+        self._atomdb_backend = atomdb_backend
         self._redis_container_manager = redis_container_manager
         self._mongodb_container_manager = mongodb_container_manager
         self._morkdb_container_manager = morkdb_container_manager
-
         super().__init__()
 
-    def _get_redis_container(self):
-        return self._redis_container_manager.get_container()
+    def _get_container(self, service: str):
 
-    def _get_mongodb_container(self):
-        return self._mongodb_container_manager.get_container()
+        return {
+            "redis": self._redis_container_manager.get_container,
+            "mongodb": self._mongodb_container_manager.get_container,
+            "morkdb": self._morkdb_container_manager.get_container,
+        }[service.lower()]()
 
-    def _get_morkdb_container(self):
-        return self._morkdb_container_manager.get_container()
+    def _start_node(self, container_manager, node: dict, service_name: str, **kwargs):
 
-    def _redis_node(
-        self,
-        redis_node: dict,
-        redis_port: int,
-        redis_cluster: bool,
-    ) -> None:
-        node_context = redis_node.get("context", "")
-        node_ip = redis_node.get("ip", "")
-        node_username = redis_node.get("username", "")
+        node_context = node.get("context", "")
+        node_ip = node.get("ip", "")
+        node_username = node.get("username", "")
         public_ip = self.get_execution_context().source.get("ip") or node_ip
 
         try:
-
             if node_context and node_context != "default":
-                self._redis_container_manager.set_exec_context(node_context)
+                container_manager.set_exec_context(node_context)
             else:
-                self._redis_container_manager.unset_exec_context()
+                container_manager.unset_exec_context()
 
-            self._redis_container_manager.start_container(
-                redis_port,
-                node_username,
-                node_ip,
-                redis_cluster,
-            )
-            self._redis_container_manager.unset_exec_context()
+            if service_name.lower() == "redis":
+                container_manager.start_container(kwargs["port"], node_username, node_ip, kwargs.get("cluster", False))
+            elif service_name.lower() == "mongodb":
+                container_manager.start_container(
+                    kwargs["port"], kwargs["username"], kwargs["password"],
+                    kwargs.get("cluster_node"), kwargs.get("cluster_key")
+                )
 
-            success_message = f"Redis has started successfully on port {redis_port} at {public_ip}, operating under the server user {node_username}."
+            elif service_name == "morkdb":
+                container_manager.start_container()
 
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
+            container_manager.unset_exec_context()
+
+            success_msg = f"{service_name.capitalize()} has started successfully at {public_ip}"
+            self.stdout(success_msg, severity=StdoutSeverity.SUCCESS)
             self.stdout(
                 dict(
                     DbServiceResponse(
                         action="start",
                         status="success",
-                        message=success_message,
-                        container=self._redis_container_manager.get_container(),
-                        extra_details={
-                            "node": {
-                                "context": node_context,
-                                "ip": public_ip,
-                                "username": node_username,
-                            },
-                            "cluster": redis_cluster,
-                        },
+                        message=success_msg,
+                        container=container_manager.get_container(),
+                        extra_details=node,
                     )
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerContainerDuplicateError:
-            warning_message = f"Redis is already running. It is currently listening on port {redis_port} at {node_ip} under the server user {node_username}."
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            warning_msg = f"{service_name.capitalize()} is already running at {public_ip}"
+            self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
             self.stdout(
                 dict(
                     DbServiceResponse(
                         action="start",
                         status="already_running",
-                        message=warning_message,
-                        container=self._get_redis_container(),
-                        extra_details={
-                            "node": {
-                                "context": node_context,
-                                "ip": node_ip,
-                                "username": node_username,
-                            },
-                            "cluster": redis_cluster,
-                        },
+                        message=warning_msg,
+                        container=container_manager.get_container(),
+                        extra_details=node,
                     )
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-        except DockerError:
-
-            self.stdout(
-                f"\nError occurred while trying to start Redis on port {redis_port} at {node_ip} under the server user {node_username}.\n",
-                severity=StdoutSeverity.ERROR,
-            )
-
-    def _redis(self) -> None:
-        self.stdout("Starting Redis service...")
-
-        redis_port = self._settings.get("services.redis.port")
-        redis_nodes = self._settings.get("services.redis.nodes", [])
-        redis_cluster = self._settings.get("services.redis.cluster", False)
-
-        for redis_node in redis_nodes:
-            self._redis_node(redis_node, redis_port, redis_cluster)
-
-        if redis_cluster:
-            try:
-                self._redis_container_manager.start_cluster(redis_nodes, redis_port)
-            except Exception as e:
-                self.stdout(
-                    "\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
-                    severity=StdoutSeverity.ERROR,
-                )
-                raise e
-
-        self.stdout(
-            dict(
-                DbServiceResponse(
-                    action="start",
-                    status="success",
-                    message=f"Redis started successfully on port {redis_port}",
-                    extra_details={
-                        "cluster": redis_cluster,
-                        "nodes": redis_nodes,
-                    },
-                    container=self._get_redis_container(),
-                )
-            ),
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
-
-    def _mongodb_node(
-        self,
-        mongodb_node: dict,
-        mongodb_port: int,
-        mongodb_username: str,
-        mongodb_password: str,
-        is_cluster_enabled: bool = False,
-        mongodb_cluster_secret_key: Union[AnyStr, None] = None,
-    ) -> None:
-        node_context = str(mongodb_node.get("context"))
-        node_ip = str(mongodb_node.get("ip"))
-        node_username = str(mongodb_node.get("username"))
-        public_ip = self.get_execution_context().source.get("ip") or node_ip
-
-        cluster_node = (
-            dict(
-                host=node_ip,
-                username=node_username,
-            )
-            if is_cluster_enabled
-            else None
-        )
-
-        try:
-            self._mongodb_container_manager.set_exec_context(node_context)
-            self._mongodb_container_manager.start_container(
-                mongodb_port,
-                mongodb_username,
-                mongodb_password,
-                cluster_node,
-                mongodb_cluster_secret_key,
-            )
-            self._mongodb_container_manager.unset_exec_context()
-
-            success_message = f"MongoDB has started successfully on port {mongodb_port} at {public_ip}, operating under the server user {node_username}."
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="start",
-                        status="success",
-                        message=success_message,
-                        container=self._get_mongodb_container(),
-                        extra_details={
-                            "node": {
-                                "context": node_context,
-                                "ip": public_ip,
-                                "username": node_username,
-                            },
-                            "cluster": is_cluster_enabled,
-                        },
-                    ),
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-        except DockerContainerDuplicateError:
-            warning_message = f"MongoDB is already running. It is currently listening on port {mongodb_port} at {public_ip} under the server user {node_username}."
-
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=self._get_mongodb_container(),
-                        extra_details={
-                            "node": {
-                                "context": node_context,
-                                "ip": node_ip,
-                                "username": node_username,
-                            },
-                            "cluster": is_cluster_enabled,
-                        },
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
         except DockerError as e:
-            self.stdout(
-                f"\nError occurred while trying to start MongoDB on port {mongodb_port}\n",
-                severity=StdoutSeverity.ERROR,
-            )
+            self.stdout(f"\nError occurred while trying to start {service_name} at {public_ip}\n",
+                        severity=StdoutSeverity.ERROR)
             raise e
 
-    def _mongodb(self) -> None:
-        self.stdout("Starting MongoDB service...")
+    def _start_service(self, manager, nodes: list, service_name: str, **kwargs):
 
-        mongodb_port = self._settings.get("services.mongodb.port")
-        mongodb_username = self._settings.get("services.mongodb.username")
-        mongodb_password = self._settings.get("services.mongodb.password")
-        mongodb_nodes = self._settings.get("services.mongodb.nodes", [])
-        mongodb_cluster = self._settings.get("services.mongodb.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get("services.mongodb.cluster_secret_key")
+        self.stdout(f"Starting {service_name} service...")
+        for node in nodes:
+            self._start_node(manager, node, service_name, **kwargs)
 
-        for mongodb_node in mongodb_nodes:
-            self._mongodb_node(
-                mongodb_node,
-                mongodb_port,
-                mongodb_username,
-                mongodb_password,
-                mongodb_cluster,
-                mongodb_cluster_secret_key,
-            )
-
-        if mongodb_cluster:
+        if kwargs.get("cluster", False) and service_name.lower() in ("redis", "mongodb"):
             try:
-                self._mongodb_container_manager.start_cluster(
-                    mongodb_nodes,
-                    mongodb_port,
-                    mongodb_username,
-                    mongodb_password,
-                )
-            except Exception as e:
+                if service_name.lower() == "redis":
+                    manager.start_cluster(nodes, kwargs["port"])
+                else:
+                    manager.start_cluster(nodes, kwargs["port"], kwargs["username"], kwargs["password"])
+            except Exception:
                 self.stdout(
-                    "\nFailed to start the cluster. Please check the conectivity between the nodes and try again.\n",
+                    f"\nFailed to start {service_name} cluster. Please check connectivity between nodes.\n",
                     severity=StdoutSeverity.ERROR,
                 )
-                raise e
+                raise
 
         self.stdout(
             dict(
                 DbServiceResponse(
                     action="start",
                     status="success",
-                    message=f"MongoDB started successfully on port {mongodb_port}",
-                    container=self._mongodb_container_manager.get_container(),
-                    extra_details={
-                        "cluster": mongodb_cluster,
-                        "nodes": mongodb_nodes,
-                    },
+                    message=f"{service_name.capitalize()} started successfully",
+                    container=manager.get_container(),
+                    extra_details={"cluster": kwargs.get("cluster", False), "nodes": nodes},
                 )
             ),
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-    def _morkdb(self) -> None:
-        self.stdout("Starting MorkDB service...")
-
-        morkdb_port = self._settings.get("services.morkdb.port")
-
-        try:
-            self._morkdb_container_manager.start_container()
-
-            success_message = f"MorkDB has started successfully on port {morkdb_port}"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="start",
-                        status="success",
-                        message=success_message,
-                        container=self._get_morkdb_container(),
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-        except DockerContainerDuplicateError:
-            warning_message = (
-                f"MorkDB is already running. It is currently listening on port {morkdb_port}"
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    DbServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=self._get_mongodb_container(),
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-        except DockerError:
-            self.stdout(
-                f"\nError occurred while trying to start MorkDB on port {morkdb_port}.\n",
-                severity=StdoutSeverity.ERROR,
-            )
-
     def run(self):
-
         self._settings.validate_configuration_file()
-
         for provider in self._atomdb_backend.get_active_providers():
 
             if isinstance(provider, MongoDBRedisBackend):
-                self._redis()
-                self._mongodb()
+                self._start_service(
+                    self._redis_container_manager,
+                    self._settings.get("services.redis.nodes", []),
+                    service_name="Redis",
+                    port=self._settings.get("services.redis.port"),
+                    cluster=self._settings.get("services.redis.cluster", False),
+                )
+
+                self._start_service(
+                    self._mongodb_container_manager,
+                    self._settings.get("services.mongodb.nodes", []),
+                    service_name="MongoDB",
+                    port=self._settings.get("services.mongodb.port"),
+                    username=self._settings.get("services.mongodb.username"),
+                    password=self._settings.get("services.mongodb.password"),
+                    cluster=self._settings.get("services.mongodb.cluster", False),
+                    cluster_key=self._settings.get("services.mongodb.cluster_secret_key"),
+                )
 
             elif isinstance(provider, MorkMongoDBBackend):
-                self._mongodb()
-                self._morkdb()
 
+                self._start_service(
+                    self._mongodb_container_manager,
+                    self._settings.get("services.mongodb.nodes", []),
+                    service_name="Redis",
+                    port=self._settings.get("services.mongodb.port"),
+                    username=self._settings.get("services.mongodb.username"),
+                    password=self._settings.get("services.mongodb.password"),
+                    cluster=self._settings.get("services.mongodb.cluster", False),
+                    cluster_key=self._settings.get("services.mongodb.cluster_secret_key"),
+                )
+
+                self._start_service(
+                    self._morkdb_container_manager,
+                    [{}],
+                    service_name="MorkDB",
+                )
 
 class DbRestart(Command):
     name = "restart"
