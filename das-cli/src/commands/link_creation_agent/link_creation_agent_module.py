@@ -2,9 +2,8 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
-from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.agents.query_agent_manager_factory import QueryAgentManagerFactory
+from common.factory.container_manager_factory import (ContainerTypes, ContainerManagerFactory, QueryAgentContainerManager)
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
@@ -25,7 +24,10 @@ class LinkCreationAgentModule(Module):
         self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependency_list = [
-            (QueryAgentContainerManager, QueryAgentManagerFactory().build()),
+            (
+                QueryAgentContainerManager,
+                ContainerManagerFactory().build(ContainerTypes.QUERY_AGENT),
+            ),
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(

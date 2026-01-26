@@ -6,19 +6,8 @@ from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverit
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
 )
-from common.container_manager.agents.context_broker_container_manager import (
-    ContextBrokerContainerManager,
-)
-from common.container_manager.agents.evolution_agent_container_manager import (
-    EvolutionAgentContainerManager,
-)
-from common.container_manager.agents.inference_agent_container_manager import (
-    InferenceAgentContainerManager,
-)
-from common.container_manager.agents.link_creation_agent_container_manager import (
-    LinkCreationAgentContainerManager,
-)
-from common.container_manager.agents.query_agent_container_manager import QueryAgentContainerManager
+from common.factory.container_manager_factory import (QueryAgentContainerManager, LCAContainerManager, EvolutionAgentContainerManager, InferenceAgentContainerManager, ContextBrokerContainerManager, )
+
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 from common.decorators import ensure_container_running
@@ -341,7 +330,7 @@ $ das-cli logs link-creation-agent
     def __init__(
         self,
         settings: Settings,
-        link_creation_container_manager: LinkCreationAgentContainerManager,
+        link_creation_container_manager: LCAContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
