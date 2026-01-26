@@ -4,8 +4,8 @@ from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverit
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
-from common.prompt_types import PortRangeType
 from common.factory.container_manager_factory import QueryAgentContainerManager
+from common.prompt_types import PortRangeType
 
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
 

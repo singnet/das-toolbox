@@ -1,7 +1,6 @@
 from injector import inject
 
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
-from common.factory.container_manager_factory import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -9,6 +8,7 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.factory.container_manager_factory import QueryAgentContainerManager
 from common.prompt_types import PortRangeType
 
 from .evolution_agent_service_response import EvolutionAgentServiceResponse

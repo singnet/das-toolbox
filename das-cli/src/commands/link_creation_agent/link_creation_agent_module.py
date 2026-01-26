@@ -3,8 +3,12 @@ import os
 from common import Module
 from common.config.store import JsonConfigStore
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.container_manager_factory import (ContainerTypes, ContainerManagerFactory, QueryAgentContainerManager)
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
+from common.factory.container_manager_factory import (
+    ContainerManagerFactory,
+    ContainerTypes,
+    QueryAgentContainerManager,
+)
 from settings.config import SECRETS_PATH
 
 from .link_creation_agent_cli import (

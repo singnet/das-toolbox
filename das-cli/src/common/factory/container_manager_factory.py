@@ -1,37 +1,40 @@
+import os
 from enum import Enum
-import os
 
 from common import Settings
 from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
+from common.docker.container_manager import (
+    Container,
+    ContainerImageMetadata,
+    ContainerManager,
+    ContainerMetadata,
+)
+from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION, SECRETS_PATH
 
-from common.docker.container_manager import ContainerManager
-from common.docker.container_manager import Container, ContainerMetadata, ContainerImageMetadata
-from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
-
-import os
-
-from common import Settings
-from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
 
 class AtomDbBrokerContainerManager(ContainerManager):
     pass
 
+
 class ContextBrokerContainerManager(ContainerManager):
     pass
+
 
 class LCAContainerManager(ContainerManager):
     pass
 
+
 class EvolutionAgentContainerManager(ContainerManager):
     pass
+
 
 class InferenceAgentContainerManager(ContainerManager):
     pass
 
+
 class QueryAgentContainerManager(ContainerManager):
     pass
+
 
 class ContainerTypes(Enum):
     CONTEXT_BROKER = ContextBrokerContainerManager
@@ -49,19 +52,19 @@ class ContainerManagerFactory:
 
     def build(self, type: ContainerTypes):
 
-        settings_key=type.name.lower()
+        settings_key = type.name.lower()
 
         container_name = self._settings.get(f"services.{settings_key}.container_name")
         container_port = self._settings.get(f"services.{settings_key}.port")
 
-        container_image_metadata = {
+        container_image_metadata: ContainerImageMetadata = {
             "name": DAS_IMAGE_NAME,
-            "version": DAS_IMAGE_VERSION
+            "version": DAS_IMAGE_VERSION,
         }
 
-        container_data = {
+        container_data: ContainerMetadata = {
             "port": container_port,
-            "image": container_image_metadata
+            "image": container_image_metadata,
         }
 
         container = Container(name=container_name, metadata=container_data)
