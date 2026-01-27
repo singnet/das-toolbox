@@ -5,6 +5,13 @@ from common.config.store import JsonConfigStore
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
 )
+from common.container_manager.agents.generic_agent_containers import (
+    ContextBrokerContainerManager,
+    EvolutionAgentContainerManager,
+    InferenceAgentContainerManager,
+    LCAContainerManager,
+    QueryAgentContainerManager,
+)
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
@@ -13,11 +20,6 @@ from common.factory.attention_broker_manager_factory import AttentionBrokerManag
 from common.factory.container_manager_factory import (
     ContainerManagerFactory,
     ContainerTypes,
-    ContextBrokerContainerManager,
-    EvolutionAgentContainerManager,
-    InferenceAgentContainerManager,
-    LCAContainerManager,
-    QueryAgentContainerManager,
 )
 from settings.config import SECRETS_PATH
 

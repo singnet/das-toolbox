@@ -6,16 +6,16 @@ from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverit
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
 )
-from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
-from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
-from common.decorators import ensure_container_running
-from common.factory.container_manager_factory import (
+from common.container_manager.agents.generic_agent_containers import (
     ContextBrokerContainerManager,
     EvolutionAgentContainerManager,
     InferenceAgentContainerManager,
     LCAContainerManager,
     QueryAgentContainerManager,
 )
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
+from common.decorators import ensure_container_running
 from settings.config import LOG_FILE_NAME
 
 
