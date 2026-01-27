@@ -1,9 +1,8 @@
 from injector import inject
 
 from common import Command, CommandGroup, Settings, StdoutType
+from common.container_manager.system_containers_manager import SystemContainersManager
 from common.utils import print_table
-
-from .system_containers_manager import SystemContainersManager
 
 
 class SystemStatus(Command):

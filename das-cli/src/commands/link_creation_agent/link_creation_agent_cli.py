@@ -1,8 +1,8 @@
 from injector import inject
 
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
-from common.bus_node.busnode_container_manager import BusNodeContainerManager
+from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
+from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
 from common.prompt_types import PortRangeType
@@ -55,6 +55,7 @@ EXAMPLES
         container = self._get_container()
 
         try:
+
             self.stdout("Stopping Link Creation Agent service...")
             self._link_creation_agent_manager.stop()
 
@@ -75,6 +76,7 @@ EXAMPLES
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerNotFoundError:
             warning_message = (
                 f"The Link Creation Agent service named {container.name} is already stopped."

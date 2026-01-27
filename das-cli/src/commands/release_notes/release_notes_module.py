@@ -7,4 +7,4 @@ from .release_notes_cli import ReleaseNotesCli
 
 class ReleaseNotesModule(Module):
     _instance = ReleaseNotesCli
-    _dependecy_injection: List = []
+    _dependency_list: List = []

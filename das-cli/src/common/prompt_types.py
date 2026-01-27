@@ -1,6 +1,6 @@
+import json
 import os
 import re
-import json
 from typing import Optional
 
 from click import ParamType
@@ -24,7 +24,15 @@ class ReachableIpAddress(ParamType):
             start_port=22,
             end_port=self.port,
         ):
-            self.fail("It appears that the port %s on %s is not open." % (self.port, value,), param, ctx)
+            self.fail(
+                "It appears that the port %s on %s is not open."
+                % (
+                    self.port,
+                    value,
+                ),
+                param,
+                ctx,
+            )
 
         if not is_ssh_server_reachable(
             {
@@ -94,7 +102,7 @@ class PortRangeType(ParamType):
 class KeyValueType(ParamType):
     name = "key-value"
 
-    def check_if_nodes_config(self, key:str, val:str) -> bool:
+    def check_if_nodes_config(self, key: str, val: str) -> bool:
         return "nodes" in key and "root" in val
 
     def convert_value_to_json(self, value: str) -> dict:
@@ -113,10 +121,14 @@ class KeyValueType(ParamType):
             try:
                 val = self.convert_value_to_json(raw_value)
             except json.JSONDecodeError:
-                self.fail("Invalid JSON format for value.", param, ctx) 
+                self.fail("Invalid JSON format for value.", param, ctx)
 
         if self.check_if_nodes_config(key, val):
-            self.fail("Using 'root' in node configuration is discouraged. Try setting a different username.", param, ctx)
+            self.fail(
+                "Using 'root' in node configuration is discouraged. Try setting a different username.",
+                param,
+                ctx,
+            )
 
         return key, val
 

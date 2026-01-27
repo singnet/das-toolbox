@@ -7,7 +7,7 @@ from common.docker import ContainerManager
 from common.docker.exceptions import DockerContainerDuplicateError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
-from .busnode_command_registry import BusNodeCommandRegistry
+from ..bus_node.busnode_command_registry import BusNodeCommandRegistry
 
 
 class BusNodeContainerManager(ContainerManager):

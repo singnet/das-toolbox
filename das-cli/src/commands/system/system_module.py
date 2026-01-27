@@ -2,9 +2,12 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
+from common.container_manager.system_containers_manager import SystemContainersManager
+from common.factory.system_containers_factory import SystemContainerManagerFactory
+from common.settings import Settings
 from settings.config import SECRETS_PATH
 
-from .system_cli import Settings, SystemCli, SystemContainersManager
+from .system_cli import SystemCli
 
 
 class SystemModule(Module):
@@ -15,18 +18,10 @@ class SystemModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
-        self._dependecy_injection = [
-            (
-                SystemContainersManager,
-                self._system_containers_manager_factory,
-            ),
+        self._dependency_list = [
+            (SystemContainersManager, SystemContainerManagerFactory().build()),
             (
                 Settings,
                 self._settings,
             ),
         ]
-
-    def _system_containers_manager_factory(self) -> SystemContainersManager:
-        return SystemContainersManager(
-            settings=self._settings,
-        )

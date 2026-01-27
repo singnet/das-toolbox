@@ -2,6 +2,7 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
+from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
 from settings.config import SECRETS_PATH
 
 from .attention_broker_cli import AttentionBrokerCli, AttentionBrokerManager, Settings
@@ -15,26 +16,10 @@ class AttentionBrokerModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
-        self._dependecy_injection = [
-            (
-                AttentionBrokerManager,
-                self._attention_broker_container_manager_factory,
-            ),
+        self._dependency_list = [
+            (AttentionBrokerManager, AttentionBrokerManagerFactory().build()),
             (
                 Settings,
                 self._settings,
             ),
         ]
-
-    def _attention_broker_container_manager_factory(self) -> AttentionBrokerManager:
-        attention_broker_port = str(self._settings.get("services.attention_broker.port"))
-
-        container_name = self._settings.get("services.attention_broker.container_name")
-
-        return AttentionBrokerManager(
-            container_name,
-            options={
-                "attention_broker_port": attention_broker_port,
-                "attention_broker_hostname": "0.0.0.0",
-            },
-        )

@@ -10,7 +10,7 @@ class DasModule(Module):
     def __init__(self):
         super().__init__()
 
-        self._dependecy_injection = [
+        self._dependency_list = [
             (
                 DasUbuntuAdvancedPackagingTool,
                 self._das_ubuntu_advanced_packaging_tool_factory,

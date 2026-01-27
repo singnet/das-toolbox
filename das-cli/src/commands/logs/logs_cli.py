@@ -2,21 +2,19 @@ from time import sleep
 
 from injector import inject
 
-from commands.attention_broker.attention_broker_container_manager import AttentionBrokerManager
-from commands.context_broker.context_broker_container_manager import ContextBrokerContainerManager
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
-from commands.evolution_agent.evolution_agent_container_manager import (
-    EvolutionAgentContainerManager,
-)
-from commands.inference_agent.inference_agent_container_manager import (
-    InferenceAgentContainerManager,
-)
-from commands.link_creation_agent.link_creation_agent_container_manager import (
-    LinkCreationAgentContainerManager,
-)
-from commands.query_agent.query_agent_container_manager import QueryAgentContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common.container_manager.agents.attention_broker_container_manager import (
+    AttentionBrokerManager,
+)
+from common.container_manager.agents.generic_agent_containers import (
+    ContextBrokerContainerManager,
+    EvolutionAgentContainerManager,
+    InferenceAgentContainerManager,
+    LCAContainerManager,
+    QueryAgentContainerManager,
+)
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 from common.decorators import ensure_container_running
 from settings.config import LOG_FILE_NAME
 
@@ -337,7 +335,7 @@ $ das-cli logs link-creation-agent
     def __init__(
         self,
         settings: Settings,
-        link_creation_container_manager: LinkCreationAgentContainerManager,
+        link_creation_container_manager: LCAContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings

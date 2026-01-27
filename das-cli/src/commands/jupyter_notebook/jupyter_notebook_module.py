@@ -3,10 +3,13 @@ import os
 from commands.config.config_cli import Settings
 from common import Module
 from common.config.store import JsonConfigStore
+from common.container_manager.agents.jupyter_notebook_container_manager import (
+    JupyterNotebookContainerManager,
+)
+from common.factory.jupyter_notebook_manager_factory import JupyterNotebookManagerFactory
 from settings.config import SECRETS_PATH
 
 from .jupyter_notebook_cli import JupyterNotebookCli
-from .jupyter_notebook_container_manager import JupyterNotebookContainerManager
 
 
 class JupyterNotebookModule(Module):
@@ -17,28 +20,10 @@ class JupyterNotebookModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
-        self._dependecy_injection = [
-            (
-                JupyterNotebookContainerManager,
-                self._jupyter_notebook_container_manager_factory,
-            ),
+        self._dependency_list = [
+            (JupyterNotebookContainerManager, JupyterNotebookManagerFactory().build()),
             (
                 Settings,
                 self._settings,
             ),
         ]
-
-    def _jupyter_notebook_container_manager_factory(
-        self,
-    ) -> JupyterNotebookContainerManager:
-        container_name = self._settings.get("services.jupyter_notebook.container_name")
-        jupyter_notebook_port = self._settings.get("services.jupyter_notebook.port")
-        jupyter_notebook_hostname = "0.0.0.0"
-
-        return JupyterNotebookContainerManager(
-            container_name,
-            options={
-                "jupyter_notebook_port": jupyter_notebook_port,
-                "jupyter_notebook_hostname": jupyter_notebook_hostname,
-            },
-        )

@@ -5,14 +5,14 @@ from injector import Module as InjectorModule
 
 
 class Module(InjectorModule):
-    _dependecy_injection: List = []
+    _dependency_list: List = [tuple[Any, Any]]
     _instance: Any
 
     def __init__(self) -> None:
         super().__init__()
 
     def configure(self, binder: Binder) -> None:
-        for module in self._dependecy_injection:
+        for module in self._dependency_list:
             binder.bind(
                 interface=module[0],
                 to=module[1],

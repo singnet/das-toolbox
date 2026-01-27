@@ -2,16 +2,20 @@ from typing import AnyStr, Union
 
 from injector import inject
 
-from commands.db.atomdb_backend import AtomdbBackend, MongoDBRedisBackend, MorkMongoDBBackend
-from commands.db.mongodb_container_manager import MongodbContainerManager
-from commands.db.morkdb_container_manager import MorkdbContainerManager
-from commands.db.redis_container_manager import RedisContainerManager
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
+from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
+from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
     DockerContainerDuplicateError,
     DockerContainerNotFoundError,
     DockerError,
+)
+from common.factory.atomdb.atomdb_backend import (
+    AtomdbBackend,
+    MongoDBRedisBackend,
+    MorkMongoDBBackend,
 )
 
 from .db_service_response import DbServiceResponse
@@ -781,10 +785,12 @@ $ das-cli db start
             )
 
     def run(self):
+
         self._settings.raise_on_missing_file()
         self._settings.raise_on_schema_mismatch()
 
         for provider in self._atomdb_backend.get_active_providers():
+
             if isinstance(provider, MongoDBRedisBackend):
                 self._redis()
                 self._mongodb()
