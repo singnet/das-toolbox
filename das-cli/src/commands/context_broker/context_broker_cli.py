@@ -8,32 +8,24 @@ from common.docker.exceptions import DockerContainerDuplicateError, DockerContai
 from common.prompt_types import PortRangeType
 
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
+from .context_broker_docs import (
+    HELP_CONTEXT_BROKER,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_CONTEXT_BROKER,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 
 
 class ContextBrokerStop(Command):
     name = "stop"
 
-    short_help = "Stop the Context Broker service."
+    short_help = SHORT_HELP_STOP
 
-    help = """
-NAME
-
-    stop - Stop the Context Broker service
-
-SYNOPSIS
-
-    das-cli context-broker stop
-
-DESCRIPTION
-
-    Stops the running Context Broker service.
-
-EXAMPLES
-
-    To stop a running Context Broker service:
-
-    $ das-cli context-broker stop
-"""
+    help = HELP_STOP
 
     @inject
     def __init__(
@@ -90,9 +82,7 @@ EXAMPLES
             )
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._context_broker()
 
 
@@ -120,27 +110,9 @@ class ContextBrokerStart(Command):
         ),
     ]
 
-    short_help = "Start the Context Broker service."
+    short_help = SHORT_HELP_START
 
-    help = """
-NAME
-
-    start - Start the Context Broker service
-
-SYNOPSIS
-
-    das-cli context-broker start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
-
-DESCRIPTION
-
-    Initializes and runs the Context Broker service.
-
-EXAMPLES
-
-    To start the Context Broker service:
-
-        $ das-cli context-broker start --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
-"""
+    help = HELP_START
 
     @inject
     def __init__(
@@ -213,9 +185,7 @@ EXAMPLES
         verbose=False,
     )
     def run(self, port_range: str, **kwargs) -> None:
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._context_broker(port_range, **kwargs)
 
 
@@ -243,30 +213,9 @@ class ContextBrokerRestart(Command):
         ),
     ]
 
-    short_help = "Restart the Context Broker service."
+    short_help = SHORT_HELP_RESTART
 
-    help = """
-NAME
-
-    restart - Restart the Context Broker service
-
-SYNOPSIS
-
-    das-cli context-broker restart [--peer-hostname <hostname>] [--peer-port <port>]  [--port-range <start:end>]
-
-DESCRIPTION
-
-    Stops and then starts the Context Broker service.
-
-    This command ensures a instance of the Context Broker is running.
-
-EXAMPLES
-
-    To restart the Context Broker service:
-
-        $ das-cli context-broker restart --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
-
-"""
+    help = HELP_RESTART
 
     @inject
     def __init__(
@@ -288,51 +237,9 @@ class ContextBrokerCli(CommandGroup):
 
     aliases = ["con", "context"]
 
-    short_help = "Manage the Context Broker service."
+    short_help = SHORT_HELP_CONTEXT_BROKER
 
-    help = """
-NAME
-
-    context-broker - Manage the Context Broker service
-
-SYNOPSIS
-
-    das-cli context-broker <command> [options]
-
-DESCRIPTION
-
-    Provides commands to control the Context Broker service.
-
-    Use this command group to start, stop, or restart the service.
-
-COMMANDS
-
-    start
-
-        Start the Context Broker service.
-
-    stop
-
-        Stop the Context Broker service.
-
-    restart
-
-        Restart the Context Broker service.
-
-EXAMPLES
-
-    Start the Context Broker service:
-
-        $ das-cli context-broker start --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
-
-    Stop the Context Broker service:
-
-        $ das-cli context-broker stop
-
-    Restart the Context Broker service:
-
-        $ das-cli context-broker restart --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
-"""
+    help = HELP_CONTEXT_BROKER
 
     @inject
     def __init__(

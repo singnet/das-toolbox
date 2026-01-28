@@ -10,36 +10,25 @@ from common.docker.exceptions import (
     DockerError,
 )
 
+from .attention_broker_docs import (
+    HELP_ATTENTION_BROKER,
+    HELP_RESTART,
+    HELP_START,
+    HELP_STOP,
+    SHORT_HELP_ATTENTION_BROKER,
+    SHORT_HELP_RESTART,
+    SHORT_HELP_START,
+    SHORT_HELP_STOP,
+)
 from .attention_broker_service_response import AttentionBrokerServiceResponse
 
 
 class AttentionBrokerStop(Command):
     name = "stop"
 
-    short_help = "Stop the running Attention Broker service"
+    short_help = SHORT_HELP_STOP
 
-    help = """
-NAME
-
-    das-cli attention-broker stop - Stop the running Attention Broker service
-
-SYNOPSIS
-
-    das-cli attention-broker stop
-
-DESCRIPTION
-
-    Stops the currently running Attention Broker container. This halts the processing of messages
-    and deactivates the broker until it is explicitly started again.
-
-    If the service is already stopped, a warning message is displayed.
-
-EXAMPLES
-
-    Stop the running Attention Broker service:
-
-        $ das-cli attention-broker stop
-"""
+    help = HELP_STOP
 
     @inject
     def __init__(
@@ -76,6 +65,7 @@ EXAMPLES
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerNotFoundError:
             container_name = self._attention_broker_manager.get_container().name
             warning_message = (
@@ -98,39 +88,16 @@ EXAMPLES
             )
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._attention_broker()
 
 
 class AttentionBrokerStart(Command):
     name = "start"
 
-    short_help = "Start the Attention Broker service."
+    short_help = SHORT_HELP_START
 
-    help = """
-NAME
-
-    das-cli attention-broker start - Start the Attention Broker service
-
-SYNOPSIS
-
-    das-cli attention-broker start
-
-DESCRIPTION
-
-    Starts the Attention Broker service in a Docker container. If the service is already running,
-    a warning will be shown.
-
-    The broker begins listening on the configured port and processes messages accordingly.
-
-EXAMPLES
-
-    Start the Attention Broker service:
-
-        $ das-cli attention-broker start
-"""
+    help = HELP_START
 
     @inject
     def __init__(
@@ -149,12 +116,12 @@ EXAMPLES
         self.stdout("Starting Attention Broker service...")
 
         container = self._attention_broker_container_manager.get_container()
-        ab_port = self._attention_broker_container_manager._options.get("attention_broker_port")
+        port = container.port
 
         try:
             self._attention_broker_container_manager.start_container()
 
-            success_message = f"Attention Broker started on port {ab_port}"
+            success_message = f"Attention Broker started on port {port}"
 
             self.stdout(
                 success_message,
@@ -173,7 +140,7 @@ EXAMPLES
             )
         except DockerContainerDuplicateError:
             warning_message = (
-                f"Attention Broker is already running. It's listening on port {ab_port}"
+                f"Attention Broker is already running. It's listening on port {port}"
             )
 
             self.stdout(
@@ -193,44 +160,21 @@ EXAMPLES
             )
         except DockerError:
             error_message = (
-                f"\nError occurred while trying to start Attention Broker on port {ab_port}\n"
+                f"\nError occurred while trying to start Attention Broker on port {port}\n"
             )
             raise DockerError(error_message)
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._attention_broker()
 
 
 class AttentionBrokerRestart(Command):
     name = "restart"
 
-    short_help = "Restart the Attention Broker service."
+    short_help = SHORT_HELP_RESTART
 
-    help = """
-NAME
-
-    das-cli attention-broker restart - Restart the Attention Broker service
-
-SYNOPSIS
-
-    das-cli attention-broker restart
-
-DESCRIPTION
-
-    This command combines a stop and a start operation to ensure that the
-    Attention Broker is restarted cleanly.
-
-    Useful for refreshing configurations or recovering from faults.
-
-EXAMPLES
-
-    Restart the Attention Broker service:
-
-        $ das-cli attention-broker restart
-"""
+    help = HELP_RESTART
 
     @inject
     def __init__(
@@ -252,45 +196,9 @@ class AttentionBrokerCli(CommandGroup):
 
     aliases = ["ab"]
 
-    short_help = "Control the lifecycle of the Attention Broker service."
+    short_help = SHORT_HELP_ATTENTION_BROKER
 
-    help = """
-NAME
-
-    das-cli attention-broker - Manage the Attention Broker service
-
-SYNOPSIS
-
-    das-cli attention-broker [COMMAND]
-
-DESCRIPTION
-
-    This command group allows you to manage the lifecycle of the Attention Broker service,
-    which is responsible for  tracks atom importance values in different contexts and updates those values based on user queries using context-specific Hebbian networks.
-
-COMMANDS
-    start
-        Start the Attention Broker service and begin message processing.
-
-    stop
-        Stop the currently running Attention Broker container.
-
-    restart
-        Restart the Attention Broker container (stop followed by start).
-
-EXAMPLES
-    Start the broker:
-
-        $ das-cli attention-broker start
-
-    Stop the broker:
-
-        $ das-cli attention-broker stop
-
-    Restart the broker:
-
-        $ das-cli attention-broker restart
-"""
+    help = HELP_ATTENTION_BROKER
 
     @inject
     def __init__(

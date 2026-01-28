@@ -4,33 +4,17 @@ from common import Command, CommandGroup, Settings, StdoutType
 from common.container_manager.system_containers_manager import SystemContainersManager
 from common.utils import print_table
 
+from .system_docs import HELP_STATUS, HELP_SYSTEM, SHORT_HELP_STATUS, SHORT_HELP_SYSTEM
+
 
 class SystemStatus(Command):
     name = "status"
 
     aliases = ["st", "stat"]
 
-    short_help = "Show system status."
+    short_help = SHORT_HELP_STATUS
 
-    help = """
-NAME
-
-    das-cli system status - Show system status.
-
-SYNOPSIS
-
-    das-cli system status
-
-DESCRIPTION
-
-    Shows the current status of the DAS system, including service health for all components.
-
-EXAMPLES
-
-    Display system status:
-
-        das-cli system status
-"""
+    help = HELP_STATUS
 
     @inject
     def __init__(
@@ -67,8 +51,7 @@ EXAMPLES
         )
 
     def run(self) -> None:
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         output = self._system_containers_manager.get_services_status()
 
@@ -85,35 +68,9 @@ class SystemCli(CommandGroup):
 
     aliases = ["sys"]
 
-    short_help = "'das-cli system' commands for managing the DAS system."
+    short_help = SHORT_HELP_SYSTEM
 
-    help = """
-NAME
-
-    das-cli system - Commands for managing the DAS system.
-
-SYNOPSIS
-
-    das-cli example <command>
-
-DESCRIPTION
-
-    'das-cli system' commands for managing the DAS system.
-
-SUBCOMMANDS
-
-    status - Show system status.
-
-EXAMPLES
-
-    Display help for example commands:
-
-        das-cli system --help
-
-    Show status of the DAS system:
-
-        das-cli system status
-"""
+    help = HELP_SYSTEM
 
     @inject
     def __init__(self, system_status: SystemStatus) -> None:

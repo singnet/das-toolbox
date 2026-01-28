@@ -2,31 +2,15 @@ from injector import inject
 
 from common import Command, CommandGroup, StdoutType
 
+from .example_docs import HELP_EX_LOCAL, HELP_EXAMPLE, SHORT_HELP_EX_LOCAL, SHORT_HELP_EXAMPLE
+
 
 class ExampleLocal(Command):
     name = "local"
 
-    short_help = "Echo commands for local setup."
+    short_help = SHORT_HELP_EX_LOCAL
 
-    help = """
-NAME
-
-    das-cli example local - Example commands for running DAS locally.
-
-SYNOPSIS
-
-    das-cli example local
-
-DESCRIPTION
-
-    Displays an example of the initial steps required to run DAS locally on your server.
-
-EXAMPLES
-
-    Display example commands to set up DAS locally:
-
-        das-cli example local
-"""
+    help = HELP_EX_LOCAL
 
     def __init__(self, script_name) -> None:
         super().__init__()
@@ -75,35 +59,9 @@ class ExampleCli(CommandGroup):
 
     aliases = ["ex"]
 
-    short_help = "'das-cli example' offers a step-by-step guide for using DAS."
+    short_help = SHORT_HELP_EXAMPLE
 
-    help = """
-NAME
-
-    das-cli example - Step-by-step example commands for using DAS.
-
-SYNOPSIS
-
-    das-cli example <command>
-
-DESCRIPTION
-
-    'das-cli example' provides step-by-step guides for various DAS usage scenarios.
-
-SUBCOMMANDS
-
-    local       Shows example commands for local DAS setup.
-
-EXAMPLES
-
-    Display help for example commands:
-
-        das-cli example --help
-
-    Display local setup example:
-
-        das-cli example local
-"""
+    help = HELP_EXAMPLE
 
     @inject
     def __init__(self, example_local: ExampleLocal) -> None:

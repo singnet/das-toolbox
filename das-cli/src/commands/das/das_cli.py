@@ -8,6 +8,7 @@ from injector import inject
 from common import Command, CommandGroup, CommandOption, StdoutSeverity, is_executable_bin
 from settings.config import VERSION
 
+from .das_cli_docs import HELP_DAS_CLI, HELP_UPD_VERSION, SHORT_HELP_DAS_CLI, SHORT_HELP_UPD_VERSION
 from .das_ubuntu_advanced_packaging_tool import (
     DasNotFoundError,
     DasPackageUpdateError,
@@ -21,38 +22,9 @@ class PermissionError(Exception): ...  # noqa: E701
 class DasCliUpdateVersion(Command):
     name = "update-version"
 
-    short_help = "Update the DAS CLI version (Ubuntu only)."
+    short_help = SHORT_HELP_UPD_VERSION
 
-    help = """
-NAME
-
-update-version - Update the DAS CLI version (Ubuntu only)
-
-DESCRIPTION
-
-This command updates the DAS CLI to the latest version available via the APT repository.
-It is intended for Ubuntu Linux distributions only and must be run with sudo privileges.
-
-.SH OPTIONS
---version, -v     Specify the version of the package to install (format: x.y.z).
-                  If omitted, the latest available version will be installed.
-
-REQUIREMENTS
-
-- Must be executed as a compiled binary, not as a Python script.
-- Requires root privileges (sudo).
-- The CLI must have been installed via APT.
-
-EXAMPLES
-
-Update the DAS CLI to the latest version available via APT:
-
-    $ sudo das-cli update-version
-
-Update the DAS CLI to a specific version (e.g. 1.2.3):
-
-    $ sudo das-cli update-version --version=1.2.3
-"""
+    help = HELP_UPD_VERSION
 
     @inject
     def __init__(self, das_ubuntu_advanced_packaging_tool: DasUbuntuAdvancedPackagingTool) -> None:
@@ -69,7 +41,7 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
         )
     ]
 
-    def run(self, version):
+    def _check_is_executable(self):
         is_executable = is_executable_bin()
 
         if not is_executable:
@@ -77,38 +49,30 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
                 "This command should be executed as an executable rather than as a Python script."
             )
 
+    def _check_linux_distro(self):
         if distro.id() != "ubuntu":
             self.stdout(
                 "It's advisable to utilize this command specifically for Ubuntu distributions.",
                 severity=StdoutSeverity.WARNING,
             )
 
+    def _check_sudo_permission(self):
         is_sudo = "SUDO_USER" in os.environ
 
         if not is_sudo:
             raise PermissionError("Requires 'root' permissions to execute")
 
-        is_binary = os.access(
-            self.package_dir,
-            os.X_OK,
-        )
+    def _check_installed_via_apt(self):
+        installed_version = self._das_ubuntu_advanced_packaging_tool.get_package_version()
 
-        current_version = self._das_ubuntu_advanced_packaging_tool.get_package_version()
-
-        if not is_binary and not current_version:
+        if installed_version is None:
             raise DasNotFoundError(
-                f"The package {self._das_ubuntu_advanced_packaging_tool.package_name} can only be updated if you installed it via apt."
+                f"The package '{self._das_ubuntu_advanced_packaging_tool.package_name}' is not installed via APT."
             )
 
-        try:
-            self.stdout(
-                f"Updating the package {self._das_ubuntu_advanced_packaging_tool.package_name}..."
-            )
-            newer_version = self._das_ubuntu_advanced_packaging_tool.install_package(version)
-        except Exception as e:
-            raise DasPackageUpdateError(
-                f"The package '{self._das_ubuntu_advanced_packaging_tool.package_name}' could not be updated. Reason: {str(e)}"
-            ) from e
+        return installed_version
+
+    def _check_cli_version(self, current_version, newer_version):
 
         if current_version != newer_version:
             self.stdout(
@@ -121,51 +85,34 @@ Update the DAS CLI to a specific version (e.g. 1.2.3):
                 severity=StdoutSeverity.WARNING,
             )
 
+    def run(self, version):
+
+        self._check_is_executable()
+        self._check_sudo_permission()
+        self._check_linux_distro()
+        self._check_installed_via_apt()
+
+        current_version = self._das_ubuntu_advanced_packaging_tool.get_package_version()
+
+        try:
+            self.stdout(
+                f"Updating the package {self._das_ubuntu_advanced_packaging_tool.package_name}..."
+            )
+            newer_version = self._das_ubuntu_advanced_packaging_tool.install_package(version)
+
+        except Exception as e:
+            raise DasPackageUpdateError(
+                f"The package '{self._das_ubuntu_advanced_packaging_tool.package_name}' could not be updated. Reason: {str(e)}"
+            ) from e
+
+        self._check_cli_version(current_version, newer_version)
+
 
 class DasCli(CommandGroup):
     name = "das-cli"
 
-    short_help = "'das-cli' offers a suite of commands to efficiently manage a wide range of tasks including management of containerized services"
-
-    help = """
-NAME
-
-das-cli - Command-line interface for managing DAS services
-
-DESCRIPTION
-
-'das-cli' offers a suite of commands to efficiently manage a wide range of tasks, including:
-
-- Containerized service orchestration
-- OpenFaaS function management
-- Knowledge base operations
-- System package management (via APT)
-
-REMOTE EXECUTION
-
-Any command can be executed on a remote server via SSH by enabling the --remote flag and providing connection parameters.
-
-OPTIONS FOR REMOTE EXECUTION
-
---remote              Run the command on a remote server over SSH
---host, -H            Hostname or IP address of the remote server
---user, -H            SSH login user
---port, -H            SSH port (default: 22)
---key-file            Path to the SSH private key file (for key-based authentication)
---password            SSH password (not recommended for production)
---connect-timeout     SSH connection timeout in seconds (default: 10)
-
-EXAMPLES
-
-Run command remotely using SSH key:
-
-    $ das-cli deploy --remote --host 192.168.0.10 --user ubuntu --key-file ~/.ssh/id_rsa
-
-Run command remotely using password:
-
-    $ das-cli update --remote --host 10.0.0.2 --user root --password yourpassword
-
-"""
+    short_help = SHORT_HELP_DAS_CLI
+    help = HELP_DAS_CLI
 
     @inject
     def __init__(
