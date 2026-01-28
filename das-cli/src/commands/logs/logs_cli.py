@@ -159,9 +159,7 @@ class LogsRedis(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._redis_container_manager.logs(follow)
 
 
@@ -200,9 +198,7 @@ class LogsAttentionBroker(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._attention_broker_manager.logs(follow)
 
 
@@ -241,9 +237,7 @@ class LogsQueryAgent(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._query_agent_container_manager.logs(follow)
 
 
@@ -282,9 +276,7 @@ class LogsLinkCreationAgent(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._link_creation_container_manager.logs(follow)
 
 
@@ -323,9 +315,7 @@ class LogsInferenceAgent(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._inference_agent_container_manager.logs(follow)
 
 
@@ -364,9 +354,7 @@ class LogsEvolutionAgent(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._evolution_agent_container_manager.logs(follow)
 
 
@@ -405,9 +393,7 @@ class LogsContextBroker(Command):
         verbose=False,
     )
     def run(self, follow: bool = False):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._context_broker_container_manager.logs(follow)
 
 
