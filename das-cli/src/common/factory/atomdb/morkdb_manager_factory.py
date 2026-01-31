@@ -18,5 +18,6 @@ class MorkDbContainerManagerFactory:
             container_name,
             options={
                 "morkdb_port": morkdb_port,
+                "morkdb_hostname": "0.0.0.0"
             },
         )

@@ -148,6 +148,27 @@ class DbStop(Command):
             "morkdb": self._morkdb_container_manager.get_container,
         }[service.lower()]()
 
+    def _stop_mork(self, container_manager, prune):
+        try:
+            container_manager.stop(remove_volume=prune)
+            success_msg = f"The service MorkDB has been stopped."
+            self.stdout(success_msg, severity=StdoutSeverity.SUCCESS)
+        
+        except DockerContainerNotFoundError:
+            warning_msg = f"The service MorkDB is already stopped."
+            self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="stop",
+                        status="already_stopped",
+                        message=warning_msg,
+                        container=self._get_container("morkdb"),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+
     def _stop_node(
         self, manager, context: str, ip: str, username: str, prune: bool, service_name: str
     ):
@@ -189,8 +210,12 @@ class DbStop(Command):
         self.stdout(f"Stopping {service_name} service...")
 
         try:
+            if service_name.lower() == "morkdb":
+                self._stop_mork(manager,prune)
+
             for node in nodes:
                 self._stop_node(manager, **node, prune=prune, service_name=service_name)
+
         except DockerError as e:
             self.stdout(
                 f"\nError occurred while trying to stop {service_name}\n",
@@ -241,7 +266,7 @@ class DbStop(Command):
                     prune,
                     self._settings.get("services.mongodb.cluster", False),
                 )
-                self._stop_service(self._morkdb_container_manager, [{}], "MorkDB", prune)
+                self._stop_service(self._morkdb_container_manager, [], "MorkDB", prune)
 
 
 class DbStart(Command):
@@ -272,6 +297,38 @@ class DbStart(Command):
             "mongodb": self._mongodb_container_manager.get_container,
             "morkdb": self._morkdb_container_manager.get_container,
         }[service.lower()]()
+
+    def _start_mork(self, container_manager, port):
+        try:
+            container_manager.start_container()
+            success_message = f"MorkDB service has started successfully at port {port}"
+
+            self.stdout(success_message, severity=StdoutSeverity.SUCCESS)
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="success",
+                        message=success_message,
+                        container=container_manager.get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,)
+            
+        except DockerContainerDuplicateError:
+            warning_msg = f"MorkDB is already running at port {port}"
+            self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="already_running",
+                        message=warning_msg,
+                        container=container_manager.get_container(),
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
 
     def _start_node(self, container_manager, node: dict, service_name: str, **kwargs):
 
@@ -319,7 +376,7 @@ class DbStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-
+        
         except DockerContainerDuplicateError:
             warning_msg = f"{service_name} is already running. It is currently listening on port {container_port} at {public_ip} under the server user {node_username}."
             self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
@@ -336,46 +393,51 @@ class DbStart(Command):
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
+    def _start_service(self, manager, nodes: list, service_name: str, **kwargs):
+
+        try:
+            self.stdout(f"Starting {service_name} service...")
+
+            if service_name.lower() == "morkdb":
+                self._start_mork(manager, kwargs["port"])
+
+            for node in nodes:
+                self._start_node(manager, node, service_name, **kwargs)
+
+            if kwargs.get("cluster", False) and service_name.lower() in ("redis", "mongodb"):
+                try:
+                    if service_name.lower() == "redis":
+                        manager.start_cluster(nodes, kwargs["port"])
+                    else:
+                        manager.start_cluster(
+                            nodes, kwargs["port"], kwargs["username"], kwargs["password"]
+                        )
+                except Exception:
+                    self.stdout(
+                        f"\nFailed to start {service_name} cluster. Please check connectivity between nodes.\n",
+                        severity=StdoutSeverity.ERROR,
+                    )
+                    raise
+
+            self.stdout(
+                dict(
+                    DbServiceResponse(
+                        action="start",
+                        status="success",
+                        message=f"{service_name.capitalize()} started successfully",
+                        container=manager.get_container(),
+                        extra_details={"cluster": kwargs.get("cluster", False), "nodes": nodes},
+                    )
+                ),
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+
         except DockerError as e:
             self.stdout(
                 f"\nError occurred while trying to start {service_name} at {public_ip}\n",
                 severity=StdoutSeverity.ERROR,
             )
             raise e
-
-    def _start_service(self, manager, nodes: list, service_name: str, **kwargs):
-
-        self.stdout(f"Starting {service_name} service...")
-        for node in nodes:
-            self._start_node(manager, node, service_name, **kwargs)
-
-        if kwargs.get("cluster", False) and service_name.lower() in ("redis", "mongodb"):
-            try:
-                if service_name.lower() == "redis":
-                    manager.start_cluster(nodes, kwargs["port"])
-                else:
-                    manager.start_cluster(
-                        nodes, kwargs["port"], kwargs["username"], kwargs["password"]
-                    )
-            except Exception:
-                self.stdout(
-                    f"\nFailed to start {service_name} cluster. Please check connectivity between nodes.\n",
-                    severity=StdoutSeverity.ERROR,
-                )
-                raise
-
-        self.stdout(
-            dict(
-                DbServiceResponse(
-                    action="start",
-                    status="success",
-                    message=f"{service_name.capitalize()} started successfully",
-                    container=manager.get_container(),
-                    extra_details={"cluster": kwargs.get("cluster", False), "nodes": nodes},
-                )
-            ),
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
 
     def run(self):
         self._settings.validate_configuration_file()
@@ -406,7 +468,7 @@ class DbStart(Command):
                 self._start_service(
                     self._mongodb_container_manager,
                     self._settings.get("services.mongodb.nodes", []),
-                    service_name="Redis",
+                    service_name="MongoDB",
                     port=self._settings.get("services.mongodb.port"),
                     username=self._settings.get("services.mongodb.username"),
                     password=self._settings.get("services.mongodb.password"),
@@ -416,8 +478,9 @@ class DbStart(Command):
 
                 self._start_service(
                     self._morkdb_container_manager,
-                    [{}],
+                    [],
                     service_name="MorkDB",
+                    port=self._settings.get("services.morkdb.port")
                 )
 
 
