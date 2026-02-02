@@ -62,40 +62,52 @@ class MettaLoad(Command):
         self._metta_loader_container_manager = metta_loader_container_manager
         self._metta_mork_loader_container_manager = metta_mork_loader_container_manager
 
-    def _load_metta_from_file(self, file_path: str):
-        if not file_path.endswith(".metta"):
-            self.stdout(
-                f"Error: File '{file_path}' is not a .metta file.",
-                severity=StdoutSeverity.ERROR,
-            )
-            return
-
-        self.stdout(f"Loading metta file {file_path}...")
-
+    def _check_path_exists(self, file_path: str):
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
 
-        if not os.path.isfile(file_path):
-            raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
+    def _check_if_file_or_directory(self, file_path: str):
+        return os.path.isdir(file_path)
 
-        self._metta_loader_container_manager.start_container(file_path)
+    def _check_file_and_permissions(self, file_path: str):
+
+        if not file_path.endswith(".metta"):
+            raise TypeError(f"Error: File '{file_path}' is not a .metta file.")
+        
+        if not os.access(file_path, os.R_OK):
+            raise PermissionError(f"The file {file_path} does not have access permissions.")
+        
+    def _check_if_directory_has_permissions(self, dir_path: str):
+        return os.access(dir_path, os.R_OK)
+
+    def _load_metta_from_file(self, file_path: str):
+        self.stdout(f"Loading metta file {file_path}...", severity=StdoutSeverity.WARNING)
+        self._check_file_and_permissions(file_path)
 
         if self._atomdb_backend.name == AtomdbBackendEnum.MORK_MONGODB:
             self._metta_mork_loader_container_manager.start_container(file_path)
+        else:
+            self._metta_loader_container_manager.start_container(file_path)
 
     def _load_metta_from_directory(self, directory_path: str):
         files = glob.glob(f"{directory_path}/*")
+
         for file_path in files:
             try:
                 self._load_metta_from_file(file_path)
-            except Exception:
-                pass
+                self.stdout("Done loading.", severity=StdoutSeverity.SUCCESS)
+                
+            except Exception as e:
+                self.stdout(f"Failed loading file at {file_path}\nReason: {e}", severity=StdoutSeverity.ERROR)
 
     def _load_metta(self, path: str):
-        if os.path.isdir(path):
+        isdir = self._check_if_file_or_directory(path)
+
+        if isdir:
             self._load_metta_from_directory(path)
         else:
             self._load_metta_from_file(path)
+            self.stdout("Done loading.", severity=StdoutSeverity.SUCCESS)
 
     @ensure_container_running(
         "_atomdb_backend",
@@ -104,10 +116,8 @@ class MettaLoad(Command):
     )
     def run(self, path: str):
         self._settings.validate_configuration_file()
-
+        self._check_path_exists(path)
         self._load_metta(path)
-
-        self.stdout("Done.")
 
 
 class MettaCheck(Command):
