@@ -73,20 +73,22 @@ class MettaLoad(Command):
 
         if not file_path.endswith(".metta"):
             raise TypeError(f"Error: File '{file_path}' is not a .metta file.")
-        
+
         if not os.access(file_path, os.R_OK):
             raise PermissionError(f"The file {file_path} does not have correct permissions.")
-        
+
     def _check_if_directory_has_permissions(self, dir_path: str):
 
         read = os.access(dir_path, os.R_OK)
         write = os.access(dir_path, os.W_OK)
         execute = os.access(dir_path, os.X_OK)
-        
+
         if read and write and execute:
             return
         else:
-            raise PermissionError(f"The directory {dir_path} does not have the correct permissions.")
+            raise PermissionError(
+                f"The directory {dir_path} does not have the correct permissions."
+            )
 
     def _load_metta_from_file(self, file_path: str):
         self.stdout(f"Loading metta file {file_path}...")
@@ -105,7 +107,7 @@ class MettaLoad(Command):
             try:
                 self._load_metta_from_file(file_path)
                 self.stdout("Done loading.", severity=StdoutSeverity.SUCCESS)
-                
+
             except Exception as e:
                 self.stdout(f"Failed loading file.\nReason: {e}", severity=StdoutSeverity.ERROR)
 

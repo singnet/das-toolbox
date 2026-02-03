@@ -16,8 +16,5 @@ class MorkDbContainerManagerFactory:
         morkdb_port = self._settings.get("services.morkdb.port")
         return MorkdbContainerManager(
             container_name,
-            options={
-                "morkdb_port": morkdb_port,
-                "morkdb_hostname": "0.0.0.0"
-            },
+            options={"morkdb_port": morkdb_port, "morkdb_hostname": "0.0.0.0"},
         )

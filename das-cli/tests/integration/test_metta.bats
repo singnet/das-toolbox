@@ -129,7 +129,7 @@ teardown() {
     assert_line --partial "das-cli-redis-$redis_port is running on port $redis_port"
     assert_line --partial "das-cli-mongodb-$mongodb_port is running on port $mongodb_port"
     assert_line --partial "Loading metta file ${metta_file_path}..."
-    assert_line --partial "Done."
+    assert_line --partial "Done loading."
     assert_success
 }
 
@@ -148,7 +148,7 @@ teardown() {
     assert_line --partial "das-cli-mongodb-$mongodb_port is running on port $mongodb_port"
     assert_line --partial "Loading metta file ${metta_file_path}/animals.metta..."
     assert_line --partial "Loading metta file ${metta_file_path}/invalid.metta..."
-    assert_line --partial "Done."
+    assert_line --partial "Done loading."
 }
 
 @test "Trying to load a MeTTa file with an invalid path" {

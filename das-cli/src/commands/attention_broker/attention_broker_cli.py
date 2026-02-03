@@ -139,9 +139,7 @@ class AttentionBrokerStart(Command):
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerDuplicateError:
-            warning_message = (
-                f"Attention Broker is already running. It's listening on port {port}"
-            )
+            warning_message = f"Attention Broker is already running. It's listening on port {port}"
 
             self.stdout(
                 warning_message,
