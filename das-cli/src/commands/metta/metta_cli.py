@@ -95,6 +95,7 @@ class MettaLoad(Command):
         self._check_file_and_permissions(file_path)
 
         if self._atomdb_backend.name == AtomdbBackendEnum.MORK_MONGODB:
+            self._metta_loader_container_manager.start_container(file_path)
             self._metta_mork_loader_container_manager.start_container(file_path)
         else:
             self._metta_loader_container_manager.start_container(file_path)
