@@ -151,11 +151,11 @@ class DbStop(Command):
     def _stop_mork(self, container_manager, prune):
         try:
             container_manager.stop(remove_volume=prune)
-            success_msg = f"The service MorkDB has been stopped."
+            success_msg = "The service MorkDB has been stopped."
             self.stdout(success_msg, severity=StdoutSeverity.SUCCESS)
-        
+
         except DockerContainerNotFoundError:
-            warning_msg = f"The service MorkDB is already stopped."
+            warning_msg = "The service MorkDB is already stopped."
             self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
             self.stdout(
                 dict(
@@ -211,7 +211,7 @@ class DbStop(Command):
 
         try:
             if service_name.lower() == "morkdb":
-                self._stop_mork(manager,prune)
+                self._stop_mork(manager, prune)
 
             for node in nodes:
                 self._stop_node(manager, **node, prune=prune, service_name=service_name)
@@ -313,8 +313,9 @@ class DbStart(Command):
                         container=container_manager.get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,)
-            
+                stdout_type=StdoutType.MACHINE_READABLE,
+            )
+
         except DockerContainerDuplicateError:
             warning_msg = f"MorkDB is already running at port {port}"
             self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
@@ -376,7 +377,7 @@ class DbStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-        
+
         except DockerContainerDuplicateError:
             warning_msg = f"{service_name} is already running. It is currently listening on port {container_port} at {public_ip} under the server user {node_username}."
             self.stdout(warning_msg, severity=StdoutSeverity.WARNING)
@@ -392,6 +393,13 @@ class DbStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+
+        except DockerError as e:
+            self.stdout(
+                f"\nError occurred while trying to start {service_name} at {public_ip}.\n",
+                severity=StdoutSeverity.ERROR,
+            )
+            raise e
 
     def _start_service(self, manager, nodes: list, service_name: str, **kwargs):
 
@@ -434,7 +442,7 @@ class DbStart(Command):
 
         except DockerError as e:
             self.stdout(
-                f"\nError occurred while trying to start {service_name} at {public_ip}\n",
+                f"\nError occurred while trying to start {service_name}.\n",
                 severity=StdoutSeverity.ERROR,
             )
             raise e
@@ -480,7 +488,7 @@ class DbStart(Command):
                     self._morkdb_container_manager,
                     [],
                     service_name="MorkDB",
-                    port=self._settings.get("services.morkdb.port")
+                    port=self._settings.get("services.morkdb.port"),
                 )
 
 
