@@ -1,8 +1,11 @@
 Changelog:
 
 Highlights:
-[DAS#862] das-cli remote commands checks if config files in local and remote hosts are equal
+(#271) Enhance das-cli metta load commands validation
+(#264) Improve das-cli config set to block root user on servers
+(#263) Improve das-cli to block root access on remote commands
+(#260) Integrate DAS Agents integration tests in das-toolbox
 
 Bug fixes:
-[DAS#994] Fix das-toolbox redis cluster issues.
-[DAS#642] Investigate and resolve remote DB startup issues with das-cli
+(#268) Quick fix on mork settings
+(#261) Small fix on imports for  "pip install ."
