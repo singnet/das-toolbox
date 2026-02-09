@@ -4,11 +4,10 @@ from typing import Any, List, Optional, TypedDict, Union, cast
 
 import docker
 import docker.errors
+import tzlocal
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
-
-import tzlocal
 
 from common.exceptions import PortBindingError
 from settings.config import SERVICES_NETWORK_NAME
@@ -99,7 +98,7 @@ class ContainerManager(DockerManager):
         timezone = str(tzlocal.get_localzone())
 
         return timezone
-    
+
     def _start_container(self, **kwargs) -> Any:
         self.raise_running_container()
         container_timezone = self._get_host_machine_timezone()
@@ -107,7 +106,7 @@ class ContainerManager(DockerManager):
         environment_values = kwargs.pop("environment", {})
         environment_values = dict(environment_values)
         environment_values["TZ"] = container_timezone
-        
+
         try:
             response = self.get_docker_client().containers.run(
                 **kwargs,
@@ -115,7 +114,7 @@ class ContainerManager(DockerManager):
                 name=self.get_container().name,
                 detach=True,
                 network=SERVICES_NETWORK_NAME,
-                environment=environment_values
+                environment=environment_values,
             )
 
             return response
