@@ -17,7 +17,9 @@ from ..utils import deep_merge_dicts
 from .docker_manager import DockerManager
 from .exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
 
-warnings.filterwarnings("ignore", category=UserWarning, module="tzlocal") # Temporary until image is fixed
+warnings.filterwarnings(
+    "ignore", category=UserWarning, module="tzlocal"
+)
 
 
 class ContainerImageMetadata(TypedDict, total=False):
