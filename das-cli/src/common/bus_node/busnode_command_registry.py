@@ -65,7 +65,7 @@ class BusNodeCommandRegistry:
         )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
-        return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
+        return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def _cmd_link_creation_agent(self, service, endpoint, ports_range, options, **args):
 
@@ -76,7 +76,7 @@ class BusNodeCommandRegistry:
         )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
-        return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
+        return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def _cmd_inference_agent(self, service, endpoint, ports_range, options, **args):
 
@@ -87,7 +87,7 @@ class BusNodeCommandRegistry:
         )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
-        return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
+        return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def _cmd_context_broker(self, service, endpoint, ports_range, options, **args):
 
@@ -98,4 +98,4 @@ class BusNodeCommandRegistry:
         )
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
-        return f"{base} --attention-broker-endpoint={attention_broker} --busnode-endpoint={busnode_endpoint}"
+        return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"

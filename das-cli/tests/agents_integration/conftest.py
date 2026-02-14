@@ -14,7 +14,7 @@ class BackendType(Enum):
 
 SETUP_VALUES = OrderedDict([
     ("services.database.atomdb_backend", BackendType.REDIS_MONGO.value),
-    ("services.query_agent.port", "40003"),
+    ("services.query_agent.port", "40002"),
 ])
 
 SERVICE_LIST = [

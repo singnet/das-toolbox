@@ -10,11 +10,6 @@ on:
         description: DAS-TOOLBOX version
         type: string
       
-      run-agent-integration-tests:
-        required: false
-        description: Whether to run agent integration tests
-        type: boolean
-        default: false
 
   workflow_call:
     inputs:
@@ -123,8 +118,6 @@ jobs:
 
     needs:
       - das-cli-integration-tests
-
-    if: ${{ github.event.inputs.run-agent-integration-tests == true }}
 
     steps:
       - name: Checkout
