@@ -143,7 +143,7 @@ jobs:
           sudo apt -y install ./$(find dist -name "*.deb" -type f | head -n 1)
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r src/requirements.txt
         working-directory: das-cli
 
       - name: Run agents integration tests (pytest)
