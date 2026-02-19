@@ -44,14 +44,6 @@ override_dh_auto_install:
 	mkdir -p $(USR_BIN_DIR) $(USR_LIBS_DIR)
 	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
 
-	# Build hyperon_das.so
-	rm -rf /tmp/das
-	git clone --depth 1 --branch master https://github.com/singnet/das.git /tmp/das
-	cd /tmp/das && make build-all && find ./lib -type f -name "*.*" -exec cp {} $(USR_LIBS_DIR) \;
-
-	# Shared library should be looking for its dependencies in the same directory
-	patchelf --set-rpath '$$ORIGIN' $(USR_LIBS_DIR)/hyperon_das.so
-
 build_man_pages:
 	PYTHONPATH=$(ROOT_DIR)/das-cli/src python3 $(ROOT_DIR)/das-cli/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/
 	@for file in $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/*; do \
