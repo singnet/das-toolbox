@@ -14,7 +14,7 @@ class BackendType(Enum):
 
 SETUP_VALUES = OrderedDict([
     ("services.database.atomdb_backend", BackendType.REDIS_MONGO.value),
-    ("services.query_agent.port", "40003"),
+    ("services.query_agent.port", "40002"),
 ])
 
 SERVICE_LIST = [
@@ -25,7 +25,17 @@ SERVICE_LIST = [
     "evolution-agent",
 ]
 
-metta = hyperon.MeTTa()
+metta = None
+
+def get_metta():
+    global metta
+    if metta is None:
+        metta = hyperon.MeTTa()
+    return metta
+
+def restart_metta():
+    global metta
+    metta = hyperon.MeTTa()
 
 def setup_environment():
     inputs = ["=".join(args) for args in SETUP_VALUES.items()]
@@ -89,10 +99,10 @@ def load_db(file_path=None, file_url=None):
     process.wait()
 
 def run(program):
-    global metta
+    m = get_metta()
     results = []
     print(f"Running program:\n{program}")
-    for result in metta.run(program):
+    for result in m.run(program):
         for child in result:
             results.append(child)
     return results
@@ -119,9 +129,12 @@ def das_integration_env(request, env):
     for service in SERVICE_LIST:
         start_agent(service, ["start"], ["localhost", SETUP_VALUES["services.query_agent.port"]])
     yield
+
+    restart_metta()
+
     print("Tearing down integration environment...")
-    stop_agents()
-    stop_db()
+    # stop_agents()
+    # stop_db()
 
 
 
