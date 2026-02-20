@@ -14,7 +14,6 @@ setup() {
 }
 
 teardown() {
-    das-cli db stop
     das-cli attention-broker stop
     das-cli query-agent stop
 }

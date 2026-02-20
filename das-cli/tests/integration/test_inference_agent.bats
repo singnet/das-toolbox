@@ -16,7 +16,6 @@ setup() {
 teardown() {
     das-cli inference-agent stop
     das-cli attention-broker stop
-    das-cli db stop
 }
 
 

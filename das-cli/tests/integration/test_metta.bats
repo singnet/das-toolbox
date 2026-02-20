@@ -6,10 +6,7 @@ load 'libs/utils'
 
 setup() {
     use_config "simple"
-}
-
-teardown() {
-    das-cli db stop
+    das-cli db start
 }
 
 @test "Checking MeTTa file syntax with unset configuration file" {
