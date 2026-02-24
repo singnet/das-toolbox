@@ -101,6 +101,10 @@ class MongodbContainerManager(ContainerManager):
             },
             healthcheck={
                 "Test": ["CMD-SHELL", f"mongosh --port {port} --eval 'db.adminCommand(\"ping\")'"],
+                "Interval": 1_000_000_000,
+                "Timeout": 3_000_000_000,
+                "Retries": 30,
+                "StartPeriod": 3_000_000_000,
             },
         )
 

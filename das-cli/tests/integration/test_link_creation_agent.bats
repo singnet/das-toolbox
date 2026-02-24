@@ -17,7 +17,6 @@ setup() {
 teardown() {
     das-cli attention-broker stop
     das-cli query-agent stop
-    das-cli db stop
 }
 
 @test "Fails to start the Link Creation Agent when configuration file is not set" {

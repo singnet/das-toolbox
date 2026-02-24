@@ -18,7 +18,6 @@ teardown() {
     das-cli evolution-agent stop
     das-cli query-agent stop
     das-cli attention-broker stop
-    das-cli db stop
 }
 
 @test "Fails to start the Evolution Agent when configuration file is not set" {
