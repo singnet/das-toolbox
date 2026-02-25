@@ -1,11 +1,5 @@
 Changelog:
 
 Highlights:
-(#271) Enhance das-cli metta load commands validation
-(#264) Improve das-cli config set to block root user on servers
-(#263) Improve das-cli to block root access on remote commands
-(#260) Integrate DAS Agents integration tests in das-toolbox
-
-Bug fixes:
-(#268) Quick fix on mork settings
-(#261) Small fix on imports for  "pip install ."
+(#273) Fix and enable agent integration tests
+(#274) Optimize das-toolbox tests workflow
