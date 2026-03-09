@@ -5,7 +5,6 @@ from common import Settings
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-
 class BusNodeCommandRegistry:
 
     def __init__(self):
@@ -16,6 +15,13 @@ class BusNodeCommandRegistry:
             "link-creation-agent": self._cmd_link_creation_agent,
             "inference-agent": self._cmd_inference_agent,
             "context-broker": self._cmd_context_broker,
+        }
+
+        self._atomdb_flags: Dict[str, str] = {
+            "redis_mongodb": "redismongodb",
+            "mork_mongodb": "morkdb",
+            "inmemorydb": "inmemorydb",
+            "remotedb": "remotedb",
         }
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
@@ -31,13 +37,18 @@ class BusNodeCommandRegistry:
 
             return cmd
 
-    def _check_using_morkdb(self):
-        atomdb = self._settings.get("services.database.atomdb_backend")
+    def _check_atomdb_type_flag(self):
 
-        return "--use-mork" if atomdb == "mork_mongodb" else " "
+        atomdb_config = self._settings.get("services.database.atomdb_backend")
+        flag = self._atomdb_flags.get(atomdb_config)
+
+        if flag is "remotedb":
+            return f"--atomdb-type={flag} --remotedb-config={SECRETS_PATH}"
+        else:
+            return f"--atomdb-type={flag}" if flag else " "
 
     def _gen_default_cmd(self, service, endpoint, ports_range):
-        use_mork = self._check_using_morkdb()
+        use_mork = self._check_atomdb_type_flag()
 
         return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {use_mork}".strip()
 
