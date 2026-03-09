@@ -435,6 +435,12 @@ class InteractiveConfigProvider(ConfigProvider):
                 self._mongodb,
                 self._morkdb,
             ),
+            "remotedb": (
+                #function to get remote db values, create json entries and save config.
+            ),
+            "inmemorydb": (
+                # do nothing
+            )
         }
 
         atomdb_backend = Command.select(
@@ -442,6 +448,8 @@ class InteractiveConfigProvider(ConfigProvider):
             options={
                 "MongoDB + Redis": "redis_mongodb",
                 "MongoDB + Mork": "mork_mongodb",
+                "InMemoryDB": "inmemorydb",
+                "RemoteDB": "remotedb",
             },
             default=self._settings.get("services.database.atomdb_backend", "redis_mongodb"),
         )
