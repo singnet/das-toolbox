@@ -8,8 +8,8 @@ from common.container_manager.atomdb.redis_container_manager import RedisContain
 
 
 class AtomdbBackendEnum(Enum):
-    REDIS_MONGODB = "redis_mongodb"
-    MORK_MONGODB = "mork_mongodb"
+    REDIS_MONGODB = "redismongodb"
+    MORK_MONGODB = "morkmongodb"
     INMEMORYDB = "inmemorydb"
     REMOTEDB = "remotedb"
 

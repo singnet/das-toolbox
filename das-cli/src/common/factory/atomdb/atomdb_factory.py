@@ -26,7 +26,7 @@ class AtomDbContainerManagerFactory:
 
     def build(self):
 
-        backend_config = self._settings.get("services.database.atomdb_backend")
+        backend_config = self._settings.get("atomdb.type")
         backend_config = AtomdbBackendEnum.from_value(backend_config)
 
         providers : List[BackendProvider] = []

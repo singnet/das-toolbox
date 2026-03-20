@@ -60,6 +60,16 @@ def retry(func: Callable, max_retries=5, interval=2, *args, **kwargs):
                 raise e
             time.sleep(interval)
 
+def search_dict_key(dict: dict, path) -> str:
+    keys = path.split(".")
+    value = dict
+
+    for key in keys:
+        value = value.get(key, None)
+        if value is None:
+            return None
+
+    return value
 
 def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
     result = dict1.copy()
@@ -145,6 +155,9 @@ def extract_service_name(container_name: str) -> str | None:
 
     parts = name.rsplit("-", 1)
     return parts[0] if parts else name
+
+def extract_service_port(endpoint: str) -> str | None:
+    return endpoint.split(":")[1]
 
 
 def get_platform_info() -> str:

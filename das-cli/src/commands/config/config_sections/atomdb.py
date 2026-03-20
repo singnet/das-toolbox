@@ -112,18 +112,22 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> Dict[str, Any]:
         default=False
     )
 
+    mongodb_nodes = []
+
     if mongodb_cluster:
         cluster_secret_key = get_rand_token(num_bytes=15)
         mongodb_nodes = setup_nodes(mongodb_port)
+    else:
+        mongodb_nodes.append(build_localhost_node())
 
     return {
         "mongodb": {
             "endpoint": f"localhost:{mongodb_port}",
             "username": mongodb_username,
             "password": mongodb_password,
-            "cluster": str(mongodb_cluster).lower(),
+            "cluster": mongodb_cluster,
             "cluster_secret_key": cluster_secret_key if mongodb_cluster else "None",
-            "nodes": mongodb_nodes if mongodb_cluster else []
+            "nodes": mongodb_nodes
         }
     }
 
@@ -140,14 +144,18 @@ def redis_setup(settings: Settings, skip_cluster: bool = False) -> Dict[str, Any
         default=False
     )
 
+    redis_nodes = []
+
     if redis_cluster:
         redis_nodes = setup_nodes(redis_port)
+    else:
+        redis_nodes.append(build_localhost_node())
 
     return {
         "redis": {
             "endpoint": f"localhost:{redis_port}",
-            "cluster": str(redis_cluster).lower(),
-            "nodes": redis_nodes if redis_cluster else []
+            "cluster": redis_cluster,
+            "nodes": redis_nodes
         }
     }
 
