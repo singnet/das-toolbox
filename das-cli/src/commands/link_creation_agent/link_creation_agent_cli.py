@@ -192,9 +192,7 @@ class LinkCreationAgentStart(Command):
         verbose=False,
     )
     def run(self, port_range: str, **kwargs):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._link_creation_agent(port_range, **kwargs)
 
 

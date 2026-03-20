@@ -35,8 +35,7 @@ def ensure_container_running(
 
 def _load_settings():
     settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
-    settings.raise_on_missing_file()
-    settings.raise_on_schema_mismatch()
+    settings.validate_configuration_file()
 
 
 def _get_backends(self, cls_backend_attr: Union[List[str], str]):
