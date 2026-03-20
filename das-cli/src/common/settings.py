@@ -91,87 +91,61 @@ class Settings:
     def pretty(self) -> str:
         table_lines = []
         obj = self.get_content()
-
         column_widths = {"Service": 7, "Name": 4, "Value": 5}
 
-        def calculate_column_widths(current_dict, service=""):
-            column_widths
+        def get_flattened_items(current_obj, parent_key=""):
+            items = []
+            if isinstance(current_obj, dict):
+                for k, v in current_obj.items():
+                    new_key = f"{parent_key}.{k}" if parent_key else k
+                    items.extend(get_flattened_items(v, new_key))
+            elif isinstance(current_obj, list):
+                parts = parent_key.rsplit(".", 1)
+                service = parts[0] if len(parts) > 1 else ""
+                name = parts[-1]
+                items.append((service, name, f"[{len(current_obj)} items]"))
+            else:
+                parts = parent_key.rsplit(".", 1)
+                service = parts[0] if len(parts) > 1 else ""
+                name = parts[-1]
+                items.append((service, name, str(current_obj)))
+            return items
 
-            for key, value in current_dict.items():
-                if isinstance(value, dict):
-                    calculate_column_widths(value, f"{service}{key}.")
-                else:
-                    name = key if service else key
-                    service = service.strip(".")
-                    column_widths["Service"] = max(column_widths["Service"], len(service))
-                    column_widths["Name"] = max(column_widths["Name"], len(name))
-                    column_widths["Value"] = max(column_widths["Value"], len(str(value)))
+        flattened_data = get_flattened_items(obj)
 
-        calculate_column_widths(obj)
+        for service, name, value in flattened_data:
+            column_widths["Service"] = max(column_widths["Service"], len(service))
+            column_widths["Name"] = max(column_widths["Name"], len(name))
+            column_widths["Value"] = max(column_widths["Value"], len(value))
 
-        table_lines.append(
-            "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-                s="",
-                sw=column_widths["Service"],
-                n="",
-                nw=column_widths["Name"],
-                v="",
-                vw=column_widths["Value"],
-            )
+        column_widths["Value"] = min(column_widths["Value"], 80)
+
+        separator = "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
+            s="", sw=column_widths["Service"],
+            n="", nw=column_widths["Name"],
+            v="", vw=column_widths["Value"]
+        )
+        
+        header = "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
+            s="Service", sw=column_widths["Service"],
+            n="Name", nw=column_widths["Name"],
+            v="Value", vw=column_widths["Value"]
         )
 
-        table_lines.append(
-            "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
-                s="Service",
-                sw=column_widths["Service"],
-                n="Name",
-                nw=column_widths["Name"],
-                v="Value",
-                vw=column_widths["Value"],
+        table_lines.append(separator)
+        table_lines.append(header)
+        table_lines.append(separator)
+
+        for service, name, value in flattened_data:
+            display_value = (value[:77] + "...") if len(value) > 80 else value
+            
+            table_lines.append(
+                "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
+                    s=service, sw=column_widths["Service"],
+                    n=name, nw=column_widths["Name"],
+                    v=display_value, vw=column_widths["Value"]
+                )
             )
-        )
 
-        table_lines.append(
-            "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-                s="",
-                sw=column_widths["Service"],
-                n="",
-                nw=column_widths["Name"],
-                v="",
-                vw=column_widths["Value"],
-            )
-        )
-
-        def fill_table_rows(current_dict, service=""):
-            for key, value in current_dict.items():
-                if isinstance(value, dict):
-                    fill_table_rows(value, f"{service}{key}.")
-                else:
-                    name = key if service else key
-                    service = service.strip(".")
-                    table_lines.append(
-                        "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
-                            s=service,
-                            sw=column_widths["Service"],
-                            n=name,
-                            nw=column_widths["Name"],
-                            v=str(value),
-                            vw=column_widths["Value"],
-                        )
-                    )
-
-        fill_table_rows(obj)
-
-        # Last line of the table
-        table_lines.append(
-            "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-                s="",
-                sw=column_widths["Service"],
-                n="",
-                nw=column_widths["Name"],
-                v="",
-                vw=column_widths["Value"],
-            )
-        )
-
+        table_lines.append(separator)
         return "\n".join(table_lines)
