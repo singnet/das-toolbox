@@ -90,18 +90,18 @@ class ConfigSet(Command):
         )
 
         config_mappings = self._interactive_config_provider.get_all_configs()
-        self._interactive_config_provider.apply_default_values(config_mappings)
-        self._interactive_config_provider.recalculate_config_dynamic_values(config_mappings)
+        self._interactive_config_provider.apply_values_to_settings(config_mappings)
         self._save()
 
     def non_interactive_mode(self, config_key_value: tuple) -> None:
-        key, value = config_key_value
+        key, value = config_key_value        
 
-        default_mappings = self._non_interactive_config_provider.get_all_configs()
         self._non_interactive_config_provider.raise_property_invalid(key)
-        self._non_interactive_config_provider.apply_default_values(default_mappings)
+
+        config_mappings = self._non_interactive_config_provider.get_all_configs()
+        self._non_interactive_config_provider.apply_values_to_settings(config_mappings)
         self._settings.set(key, value)
-        self._non_interactive_config_provider.recalculate_config_dynamic_values(default_mappings)
+
         self._save()
 
     def run(
@@ -159,7 +159,7 @@ class ConfigList(Command):
         )
 
     def run(self, key: Optional[str] = None):
-        self._settings.validate_configuration_file()
+        #self._settings.validate_configuration_file()
 
         if not key:
             self._show_config()

@@ -43,14 +43,14 @@ class BusNodeCommandRegistry:
         flag = self._atomdb_flags.get(atomdb_config)
 
         if flag is "remotedb":
-            return f"--atomdb-type={flag} --remotedb-config={SECRETS_PATH}"
+            return f"--atomdb-type={flag} --config={SECRETS_PATH}"
         else:
             return f"--atomdb-type={flag}" if flag else " "
 
     def _gen_default_cmd(self, service, endpoint, ports_range):
-        use_mork = self._check_atomdb_type_flag()
+        db_flag = self._check_atomdb_type_flag()
 
-        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {use_mork}".strip()
+        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {db_flag}".strip()
 
     def _cmd_atomdb_broker(self, service, endpoint, ports_range, options, **args):
 

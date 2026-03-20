@@ -7,7 +7,6 @@ from settings.config import SECRETS_PATH
 from .config_cli import ConfigCli, RemoteContextManager
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
-
 class ConfigModule(Module):
     _instance = ConfigCli
 
@@ -31,4 +30,4 @@ class ConfigModule(Module):
         return NonInteractiveConfigProvider(self._settings)
 
     def _interactive_config_provider_factory(self) -> InteractiveConfigProvider:
-        return InteractiveConfigProvider(self._settings, self._remote_context_manager)
+        return InteractiveConfigProvider(self._settings)
