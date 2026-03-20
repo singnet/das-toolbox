@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional
 
 from common.config.core import get_core_defaults_dict
-from common.utils import calculate_schema_hash
 
 from .config.loader import ConfigLoader
 from .config.store import ConfigStore
@@ -13,7 +12,7 @@ class Settings:
         store: ConfigStore,
         default_loader: Optional[ConfigLoader] = None,
         raise_on_missing_file=False,
-        raise_on_schema_mismatch=False,
+        raise_on_version_mismatch=False,
     ):
         self._store = store
         self._default_loader = default_loader
@@ -21,8 +20,8 @@ class Settings:
         if raise_on_missing_file:
             self.raise_on_missing_file()
 
-        if raise_on_schema_mismatch:
-            self.raise_on_schema_mismatch()
+        if raise_on_version_mismatch:
+            self.raise_on_version_mismatch()
 
     def set_content(self, content: Dict[str, Any]) -> None:
         self._store.set_content(content)
@@ -71,9 +70,10 @@ class Settings:
         except Exception:
             return value
 
-    def raise_on_schema_mismatch(self):
-        expected_hash = calculate_schema_hash(get_core_defaults_dict())
-        if self._store.get("schema_hash") != expected_hash:
+    def raise_on_version_mismatch(self):
+        base_dict_version = get_core_defaults_dict()["schema_version"]
+
+        if self._store.get("schema_version") != base_dict_version:
             mismatch_message = f"Your configuration file in {self.get_path()} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
 
             raise ValueError(mismatch_message)
@@ -86,7 +86,7 @@ class Settings:
 
     def validate_configuration_file(self):
         self.raise_on_missing_file()
-        self.raise_on_schema_mismatch()
+        self.raise_on_version_mismatch()
 
     def pretty(self) -> str:
         table_lines = []

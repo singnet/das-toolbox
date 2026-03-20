@@ -2,7 +2,7 @@ from common.command import Command
 from common.settings import Settings
 from common.prompt_types import PortRangeType
 from common.settings import Settings
-from .setup_utils import _extract_port, _get_default_value
+from .setup_utils import extract_port, get_default_value
 
 
 ########################################
@@ -14,12 +14,12 @@ def agents_port_setup(settings: Settings, agent_name: str):
 
     agent_port = Command.prompt(
         f"Enter the {agent_label} Agent port",
-        default=_extract_port(settings.get(f"agents.{agent_name}.endpoint", _get_default_value(f"agents.{agent_name}.endpoint"))),
+        default=extract_port(get_default_value(settings, f"agents.{agent_name}.endpoint")),
     )
 
     agent_port_range = Command.prompt(
         f"Enter the {agent_label} Agent ports range",
-        default=settings.get(f"agents.{agent_name}.ports_range", _get_default_value(f"agents.{agent_name}.ports_range")),
+        default=get_default_value(settings, f"agents.{agent_name}.ports_range"),
         type=PortRangeType()
     )
 

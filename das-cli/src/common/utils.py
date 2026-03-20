@@ -95,20 +95,6 @@ def resolve_file_path(
 
     return None
 
-
-def calculate_schema_hash_for_keys(all_keys: List[str]) -> str:
-    sorted_keys = sorted(all_keys)
-    concatenated_keys = ",".join(sorted_keys)
-    hash_object = hashlib.sha256(concatenated_keys.encode("utf-8"))
-    return hash_object.hexdigest()
-
-
-def calculate_schema_hash(schema: Dict[str, Any]) -> str:
-    all_keys = list(schema.keys())
-
-    return calculate_schema_hash_for_keys(all_keys)
-
-
 def log_exception(e: Exception) -> None:
     error_type = e.__class__.__name__
     error_message = str(e)
@@ -117,7 +103,6 @@ def log_exception(e: Exception) -> None:
     logger().exception(error_message)
 
     print(pretty_message)
-
 
 def print_table(
     rows: List[Dict[str, Any]],

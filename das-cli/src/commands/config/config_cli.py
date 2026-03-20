@@ -80,6 +80,7 @@ class ConfigSet(Command):
         )
 
     def interactive_mode(self, from_env: Optional[str]) -> None:
+
         self._settings.replace_loader(
             loader=CompositeLoader(
                 [
@@ -89,7 +90,7 @@ class ConfigSet(Command):
             )
         )
 
-        config_mappings = self._interactive_config_provider.get_all_configs()
+        config_mappings = self._interactive_config_provider.setup_settings()
         self._interactive_config_provider.apply_values_to_settings(config_mappings)
         self._save()
 
@@ -97,8 +98,9 @@ class ConfigSet(Command):
         key, value = config_key_value        
 
         self._non_interactive_config_provider.raise_property_invalid(key)
+        self._settings.validate_configuration_file()
 
-        config_mappings = self._non_interactive_config_provider.get_all_configs()
+        config_mappings = self._non_interactive_config_provider.setup_settings()
         self._non_interactive_config_provider.apply_values_to_settings(config_mappings)
         self._settings.set(key, value)
 
@@ -159,7 +161,7 @@ class ConfigList(Command):
         )
 
     def run(self, key: Optional[str] = None):
-        #self._settings.validate_configuration_file()
+        self._settings.validate_configuration_file()
 
         if not key:
             self._show_config()
