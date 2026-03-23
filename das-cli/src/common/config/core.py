@@ -121,6 +121,11 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 "initial_spreading_rate_lowerbound": 0.5,
                 "initial_spreading_rate_upperbound": 0.7
             }
+        },
+        "environment": {
+            "jupyter": {
+                "endpoint": "localhost:40019"
+            }
         }
     }
 

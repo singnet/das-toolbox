@@ -11,6 +11,7 @@ from .config_sections.agents import agents_config_section
 from .config_sections.atomdb import atomdb_config_section
 from .config_sections.brokers import brokers_config_section
 from .config_sections.service_params import params_config_section
+from .config_sections.jupyter import jupyter_notebook_section
 
 class ConfigProvider(ABC):
 
@@ -75,6 +76,7 @@ class InteractiveConfigProvider(ConfigProvider):
             atomdb_config_section,
             agents_config_section,
             brokers_config_section,
+            jupyter_notebook_section,
             params_config_section,
         ]
 

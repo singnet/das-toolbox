@@ -139,8 +139,7 @@ class JupyterNotebookStop(Command):
         return self._jupyter_notebook_container_manager.get_container()
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         container = self._get_container()
 
