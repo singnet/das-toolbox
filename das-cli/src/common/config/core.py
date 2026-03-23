@@ -59,6 +59,14 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 }
             ]
         },
+        "loaders": {
+            "metta": {
+                "image": "trueagi/das:1.0.0-metta-parser"
+            },
+            "morkdb": {
+                "image": "trueagi/das:mork-loader-1.0.4"
+            }
+        },
         "agents": {
             "query": {
                 "endpoint": "localhost:40002",

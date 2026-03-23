@@ -30,7 +30,7 @@ class LinkCreationAgentModule(Module):
         self._dependency_list = [
             (
                 QueryAgentContainerManager,
-                ContainerManagerFactory().build(ContainerTypes.QUERY_AGENT),
+                ContainerManagerFactory().build(ContainerTypes.QUERY_ENGINE),
             ),
             (
                 BusNodeContainerManager,

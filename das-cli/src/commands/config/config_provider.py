@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from common.config.core import (
     get_core_defaults_dict,
 )
 from common.settings import Settings
-from common.utils import deep_merge_dicts
 
 from .config_sections.agents import agents_config_section
 from .config_sections.atomdb import atomdb_config_section
 from .config_sections.brokers import brokers_config_section
 from .config_sections.service_params import params_config_section
 from .config_sections.jupyter import jupyter_notebook_section
+from .config_sections.loaders import loaders_config_section
 
 class ConfigProvider(ABC):
 
@@ -78,6 +78,7 @@ class InteractiveConfigProvider(ConfigProvider):
             brokers_config_section,
             jupyter_notebook_section,
             params_config_section,
+            loaders_config_section,
         ]
 
         config: Dict[str, Any] = {}

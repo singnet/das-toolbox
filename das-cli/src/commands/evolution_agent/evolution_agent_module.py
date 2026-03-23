@@ -26,7 +26,7 @@ class EvolutionAgentModule(Module):
         self._dependency_list = [
             (
                 QueryAgentContainerManager,
-                ContainerManagerFactory().build(type=ContainerTypes.QUERY_AGENT),
+                ContainerManagerFactory().build(type=ContainerTypes.QUERY_ENGINE),
             ),
             (
                 BusNodeContainerManager,

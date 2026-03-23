@@ -130,12 +130,12 @@ class QueryAgentStart(Command):
     def _query_engine_node(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Query Agent service...")
 
-        query_agent_port = self._settings.get("services.query_agent.port")
-
         try:
+            container = self._get_container()
+
             self._bus_node_container_manager.start_container(port_range, **kwargs)
 
-            success_message = f"Query Agent started on port {query_agent_port}"
+            success_message = f"Query Agent started on port {container.port}"
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,

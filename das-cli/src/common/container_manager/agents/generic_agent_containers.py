@@ -34,7 +34,7 @@ class ContainerTypes(Enum):
     LINK_CREATION_AGENT = (LCAContainerManager, "agents.link_creation")
     EVOLUTION_AGENT = (EvolutionAgentContainerManager, "agents.evolution")
     INFERENCE_AGENT = (InferenceAgentContainerManager, "agents.inference")
-    QUERY_AGENT = (QueryAgentContainerManager, "agents.query")
+    QUERY_ENGINE = (QueryAgentContainerManager, "agents.query")
 
     def __init__(self, manager_type, settings):
         self.manager_type = manager_type

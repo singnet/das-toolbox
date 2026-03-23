@@ -59,7 +59,7 @@ class LogsModule(Module):
             ),
             (
                 QueryAgentContainerManager,
-                container_factory.build(type=ContainerTypes.QUERY_AGENT),
+                container_factory.build(type=ContainerTypes.QUERY_ENGINE),
             ),
             (
                 LCAContainerManager,

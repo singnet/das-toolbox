@@ -1,4 +1,5 @@
 from typing import Dict
+import os
 
 import docker
 
@@ -34,10 +35,15 @@ class BusNodeContainerManager(ContainerManager):
 
         super().__init__(container)
 
+    def _extract_user_exp_path(self) -> str:
+        return os.path.expanduser("~/.das/config.json")
+
     def start_container(self, ports_range: str, **kwargs) -> None:
 
         self.raise_running_container()
         self.raise_on_port_in_use([self._options.get("service_port")])
+
+        user_config_volume = self._extract_user_exp_path()
 
         try:
 
@@ -52,6 +58,12 @@ class BusNodeContainerManager(ContainerManager):
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
+                },
+                volumes={
+                    user_config_volume: {
+                        "bind": user_config_volume,
+                        "mode": "ro",
+                    }
                 },
                 command=bus_node_command
             )

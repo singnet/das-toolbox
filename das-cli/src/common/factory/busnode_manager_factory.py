@@ -15,10 +15,10 @@ class BusNodeContainerManagerFactory:
 
     def build(self, use_settings_from: str, service_name: str) -> BusNodeContainerManager:
 
-        service_port = extract_service_port(self._settings.get(f"{use_settings_from}.port"))
+        service_port = extract_service_port(self._settings.get(f"{use_settings_from}.endpoint"))
         service_endpoint = f"0.0.0.0:{service_port}"
 
-        attention_broker_port = extract_service_port(self._settings.get("brokers.attention_broker.endpoint"))
+        attention_broker_port = extract_service_port(self._settings.get("brokers.attention.endpoint"))
 
         default_container_name = f"das-{service_name}-{service_port}"
 
