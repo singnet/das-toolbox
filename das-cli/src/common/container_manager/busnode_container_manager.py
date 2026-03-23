@@ -53,17 +53,7 @@ class BusNodeContainerManager(ContainerManager):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                command=bus_node_command,
-                environment={
-                    "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
-                    "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
-                    "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
-                    "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
-                    "DAS_REDIS_HOSTNAME": self._options.get("redis_hostname"),
-                    "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
-                    "DAS_MORK_PORT": self._options.get("morkdb_port"),
-                },
+                command=bus_node_command
             )
             return container
 
