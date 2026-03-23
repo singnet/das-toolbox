@@ -7,7 +7,6 @@ from common.container_manager.metta.metta_loader_container_manager import (
 )
 from settings.config import SECRETS_PATH
 from common.utils import extract_service_port
-from common.factory.shared.shared_utils import safe_extract_value
 from common.settings import get_core_defaults_dict
 
 class MettaLoaderManagerFactory:
@@ -18,12 +17,12 @@ class MettaLoaderManagerFactory:
 
     def build(self):
 
-        mongodb_port = extract_service_port(safe_extract_value(self._settings, self._default, "atomdb.mongodb.endpoint"))
+        mongodb_port = extract_service_port(self._settings.get("atomdb.mongodb.endpoint"))
 
         mongodb_username = self._settings.get("atomdb.mongodb.username")
         mongodb_password = self._settings.get("atomdb.mongodb.password")
 
-        redis_port = extract_service_port(safe_extract_value(self._settings, self._default, "atomdb.redis.endpoint"))
+        redis_port = extract_service_port(self._settings.get("atomdb.redis.endpoint"))
         atomdb_backend = self._settings.get("atomdb.type")
 
         container_name = "das-cli-metta-loader"

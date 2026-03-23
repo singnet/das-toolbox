@@ -12,16 +12,15 @@ from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION, SECRETS_PATH
 
 
 class ContainerManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self, type: ContainerTypes):
 
-        settings_key = type.name.lower()
+        settings_key = type.settings_path
 
-        container_name = self._settings.get(f"services.{settings_key}.container_name")
-        container_port = self._settings.get(f"services.{settings_key}.port")
+        container_name = self._settings.get(f"{settings_key}.container_name")
+        container_port = self._settings.get(f"{settings_key}.endpoint")
 
         container_image_metadata: ContainerImageMetadata = {
             "name": DAS_IMAGE_NAME,
@@ -35,4 +34,4 @@ class ContainerManagerFactory:
 
         container = Container(name=container_name, metadata=container_data)
 
-        return type.value(container, exec_context=None)
+        return type.manager_type(container, exec_context=None)

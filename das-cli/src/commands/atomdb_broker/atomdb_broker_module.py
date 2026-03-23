@@ -26,7 +26,7 @@ class AtomDbBrokerModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="atomdb_broker", service_name="atomdb-broker"
+                    use_settings_from="brokers.atomdb", service_name="atomdb-broker"
                 ),
             ),
             (

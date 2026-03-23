@@ -31,7 +31,7 @@ class EvolutionAgentModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="evolution_agent", service_name="evolution-agent"
+                    use_settings_from="agents.evolution", service_name="evolution-agent"
                 ),
             ),
             (

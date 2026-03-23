@@ -2,7 +2,8 @@ from common.command import Command
 from common.settings import Settings
 from common.prompt_types import PortRangeType
 from common.settings import Settings
-from .setup_utils import extract_port, get_default_value
+from .setup_utils import get_default_value
+from common.utils import extract_service_port
 
 #########################################
 ##            BROKERS SETUP            ##
@@ -13,7 +14,7 @@ def brokers_port_setup(settings: Settings, broker_name: str):
 
     broker_port = Command.prompt(
         f"Enter the {broker_label} Broker port",
-        default=extract_port(get_default_value(settings, f"brokers.{broker_name}.endpoint")),
+        default=extract_service_port(get_default_value(settings, f"brokers.{broker_name}.endpoint")),
     )
 
     broker_port_range = None if broker_name == "attention" else Command.prompt(

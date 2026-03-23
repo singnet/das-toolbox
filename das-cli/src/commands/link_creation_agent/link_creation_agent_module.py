@@ -35,7 +35,7 @@ class LinkCreationAgentModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="link_creation_agent", service_name="link-creation-agent"
+                    use_settings_from="agents.link_creation", service_name="link-creation-agent"
                 ),
             ),
             (

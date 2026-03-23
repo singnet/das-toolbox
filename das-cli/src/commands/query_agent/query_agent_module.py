@@ -38,7 +38,7 @@ class QueryAgentModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="query_agent", service_name="query-engine"
+                    use_settings_from="agents.query", service_name="query-engine"
                 ),
             ),
             (

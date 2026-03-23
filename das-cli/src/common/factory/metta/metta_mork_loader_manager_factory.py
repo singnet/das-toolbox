@@ -7,7 +7,6 @@ from common.container_manager.metta.metta_mork_loader_container_manager import (
 )
 from settings.config import SECRETS_PATH
 from common.utils import extract_service_port
-from common.factory.shared.shared_utils import safe_extract_value
 from common.settings import get_core_defaults_dict
 
 class MettaMorkLoaderManagerFactory:
@@ -18,7 +17,7 @@ class MettaMorkLoaderManagerFactory:
 
     def build(self):
 
-        morkdb_port = extract_service_port(safe_extract_value(self._settings, self._default, "atomdb.morkdb.endpoint"))
+        morkdb_port = extract_service_port(self._settings.get("atomdb.morkdb.endpoint"))
         morkdb_hostname = "0.0.0.0"
         container_name = "das-cli-metta-mork-loader"
 

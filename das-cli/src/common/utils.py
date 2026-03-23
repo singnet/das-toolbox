@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
-
 from common.logger import logger
 
 
@@ -157,8 +156,11 @@ def extract_service_name(container_name: str) -> str | None:
     return parts[0] if parts else name
 
 def extract_service_port(endpoint: str) -> str | None:
-    return endpoint.split(":")[1]
-
+    try:
+        port = endpoint.split(":")[1]
+        return port
+    except Exception:
+        return None
 
 def get_platform_info() -> str:
     return f"{sys.platform} {sys.version.split()[0]}"

@@ -27,7 +27,7 @@ class InferenceAgentModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="inference_agent", service_name="inference-agent"
+                    use_settings_from="agents.inference", service_name="inference-agent"
                 ),
             ),
             (

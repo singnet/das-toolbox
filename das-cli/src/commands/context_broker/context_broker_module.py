@@ -31,7 +31,7 @@ class ContextBrokerModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="context_broker", service_name="context-broker"
+                    use_settings_from="brokers.context", service_name="context-broker"
                 ),
             ),
             (

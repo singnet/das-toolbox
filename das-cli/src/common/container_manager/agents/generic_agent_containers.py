@@ -28,9 +28,14 @@ class QueryAgentContainerManager(ContainerManager):
 
 
 class ContainerTypes(Enum):
-    CONTEXT_BROKER = ContextBrokerContainerManager
-    ATOMDB_BROKER = AtomDbBrokerContainerManager
-    LINK_CREATION_AGENT = LCAContainerManager
-    EVOLUTION_AGENT = EvolutionAgentContainerManager
-    INFERENCE_AGENT = InferenceAgentContainerManager
-    QUERY_AGENT = QueryAgentContainerManager
+
+    CONTEXT_BROKER = (ContextBrokerContainerManager, "brokers.context")
+    ATOMDB_BROKER = (AtomDbBrokerContainerManager, "brokers.atomdb")
+    LINK_CREATION_AGENT = (LCAContainerManager, "agents.link_creation")
+    EVOLUTION_AGENT = (EvolutionAgentContainerManager, "agents.evolution")
+    INFERENCE_AGENT = (InferenceAgentContainerManager, "agents.inference")
+    QUERY_AGENT = (QueryAgentContainerManager, "agents.query")
+
+    def __init__(self, manager_type, settings):
+        self.manager_type = manager_type
+        self.settings_path = settings

@@ -10,9 +10,10 @@ from common.prompt_types import ReachableIpAddress
 from common.network import get_public_ip
 from common.prompt_types import ValidUsername
 from common.settings import Settings
-from common.utils import get_rand_token, get_server_username
+from common.utils import get_rand_token, get_server_username, extract_service_port
 from common.network import get_public_ip
-from .setup_utils import extract_port, get_default_value
+from .setup_utils import get_default_value
+from common.utils import extract_service_port
 
 
 #########################################
@@ -93,7 +94,7 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> Dict[str, Any]:
 
     mongodb_port = Command.prompt(
         "Enter the port for MongoDB:",
-        default=extract_port(get_default_value(settings, "atomdb.mongodb.endpoint")),
+        default=extract_service_port(get_default_value(settings, "atomdb.mongodb.endpoint")),
         type=int,
     )
 
@@ -135,7 +136,7 @@ def redis_setup(settings: Settings, skip_cluster: bool = False) -> Dict[str, Any
 
     redis_port = Command.prompt(
         "Enter the port for Redis:",
-        default= extract_port(get_default_value(settings, "atomdb.redis.endpoint")),
+        default= extract_service_port(get_default_value(settings, "atomdb.redis.endpoint")),
         type=int,
     )
 
@@ -167,7 +168,7 @@ def mork_setup(settings: Settings) -> Dict[str, Any]:
 
     morkdb_port = Command.prompt(
         "Enter the port for MorkDB:",
-        default= extract_port(get_default_value(settings, "atomdb.morkdb.endpoint")),
+        default= extract_service_port(get_default_value(settings, "atomdb.morkdb.endpoint")),
         type=int,
     )
 
