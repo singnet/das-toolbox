@@ -139,7 +139,7 @@ class EvolutionAgentStart(Command):
         self.stdout("Starting Evolution Agent service...")
 
         container = self._get_container()
-        port = self._settings.get("services.evolution_agent.port")
+        port = container.port
 
         try:
             self._evolution_agent_bus_node_manager.start_container(port_range, **kwargs)

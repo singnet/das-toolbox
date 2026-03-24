@@ -8,11 +8,15 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
-    services_stop
+    das-cli db stop || true
+    das-cli attention-broker stop || true
+    das-cli query-agent stop || true
 }
 
 teardown() {
-    services_stop
+    das-cli db stop || true
+    das-cli attention-broker stop || true
+    das-cli query-agent stop || true
 }
 
 @test "Trying to show the system status with unset configuration file" {
@@ -24,12 +28,20 @@ teardown() {
 }
 
 @test "System status command correctly reports running and stopped services" { 
+
+    services_containers=(
+        "das-cli-redis-40020"
+        "das-cli-mongodb-40021"
+        "das-attention-broker-40001"
+        "das-query-engine-40002"
+    )
+
     for service in db attention-broker query-agent; do
         das-cli "$service" start
     done
 
-    for service in redis mongodb attention_broker query_agent; do
-        run is_service_up "$service"
+    for container in "${services_containers[@]}"; do
+        run is_service_up "$container"
         assert_success
     done
 
@@ -46,8 +58,10 @@ teardown() {
         das-cli "$service" stop
     done
 
-    for service in redis mongodb attention_broker query_agent; do
-        run is_service_up "$service"
+    sleep 3
+
+    for container in "${services_containers[@]}"; do
+        run is_service_up "$container"
         assert_failure
     done
 

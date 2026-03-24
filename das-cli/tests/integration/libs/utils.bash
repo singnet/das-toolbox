@@ -90,15 +90,24 @@ function capitalize_letter() {
     echo "$result"
 }
 
+extract_port() {
+    echo "${1##*:}"
+}
+
 function get_config() {
     local attr="$1"
 
-    jq -r -c ''"${attr}"'' "$das_config_file"
+    jq -r -c "${attr}" "$das_config_file"
 }
 
 function set_config() {
     local attr="$1"
     local value="$2"
+
+    if [ -d "$das_config_file" ]; then
+        echo "ERROR: $das_config_file is a directory"
+        return 1
+    fi
 
     jq "$attr = $value" "$das_config_file" >"$das_config_file.tmp" &&
         mv "$das_config_file.tmp" "$das_config_file"
@@ -125,10 +134,14 @@ function use_config() {
     local config_path="${test_fixtures_dir}/config/${config}.json"
 
     [ -f "${config_path}" ] || {
-        echo "Config '${config_path}' do not exist" && exit 1
+        echo "Config '${config_path}' does not exist" && exit 1
     }
 
     mkdir -p "${das_config_dir}"
+
+    if [ -d "${das_config_file}" ]; then
+        rm -rf "${das_config_file}"
+    fi
 
     unset_config
 
@@ -138,22 +151,22 @@ function use_config() {
 function listen_port() {
     local port="$1"
 
-    if [ ! command -v socat &>/dev/null ]; then
-        echo "socat is not installed. Please install it to use this function."
+    if ! command -v socat &>/dev/null; then
+        echo "socat is not installed"
         return 1
     fi
 
-    socat TCP-LISTEN:"$port",fork,reuseaddr - >/dev/null 2>&1 &
+    socat TCP-LISTEN:"$port",reuseaddr,fork EXEC:"sleep infinity" >/dev/null 2>&1 &
     local pid=$!
-    disown $pid
 
-    if [ "$?" -ne 0 ]; then
-        echo "It could not start listening on port $port"
+    sleep 0.2
+
+    if ! lsof -i :"$port" >/dev/null 2>&1; then
+        echo "Failed to bind port $port"
         return 1
-    else
-        echo "Started listening on port $port with PID $pid"
     fi
 
+    echo "$pid"
 }
 
 function stop_listen_port() {

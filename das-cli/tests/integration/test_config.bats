@@ -19,59 +19,49 @@ setup() {
 @test "listing config with set configuration file" {
     run das-cli config list
 
-    assert_line --partial "$(get_config ".services.redis.port")"
-    assert_line --partial "$(get_config ".services.redis.container_name")"
-    assert_line --partial $(capitalize_letter --first "$(get_config ".services.redis.cluster")")
-    assert_line --partial "$(get_config ".services.redis.nodes.0.context")"
-    assert_line --partial "$(get_config ".services.redis.nodes.0.ip")"
-    assert_line --partial "$(get_config ".services.redis.nodes.0.username")"
-    assert_line --partial "$(get_config ".services.mongodb.port")"
-    assert_line --partial "$(get_config ".services.mongodb.container_name")"
-    assert_line --partial "$(get_config ".services.mongodb.username")"
-    assert_line --partial "$(get_config ".services.mongodb.password")"
-    assert_line --partial "$(get_config ".services.loader.container_name")"
-    assert_line --partial "$(get_config ".services.jupyter_notebook.port")"
-    assert_line --partial "$(get_config ".services.jupyter_notebook.container_name")"
-    assert_line --partial "$(get_config ".services.das_peer.container_name")"
-    assert_line --partial "$(get_config ".services.das_peer.port")"
-    assert_line --partial "$(get_config ".services.dbms_peer.container_name")"
-    assert_line --partial "$(get_config ".services.attention_broker.container_name")"
-    assert_line --partial "$(get_config ".services.attention_broker.port")"
-    assert_line --partial "$(get_config ".services.query_agent.container_name")"
-    assert_line --partial "$(get_config ".services.query_agent.port")"
-    assert_line --partial "$(get_config ".services.link_creation_agent.container_name")"
-    assert_line --partial "$(get_config ".services.link_creation_agent.port")"
-    assert_line --partial "$(get_config ".services.inference_agent.container_name")"
-    assert_line --partial "$(get_config ".services.inference_agent.port")"
-    assert_line --partial "$(get_config ".services.evolution_agent.container_name")"
-    assert_line --partial "$(get_config ".services.evolution_agent.port")"
-    assert_line --partial "$(get_config ".services.context_broker.port")"
-    assert_line --partial "$(get_config ".services.context_broker.container_name")"
-    assert_line --partial "$(get_config ".services.database.atomdb_backend")"
+    assert_line --partial "$(get_config ".atomdb.redis.endpoint")"
+    assert_line --partial $(capitalize_letter --first "$(get_config ".atomdb.redis.cluster")")
+    assert_line --partial "$(get_config ".atomdb.mongodb.endpoint")"
+    assert_line --partial "$(get_config ".atomdb.mongodb.username")"
+    assert_line --partial "$(get_config ".atomdb.mongodb.password")"
+    assert_line --partial "$(get_config ".environment.jupyter.endpoint")"
+    assert_line --partial "$(get_config ".brokers.attention.endpoint")"
+    assert_line --partial "$(get_config ".agents.query.endpoint")"
+    assert_line --partial "$(get_config ".agents.link_creation.endpoint")"
+    assert_line --partial "$(get_config ".agents.inference.endpoint")"
+    assert_line --partial "$(get_config ".agents.evolution.endpoint")"
+    assert_line --partial "$(get_config ".brokers.context.endpoint")"
+    assert_line --partial "$(get_config ".atomdb.type")"
 }
 
 @test "configuring settings without a previously set configuration file" {
-    unset_config
-
-    ! [ -f "$das_config_file" ]
-
-    local atomdb_backend="redis_mongodb"
-    local mongodb_port="27017"
+    local atomdb_backend="" 
+    local mongodb_port="40021"
     local mongodb_username="admin"
     local mongodb_password="admin"
-    local mongodb_cluster="no"
-    local redis_port="6379"
-    local redis_cluster="no"
-    local jupyter_notebook_port="8888"
-    local attention_broker_port="37007"
-    local query_agent_port="35700"
-    local link_creation_agent_port="9080"
-    local inference_agent_port="8080"
-    local evolution_agent_port="24002"
+    local mongodb_cluster="" 
+    local redis_port="40020"
+    local redis_cluster=""  
+    
+    local query_agent_port="40002"
+    local query_agent_range="42000:42999"
+    local link_creation_agent_port="40003"
+    local link_creation_agent_range="43000:43999"
+    local inference_agent_port="40004"
+    local inference_agent_range="44000:44999"
+    local evolution_agent_port="40005"
+    local evolution_agent_range="45000:45999"
+    
+    local attention_broker_port="40001"
     local context_broker_port="40006"
+    local context_broker_range="46000:46999"
     local atomdb_broker_port="40007"
+    local atomdb_broker_range="47000:47999"
+    
+    local jupyter_notebook_port="40017"
+    local custom_params="" 
 
-    run das-cli config set <<EOF
+run das-cli config set <<EOF
 $atomdb_backend
 $mongodb_port
 $mongodb_username
@@ -79,152 +69,63 @@ $mongodb_password
 $mongodb_cluster
 $redis_port
 $redis_cluster
-$jupyter_notebook_port
-$attention_broker_port
 $query_agent_port
+$query_agent_range
 $link_creation_agent_port
+$link_creation_agent_range
 $inference_agent_port
+$inference_agent_range
 $evolution_agent_port
+$evolution_agent_range
+$attention_broker_port
 $context_broker_port
+$context_broker_range
 $atomdb_broker_port
+$atomdb_broker_range
+$jupyter_notebook_port
+$custom_params
 EOF
 
-    assert_line --partial "Configuration file saved -> ${das_config_dir}"
-    assert_equal "$(get_config ".services.redis.port")" "$redis_port"
-    assert_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
-    assert_equal "$(get_config ".services.redis.nodes | length")" 1
-    assert_equal "$(get_config ".services.mongodb.port")" "$mongodb_port"
-    assert_equal "$(get_config ".services.mongodb.username")" "$mongodb_username"
-    assert_equal "$(get_config ".services.mongodb.password")" "$mongodb_password"
-    assert_equal "$(get_config ".services.mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
-    assert_equal "$(get_config ".services.jupyter_notebook.port")" "$jupyter_notebook_port"
-    assert_equal "$(get_config ".services.attention_broker.port")" "$attention_broker_port"
-    assert_equal "$(get_config ".services.query_agent.port")" "$query_agent_port"
-    assert_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
-    assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
-    assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
-    assert_equal "$(get_config ".services.context_broker.port")" "$context_broker_port"
+    assert_success
+    
+    run get_config ".atomdb.redis.endpoint"
+    assert_output "localhost:40020"
+
+    run get_config ".atomdb.mongodb.endpoint"
+    assert_output "localhost:40021"
+
+    run get_config ".environment.jupyter.endpoint"
+    assert_output "localhost:40017"
 }
 
 @test "configuring settings with a previously set configuration file" {
-    [ -f "$das_config_file" ]
-
-    local old_redis_port="$(get_config ".services.redis.port")"
-    local old_redis_cluster="$(get_config ".services.redis.cluster")"
-    local old_mongodb_port="$(get_config ".services.mongodb.port")"
-    local old_mongodb_username="$(get_config ".services.mongodb.username")"
-    local old_mongodb_password="$(get_config ".services.mongodb.password")"
-    local old_mongodb_cluster="$(get_config ".services.mongodb.cluster")"
-    local old_jupyter_notebook_port="$(get_config ".services.jupyter_notebook.port")"
-    local old_attention_broker_port="$(get_config ".services.attention_broker.port")"
-    local old_query_agent_port="$(get_config ".services.query_agent.port")"
-    local old_link_creation_agent_port="$(get_config ".services.link_creation_agent.port")"
-    local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
-    local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
-    local old_context_broker_port="$(get_config ".services.context_broker.port")"
-    local old_atomdb_backend="$(get_config ".services.database.atomdb_backend")"
-    local old_atomdb_broker_port="$(get_config ".services.database.atomdb_broker.port")"
-
-    local mongodb_port="91032"
-    local mongodb_username=""
-    local mongodb_password="new_password"
-    local mongodb_cluster="no"
-    local redis_port="7000"
-    local redis_cluster="no"
-    local jupyter_notebook_port="8000"
-    local attention_broker_port="38007"
-    local query_agent_port="36700"
-    local link_creation_agent_port="9180"
-    local inference_agent_port="8080"
-    local evolution_agent_port="24002"
-    local context_broker_port="30006"
-    local atomdb_backend="redis_mongodb"
-    local atomdb_broker_port="40027"
-
-    run das-cli config set <<EOF
-$atomdb_backend
-$mongodb_port
-$mongodb_username
-$mongodb_password
-$mongodb_cluster
-$redis_port
-$redis_cluster
-$jupyter_notebook_port
-$attention_broker_port
-$query_agent_port
-$link_creation_agent_port
-$inference_agent_port
-$evolution_agent_port
-$context_broker_port
-$atomdb_broker_port
-EOF
-
-    assert_equal "$(get_config ".services.database.atomdb_backend")" "$atomdb_backend"
-    assert_equal "$(get_config ".services.redis.port")" "$redis_port"
-    assert_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
-    assert_equal "$(get_config ".services.redis.nodes | length")" 1
-    assert_equal "$(get_config ".services.mongodb.port")" "$mongodb_port"
-    assert_not_equal "$(get_config ".services.mongodb.username")" "$mongodb_username"
-    assert_equal "$(get_config ".services.mongodb.password")" "$mongodb_password"
-    assert_equal "$(get_config ".services.mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
-    assert_equal "$(get_config ".services.jupyter_notebook.port")" "$jupyter_notebook_port"
-    assert_equal "$(get_config ".services.attention_broker.port")" "$attention_broker_port"
-    assert_equal "$(get_config ".services.query_agent.port")" "$query_agent_port"
-    assert_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
-    assert_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
-    assert_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
-    assert_equal "$(get_config ".services.context_broker.port")" "$context_broker_port"
-
-    assert_not_equal "$redis_port" "$old_redis_port"
-    assert_equal "$(human_to_boolean "$redis_cluster")" "$old_redis_cluster"
-    assert_not_equal "$mongodb_port" "$old_mongodb_port"
-    assert_equal "$(get_config ".services.mongodb.username")" "$old_mongodb_username"
-    assert_not_equal "$mongodb_password" "$old_mongodb_password"
-    assert_equal "$(human_to_boolean "$mongodb_cluster")" "$old_mongodb_cluster"
-    assert_not_equal "$jupyter_notebook_port" "$old_jupyter_notebook_port"
-    assert_not_equal "$attention_broker_port" "$old_attention_broker_port"
-    assert_not_equal "$query_agent_port" "$old_query_agent_port"
-    assert_not_equal "$link_creation_agent_port" "$old_link_creation_agent_port"
-    assert_not_equal "$inference_agent_port" "$old_inference_agent_port"
-    assert_not_equal "$evolution_agent_port" "$old_evolution_agent_port"
-    assert_not_equal "$context_broker_port" "$old_context_broker_port"
-    assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
-    assert_not_equal "$atomdb_broker_port", "old_atomdb_broker_port"
-
-}
-
-@test "setting default values for configuration" {
-    [ -f "$das_config_file" ]
-
-    local old_atomdb_backend="$(get_config ".services.database.atomdb_backend")"
-    local old_redis_port="$(get_config ".services.redis.port")"
-    local old_redis_cluster="$(get_config ".services.redis.cluster")"
-    local old_mongodb_port="$(get_config ".services.mongodb.port")"
-    local old_mongodb_username="$(get_config ".services.mongodb.username")"
-    local old_mongodb_password="$(get_config ".services.mongodb.password")"
-    local old_mongodb_cluster="$(get_config ".services.mongodb.cluster")"
-    local old_jupyter_notebook_port="$(get_config ".services.jupyter_notebook.port")"
-    local old_attention_broker_port="$(get_config ".services.attention_broker.port")"
-    local old_query_agent_port="$(get_config ".services.query_agent.port")"
-    local old_link_creation_agent_port="$(get_config ".services.link_creation_agent.port")"
-    local old_inference_agent_port="$(get_config ".services.inference_agent.port")"
-    local old_evolution_agent_port="$(get_config ".services.evolution_agent.port")"
-    local old_context_broker_port="$(get_config ".services.context_broker.port")"
+    unset_config
 
     local atomdb_backend=""
-    local mongodb_port=""
-    local mongodb_username=""
-    local mongodb_password=""
-    local mongodb_cluster=""
-    local redis_port=""
-    local redis_cluster=""
-    local jupyter_notebook_port=""
-    local attention_broker_port=""
-    local query_agent_port=""
-    local link_creation_agent_port=""
-    local inference_agent_port=""
-    local evolution_agent_port=""
-    local context_broker_port=""
+    local mongodb_port="40021"
+    local mongodb_username="admin"
+    local mongodb_password="admin"
+    local mongodb_cluster="n"
+    local redis_port="40020"
+    local redis_cluster="n"
+
+    local query_agent_port="40002"
+    local query_agent_range="42000:42999"
+    local link_creation_agent_port="40003"
+    local link_creation_agent_range="43000:43999"
+    local inference_agent_port="40004"
+    local inference_agent_range="44000:44999"
+    local evolution_agent_port="40005"
+    local evolution_agent_range="45000:45999"
+
+    local attention_broker_port="40001"
+    local context_broker_port="40006"
+    local context_broker_range="46000:46999"
+    local atomdb_broker_port="40007"
+    local atomdb_broker_range="47000:47999"
+
+    local jupyter_notebook_port="40017"
+    local custom_params="n"
 
     run das-cli config set <<EOF
 $atomdb_backend
@@ -234,54 +135,58 @@ $mongodb_password
 $mongodb_cluster
 $redis_port
 $redis_cluster
-$jupyter_notebook_port
-$attention_broker_port
 $query_agent_port
+$query_agent_range
 $link_creation_agent_port
+$link_creation_agent_range
 $inference_agent_port
+$inference_agent_range
 $evolution_agent_port
+$evolution_agent_range
+$attention_broker_port
 $context_broker_port
+$context_broker_range
+$atomdb_broker_port
+$atomdb_broker_range
+$jupyter_notebook_port
+$custom_params
 EOF
 
-    assert_line --partial "Configuration file saved"
-    assert_equal "$(get_config ".services.database.atomdb_backend")" "$old_atomdb_backend"
-    assert_not_equal "$(get_config ".services.redis.port")" "$redis_port"
-    assert_not_equal "$(get_config ".services.redis.cluster")" "$(human_to_boolean "$redis_cluster")"
-    assert_not_equal "$(get_config ".services.mongodb.port")" "$mongodb_port"
-    assert_not_equal "$(get_config ".services.mongodb.username")" "$mongodb_username"
-    assert_not_equal "$(get_config ".services.mongodb.password")" "$mongodb_password"
-    assert_not_equal "$(get_config ".services.mongodb.cluster")" "$(human_to_boolean "$mongodb_cluster")"
-    assert_not_equal "$(get_config ".services.jupyter_notebook.port")" "$jupyter_notebook_port"
-    assert_not_equal "$(get_config ".services.attention_broker.port")" "$attention_broker_port"
-    assert_not_equal "$(get_config ".services.query_agent.port")" "$query_agent_port"
-    assert_not_equal "$(get_config ".services.link_creation_agent.port")" "$link_creation_agent_port"
-    assert_not_equal "$(get_config ".services.inference_agent.port")" "$inference_agent_port"
-    assert_not_equal "$(get_config ".services.evolution_agent.port")" "$evolution_agent_port"
-    assert_not_equal "$(get_config ".services.context_broker.port")" "$context_broker_port"
+    assert_success
 
-    assert_equal "$old_redis_port" "$(get_config ".services.redis.port")"
-    assert_equal "$old_redis_cluster" "$(get_config ".services.redis.cluster")"
-    assert_equal "$old_mongodb_port" "$(get_config ".services.mongodb.port")"
-    assert_equal "$old_mongodb_username" "$(get_config ".services.mongodb.username")"
-    assert_equal "$old_mongodb_password" "$(get_config ".services.mongodb.password")"
-    assert_equal "$old_mongodb_cluster" "$(get_config ".services.mongodb.cluster")"
-    assert_equal "$old_jupyter_notebook_port" "$(get_config ".services.jupyter_notebook.port")"
-    assert_equal "$old_attention_broker_port" "$(get_config ".services.attention_broker.port")"
-    assert_equal "$old_query_agent_port" "$(get_config ".services.query_agent.port")"
-    assert_equal "$old_link_creation_agent_port" "$(get_config ".services.link_creation_agent.port")"
-    assert_equal "$old_inference_agent_port" "$(get_config ".services.inference_agent.port")"
-    assert_equal "$old_evolution_agent_port" "$(get_config ".services.evolution_agent.port")"
-    assert_equal "$old_context_broker_port" "$(get_config ".services.context_broker.port")"
+    assert_equal "$(get_config ".atomdb.redis.endpoint")" "localhost:$redis_port"
+    assert_equal "$(get_config ".atomdb.mongodb.endpoint")" "localhost:$mongodb_port"
+    assert_equal "$(get_config ".environment.jupyter.endpoint")" "localhost:$jupyter_notebook_port"
+
+    assert_equal "$(get_config ".agents.query.endpoint")" "localhost:$query_agent_port"
+    assert_equal "$(get_config ".agents.query.ports_range")" "$query_agent_range"
+
+    assert_equal "$(get_config ".agents.link_creation.endpoint")" "localhost:$link_creation_agent_port"
+    assert_equal "$(get_config ".agents.link_creation.ports_range")" "$link_creation_agent_range"
+
+    assert_equal "$(get_config ".agents.inference.endpoint")" "localhost:$inference_agent_port"
+    assert_equal "$(get_config ".agents.inference.ports_range")" "$inference_agent_range"
+
+    assert_equal "$(get_config ".agents.evolution.endpoint")" "localhost:$evolution_agent_port"
+    assert_equal "$(get_config ".agents.evolution.ports_range")" "$evolution_agent_range"
+
+    assert_equal "$(get_config ".brokers.attention.endpoint")" "localhost:$attention_broker_port"
+
+    assert_equal "$(get_config ".brokers.context.endpoint")" "localhost:$context_broker_port"
+    assert_equal "$(get_config ".brokers.context.ports_range")" "$context_broker_range"
+
+    assert_equal "$(get_config ".brokers.atomdb.endpoint")" "localhost:$atomdb_broker_port"
+    assert_equal "$(get_config ".brokers.atomdb.ports_range")" "$atomdb_broker_range"
 }
 
 
-@test "Raises error value when configuration schema hash does not match" {
+@test "Raises error value when configuration schema version does not match" {
     [ -f "$das_config_file" ]
 
-    local old_shema_hash="$(get_config ".schema_hash")"
-    local current_schema_hash="invalid_schema_hash"
+    local old_shema_hash="$(get_config ".schema_version")"
+    local current_schema_hash="2.0"
 
-    update_json_key "$das_config_file" schema_hash "$current_schema_hash"
+    update_json_key "$das_config_file" schema_version "$current_schema_hash"
 
     assert_not_equal "$old_schema_hash" "$current_schema_hash"
 

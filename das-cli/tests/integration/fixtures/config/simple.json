@@ -1,84 +1,147 @@
 {
-  "schema_hash": "e98c086a52c829cd6aae38fc2f54255146b7ccccb3426f96b4b052b226e39a1b",
-  "services": {
-    "database": {
-      "atomdb_backend": "redis_mongodb"
+    "schema_version": "1.0",
+    "atomdb": {
+        "type": "redismongodb",
+        "redis": {
+            "endpoint": "localhost:40020",
+            "cluster": false,
+            "nodes": [
+            {
+                "context": "default",
+                "ip": "localhost",
+                "username": "local"
+            }
+        ]
+        },
+        "mongodb": {
+            "endpoint": "localhost:40021",
+            "username": "admin",
+            "password": "admin",
+            "cluster": false,
+            "cluster_secret_key": "8UDJSgpUCaVOTQG",
+            "nodes": [
+            {
+                "context": "default",
+                "ip": "localhost",
+                "username": "local"
+            }
+        ]
+        },
+        "morkdb": {
+            "endpoint": "localhost:40022"
+        },
+        "remote_peers": [
+            {
+                "uid": "peer1",
+                "type": "redismongodb",
+                "context": "remotedb_test_peer1_",
+                "mongodb": {
+                    "endpoint": "localhost:40021",
+                    "username": "admin",
+                    "password": "admin"
+                },
+                "redis": {
+                    "endpoint": "localhost:40020",
+                    "cluster": false
+                },
+                "local_persistence": {
+                    "type": "morkdb",
+                    "context": "remotedb_test_peer1_local_",
+                    "mongodb": {
+                        "endpoint": "localhost:40021",
+                        "username": "admin",
+                        "password": "admin"
+                    },
+                    "morkdb": {
+                        "endpoint": "localhost:40022"
+                    }
+                }
+            },
+            {
+                "uid": "peer2",
+                "type": "inmemorydb",
+                "context": "remotedb_test_peer2_",
+                "local_persistence": {
+                    "type": "inmemorydb",
+                    "context": "remotedb_test_peer2_local_"
+                }
+            }
+        ]
     },
-    "redis": {
-      "port": 40020,
-      "cluster": false,
-      "nodes": [
-        {
-          "context": "default",
-          "ip": "localhost",
-          "username": "user"
+    "loaders": {
+        "metta": {
+            "image": "trueagi/das:1.0.0-metta-parser"
+        },
+        "morkdb": {
+            "image": "trueagi/das:mork-loader-1.0.4"
         }
-      ],
-      "container_name": "das-cli-redis-40020"
     },
-    "mongodb": {
-      "port": 40021,
-      "username": "admin",
-      "password": "admin",
-      "cluster": false,
-      "cluster_secret_key": "lTcm2X8l2QpIkUR",
-      "nodes": [
-        {
-          "context": "default",
-          "ip": "localhost",
-          "username": "user"
+    "agents": {
+        "query": {
+            "endpoint": "localhost:40002",
+            "ports_range": "42000:42999"
+        },
+        "link_creation": {
+            "endpoint": "localhost:40003",
+            "ports_range": "43000:43999"
+        },
+        "inference": {
+            "endpoint": "localhost:40004",
+            "ports_range": "44000:44999"
+        },
+        "evolution": {
+            "endpoint": "localhost:40005",
+            "ports_range": "45000:45999"
         }
-      ],
-      "container_name": "das-cli-mongodb-40021"
     },
-    "loader": {
-      "container_name": "das-cli-loader"
+    "brokers": {
+        "attention": {
+            "endpoint": "localhost:40001"
+        },
+        "context": {
+            "endpoint": "localhost:40006",
+            "ports_range": "46000:46999"
+        },
+        "atomdb": {
+            "endpoint": "localhost:40007",
+            "ports_range": "47000:47999"
+        }
     },
-    "morkdb_loader": {
-      "container_name": "das-cli-morkdb-loader"
+    "params": {
+        "query": {
+            "max_answers": 100,
+            "max_bundle_size": 1000,
+            "count_flag": false,
+            "attention_update_flag": false,
+            "unique_assignment_flag": true,
+            "positive_importance_flag": false,
+            "populate_metta_mapping": true,
+            "use_metta_as_query_tokens": true
+        },
+        "link_creation": {
+            "repeat_count": 1,
+            "query_interval": 0,
+            "query_timeout": 0
+        },
+        "evolution": {
+            "elitism_rate": 0.08,
+            "max_generations": 10,
+            "population_size": 50,
+            "selection_rate": 0.1,
+            "total_attention_tokens": 100000
+        },
+        "context": {
+            "context": "context",
+            "use_cache": true,
+            "enforce_cache_recreation": false,
+            "initial_rent_rate": 0.25,
+            "initial_spreading_rate_lowerbound": 0.5,
+            "initial_spreading_rate_upperbound": 0.7
+        }
     },
-    "das_peer": {
-      "port": 40018,
-      "container_name": "das-cli-das-peer-40018"
-    },
-    "dbms_peer": {
-      "container_name": "das-cli-dbms-peer"
-    },
-    "jupyter_notebook": {
-      "port": 40019,
-      "container_name": "das-cli-jupyter-notebook-40019"
-    },
-    "attention_broker": {
-      "port": 40001,
-      "container_name": "das-cli-attention-broker-40001"
-    },
-    "query_agent": {
-      "port": 40002,
-      "container_name": "das-cli-query-agent-40002"
-    },
-    "link_creation_agent": {
-      "port": 40003,
-      "container_name": "das-cli-link-creation-agent-40003"
-    },
-    "inference_agent": {
-      "port": 40004,
-      "container_name": "das-cli-inference-agent-40004"
-    },
-    "evolution_agent": {
-      "port": 40005,
-      "container_name": "das-cli-evolution-agent-40005"
-    },
-    "context_broker": {
-      "port": 40006,
-      "container_name": "das-cli-context-broker-40006"
-    },
-    "atomdb_broker": {
-      "port": 40007,
-      "container_name": "das-cli-atomdb-broker-40007"
-    },
-    "morkdb": {
-      "port": 40022,
-      "container_name": "das-cli-morkdb-40022"
+    "environment": {
+        "jupyter": {
+            "endpoint": "localhost:40019"
+        }
     }
-  }
 }
