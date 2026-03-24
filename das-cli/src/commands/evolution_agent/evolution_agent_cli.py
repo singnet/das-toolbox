@@ -179,12 +179,11 @@ class EvolutionAgentStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-        except DockerError:
-            message = (
-                f"Failed to start Evolution Agent. Please ensure that the port {port} is not already in use "
-                "and that the required services are running."
+        except DockerError as e:
+            error_message = (
+                f"Error occurred while trying to start Attention Broker on port {port}"
             )
-            raise DockerError(message)
+            raise DockerError(f"{error_message}\nOriginal error: {e}")      
 
     @ensure_container_running(
         [

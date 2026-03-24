@@ -6,7 +6,7 @@ from common.container_manager.agents.attention_broker_container_manager import (
 )
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
 from common.prompt_types import PortRangeType
 
 from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
@@ -140,7 +140,7 @@ class InferenceAgentStart(Command):
 
         self.stdout("Starting Inference Agent service...")
 
-        inf_a_port = self._settings.get("services.inference_agent.port")
+        inf_a_port = container.port
 
         try:
             self._inference_agent_bus_node_manager.start_container(port_range, **kwargs)
@@ -181,6 +181,11 @@ class InferenceAgentStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+        except DockerError as e:
+            error_message = (
+                f"Error occurred while trying to start Attention Broker on port {inf_a_port}"
+            )
+            raise DockerError(f"{error_message}\nOriginal error: {e}")      
 
     @ensure_container_running(
         [

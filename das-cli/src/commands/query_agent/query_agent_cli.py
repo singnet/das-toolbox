@@ -131,11 +131,11 @@ class QueryAgentStart(Command):
         self.stdout("Starting Query Agent service...")
 
         try:
-            container = self._get_container()
+            container_port = self._get_container().port
 
             self._bus_node_container_manager.start_container(port_range, **kwargs)
 
-            success_message = f"Query Agent started on port {container.port}"
+            success_message = f"Query Agent started on port {container_port}"
             self.stdout(
                 success_message,
                 severity=StdoutSeverity.SUCCESS,
@@ -154,7 +154,7 @@ class QueryAgentStart(Command):
             )
         except DockerContainerDuplicateError:
             warning_message = (
-                f"Query Agent is already running. It's listening on port {query_agent_port}"
+                f"Query Agent is already running. It's listening on port {container_port}"
             )
 
             self.stdout(
@@ -173,12 +173,12 @@ class QueryAgentStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-        except DockerError:
-            message = (
-                f"Failed to start Query Agent. Please ensure that the port {query_agent_port} is not already in use "
-                "and that the required services are running."
+
+        except DockerError as e:
+            error_message = (
+                f"Error occurred while trying to start Attention Broker on port {container_port}"
             )
-            raise DockerError(message)
+            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
         [
