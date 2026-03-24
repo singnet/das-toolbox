@@ -26,9 +26,6 @@ class ContainerManagerFactory:
 
         container_name = self._gen_container_name(type, container_port)
 
-        print(container_port)
-        print(container_name)
-
         container_image_metadata: ContainerImageMetadata = {
             "name": DAS_IMAGE_NAME,
             "version": DAS_IMAGE_VERSION,

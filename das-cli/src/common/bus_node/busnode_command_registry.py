@@ -47,8 +47,6 @@ class BusNodeCommandRegistry:
     def _gen_default_cmd(self, service, endpoint, ports_range):
         db_flag = self._check_atomdb_type_flag()
 
-        print(f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {db_flag} --config={SECRETS_PATH}".strip(" "))
-
         return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {db_flag} --config={SECRETS_PATH}".strip()
 
     def _cmd_atomdb_broker(self, service, endpoint, ports_range, options, **args):
