@@ -136,8 +136,9 @@ class ContextBrokerStart(Command):
     def _context_broker(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Context Broker service...")
 
-        context_broker_port = self._settings.get("services.context_broker.port")
-
+        container = self._get_container()
+        context_broker_port = container.port
+        
         try:
             self._context_broker_bus_node_manager.start_container(port_range, **kwargs)
 

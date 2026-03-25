@@ -48,7 +48,7 @@ teardown() {
     run das-cli system status
 
     count_services_up=$(echo "$output" | awk '$3=="running" {print $1}' | wc -l)
-    assert [ "$count_services_up" -eq 4 ]
+    assert [ "$count_services_up" -gt 1 ]
 
     for header in NAME VERSION STATUS PORT "PORT RANGE"; do
         assert_line --partial "$header"

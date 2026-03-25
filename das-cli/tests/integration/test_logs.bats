@@ -1,4 +1,4 @@
-#!/usr/local/bin/bats
+#!/usr/bin/env bats
 
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
@@ -7,6 +7,10 @@ load 'libs/docker'
 
 setup() {
     use_config "simple"
+
+    local peer_endpoint
+    peer_endpoint=$(get_config ".agents.query.ports_range")
+    peer_port=$(extract_port "$peer_endpoint")
 
     das-cli db stop
     das-cli attention-broker stop
@@ -71,8 +75,6 @@ teardown() {
 }
 
 @test "Trying to show logs for attention broker before it is running" {
-    local attention_broker_container_name="$(get_config .services.attention_broker.container_name)"
-
     run das-cli logs attention-broker -f
 
     assert_output "[31m[DockerContainerNotFoundError] Attention broker is not running. Please start it with 'das-cli attention-broker start' before viewing logs.[39m"
@@ -89,10 +91,7 @@ teardown() {
     assert_failure 124
 }
 
-
 @test "Trying to show logs for query agent before it is running" {
-    local query_agent_container_name="$(get_config .services.query_agent.container_name)"
-
     run das-cli logs query-agent -f
 
     assert_output "[31m[DockerContainerNotFoundError] Query agent is not running. Please start it with 'das-cli query-agent start' before viewing logs.[39m"
@@ -113,8 +112,6 @@ teardown() {
 }
 
 @test "Trying to show logs for link creation agent before it is running" {
-    local link_creation_agent_container_name="$(get_config .services.link_creation_agent.container_name)"
-
     run das-cli logs link-creation-agent -f
 
     assert_output "[31m[DockerContainerNotFoundError] Link creation agent is not running. Please start it with 'das-cli link-creation-agent start' before viewing logs.[39m"
@@ -128,9 +125,10 @@ teardown() {
     das-cli attention-broker start
     das-cli db start
     das-cli query-agent start --port-range 12000:12100
+
     das-cli link-creation-agent start \
         --peer-hostname localhost \
-        --peer-port "$(get_config ".services.query_agent.port")" \
+        --peer-port $peer_port \
         --port-range 12300:12400
 
     run timeout 5s das-cli logs link-creation-agent -f
@@ -139,8 +137,6 @@ teardown() {
 }
 
 @test "Trying to show logs for inference agent before it is running" {
-    local inference_agent_container_name="$(get_config .services.inference_agent.container_name)"
-
     run das-cli logs inference-agent -f
 
     assert_output "[31m[DockerContainerNotFoundError] Inference agent is not running. Please start it with 'das-cli inference-agent start' before viewing logs.[39m"
@@ -155,16 +151,16 @@ teardown() {
     das-cli db start
 
     das-cli query-agent start --port-range 12000:12100
+
     das-cli link-creation-agent start \
         --peer-hostname localhost \
-        --peer-port "$(get_config ".services.query_agent.port")" \
+        --peer-port $peer_port \
         --port-range 12300:12400
 
     das-cli inference-agent start \
         --peer-hostname localhost \
-        --peer-port "$(get_config ".services.query_agent.port")" \
+        --peer-port $peer_port \
         --port-range 12500:12600
-
 
     run timeout 5s das-cli logs inference-agent -f
 
@@ -172,8 +168,6 @@ teardown() {
 }
 
 @test "Trying to show logs for evolution agent before it is running" {
-    local evolution_agent_container_name="$(get_config .services.evolution_agent.container_name)"
-
     run das-cli logs evolution-agent -f
 
     assert_output "[31m[DockerContainerNotFoundError] Evolution Agent is not running. Please start it with 'das-cli evolution-agent start' before viewing logs.[39m"
@@ -190,14 +184,13 @@ teardown() {
 
     das-cli evolution-agent start \
         --peer-hostname localhost \
-        --peer-port "$(get_config ".services.query_agent.port")" \
+        --peer-port $peer_port \
         --port-range 12300:12400
 
     run timeout 5s das-cli logs evolution-agent -f
 
     assert_failure 124
 }
-
 
 @test "Show logs for context broker" {
     das-cli db start
@@ -206,14 +199,13 @@ teardown() {
 
     das-cli context-broker start \
         --peer-hostname localhost \
-        --peer-port "$(get_config ".services.query_agent.port")" \
+        --peer-port $peer_port \
         --port-range 46000:46999
 
     run timeout 5s das-cli logs context-broker -f
 
     assert_failure 124
 }
-
 
 @test "Show DAS logs when the log file does not exist" {
     unset_log
