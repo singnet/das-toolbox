@@ -121,15 +121,21 @@ class Settings:
         column_widths["Value"] = min(column_widths["Value"], 80)
 
         separator = "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-            s="", sw=column_widths["Service"],
-            n="", nw=column_widths["Name"],
-            v="", vw=column_widths["Value"]
+            s="",
+            sw=column_widths["Service"],
+            n="",
+            nw=column_widths["Name"],
+            v="",
+            vw=column_widths["Value"],
         )
-        
+
         header = "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
-            s="Service", sw=column_widths["Service"],
-            n="Name", nw=column_widths["Name"],
-            v="Value", vw=column_widths["Value"]
+            s="Service",
+            sw=column_widths["Service"],
+            n="Name",
+            nw=column_widths["Name"],
+            v="Value",
+            vw=column_widths["Value"],
         )
 
         table_lines.append(separator)
@@ -138,12 +144,15 @@ class Settings:
 
         for service, name, value in flattened_data:
             display_value = (value[:77] + "...") if len(value) > 80 else value
-            
+
             table_lines.append(
                 "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
-                    s=service, sw=column_widths["Service"],
-                    n=name, nw=column_widths["Name"],
-                    v=display_value, vw=column_widths["Value"]
+                    s=service,
+                    sw=column_widths["Service"],
+                    n=name,
+                    nw=column_widths["Name"],
+                    v=display_value,
+                    vw=column_widths["Value"],
                 )
             )
 

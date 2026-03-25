@@ -1,33 +1,24 @@
-from common.command import Command
-from common.settings import Settings
-from typing import Dict,Any
-from typing import List
-from common.utils import get_rand_token
 from typing import Any, Dict, List
+
 from common import IntRange
+from common.command import Command
 from common.docker.remote_context_manager import RemoteContextManager, Server
-from common.prompt_types import ReachableIpAddress
 from common.network import get_public_ip
-from common.prompt_types import ValidUsername
+from common.prompt_types import ReachableIpAddress, ValidUsername
 from common.settings import Settings
-from common.utils import get_rand_token, get_server_username, extract_service_port
-from common.network import get_public_ip
+from common.utils import extract_service_port, get_rand_token, get_server_username
+
 from .setup_utils import get_default_value
-from common.utils import extract_service_port
 
-
-#########################################
-##          REDIS MONGO SETUP          ##
-#########################################
 
 def build_localhost_node() -> Dict[str, Any]:
     server_user = get_server_username()
 
     node = Server(
-            {
-                "ip": "localhost",
-                "username": server_user,
-            }
+        {
+            "ip": "localhost",
+            "username": server_user,
+        }
     )
 
     return {
@@ -35,8 +26,8 @@ def build_localhost_node() -> Dict[str, Any]:
         **node,
     }
 
-def build_node(port:int) -> Dict[str, Any]:
 
+def build_node(port: int) -> Dict[str, Any]:
     remote_context_manager = RemoteContextManager()
 
     username = Command.prompt(
@@ -47,7 +38,7 @@ def build_node(port:int) -> Dict[str, Any]:
 
     ip = Command.prompt(
         "Enter the IP address of the node:",
-        type= ReachableIpAddress(username,port),
+        type=ReachableIpAddress(username, port),
         default=get_public_ip(),
     )
 
@@ -65,7 +56,8 @@ def build_node(port:int) -> Dict[str, Any]:
         **server,
     }
 
-def setup_nodes(port:int) -> List[Dict[str, Any]]:
+
+def setup_nodes(port: int) -> List[Dict[str, Any]]:
     nodes = []
     min_nodes = 3
 
@@ -79,10 +71,10 @@ def setup_nodes(port:int) -> List[Dict[str, Any]]:
         min_nodes -= 1
 
     total_nodes = Command.prompt(
-            f"Enter the total number of nodes for the cluster (>= {min_nodes})",
-            hide_input=False,
-            type=IntRange(min_nodes),
-            default=min_nodes,
+        f"Enter the total number of nodes for the cluster (>= {min_nodes})",
+        hide_input=False,
+        type=IntRange(min_nodes),
+        default=min_nodes,
     )
 
     for i in range(0, total_nodes):
@@ -90,11 +82,11 @@ def setup_nodes(port:int) -> List[Dict[str, Any]]:
 
     return [*nodes]
 
-def mongo_setup(settings: Settings, skip_cluster: bool) -> Dict[str, Any]:
 
+def mongo_setup(settings: Settings, skip_cluster: bool) -> Dict[str, Any]:
     mongodb_port = Command.prompt(
         "Enter the port for MongoDB:",
-        default=extract_service_port(get_default_value(settings, "atomdb.mongodb.endpoint")),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.mongodb.endpoint"))),
         type=int,
     )
 
@@ -108,9 +100,10 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> Dict[str, Any]:
         default=get_default_value(settings, "atomdb.mongodb.password"),
     )
 
-    mongodb_cluster = False if skip_cluster else Command.confirm(
-        "Do you want to set up MongoDB as a cluster?",
-        default=False
+    mongodb_cluster = (
+        False
+        if skip_cluster
+        else Command.confirm("Do you want to set up MongoDB as a cluster?", default=False)
     )
 
     mongodb_nodes = []
@@ -128,21 +121,22 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> Dict[str, Any]:
             "password": mongodb_password,
             "cluster": mongodb_cluster,
             "cluster_secret_key": cluster_secret_key if mongodb_cluster else "None",
-            "nodes": mongodb_nodes
+            "nodes": mongodb_nodes,
         }
     }
 
-def redis_setup(settings: Settings, skip_cluster: bool = False) -> Dict[str, Any]:
 
+def redis_setup(settings: Settings, skip_cluster: bool = False) -> Dict[str, Any]:
     redis_port = Command.prompt(
         "Enter the port for Redis:",
-        default= extract_service_port(get_default_value(settings, "atomdb.redis.endpoint")),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.redis.endpoint"))),
         type=int,
     )
 
-    redis_cluster = False if skip_cluster is True else Command.confirm(
-        "Do you want to set up Redis as a cluster?",
-        default=False
+    redis_cluster = (
+        False
+        if skip_cluster is True
+        else Command.confirm("Do you want to set up Redis as a cluster?", default=False)
     )
 
     redis_nodes = []
@@ -156,19 +150,15 @@ def redis_setup(settings: Settings, skip_cluster: bool = False) -> Dict[str, Any
         "redis": {
             "endpoint": f"localhost:{redis_port}",
             "cluster": redis_cluster,
-            "nodes": redis_nodes
+            "nodes": redis_nodes,
         }
     }
 
-#########################################
-##           MORK MONGO SETUP          ##
-#########################################
 
 def mork_setup(settings: Settings) -> Dict[str, Any]:
-
     morkdb_port = Command.prompt(
         "Enter the port for MorkDB:",
-        default= extract_service_port(get_default_value(settings, "atomdb.morkdb.endpoint")),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.morkdb.endpoint"))),
         type=int,
     )
 
@@ -178,26 +168,19 @@ def mork_setup(settings: Settings) -> Dict[str, Any]:
         }
     }
 
-#########################################
-##            REMOTEDB SETUP           ##
-#########################################
 
-def build_local_persistence(settings: Settings, base_name: str) -> Dict[str, Any]:
-
+def build_local_persistence(settings: Settings, base_name: str) -> Dict[str, Any] | Dict[str, str]:
     persistence_type = Command.select(
         "Select local persistence type",
         options={
             "MongoDB + Redis": "redismongodb",
             "MongoDB + MorkDB": "morkmongodb",
-            "InMemoryDB": "inmemorydb"
+            "InMemoryDB": "inmemorydb",
         },
-        default="morkmongodb"
+        default="morkmongodb",
     )
 
-    config = {
-        "type": persistence_type,
-        "context": f"{base_name}_local_"
-    }
+    config = {"type": persistence_type, "context": f"{base_name}_local_"}
 
     match persistence_type:
         case "redismongodb":
@@ -213,23 +196,22 @@ def build_local_persistence(settings: Settings, base_name: str) -> Dict[str, Any
 
 
 def setup_peer(settings: Settings, iteration_num: int) -> Dict[str, Any]:
-
     atomdb_type = Command.select(
         "Select the Remote peer backend type",
         options={
             "MongoDB + Redis": "redismongodb",
             "MongoDB + MorkDB": "morkmongodb",
-            "InMemoryDB": "inmemorydb"
+            "InMemoryDB": "inmemorydb",
         },
         default="redismongodb",
     )
 
     base_name = f"remotedb_peer{iteration_num+1}"
 
-    peer = {
+    peer: Dict[str, Any] = {
         "uid": f"peer{iteration_num+1}",
         "type": atomdb_type,
-        "context": f"{base_name}_"
+        "context": f"{base_name}_",
     }
 
     match atomdb_type:
@@ -248,27 +230,17 @@ def setup_peer(settings: Settings, iteration_num: int) -> Dict[str, Any]:
 
 
 def remotedb_setup(settings: Settings) -> Dict[str, Any]:
-
     remote_peers = []
 
     rmt_peers = Command.prompt(
-        "How many remoteDB Peers would you like to add?",
-        type=IntRange(1),
-        default=1
+        "How many remoteDB Peers would you like to add?", type=IntRange(1), default=1
     )
 
     for i in range(0, rmt_peers):
         remote_peers.append(setup_peer(settings, i))
 
-    return {
-        "remote_peers": remote_peers
-    }
+    return {"remote_peers": remote_peers}
 
-##############################################
-##              SETUP SECTIONS              ##
-##############################################
-
-## ATOMDB ##
 
 def atomdb_config_section(settings: Settings):
     atomdb_config = dict()
@@ -302,6 +274,6 @@ def atomdb_config_section(settings: Settings):
             atomdb_config.update({"type": "remotedb"})
             atomdb_config.update(remotedb_setup(settings))
 
-    return  {
-                "atomdb": atomdb_config,
-            }
+    return {
+        "atomdb": atomdb_config,
+    }

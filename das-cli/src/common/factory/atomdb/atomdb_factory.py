@@ -9,9 +9,9 @@ from .atomdb_backend import (
     AtomdbBackend,
     AtomdbBackendEnum,
     BackendProvider,
+    InMemoryBackend,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
-    InMemoryBackend,
     RemoteDBBackend,
 )
 from .mongodb_manager_factory import MongoDbContainerManagerFactory
@@ -20,16 +20,14 @@ from .redis_manager_factory import RedisContainerManagerFactory
 
 
 class AtomDbContainerManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-
         backend_config = self._settings.get("atomdb.type")
         backend_config = AtomdbBackendEnum.from_value(backend_config)
 
-        providers : List[BackendProvider] = []
+        providers: List[BackendProvider] = []
 
         if backend_config == AtomdbBackendEnum.REDIS_MONGODB:
             providers = [

@@ -1,26 +1,21 @@
 from typing import Any, Dict
 
+
 def get_core_defaults_dict() -> Dict[str, Any]:
     core_defaults: Dict[str, Any] = {
         "schema_version": "1.0",
         "atomdb": {
             "type": "redismongodb",
-            "redis": {
-                "endpoint": "localhost:40020",
-                "cluster": "false",
-                "nodes": []
-            },
+            "redis": {"endpoint": "localhost:40020", "cluster": False, "nodes": []},
             "mongodb": {
                 "endpoint": "localhost:40021",
                 "username": "admin",
                 "password": "admin",
-                "cluster": "false",
+                "cluster": False,
                 "cluster_secret_key": "8UDJSgpUCaVOTQG",
-                "nodes": []
+                "nodes": [],
             },
-            "morkdb": {
-                "endpoint": "localhost:40022"
-            },
+            "morkdb": {"endpoint": "localhost:40022"},
             "remote_peers": [
                 {
                     "uid": "peer1",
@@ -29,24 +24,19 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "mongodb": {
                         "endpoint": "localhost:40021",
                         "username": "admin",
-                        "password": "admin"
+                        "password": "admin",
                     },
-                    "redis": {
-                        "endpoint": "localhost:40020",
-                        "cluster": "false"
-                    },
+                    "redis": {"endpoint": "localhost:40020", "cluster": False},
                     "local_persistence": {
                         "type": "morkdb",
                         "context": "remotedb_test_peer1_local_",
                         "mongodb": {
                             "endpoint": "localhost:40021",
                             "username": "admin",
-                            "password": "admin"
+                            "password": "admin",
                         },
-                        "morkdb": {
-                            "endpoint": "localhost:40022"
-                        }
-                    }
+                        "morkdb": {"endpoint": "localhost:40022"},
+                    },
                 },
                 {
                     "uid": "peer2",
@@ -54,87 +44,55 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "context": "remotedb_test_peer2_",
                     "local_persistence": {
                         "type": "inmemorydb",
-                        "context": "remotedb_test_peer2_local_"
-                    }
-                }
-            ]
+                        "context": "remotedb_test_peer2_local_",
+                    },
+                },
+            ],
         },
         "loaders": {
-            "metta": {
-                "image": "trueagi/das:1.0.0-metta-parser"
-            },
-            "morkdb": {
-                "image": "trueagi/das:mork-loader-1.0.4"
-            }
+            "metta": {"image": "Trueagi/das:1.0.0-metta-parser"},
+            "morkdb": {"image": "Trueagi/das:mork-loader-1.0.4"},
         },
         "agents": {
-            "query": {
-                "endpoint": "localhost:40002",
-                "ports_range": "42000:42999"
-            },
-            "link_creation": {
-                "endpoint": "localhost:40003",
-                "ports_range": "43000:43999"
-            },
-            "inference": {
-                "endpoint": "localhost:40004",
-                "ports_range": "44000:44999"
-            },
-            "evolution": {
-                "endpoint": "localhost:40005",
-                "ports_range": "45000:45999"
-            }
+            "query": {"endpoint": "localhost:40002", "ports_range": "42000:42999"},
+            "link_creation": {"endpoint": "localhost:40003", "ports_range": "43000:43999"},
+            "inference": {"endpoint": "localhost:40004", "ports_range": "44000:44999"},
+            "evolution": {"endpoint": "localhost:40005", "ports_range": "45000:45999"},
         },
         "brokers": {
-            "attention": {
-                "endpoint": "localhost:40001"
-            },
-            "context": {
-                "endpoint": "localhost:40006",
-                "ports_range": "46000:46999"
-            },
-            "atomdb": {
-                "endpoint": "localhost:40007",
-                "ports_range": "47000:47999"
-            }
+            "attention": {"endpoint": "localhost:40001"},
+            "context": {"endpoint": "localhost:40006", "ports_range": "46000:46999"},
+            "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
         },
         "params": {
             "query": {
                 "max_answers": 100,
                 "max_bundle_size": 1000,
-                "count_flag": "false",
-                "attention_update_flag": "false",
-                "unique_assignment_flag": "true",
-                "positive_importance_flag": "false",
-                "populate_metta_mapping": "true",
-                "use_metta_as_query_tokens": "true"
+                "count_flag": True,
+                "attention_update_flag": False,
+                "unique_assignment_flag": True,
+                "positive_importance_flag": False,
+                "populate_metta_mapping": True,
+                "use_metta_as_query_tokens": True,
             },
-            "link_creation": {
-                "repeat_count": 1,
-                "query_interval": 0,
-                "query_timeout": 0
-            },
+            "link_creation": {"repeat_count": 1, "query_interval": 0, "query_timeout": 0},
             "evolution": {
                 "elitism_rate": 0.08,
                 "max_generations": 10,
                 "population_size": 50,
                 "selection_rate": 0.1,
-                "total_attention_tokens": 100000
+                "total_attention_tokens": 100000,
             },
             "context": {
                 "context": "context",
-                "use_cache": "true",
-                "enforce_cache_recreation": "false",
+                "use_cache": True,
+                "enforce_cache_recreation": False,
                 "initial_rent_rate": 0.25,
                 "initial_spreading_rate_lowerbound": 0.5,
-                "initial_spreading_rate_upperbound": 0.7
-            }
+                "initial_spreading_rate_upperbound": 0.7,
+            },
         },
-        "environment": {
-            "jupyter": {
-                "endpoint": "localhost:40019"
-            }
-        }
+        "environment": {"jupyter": {"endpoint": "localhost:40019"}},
     }
 
     return core_defaults

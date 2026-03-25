@@ -10,12 +10,13 @@ from settings.config import SECRETS_PATH
 
 
 class AttentionBrokerManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-        attention_broker_port = extract_service_port(self._settings.get("brokers.attention.endpoint"))
+        attention_broker_port = extract_service_port(
+            self._settings.get("brokers.attention.endpoint")
+        )
         container_name = f"das-attention-broker-{attention_broker_port}"
 
         return AttentionBrokerManager(

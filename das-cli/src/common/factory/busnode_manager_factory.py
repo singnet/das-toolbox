@@ -2,23 +2,23 @@ import os
 
 from common import Settings
 from common.config.store import JsonConfigStore
-from settings.config import SECRETS_PATH
 from common.utils import extract_service_port
+from settings.config import SECRETS_PATH
 
 from ..container_manager.busnode_container_manager import BusNodeContainerManager
 
 
 class BusNodeContainerManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self, use_settings_from: str, service_name: str) -> BusNodeContainerManager:
-
         service_port = extract_service_port(self._settings.get(f"{use_settings_from}.endpoint"))
         service_endpoint = f"0.0.0.0:{service_port}"
 
-        attention_broker_port = extract_service_port(self._settings.get("brokers.attention.endpoint"))
+        attention_broker_port = extract_service_port(
+            self._settings.get("brokers.attention.endpoint")
+        )
 
         default_container_name = f"das-{service_name}-{service_port}"
 

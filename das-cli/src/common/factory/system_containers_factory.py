@@ -7,12 +7,10 @@ from settings.config import SECRETS_PATH
 
 
 class SystemContainerManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-
         return SystemContainersManager(
             settings=self._settings,
         )

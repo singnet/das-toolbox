@@ -80,7 +80,6 @@ class ConfigSet(Command):
         )
 
     def interactive_mode(self, from_env: Optional[str]) -> None:
-
         self._settings.replace_loader(
             loader=CompositeLoader(
                 [
@@ -95,7 +94,7 @@ class ConfigSet(Command):
         self._save()
 
     def non_interactive_mode(self, config_key_value: tuple) -> None:
-        key, value = config_key_value        
+        key, value = config_key_value
 
         self._non_interactive_config_provider.raise_property_invalid(key)
         self._settings.validate_configuration_file()

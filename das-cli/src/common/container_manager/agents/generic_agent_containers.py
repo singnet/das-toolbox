@@ -28,7 +28,6 @@ class QueryAgentContainerManager(ContainerManager):
 
 
 class ContainerTypes(Enum):
-
     CONTEXT_BROKER = (ContextBrokerContainerManager, "brokers.context")
     ATOMDB_BROKER = (AtomDbBrokerContainerManager, "brokers.atomdb")
     LINK_CREATION_AGENT = (LCAContainerManager, "agents.link_creation")

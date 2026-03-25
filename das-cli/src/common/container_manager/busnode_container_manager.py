@@ -1,5 +1,5 @@
-from typing import Dict
 import os
+from typing import Dict
 
 import docker
 
@@ -12,13 +12,11 @@ from ..bus_node.busnode_command_registry import BusNodeCommandRegistry
 
 
 class BusNodeContainerManager(ContainerManager):
-
     def __init__(
         self,
         default_container_name: str,
         options: Dict = {},
     ) -> None:
-
         self._options = options
 
         self._cmd_registry = BusNodeCommandRegistry()
@@ -39,14 +37,12 @@ class BusNodeContainerManager(ContainerManager):
         return os.path.expanduser("~/.das/config.json")
 
     def start_container(self, ports_range: str, **kwargs) -> None:
-
         self.raise_running_container()
         self.raise_on_port_in_use([self._options.get("service_port")])
 
         user_config_volume = self._extract_user_exp_path()
 
         try:
-
             service = self._options.get("service")
             endpoint = self._options.get("service_endpoint")
 
@@ -65,7 +61,7 @@ class BusNodeContainerManager(ContainerManager):
                         "mode": "ro",
                     }
                 },
-                command=bus_node_command
+                command=bus_node_command,
             )
             return container
 

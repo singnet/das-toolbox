@@ -1,13 +1,6 @@
 from injector import inject
 
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -15,9 +8,7 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-)
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
 
 from .atomdb_broker_docs import (
@@ -56,7 +47,6 @@ class AtomDbBrokerStart(Command):
         atomdb_backend: AtomdbBackend,
         settings: Settings,
     ):
-
         self._atomdb_broker_bus_manager = atomdb_broker_bus_manager
         self._atomdb_backend = atomdb_backend
         self._settings = settings
@@ -66,7 +56,6 @@ class AtomDbBrokerStart(Command):
         return self._atomdb_broker_bus_manager.get_container()
 
     def _start_container(self, port_range, **kwargs):
-
         container = self._get_container()
         port = container.port
 
@@ -108,9 +97,7 @@ class AtomDbBrokerStart(Command):
             )
 
         except DockerError as e:
-            error_message = (
-                f"Error occurred while trying to start Attention Broker on port {port}"
-            )
+            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
             raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
@@ -135,7 +122,6 @@ class AtomDbBrokerStop(Command):
 
     @inject
     def __init__(self, atomdb_broker_bus_manager: BusNodeContainerManager, settings: Settings):
-
         self._settings = settings
         self._atomdb_broker_bus_manager = atomdb_broker_bus_manager
         super().__init__()

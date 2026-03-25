@@ -16,7 +16,8 @@ from .das_ubuntu_advanced_packaging_tool import (
 )
 
 
-class PermissionError(Exception): ...  # noqa: E701
+class PermissionError(Exception):
+    ...  # noqa: E701
 
 
 class DasCliUpdateVersion(Command):
@@ -73,7 +74,6 @@ class DasCliUpdateVersion(Command):
         return installed_version
 
     def _check_cli_version(self, current_version, newer_version):
-
         if current_version != newer_version:
             self.stdout(
                 f"Package version successfully updated  {current_version} --> {newer_version}.",
@@ -86,7 +86,6 @@ class DasCliUpdateVersion(Command):
             )
 
     def run(self, version):
-
         self._check_is_executable()
         self._check_sudo_permission()
         self._check_linux_distro()

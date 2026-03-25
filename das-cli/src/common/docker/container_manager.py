@@ -107,9 +107,7 @@ class ContainerManager(DockerManager):
 
             return response
         except docker.errors.APIError as e:
-
             if e.response.status_code == 404:
-
                 raise DockerContainerNotFoundError(
                     f"The docker image {self.get_container().image} for the attention broker could not be found!"
                 )

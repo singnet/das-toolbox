@@ -1,20 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from common.config.core import (
-    get_core_defaults_dict,
-)
+from common.config.core import get_core_defaults_dict
 from common.settings import Settings
 
 from .config_sections.agents import agents_config_section
 from .config_sections.atomdb import atomdb_config_section
 from .config_sections.brokers import brokers_config_section
-from .config_sections.service_params import params_config_section
 from .config_sections.jupyter import jupyter_notebook_section
 from .config_sections.loaders import loaders_config_section
+from .config_sections.service_params import params_config_section
+
 
 class ConfigProvider(ABC):
-
     def __init__(self, settings: Settings):
         super().__init__()
 
@@ -27,7 +25,7 @@ class ConfigProvider(ABC):
         core_defaults = get_core_defaults_dict()
         new_schema_version = core_defaults.get("schema_version")
 
-        user_settings=self._settings.get_content()
+        user_settings = self._settings.get_content()
 
         core_defaults.update(user_settings)
         core_defaults["schema_version"] = new_schema_version
@@ -43,10 +41,10 @@ class ConfigProvider(ABC):
 
     def raise_property_invalid(self, key: str) -> None:
         default_mappings = self._get_core_defaults()
-        
+
         parts = key.split('.')
         current = default_mappings
-        
+
         for part in parts:
             if isinstance(current, dict) and part in current:
                 current = current[part]
@@ -57,10 +55,11 @@ class ConfigProvider(ABC):
         for default_key, default_value_or_func in default_mappings.items():
             if callable(default_value_or_func):
                 if "nodes" in default_key:
-                    self._settings.set(default_key)
+                    self._settings.set(default_key, default_value_or_func)
                 continue
             else:
                 self._settings.set(default_key, default_value_or_func)
+
 
 class InteractiveConfigProvider(ConfigProvider):
     def __init__(
@@ -71,7 +70,6 @@ class InteractiveConfigProvider(ConfigProvider):
         self._settings = settings
 
     def setup_settings(self) -> Dict[str, Any]:
-
         config_steps = [
             atomdb_config_section,
             agents_config_section,

@@ -5,10 +5,7 @@ from common.config.store import JsonConfigStore
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
-from common.factory.container_manager_factory import (
-    ContainerManagerFactory,
-    ContainerTypes,
-)
+from common.factory.container_manager_factory import ContainerManagerFactory, ContainerTypes
 from settings.config import SECRETS_PATH
 
 from .context_broker_cli import ContextBrokerCli, Settings

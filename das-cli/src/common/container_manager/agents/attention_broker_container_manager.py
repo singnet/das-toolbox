@@ -56,6 +56,6 @@ class AttentionBrokerManager(ContainerManager):
             )
 
             return container_id
-        
+
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)

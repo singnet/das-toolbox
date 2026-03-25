@@ -5,19 +5,14 @@ from common.config.store import JsonConfigStore
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
 from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-)
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
 from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
 from common.factory.atomdb.morkdb_manager_factory import MorkDbContainerManagerFactory
 from common.factory.atomdb.redis_manager_factory import RedisContainerManagerFactory
 from settings.config import SECRETS_PATH
 
-from .db_cli import (
-    DbCli,
-    Settings,
-)
+from .db_cli import DbCli, Settings
 
 
 class DbModule(Module):

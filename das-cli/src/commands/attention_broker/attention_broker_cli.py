@@ -157,9 +157,7 @@ class AttentionBrokerStart(Command):
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerError as e:
-            error_message = (
-                f"Error occurred while trying to start Attention Broker on port {port}"
-            )
+            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
             raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     def run(self):

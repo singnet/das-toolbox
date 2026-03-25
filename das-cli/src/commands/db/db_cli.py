@@ -10,12 +10,12 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
-from common.utils import extract_service_port
 from common.factory.atomdb.atomdb_backend import (
     AtomdbBackend,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
 )
+from common.utils import extract_service_port
 
 from .db_docs import (
     HELP_DB_CLI,
@@ -149,7 +149,6 @@ class DbStop(Command):
             "morkdb": self._morkdb_container_manager.get_container,
         }[service.lower()]()
 
-
     def _stop_mork(self, container_manager, prune):
         try:
             container_manager.stop(remove_volume=prune)
@@ -171,11 +170,9 @@ class DbStop(Command):
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-
     def _stop_node(
         self, manager, context: str, ip: str, username: str, prune: bool, service_name: str
     ):
-
         server_ip = self.get_execution_context().source.get("ip") or ip
 
         try:
@@ -206,11 +203,9 @@ class DbStop(Command):
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-
     def _stop_service(
         self, manager, nodes: list, service_name: str, prune: bool = False, cluster: bool = False
     ):
-
         self.stdout(f"Stopping {service_name} service...")
 
         try:
@@ -241,18 +236,16 @@ class DbStop(Command):
             stdout_type=StdoutType.MACHINE_READABLE,
         )
 
-
     def run(self, prune: bool = False) -> None:
         self._settings.validate_configuration_file()
 
-        redis_nodes = self._settings.get("atomdb.redis.nodes", [])  
+        redis_nodes = self._settings.get("atomdb.redis.nodes", [])
         redis_cluster = self._settings.get("atomdb.redis.cluster")
 
         mongo_nodes = self._settings.get("atomdb.mongodb.nodes", [])
         mongo_cluster = self._settings.get("atomdb.mongodb.cluster", False)
 
         for provider in self._atomdb_backend.get_active_providers():
-
             if isinstance(provider, MongoDBRedisBackend):
                 self._stop_service(
                     self._redis_container_manager,
@@ -280,8 +273,10 @@ class DbStop(Command):
                 self._stop_service(self._morkdb_container_manager, [], "MorkDB", prune)
 
             else:
-                self.stdout("InMemoryDB and RemoteDB are not supported on the 'db start' command", severity=StdoutSeverity.WARNING)
-
+                self.stdout(
+                    "InMemoryDB and RemoteDB are not supported on the 'db start' command",
+                    severity=StdoutSeverity.WARNING,
+                )
 
 
 class DbStart(Command):
@@ -306,7 +301,6 @@ class DbStart(Command):
         super().__init__()
 
     def _get_container(self, service: str):
-
         return {
             "redis": self._redis_container_manager.get_container,
             "mongodb": self._mongodb_container_manager.get_container,
@@ -347,7 +341,6 @@ class DbStart(Command):
             )
 
     def _start_node(self, container_manager, node: dict, service_name: str, **kwargs):
-
         node_context = node.get("context", "")
         node_ip = node.get("ip", "")
         node_username = node.get("username", "")
@@ -417,7 +410,6 @@ class DbStart(Command):
             raise e
 
     def _start_service(self, manager, nodes: list, service_name: str, **kwargs):
-
         try:
             self.stdout(f"Starting {service_name} service...")
 
@@ -490,7 +482,7 @@ class DbStart(Command):
 
                 self._start_service(
                     self._mongodb_container_manager,
-                   mongo_nodes,
+                    mongo_nodes,
                     service_name="MongoDB",
                     port=extract_service_port(mongodb_endpoint),
                     username=username,
@@ -517,9 +509,12 @@ class DbStart(Command):
                     service_name="MorkDB",
                     port=extract_service_port(morkdb_endpoint),
                 )
-            
+
             else:
-                self.stdout("InMemoryDB and RemoteDB are not supported on the 'db start' command", severity=StdoutSeverity.WARNING)
+                self.stdout(
+                    "InMemoryDB and RemoteDB are not supported on the 'db start' command",
+                    severity=StdoutSeverity.WARNING,
+                )
 
 
 class DbRestart(Command):
@@ -548,7 +543,6 @@ class DbRestart(Command):
     def run(self, prune: bool = False):
         self._db_stop.run(prune)
         self._db_start.run()
-
 
 
 class DbCli(CommandGroup):

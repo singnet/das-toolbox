@@ -70,7 +70,6 @@ class MettaLoad(Command):
         return os.path.isdir(file_path)
 
     def _check_file_and_permissions(self, file_path: str):
-
         if not file_path.endswith(".metta"):
             raise TypeError(f"Error: File '{file_path}' is not a .metta file.")
 
@@ -78,7 +77,6 @@ class MettaLoad(Command):
             raise PermissionError(f"The file {file_path} does not have correct permissions.")
 
     def _check_if_directory_has_permissions(self, dir_path: str):
-
         read = os.access(dir_path, os.R_OK)
         write = os.access(dir_path, os.W_OK)
         execute = os.access(dir_path, os.X_OK)

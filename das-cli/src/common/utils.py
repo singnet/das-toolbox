@@ -1,6 +1,5 @@
 import base64
 import getpass
-import hashlib
 import os
 import secrets
 import string
@@ -9,6 +8,7 @@ import time
 from pathlib import Path
 from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
+
 from common.logger import logger
 
 
@@ -59,7 +59,8 @@ def retry(func: Callable, max_retries=5, interval=2, *args, **kwargs):
                 raise e
             time.sleep(interval)
 
-def search_dict_key(dict: dict, path) -> str:
+
+def search_dict_key(dict: dict, path: str):
     keys = path.split(".")
     value = dict
 
@@ -69,6 +70,7 @@ def search_dict_key(dict: dict, path) -> str:
             return None
 
     return value
+
 
 def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
     result = dict1.copy()
@@ -104,6 +106,7 @@ def resolve_file_path(
 
     return None
 
+
 def log_exception(e: Exception) -> None:
     error_type = e.__class__.__name__
     error_message = str(e)
@@ -112,6 +115,7 @@ def log_exception(e: Exception) -> None:
     logger().exception(error_message)
 
     print(pretty_message)
+
 
 def print_table(
     rows: List[Dict[str, Any]],
@@ -155,12 +159,14 @@ def extract_service_name(container_name: str) -> str | None:
     parts = name.rsplit("-", 1)
     return parts[0] if parts else name
 
-def extract_service_port(endpoint: str) -> str | None:
+
+def extract_service_port(endpoint: str) -> int | None:
     try:
         port = endpoint.split(":")[1]
-        return port
+        return int(port)
     except Exception:
         return None
+
 
 def get_platform_info() -> str:
     return f"{sys.platform} {sys.version.split()[0]}"

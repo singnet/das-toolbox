@@ -1,13 +1,8 @@
 from common.command import Command
 from common.settings import Settings
-from .setup_utils import (
-    get_default_value,
-)
 
+from .setup_utils import get_default_value
 
-##########################################
-##             PARAMS SETUP             ##
-##########################################
 
 def query_agent_params(settings: Settings):
     print("\n[SETUP] Query Agent")
@@ -137,12 +132,11 @@ def context_broker_params(settings: Settings):
         ),
     }
 
-## MAIN SETUP FUNC ##
 
 def params_config_section(settings: Settings):
     setup_custom_params = Command.confirm(
         "\nWould you like to set-up custom parameters for: Query Agent, Link Creation Agent, Context Broker, Evolution Agent?",
-        default = False,
+        default=False,
     )
 
     if setup_custom_params:
@@ -155,7 +149,4 @@ def params_config_section(settings: Settings):
             }
         }
     else:
-        return {
-            "params": get_default_value(settings, "params")
-        }
-    
+        return {"params": get_default_value(settings, "params")}

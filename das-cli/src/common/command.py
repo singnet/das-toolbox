@@ -251,11 +251,9 @@ class Command:
         return " ".join(cleaned_args)
 
     def get_execution_context(self) -> ExecutionContext:
-
         ctx = click.get_current_context()
 
         if not self._execution_context:
-
             cli_options = ctx.params if ctx else {}
 
             execution_context = None
@@ -304,7 +302,6 @@ class Command:
         return config
 
     def _check_remote_config(self, remote_kwargs):
-
         REMOTE_SECRETS_PATH = "$HOME/.das/config.json"
 
         try:

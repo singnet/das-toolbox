@@ -17,7 +17,6 @@ class ReachableIpAddress(ParamType):
         self.username = username
 
     def convert(self, value, param, ctx):
-
         if not is_server_port_available(
             username=self.username,
             host=value,
@@ -109,7 +108,6 @@ class KeyValueType(ParamType):
         return json.loads(value)
 
     def convert(self, value, param, ctx):
-
         if not value or "=" not in value:
             self.fail("Invalid key-value format. Expected 'key=value'.", param, ctx)
 
@@ -156,7 +154,6 @@ class ValidUsername(ParamType):
     _blocked_usernames = {"root"}
 
     def convert(self, value, param, ctx):
-
         if not self._re.match(value):
             self.fail(
                 "Invalid username. Usernames must start with a letter or underscore, "
