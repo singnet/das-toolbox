@@ -27,9 +27,9 @@ setup() {
 }
 
 teardown() {
-    das-cli context-broker stop
     das-cli query-agent stop
     das-cli attention-broker stop
+    das-cli context-broker stop
 }
 
 @test "Fails to start the Context Broker when configuration file is not set" {

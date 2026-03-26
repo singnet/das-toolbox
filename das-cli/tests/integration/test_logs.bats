@@ -26,6 +26,7 @@ teardown() {
     das-cli link-creation-agent stop
     das-cli inference-agent stop
     das-cli evolution-agent stop
+    das-cli context-broker stop
 }
 
 @test "Show logs for MongoDB and Redis with unset configuration file" {

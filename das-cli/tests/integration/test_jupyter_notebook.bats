@@ -16,6 +16,10 @@ setup() {
     das-cli jupyter-notebook stop
 }
 
+teardown() {
+    das-cli jupyter-notebook stop
+}
+
 @test "Trying to start, stop and restart Jupyter notebook with unset configuration file" {
     local cmds=(start stop restart)
 

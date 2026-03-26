@@ -12,6 +12,10 @@ setup() {
     das-cli atomdb-broker stop
 }
 
+teardown() {
+    das-cli atomdb-broker stop
+}
+
 @test "Trying to start, stop and restart atomdb-broker with unset configuration file" {
     local cmds=(start stop restart)
 
