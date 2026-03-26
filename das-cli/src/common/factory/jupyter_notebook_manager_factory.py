@@ -6,18 +6,18 @@ from common.container_manager.agents.jupyter_notebook_container_manager import (
     JupyterNotebookContainerManager,
 )
 from settings.config import SECRETS_PATH
+from common.utils import extract_service_port
 
 
 class JupyterNotebookManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-
-        container_name = self._settings.get("services.jupyter_notebook.container_name")
-        jupyter_notebook_port = self._settings.get("services.jupyter_notebook.port")
+        jupyter_notebook_port = extract_service_port(self._settings.get("environment.jupyter.endpoint"))
         jupyter_notebook_hostname = "0.0.0.0"
+
+        container_name = f"das-cli-jupyter-notebook-{jupyter_notebook_port}"
 
         return JupyterNotebookContainerManager(
             container_name,

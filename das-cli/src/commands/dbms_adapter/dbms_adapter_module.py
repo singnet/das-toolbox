@@ -4,9 +4,7 @@ from common import Module, Settings
 from common.config.store import JsonConfigStore
 from common.container_manager.dbms.das_peer_container_manager import DasPeerContainerManager
 from common.container_manager.dbms.dbms_peer_container_manager import DbmsPeerContainerManager
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-)
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
 from common.factory.dbms_peer.das_peer_manager_factory import DasPeerManagerFactory
 from common.factory.dbms_peer.dbms_peer_manager_factory import DbmsPeerManagerFactory

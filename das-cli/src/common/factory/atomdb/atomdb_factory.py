@@ -9,8 +9,10 @@ from .atomdb_backend import (
     AtomdbBackend,
     AtomdbBackendEnum,
     BackendProvider,
+    InMemoryBackend,
     MongoDBRedisBackend,
     MorkMongoDBBackend,
+    RemoteDBBackend,
 )
 from .mongodb_manager_factory import MongoDbContainerManagerFactory
 from .morkdb_manager_factory import MorkDbContainerManagerFactory
@@ -18,30 +20,34 @@ from .redis_manager_factory import RedisContainerManagerFactory
 
 
 class AtomDbContainerManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-
-        backend_config = self._settings.get("services.database.atomdb_backend")
+        backend_config = self._settings.get("atomdb.type")
         backend_config = AtomdbBackendEnum.from_value(backend_config)
 
+        providers: List[BackendProvider] = []
+
         if backend_config == AtomdbBackendEnum.REDIS_MONGODB:
-            mongoredis_providers: List[BackendProvider] = [
+            providers = [
                 MongoDBRedisBackend(
                     MongoDbContainerManagerFactory().build(), RedisContainerManagerFactory().build()
                 )
             ]
 
-            return AtomdbBackend(backend_config, mongoredis_providers)
-
         elif backend_config == AtomdbBackendEnum.MORK_MONGODB:
-            mongomork_providers: List[BackendProvider] = [
+            providers = [
                 MorkMongoDBBackend(
                     MongoDbContainerManagerFactory().build(),
                     MorkDbContainerManagerFactory().build(),
                 )
             ]
 
-            return AtomdbBackend(backend_config, mongomork_providers)
+        elif backend_config == AtomdbBackendEnum.INMEMORYDB:
+            providers = [InMemoryBackend()]
+
+        elif backend_config == AtomdbBackendEnum.REMOTEDB:
+            providers = [RemoteDBBackend()]
+
+        return AtomdbBackend(backend_config, providers)

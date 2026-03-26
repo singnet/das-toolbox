@@ -16,27 +16,21 @@ DESCRIPTION
 SECTIONS
 
     ┌────────────────────┐
-    │ 1. schema_hash     │
+    │ 1. schema_version  │
     | 2. AtomDB Backend  │
-    │ 3. Redis           │
-    │ 4. MongoDB         │
-    | 5. MorkDB          │
-    │ 6. Loader          │
-    │ 7. Jupyter         │
-    │ 8. DAS Peer        │
-    │ 9. DBMS Peer       │
-    │ 10. AttentionBroker│
-    │ 11. Query Agent    │
-    │ 12. Link Agent     │
-    │ 13. Evolution Agent│
-    │ 14. Context Broker │
+    │ 3. Loaders         │
+    │ 4. Brokers         │
+    │ 5. Agents          │
+    │ 6. AttentionBroker │
+    │ 7. Agent params    │
+    │ 8. Jupyter Notebook│
     └────────────────────┘
 
 OPTIONS AND VARIABLES
 
-SCHEMA HASH CONFIGURATION (schema_hash)
+SCHEMA VERSION CONFIGURATION (schema_version)
 
-    This variable stores the hash of the schema file used by DAS CLI. It is used to verify the integrity of the schema file and ensure that the correct version is being used.
+    This variable stores the version of the schema file used by DAS CLI. It is used to verify the integrity of the schema file and ensure that the correct version is being used.
     After completion, the path to the generated configuration file will be shown. This file
     governs how DAS commands interact with services such as Redis, MongoDB, OpenFaaS, etc.
 

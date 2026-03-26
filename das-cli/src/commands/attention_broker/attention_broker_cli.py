@@ -156,11 +156,9 @@ class AttentionBrokerStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
-        except DockerError:
-            error_message = (
-                f"\nError occurred while trying to start Attention Broker on port {port}\n"
-            )
-            raise DockerError(error_message)
+        except DockerError as e:
+            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
+            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     def run(self):
         self._settings.validate_configuration_file()

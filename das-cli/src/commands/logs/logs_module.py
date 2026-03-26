@@ -17,10 +17,7 @@ from common.container_manager.atomdb.redis_container_manager import RedisContain
 from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
 from common.factory.atomdb.redis_manager_factory import RedisContainerManagerFactory
 from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
-from common.factory.container_manager_factory import (
-    ContainerManagerFactory,
-    ContainerTypes,
-)
+from common.factory.container_manager_factory import ContainerManagerFactory, ContainerTypes
 from settings.config import SECRETS_PATH
 
 from .logs_cli import LogsCli, Settings
@@ -59,7 +56,7 @@ class LogsModule(Module):
             ),
             (
                 QueryAgentContainerManager,
-                container_factory.build(type=ContainerTypes.QUERY_AGENT),
+                container_factory.build(type=ContainerTypes.QUERY_ENGINE),
             ),
             (
                 LCAContainerManager,

@@ -32,9 +32,7 @@ def is_server_port_available(
     start_port: int,
     end_port: Union[int, None] = None,
 ):
-
     def server_port_up(host, start_port, end_port):
-
         node_port = end_port
 
         command = f"ssh {username}@{host} " f"'nc -z -w 5 localhost {node_port}'"

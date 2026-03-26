@@ -14,9 +14,8 @@ function is_container_running() {
 
 function is_service_up() {
     local container_name
-    local service_name="$1"
 
-    container_name=$(get_config ".services.${service_name}.container_name")
+    container_name="$1"
 
     is_container_running "$container_name"
 

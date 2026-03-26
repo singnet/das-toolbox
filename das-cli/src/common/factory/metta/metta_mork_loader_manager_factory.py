@@ -5,19 +5,20 @@ from common.config.store import JsonConfigStore
 from common.container_manager.metta.metta_mork_loader_container_manager import (
     MettaMorkLoaderContainerManager,
 )
+from common.settings import get_core_defaults_dict
+from common.utils import extract_service_port
 from settings.config import SECRETS_PATH
 
 
 class MettaMorkLoaderManagerFactory:
-
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._default = get_core_defaults_dict()
 
     def build(self):
-
-        container_name = self._settings.get("services.morkdb_loader.container_name")
-        morkdb_port = self._settings.get("services.morkdb.port", 40022)
+        morkdb_port = extract_service_port(self._settings.get("atomdb.morkdb.endpoint"))
         morkdb_hostname = "0.0.0.0"
+        container_name = "das-cli-metta-mork-loader"
 
         return MettaMorkLoaderContainerManager(
             container_name,

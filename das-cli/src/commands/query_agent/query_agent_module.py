@@ -8,9 +8,7 @@ from common.container_manager.agents.attention_broker_container_manager import (
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-)
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
 from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
 from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
@@ -38,7 +36,7 @@ class QueryAgentModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="query_agent", service_name="query-engine"
+                    use_settings_from="agents.query", service_name="query-engine"
                 ),
             ),
             (

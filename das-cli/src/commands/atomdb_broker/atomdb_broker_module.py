@@ -3,9 +3,7 @@ import os
 from common import Module, Settings
 from common.config.store import JsonConfigStore
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-)
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.factory.atomdb.atomdb_factory import AtomDbContainerManagerFactory
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
@@ -26,7 +24,7 @@ class AtomDbBrokerModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="atomdb_broker", service_name="atomdb-broker"
+                    use_settings_from="brokers.atomdb", service_name="atomdb-broker"
                 ),
             ),
             (

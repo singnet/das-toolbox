@@ -1,6 +1,5 @@
 import base64
 import getpass
-import hashlib
 import os
 import secrets
 import string
@@ -61,6 +60,18 @@ def retry(func: Callable, max_retries=5, interval=2, *args, **kwargs):
             time.sleep(interval)
 
 
+def search_dict_key(dict: dict, path: str):
+    keys = path.split(".")
+    value = dict
+
+    for key in keys:
+        value = value.get(key, None)
+        if value is None:
+            return None
+
+    return value
+
+
 def deep_merge_dicts(dict1: dict, dict2: dict) -> dict:
     result = dict1.copy()
     for key, value in dict2.items():
@@ -94,19 +105,6 @@ def resolve_file_path(
             return candidate
 
     return None
-
-
-def calculate_schema_hash_for_keys(all_keys: List[str]) -> str:
-    sorted_keys = sorted(all_keys)
-    concatenated_keys = ",".join(sorted_keys)
-    hash_object = hashlib.sha256(concatenated_keys.encode("utf-8"))
-    return hash_object.hexdigest()
-
-
-def calculate_schema_hash(schema: Dict[str, Any]) -> str:
-    all_keys = list(schema.keys())
-
-    return calculate_schema_hash_for_keys(all_keys)
 
 
 def log_exception(e: Exception) -> None:
@@ -160,6 +158,14 @@ def extract_service_name(container_name: str) -> str | None:
 
     parts = name.rsplit("-", 1)
     return parts[0] if parts else name
+
+
+def extract_service_port(endpoint: str) -> int | None:
+    try:
+        port = endpoint.split(":")[1]
+        return int(port)
+    except Exception:
+        return None
 
 
 def get_platform_info() -> str:

@@ -5,10 +5,7 @@ from common.config.store import JsonConfigStore
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
-from common.factory.container_manager_factory import (
-    ContainerManagerFactory,
-    ContainerTypes,
-)
+from common.factory.container_manager_factory import ContainerManagerFactory, ContainerTypes
 from settings.config import SECRETS_PATH
 
 from .evolution_agent_cli import EvolutionAgentCli, Settings
@@ -26,12 +23,12 @@ class EvolutionAgentModule(Module):
         self._dependency_list = [
             (
                 QueryAgentContainerManager,
-                ContainerManagerFactory().build(type=ContainerTypes.QUERY_AGENT),
+                ContainerManagerFactory().build(type=ContainerTypes.QUERY_ENGINE),
             ),
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="evolution_agent", service_name="evolution-agent"
+                    use_settings_from="agents.evolution", service_name="evolution-agent"
                 ),
             ),
             (

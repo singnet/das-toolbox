@@ -8,8 +8,10 @@ from common.container_manager.atomdb.redis_container_manager import RedisContain
 
 
 class AtomdbBackendEnum(Enum):
-    REDIS_MONGODB = "redis_mongodb"
-    MORK_MONGODB = "mork_mongodb"
+    REDIS_MONGODB = "redismongodb"
+    MORK_MONGODB = "morkmongodb"
+    INMEMORYDB = "inmemorydb"
+    REMOTEDB = "remotedb"
 
     @classmethod
     def from_value(
@@ -113,6 +115,38 @@ class MorkMongoDBBackend(BackendProvider):
             self._mongodb_container_manager.status(),
             self._mork_db_container_manager.status(),
         ]
+
+
+class InMemoryBackend(BackendProvider):
+    name = AtomdbBackendEnum.INMEMORYDB.value
+
+    def start(self) -> None:
+        pass
+
+    def stop(self) -> None:
+        pass
+
+    def is_running(self) -> bool:
+        return True
+
+    def status(self) -> list[dict]:
+        return []
+
+
+class RemoteDBBackend(BackendProvider):
+    name = AtomdbBackendEnum.REMOTEDB.value
+
+    def start(self) -> None:
+        pass
+
+    def stop(self) -> None:
+        pass
+
+    def is_running(self) -> bool:
+        return True
+
+    def status(self) -> list[dict]:
+        return []
 
 
 class AtomdbBackend:

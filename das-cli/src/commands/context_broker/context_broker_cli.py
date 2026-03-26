@@ -4,7 +4,11 @@ from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverit
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.docker.exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+    DockerError,
+)
 from common.prompt_types import PortRangeType
 
 from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
@@ -132,8 +136,9 @@ class ContextBrokerStart(Command):
     def _context_broker(self, port_range: str, **kwargs) -> None:
         self.stdout("Starting Context Broker service...")
 
-        context_broker_port = self._settings.get("services.context_broker.port")
-
+        container = self._get_container()
+        context_broker_port = container.port
+        
         try:
             self._context_broker_bus_node_manager.start_container(port_range, **kwargs)
 
@@ -175,6 +180,10 @@ class ContextBrokerStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+
+        except DockerError as e:
+            error_message = f"Error occurred while trying to start Attention Broker on port {context_broker_port}"
+            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
         [

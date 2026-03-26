@@ -7,7 +7,6 @@ from settings.config import SECRETS_PATH
 
 
 class BusNodeCommandRegistry:
-
     def __init__(self):
         self._commands: Dict[str, Callable[..., str]] = {
             "atomdb-broker": self._cmd_atomdb_broker,
@@ -18,10 +17,16 @@ class BusNodeCommandRegistry:
             "context-broker": self._cmd_context_broker,
         }
 
+        self._atomdb_flags: Dict[str, str] = {
+            "redis_mongodb": "redismongodb",
+            "mork_mongodb": "morkdb",
+            "inmemorydb": "inmemorydb",
+            "remotedb": "remotedb",
+        }
+
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self, service, endpoint, ports_range, options, **args):
-
         handler = self._commands.get(service)
 
         if not handler:
@@ -31,24 +36,23 @@ class BusNodeCommandRegistry:
 
             return cmd
 
-    def _check_using_morkdb(self):
-        atomdb = self._settings.get("services.database.atomdb_backend")
+    def _check_atomdb_type_flag(self):
+        atomdb_config = self._settings.get("services.database.atomdb_backend")
+        flag = self._atomdb_flags.get(atomdb_config)
 
-        return "--use-mork" if atomdb == "mork_mongodb" else " "
+        return f"--atomdb-type={flag}" if flag else " "
 
     def _gen_default_cmd(self, service, endpoint, ports_range):
-        use_mork = self._check_using_morkdb()
+        db_flag = self._check_atomdb_type_flag()
 
-        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {use_mork}".strip()
+        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {db_flag} --config={SECRETS_PATH}".strip()
 
     def _cmd_atomdb_broker(self, service, endpoint, ports_range, options, **args):
-
         base = self._gen_default_cmd(service, endpoint, ports_range)
 
         return base
 
     def _cmd_query_engine(self, service, endpoint, ports_range, options, **args):
-
         base = self._gen_default_cmd(service, endpoint, ports_range)
         attention_broker = (
             f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
@@ -57,7 +61,6 @@ class BusNodeCommandRegistry:
         return f"{base} --attention-broker-endpoint={attention_broker}"
 
     def _cmd_evolution_agent(self, service, endpoint, ports_range, options, **args):
-
         base = self._gen_default_cmd(service, endpoint, ports_range)
 
         attention_broker = (
@@ -68,7 +71,6 @@ class BusNodeCommandRegistry:
         return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def _cmd_link_creation_agent(self, service, endpoint, ports_range, options, **args):
-
         base = self._gen_default_cmd(service, endpoint, ports_range)
 
         attention_broker = (
@@ -79,7 +81,6 @@ class BusNodeCommandRegistry:
         return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def _cmd_inference_agent(self, service, endpoint, ports_range, options, **args):
-
         base = self._gen_default_cmd(service, endpoint, ports_range)
 
         attention_broker = (
@@ -90,7 +91,6 @@ class BusNodeCommandRegistry:
         return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def _cmd_context_broker(self, service, endpoint, ports_range, options, **args):
-
         base = self._gen_default_cmd(service, endpoint, ports_range)
 
         attention_broker = (

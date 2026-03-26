@@ -8,6 +8,15 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
+    jupyter_notebook_endpoint="$(get_config .environment.jupyter.endpoint)"
+    jupyter_notebook_port="$(extract_port "$jupyter_notebook_endpoint")"
+
+    jupyter_notebook=das-cli-jupyter-notebook-40019
+
+    das-cli jupyter-notebook stop
+}
+
+teardown() {
     das-cli jupyter-notebook stop
 }
 
@@ -24,14 +33,12 @@ setup() {
 }
 
 @test "Starting Jupyter notebook server" {
-    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
-
     run das-cli jupyter-notebook start
 
     assert_output "Starting Jupyter Notebook...
 Jupyter Notebook started on port $jupyter_notebook_port"
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_success
 }
@@ -54,21 +61,18 @@ Jupyter Notebook started on port $jupyter_notebook_port"
 
 @test "Starting Jupyter notebook server with working directory" {
     local jupyter_dir="$(mktemp -d)"
-    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
 
     run das-cli jupyter-notebook start --working-dir $jupyter_dir
 
     assert_output "Starting Jupyter Notebook...
 Jupyter Notebook started on port $jupyter_notebook_port"
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_success
 }
 
 @test "Trying to start Jupyter notebook server after it has being started" {
-    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
-
     das-cli jupyter-notebook start
 
     run das-cli jupyter-notebook start
@@ -76,7 +80,7 @@ Jupyter Notebook started on port $jupyter_notebook_port"
     assert_output "Starting Jupyter Notebook...
 Jupyter Notebook is already running. It's listening on port $jupyter_notebook_port"
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_success
 }
@@ -89,27 +93,23 @@ Jupyter Notebook is already running. It's listening on port $jupyter_notebook_po
     assert_output "Stopping jupyter notebook...
 Jupyter Notebook service stopped"
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_failure
 }
 
 @test "Trying to stop Jupyter notebook server after has already being stopped" {
-    local jupyter_notebook_container_name="$(get_config .services.jupyter_notebook.container_name)"
-
     run das-cli jupyter-notebook stop
 
     assert_output "Stopping jupyter notebook...
-The Jupyter Notebook service named $jupyter_notebook_container_name is already stopped."
+The Jupyter Notebook service named $jupyter_notebook is already stopped."
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_failure
 }
 
 @test "Restarting Jupyter notebook server" {
-    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
-
     das-cli jupyter-notebook start
 
     run das-cli jupyter-notebook restart
@@ -119,23 +119,20 @@ Jupyter Notebook service stopped
 Starting Jupyter Notebook...
 Jupyter Notebook started on port $jupyter_notebook_port"
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_success
 }
 
 @test "Trying to restart Jupyter notebook server before start server" {
-    local jupyter_notebook_port="$(get_config .services.jupyter_notebook.port)"
-    local jupyter_notebook_container_name="$(get_config .services.jupyter_notebook.container_name)"
-
     run das-cli jupyter-notebook restart
 
     assert_output "Stopping jupyter notebook...
-The Jupyter Notebook service named $jupyter_notebook_container_name is already stopped.
+The Jupyter Notebook service named $jupyter_notebook is already stopped.
 Starting Jupyter Notebook...
 Jupyter Notebook started on port $jupyter_notebook_port"
 
-    run is_service_up jupyter_notebook
+    run is_service_up $jupyter_notebook
 
     assert_success
 }

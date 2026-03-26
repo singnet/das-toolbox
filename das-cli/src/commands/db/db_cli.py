@@ -15,6 +15,7 @@ from common.factory.atomdb.atomdb_backend import (
     MongoDBRedisBackend,
     MorkMongoDBBackend,
 )
+from common.utils import extract_service_port
 
 from .db_docs import (
     HELP_DB_CLI,
@@ -172,7 +173,6 @@ class DbStop(Command):
     def _stop_node(
         self, manager, context: str, ip: str, username: str, prune: bool, service_name: str
     ):
-
         server_ip = self.get_execution_context().source.get("ip") or ip
 
         try:
@@ -206,7 +206,6 @@ class DbStop(Command):
     def _stop_service(
         self, manager, nodes: list, service_name: str, prune: bool = False, cluster: bool = False
     ):
-
         self.stdout(f"Stopping {service_name} service...")
 
         try:
@@ -240,33 +239,44 @@ class DbStop(Command):
     def run(self, prune: bool = False) -> None:
         self._settings.validate_configuration_file()
 
-        for provider in self._atomdb_backend.get_active_providers():
+        redis_nodes = self._settings.get("atomdb.redis.nodes", [])
+        redis_cluster = self._settings.get("atomdb.redis.cluster")
 
+        mongo_nodes = self._settings.get("atomdb.mongodb.nodes", [])
+        mongo_cluster = self._settings.get("atomdb.mongodb.cluster", False)
+
+        for provider in self._atomdb_backend.get_active_providers():
             if isinstance(provider, MongoDBRedisBackend):
                 self._stop_service(
                     self._redis_container_manager,
-                    self._settings.get("services.redis.nodes", []),
+                    redis_nodes,
                     "Redis",
                     prune,
-                    self._settings.get("services.redis.cluster", False),
+                    redis_cluster,
                 )
                 self._stop_service(
                     self._mongodb_container_manager,
-                    self._settings.get("services.mongodb.nodes", []),
+                    mongo_nodes,
                     "MongoDB",
                     prune,
-                    self._settings.get("services.mongodb.cluster", False),
+                    mongo_cluster,
                 )
 
             elif isinstance(provider, MorkMongoDBBackend):
                 self._stop_service(
                     self._mongodb_container_manager,
-                    self._settings.get("services.mongodb.nodes", []),
+                    mongo_nodes,
                     "MongoDB",
                     prune,
-                    self._settings.get("services.mongodb.cluster", False),
+                    mongo_cluster,
                 )
                 self._stop_service(self._morkdb_container_manager, [], "MorkDB", prune)
+
+            else:
+                self.stdout(
+                    "InMemoryDB and RemoteDB are not supported on the 'db start' command",
+                    severity=StdoutSeverity.WARNING,
+                )
 
 
 class DbStart(Command):
@@ -291,7 +301,6 @@ class DbStart(Command):
         super().__init__()
 
     def _get_container(self, service: str):
-
         return {
             "redis": self._redis_container_manager.get_container,
             "mongodb": self._mongodb_container_manager.get_container,
@@ -332,12 +341,11 @@ class DbStart(Command):
             )
 
     def _start_node(self, container_manager, node: dict, service_name: str, **kwargs):
-
         node_context = node.get("context", "")
         node_ip = node.get("ip", "")
         node_username = node.get("username", "")
         public_ip = self.get_execution_context().source.get("ip") or node_ip
-        container_port = kwargs["port"]
+        container_port = int(kwargs["port"])
 
         try:
             if node_context and node_context != "default":
@@ -402,7 +410,6 @@ class DbStart(Command):
             raise e
 
     def _start_service(self, manager, nodes: list, service_name: str, **kwargs):
-
         try:
             self.stdout(f"Starting {service_name} service...")
 
@@ -449,46 +456,64 @@ class DbStart(Command):
 
     def run(self):
         self._settings.validate_configuration_file()
-        for provider in self._atomdb_backend.get_active_providers():
 
+        morkdb_endpoint = self._settings.get("atomdb.morkdb.endpoint")
+
+        redis_endpoint = self._settings.get("atomdb.redis.endpoint")
+        redis_nodes = self._settings.get("atomdb.redis.nodes", [])
+        redis_cluster = self._settings.get("atomdb.redis.cluster")
+
+        mongodb_endpoint = self._settings.get("atomdb.mongodb.endpoint")
+        mongo_nodes = self._settings.get("atomdb.mongodb.nodes", [])
+        mongo_cluster = self._settings.get("atomdb.mongodb.cluster", False)
+        mongo_cluster_key = self._settings.get("atomdb.mongodb.cluster_secret_key", None)
+        username = self._settings.get("atomdb.mongodb.username")
+        password = self._settings.get("atomdb.mongodb.password")
+
+        for provider in self._atomdb_backend.get_active_providers():
             if isinstance(provider, MongoDBRedisBackend):
                 self._start_service(
                     self._redis_container_manager,
-                    self._settings.get("services.redis.nodes", []),
+                    redis_nodes,
                     service_name="Redis",
-                    port=self._settings.get("services.redis.port"),
-                    cluster=self._settings.get("services.redis.cluster", False),
+                    port=extract_service_port(redis_endpoint),
+                    cluster=redis_cluster,
                 )
 
                 self._start_service(
                     self._mongodb_container_manager,
-                    self._settings.get("services.mongodb.nodes", []),
+                    mongo_nodes,
                     service_name="MongoDB",
-                    port=self._settings.get("services.mongodb.port"),
-                    username=self._settings.get("services.mongodb.username"),
-                    password=self._settings.get("services.mongodb.password"),
-                    cluster=self._settings.get("services.mongodb.cluster", False),
-                    cluster_key=self._settings.get("services.mongodb.cluster_secret_key"),
+                    port=extract_service_port(mongodb_endpoint),
+                    username=username,
+                    password=password,
+                    cluster=mongo_cluster,
+                    cluster_key=mongo_cluster_key,
                 )
 
             elif isinstance(provider, MorkMongoDBBackend):
-
                 self._start_service(
                     self._mongodb_container_manager,
-                    self._settings.get("services.mongodb.nodes", []),
+                    mongo_nodes,
                     service_name="MongoDB",
-                    port=self._settings.get("services.mongodb.port"),
-                    username=self._settings.get("services.mongodb.username"),
-                    password=self._settings.get("services.mongodb.password"),
-                    cluster=self._settings.get("services.mongodb.cluster", False),
-                    cluster_key=self._settings.get("services.mongodb.cluster_secret_key"),
+                    port=extract_service_port(mongodb_endpoint),
+                    username=username,
+                    password=password,
+                    cluster=mongo_cluster,
+                    cluster_key=mongo_cluster_key,
                 )
 
                 self._start_service(
                     self._morkdb_container_manager,
                     [],
                     service_name="MorkDB",
-                    port=self._settings.get("services.morkdb.port"),
+                    port=extract_service_port(morkdb_endpoint),
+                )
+
+            else:
+                self.stdout(
+                    "InMemoryDB and RemoteDB are not supported on the 'db start' command",
+                    severity=StdoutSeverity.WARNING,
                 )
 
 

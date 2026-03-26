@@ -4,7 +4,11 @@ from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverit
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError
+from common.docker.exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+    DockerError,
+)
 from common.prompt_types import PortRangeType
 
 from .lca_docs import (
@@ -46,7 +50,6 @@ class LinkCreationAgentStop(Command):
         container = self._get_container()
 
         try:
-
             self.stdout("Stopping Link Creation Agent service...")
             self._link_creation_agent_manager.stop()
 
@@ -182,6 +185,9 @@ class LinkCreationAgentStart(Command):
                 ),
                 stdout_type=StdoutType.MACHINE_READABLE,
             )
+        except DockerError as e:
+            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
+            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
         [
@@ -192,9 +198,7 @@ class LinkCreationAgentStart(Command):
         verbose=False,
     )
     def run(self, port_range: str, **kwargs):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
-
+        self._settings.validate_configuration_file()
         self._link_creation_agent(port_range, **kwargs)
 
 

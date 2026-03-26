@@ -1,63 +1,98 @@
 from typing import Any, Dict
 
-from common.utils import calculate_schema_hash, get_rand_token
-
-default_atomdb_backend = "redis_mongodb"
-default_port_redis = 40020
-default_port_mongodb = 40021
-default_port_jupyter = 40019
-database_adapter_server_port = 40018
-default_port_attention_broker = 40001
-default_port_query_agent = 40002
-default_port_link_agent = 40003
-default_port_inference_agent = 40004
-default_port_evolution_agent = 40005
-default_port_context_broker = 40006
-default_port_morkdb = 40022
-default_port_atomdb_broker = 40007
-
 
 def get_core_defaults_dict() -> Dict[str, Any]:
     core_defaults: Dict[str, Any] = {
-        "schema_hash": None,
-        "services.database.atomdb_backend": default_atomdb_backend,
-        "services.redis.port": default_port_redis,
-        "services.redis.container_name": f"das-cli-redis-{default_port_redis}",
-        "services.redis.cluster": False,
-        "services.redis.nodes": [],
-        "services.mongodb.port": default_port_mongodb,
-        "services.mongodb.container_name": f"das-cli-mongodb-{default_port_mongodb}",
-        "services.mongodb.username": "admin",
-        "services.mongodb.password": "admin",
-        "services.mongodb.cluster": False,
-        "services.mongodb.cluster_secret_key": get_rand_token(16),
-        "services.mongodb.nodes": [],
-        "services.morkdb.port": default_port_morkdb,
-        "services.morkdb.container_name": f"das-cli-morkdb-{default_port_morkdb}",
-        "services.loader.container_name": "das-cli-loader",
-        "services.morkdb_loader.container_name": "das-cli-morkdb-loader",
-        "services.das_peer.port": database_adapter_server_port,
-        "services.das_peer.container_name": f"das-cli-das-peer-{database_adapter_server_port}",
-        "services.dbms_peer.container_name": "das-cli-dbms-peer",
-        "services.jupyter_notebook.port": default_port_jupyter,
-        "services.jupyter_notebook.container_name": f"das-cli-jupyter-notebook-{default_port_jupyter}",
-        "services.attention_broker.port": default_port_attention_broker,
-        "services.attention_broker.container_name": f"das-cli-attention-broker-{default_port_attention_broker}",
-        "services.query_agent.port": default_port_query_agent,
-        "services.query_agent.container_name": f"das-cli-query-agent-{default_port_query_agent}",
-        "services.link_creation_agent.port": default_port_link_agent,
-        "services.link_creation_agent.container_name": f"das-cli-link-creation-agent-{default_port_link_agent}",
-        "services.inference_agent.port": default_port_inference_agent,
-        "services.inference_agent.container_name": f"das-cli-inference-agent-{default_port_inference_agent}",
-        "services.evolution_agent.port": default_port_evolution_agent,
-        "services.evolution_agent.container_name": f"das-cli-evolution-agent-{default_port_evolution_agent}",
-        "services.context_broker.port": default_port_context_broker,
-        "services.context_broker.container_name": f"das-cli-context-broker-{default_port_context_broker}",
-        "services.atomdb_broker.port": default_port_atomdb_broker,
-        "services.atomdb_broker.container_name": f"das-cli-atomdb-broker-{default_port_atomdb_broker}",
+        "schema_version": "1.0",
+        "atomdb": {
+            "type": "redismongodb",
+            "redis": {"endpoint": "localhost:40020", "cluster": False, "nodes": []},
+            "mongodb": {
+                "endpoint": "localhost:40021",
+                "username": "admin",
+                "password": "admin",
+                "cluster": False,
+                "cluster_secret_key": "8UDJSgpUCaVOTQG",
+                "nodes": [],
+            },
+            "morkdb": {"endpoint": "localhost:40022"},
+            "remote_peers": [
+                {
+                    "uid": "peer1",
+                    "type": "redismongodb",
+                    "context": "remotedb_test_peer1_",
+                    "mongodb": {
+                        "endpoint": "localhost:40021",
+                        "username": "admin",
+                        "password": "admin",
+                    },
+                    "redis": {"endpoint": "localhost:40020", "cluster": False},
+                    "local_persistence": {
+                        "type": "morkdb",
+                        "context": "remotedb_test_peer1_local_",
+                        "mongodb": {
+                            "endpoint": "localhost:40021",
+                            "username": "admin",
+                            "password": "admin",
+                        },
+                        "morkdb": {"endpoint": "localhost:40022"},
+                    },
+                },
+                {
+                    "uid": "peer2",
+                    "type": "inmemorydb",
+                    "context": "remotedb_test_peer2_",
+                    "local_persistence": {
+                        "type": "inmemorydb",
+                        "context": "remotedb_test_peer2_local_",
+                    },
+                },
+            ],
+        },
+        "loaders": {
+            "metta": {"image": "Trueagi/das:1.0.0-metta-parser"},
+            "morkdb": {"image": "Trueagi/das:mork-loader-1.0.4"},
+        },
+        "agents": {
+            "query": {"endpoint": "localhost:40002", "ports_range": "42000:42999"},
+            "link_creation": {"endpoint": "localhost:40003", "ports_range": "43000:43999"},
+            "inference": {"endpoint": "localhost:40004", "ports_range": "44000:44999"},
+            "evolution": {"endpoint": "localhost:40005", "ports_range": "45000:45999"},
+        },
+        "brokers": {
+            "attention": {"endpoint": "localhost:40001"},
+            "context": {"endpoint": "localhost:40006", "ports_range": "46000:46999"},
+            "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
+        },
+        "params": {
+            "query": {
+                "max_answers": 100,
+                "max_bundle_size": 1000,
+                "count_flag": True,
+                "attention_update_flag": False,
+                "unique_assignment_flag": True,
+                "positive_importance_flag": False,
+                "populate_metta_mapping": True,
+                "use_metta_as_query_tokens": True,
+            },
+            "link_creation": {"repeat_count": 1, "query_interval": 0, "query_timeout": 0},
+            "evolution": {
+                "elitism_rate": 0.08,
+                "max_generations": 10,
+                "population_size": 50,
+                "selection_rate": 0.1,
+                "total_attention_tokens": 100000,
+            },
+            "context": {
+                "context": "context",
+                "use_cache": True,
+                "enforce_cache_recreation": False,
+                "initial_rent_rate": 0.25,
+                "initial_spreading_rate_lowerbound": 0.5,
+                "initial_spreading_rate_upperbound": 0.7,
+            },
+        },
+        "environment": {"jupyter": {"endpoint": "localhost:40019"}},
     }
-
-    schema_hash_value = calculate_schema_hash(core_defaults)
-    core_defaults["schema_hash"] = schema_hash_value
 
     return core_defaults

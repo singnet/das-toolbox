@@ -1,3 +1,4 @@
+import os
 from typing import Dict
 
 import docker
@@ -11,13 +12,11 @@ from ..bus_node.busnode_command_registry import BusNodeCommandRegistry
 
 
 class BusNodeContainerManager(ContainerManager):
-
     def __init__(
         self,
         default_container_name: str,
         options: Dict = {},
     ) -> None:
-
         self._options = options
 
         self._cmd_registry = BusNodeCommandRegistry()
@@ -34,13 +33,16 @@ class BusNodeContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def start_container(self, ports_range: str, **kwargs) -> None:
+    def _extract_user_exp_path(self) -> str:
+        return os.path.expanduser("~/.das/config.json")
 
+    def start_container(self, ports_range: str, **kwargs) -> None:
         self.raise_running_container()
         self.raise_on_port_in_use([self._options.get("service_port")])
 
-        try:
+        user_config_volume = self._extract_user_exp_path()
 
+        try:
             service = self._options.get("service")
             endpoint = self._options.get("service_endpoint")
 
@@ -53,17 +55,13 @@ class BusNodeContainerManager(ContainerManager):
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
                 },
-                command=bus_node_command,
-                environment={
-                    "DAS_MONGODB_HOSTNAME": self._options.get("mongodb_hostname"),
-                    "DAS_MONGODB_PORT": self._options.get("mongodb_port"),
-                    "DAS_MONGODB_USERNAME": self._options.get("mongodb_username"),
-                    "DAS_MONGODB_PASSWORD": self._options.get("mongodb_password"),
-                    "DAS_REDIS_HOSTNAME": self._options.get("redis_hostname"),
-                    "DAS_REDIS_PORT": self._options.get("redis_port"),
-                    "DAS_MORK_HOSTNAME": self._options.get("morkdb_hostname"),
-                    "DAS_MORK_PORT": self._options.get("morkdb_port"),
+                volumes={
+                    user_config_volume: {
+                        "bind": user_config_volume,
+                        "mode": "ro",
+                    }
                 },
+                command=bus_node_command,
             )
             return container
 

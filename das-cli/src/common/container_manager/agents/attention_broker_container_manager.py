@@ -1,6 +1,7 @@
 from typing import Dict
 
 import docker
+import docker.errors
 
 from common import Container, ContainerImageMetadata, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
@@ -55,10 +56,6 @@ class AttentionBrokerManager(ContainerManager):
             )
 
             return container_id
-        except docker.errors.APIError as e:
-            if e.response.reason == "Not Found":
-                raise DockerContainerNotFoundError(
-                    f"The docker image {self.get_container().image} for the attention broker could not be found!"
-                )
 
+        except docker.errors.APIError as e:
             raise DockerError(e.explanation)

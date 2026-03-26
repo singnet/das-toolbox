@@ -95,8 +95,7 @@ EXAMPLES
             )
 
     def run(self):
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
         self._server()
 
 
@@ -180,8 +179,7 @@ EXAMPLES
         exception_text="\nPlease use 'db start' to start required services before running 'das-peer start'.",
     )
     def run(self) -> None:
-        self._settings.raise_on_missing_file()
-        self._settings.raise_on_schema_mismatch()
+        self._settings.validate_configuration_file()
 
         self._image_manager.pull(
             DAS_PEER_IMAGE_NAME,

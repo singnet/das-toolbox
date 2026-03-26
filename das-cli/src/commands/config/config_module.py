@@ -31,4 +31,4 @@ class ConfigModule(Module):
         return NonInteractiveConfigProvider(self._settings)
 
     def _interactive_config_provider_factory(self) -> InteractiveConfigProvider:
-        return InteractiveConfigProvider(self._settings, self._remote_context_manager)
+        return InteractiveConfigProvider(self._settings)

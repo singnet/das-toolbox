@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional
 
 from common.config.core import get_core_defaults_dict
-from common.utils import calculate_schema_hash
 
 from .config.loader import ConfigLoader
 from .config.store import ConfigStore
@@ -13,7 +12,7 @@ class Settings:
         store: ConfigStore,
         default_loader: Optional[ConfigLoader] = None,
         raise_on_missing_file=False,
-        raise_on_schema_mismatch=False,
+        raise_on_version_mismatch=False,
     ):
         self._store = store
         self._default_loader = default_loader
@@ -21,8 +20,8 @@ class Settings:
         if raise_on_missing_file:
             self.raise_on_missing_file()
 
-        if raise_on_schema_mismatch:
-            self.raise_on_schema_mismatch()
+        if raise_on_version_mismatch:
+            self.raise_on_version_mismatch()
 
     def set_content(self, content: Dict[str, Any]) -> None:
         self._store.set_content(content)
@@ -71,9 +70,10 @@ class Settings:
         except Exception:
             return value
 
-    def raise_on_schema_mismatch(self):
-        expected_hash = calculate_schema_hash(get_core_defaults_dict())
-        if self._store.get("schema_hash") != expected_hash:
+    def raise_on_version_mismatch(self):
+        base_dict_version = get_core_defaults_dict()["schema_version"]
+
+        if self._store.get("schema_version") != base_dict_version:
             mismatch_message = f"Your configuration file in {self.get_path()} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
 
             raise ValueError(mismatch_message)
@@ -86,92 +86,75 @@ class Settings:
 
     def validate_configuration_file(self):
         self.raise_on_missing_file()
-        self.raise_on_schema_mismatch()
+        self.raise_on_version_mismatch()
 
     def pretty(self) -> str:
         table_lines = []
         obj = self.get_content()
-
         column_widths = {"Service": 7, "Name": 4, "Value": 5}
 
-        def calculate_column_widths(current_dict, service=""):
-            column_widths
+        def get_flattened_items(current_obj, parent_key=""):
+            items = []
+            if isinstance(current_obj, dict):
+                for k, v in current_obj.items():
+                    new_key = f"{parent_key}.{k}" if parent_key else k
+                    items.extend(get_flattened_items(v, new_key))
+            elif isinstance(current_obj, list):
+                parts = parent_key.rsplit(".", 1)
+                service = parts[0] if len(parts) > 1 else ""
+                name = parts[-1]
+                items.append((service, name, f"[{len(current_obj)} items]"))
+            else:
+                parts = parent_key.rsplit(".", 1)
+                service = parts[0] if len(parts) > 1 else ""
+                name = parts[-1]
+                items.append((service, name, str(current_obj)))
+            return items
 
-            for key, value in current_dict.items():
-                if isinstance(value, dict):
-                    calculate_column_widths(value, f"{service}{key}.")
-                else:
-                    name = key if service else key
-                    service = service.strip(".")
-                    column_widths["Service"] = max(column_widths["Service"], len(service))
-                    column_widths["Name"] = max(column_widths["Name"], len(name))
-                    column_widths["Value"] = max(column_widths["Value"], len(str(value)))
+        flattened_data = get_flattened_items(obj)
 
-        calculate_column_widths(obj)
+        for service, name, value in flattened_data:
+            column_widths["Service"] = max(column_widths["Service"], len(service))
+            column_widths["Name"] = max(column_widths["Name"], len(name))
+            column_widths["Value"] = max(column_widths["Value"], len(value))
 
-        table_lines.append(
-            "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-                s="",
-                sw=column_widths["Service"],
-                n="",
-                nw=column_widths["Name"],
-                v="",
-                vw=column_widths["Value"],
-            )
+        column_widths["Value"] = min(column_widths["Value"], 80)
+
+        separator = "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
+            s="",
+            sw=column_widths["Service"],
+            n="",
+            nw=column_widths["Name"],
+            v="",
+            vw=column_widths["Value"],
         )
 
-        table_lines.append(
-            "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
-                s="Service",
-                sw=column_widths["Service"],
-                n="Name",
-                nw=column_widths["Name"],
-                v="Value",
-                vw=column_widths["Value"],
-            )
+        header = "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
+            s="Service",
+            sw=column_widths["Service"],
+            n="Name",
+            nw=column_widths["Name"],
+            v="Value",
+            vw=column_widths["Value"],
         )
 
-        table_lines.append(
-            "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-                s="",
-                sw=column_widths["Service"],
-                n="",
-                nw=column_widths["Name"],
-                v="",
-                vw=column_widths["Value"],
+        table_lines.append(separator)
+        table_lines.append(header)
+        table_lines.append(separator)
+
+        for service, name, value in flattened_data:
+            display_value = (value[:77] + "...") if len(value) > 80 else value
+
+            table_lines.append(
+                "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
+                    s=service,
+                    sw=column_widths["Service"],
+                    n=name,
+                    nw=column_widths["Name"],
+                    v=display_value,
+                    vw=column_widths["Value"],
+                )
             )
-        )
 
-        def fill_table_rows(current_dict, service=""):
-            for key, value in current_dict.items():
-                if isinstance(value, dict):
-                    fill_table_rows(value, f"{service}{key}.")
-                else:
-                    name = key if service else key
-                    service = service.strip(".")
-                    table_lines.append(
-                        "| {s:<{sw}} | {n:<{nw}} | {v:<{vw}} |".format(
-                            s=service,
-                            sw=column_widths["Service"],
-                            n=name,
-                            nw=column_widths["Name"],
-                            v=str(value),
-                            vw=column_widths["Value"],
-                        )
-                    )
-
-        fill_table_rows(obj)
-
-        # Last line of the table
-        table_lines.append(
-            "+-{s:-<{sw}}-+-{n:-<{nw}}-+-{v:-<{vw}}-+".format(
-                s="",
-                sw=column_widths["Service"],
-                n="",
-                nw=column_widths["Name"],
-                v="",
-                vw=column_widths["Value"],
-            )
-        )
-
+        table_lines.append(separator)
         return "\n".join(table_lines)

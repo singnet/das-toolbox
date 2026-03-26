@@ -7,11 +7,7 @@ from common.factory.attention_broker_manager_factory import AttentionBrokerManag
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
 from settings.config import SECRETS_PATH
 
-from .inference_agent_cli import (
-    AttentionBrokerManager,
-    InferenceAgentCli,
-    Settings,
-)
+from .inference_agent_cli import AttentionBrokerManager, InferenceAgentCli, Settings
 
 
 class InferenceAgentModule(Module):
@@ -27,7 +23,7 @@ class InferenceAgentModule(Module):
             (
                 BusNodeContainerManager,
                 self._bus_node_factory.build(
-                    use_settings="inference_agent", service_name="inference-agent"
+                    use_settings_from="agents.inference", service_name="inference-agent"
                 ),
             ),
             (
