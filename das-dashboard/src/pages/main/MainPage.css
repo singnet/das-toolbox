@@ -1,0 +1,9 @@
+.main-page{
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1rem;
+    width: 98dvw;
+    height: 98dvh;
+    border: 1px solid white;
+}
+
