@@ -1,18 +1,27 @@
 import { Box, Card, CardContent, Typography, List, ListItemButton, ListItemText, Button, Dialog, DialogContent } from "@mui/material"
 import { useState } from "react"
 import AtomDBForm from "../../components/form_parts/AtomDB/AtomDB"
+import { AgentsForm } from "../../components/form_parts/Agents/Agents"
 
 export default function MainPage() {
-  const [config, setConfig] = useState({ schema_version: "1.0" })
+  const [config, setConfig] = useState({ "schema_version": "1.0", "loaders": {"metta": {"image": "trueagi/das-1.0.0-metta-parser"},"morkdb": {"image": "trueagi/das-mork-loader-1.0.3"}},
+})
   const [section, setSection] = useState("atomdb")
   const [openJson, setOpenJson] = useState(false)
 
-  const updateSection = (sectionName, data) => {
-    setConfig(prev => ({
-      ...prev,
-      [sectionName]: data
-    }))
-  }
+const updateSection = (sectionName, data) => {
+  setConfig(prev => {
+    const next = {
+      schema_version: prev.schema_version,
+      atomdb: sectionName === "atomdb" ? data : prev.atomdb,
+      loaders: prev.loaders,
+      agents: sectionName === "agents" ? data : prev.agents,
+      brokers: sectionName === "brokers" ? data : prev.brokers
+    }
+
+    return next
+  })
+}
 
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
@@ -30,7 +39,7 @@ export default function MainPage() {
         <Card>
           <CardContent>
             {section === "atomdb" && <AtomDBForm onSectionSave={updateSection} />}
-            {/* Outras sections seguem o mesmo padrão: onSectionSave={updateSection} */}
+            {section === "agents" && <AgentsForm onSectionSave={updateSection}></AgentsForm>}
           </CardContent>
         </Card>
 
