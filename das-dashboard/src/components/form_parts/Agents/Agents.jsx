@@ -66,40 +66,48 @@ export function AgentsForm({ onSectionSave }) {
         label="Query Port"
         type="number"
         onChange={(e) => (form.current.queryPort = e.target.value)}
+        defaultValue={40002}
       />
       <TextField
-        label="Query Range (start:end)"
+        label="Query Ports Range (start:end)"
         onChange={(e) => (form.current.queryRange = e.target.value)}
+        defaultValue={"42000:42999"}
       />
 
       <TextField
         label="Link Creation Port"
         type="number"
         onChange={(e) => (form.current.linkPort = e.target.value)}
+        defaultValue={40003}
       />
       <TextField
-        label="Link Range"
+        label="Link Creation Ports Range"
         onChange={(e) => (form.current.linkRange = e.target.value)}
+        defaultValue={"43000:43999"}
       />
 
       <TextField
         label="Inference Port"
         type="number"
         onChange={(e) => (form.current.inferencePort = e.target.value)}
+        defaultValue={40004}
       />
       <TextField
-        label="Inference Range"
+        label="Inference Ports Range"
         onChange={(e) => (form.current.inferenceRange = e.target.value)}
+        defaultValue={"44000:44999"}
       />
 
       <TextField
         label="Evolution Port"
         type="number"
         onChange={(e) => (form.current.evolutionPort = e.target.value)}
+        defaultValue={40005}
       />
       <TextField
-        label="Evolution Range"
+        label="Evolution Ports Range"
         onChange={(e) => (form.current.evolutionRange = e.target.value)}
+        defaultValue={"45000:45999"}
       />
 
       <Button variant="contained" color="success" onClick={handleSave}>

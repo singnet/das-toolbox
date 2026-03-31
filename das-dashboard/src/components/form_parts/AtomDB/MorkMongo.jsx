@@ -51,6 +51,7 @@ export function MorkMongoOptions ({ onSave }) {
         label="MorkDB Port"
         type="number"
         margin="normal"
+        defaultValue={40022}
         onChange={(e) =>
           form.morkPort = e.target.value
         }
@@ -64,6 +65,7 @@ export function MorkMongoOptions ({ onSave }) {
         onChange={(e) =>
           form.mongoPort = e.target.value
         }
+        defaultValue={40021}
       />
 
       <TextField
@@ -74,6 +76,7 @@ export function MorkMongoOptions ({ onSave }) {
         onChange={(e) =>
           form.mongoUser = e.target.value
         }
+        defaultValue={"admin"}
       />
 
       <TextField
@@ -84,6 +87,7 @@ export function MorkMongoOptions ({ onSave }) {
         onChange={(e) =>
           form.mongoPass = e.target.value
         }
+        defaultValue={"admin"}
       />
 
       <FormControlLabel label="Mongo Cluster" control={

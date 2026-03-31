@@ -50,28 +50,33 @@ export function BrokersForm({ onSectionSave }) {
         label="Attention Broker Port"
         type="number"
         onChange={(e) => (form.current.attentionPort = e.target.value)}
+        defaultValue={40001}
       />
 
       <TextField
         label="Context Broker Port"
         type="number"
         onChange={(e) => (form.current.contextPort = e.target.value)}
+        defaultValue={40006}
       />
       <TextField
         label="Context Broker Range"
         helperText={"Port range must be in 'start:end' format"}
         onChange={(e) => (form.current.contextRange = e.target.value)}
+        defaultValue={"46000:46999"} 
       />
 
       <TextField
         label="AtomDB Broker Port"
         type="number"
         onChange={(e) => (form.current.atomdbPort = e.target.value)}
+        defaultValue={40007}
       />
       <TextField
         label="AtomDB Broker Range"
         helperText={"Port range must be in 'start:end' format"}
         onChange={(e) => (form.current.atomdbRange = e.target.value)}
+        defaultValue={"47000:47999"} 
       />
 
       <Button variant="contained" color="success" onClick={handleSave}>

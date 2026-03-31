@@ -49,16 +49,16 @@ export function RedisMongoOptions({ onSave }) {
 
   return (
     <>
-        <TextField fullWidth label="Redis Port" type="number" margin="normal" 
+        <TextField fullWidth label="Redis Port" type="number" margin="normal" defaultValue={40020} 
         onChange={(e) => form.current.redisPort = e.target.value} />
         
-        <TextField fullWidth label="Mongo Port" type="number" margin="normal" 
+        <TextField fullWidth label="Mongo Port" type="number" margin="normal" defaultValue={40021}
         onChange={(e) => form.current.mongoPort = e.target.value} />
 
-        <TextField fullWidth label="MongoDB Username" type="text" margin="normal" 
+        <TextField fullWidth label="MongoDB Username" type="text" margin="normal" defaultValue={"admin"} 
             onChange={(e) => form.current.mongoUser = e.target.value} />
         
-        <TextField fullWidth label="MongoDB Password" type="password" margin="normal" 
+        <TextField fullWidth label="MongoDB Password" type="password" margin="normal" defaultValue={"admin"}
             onChange={(e) => form.current.mongoPass = e.target.value} />
 
         <FormControlLabel label="Mongo Cluster" control={
