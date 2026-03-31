@@ -41,7 +41,8 @@ export default function MainPage() {
       config.atomdb &&
       config.agents &&
       config.brokers &&
-      config.params
+      config.params &&
+      config.environment
     )
   }
 
