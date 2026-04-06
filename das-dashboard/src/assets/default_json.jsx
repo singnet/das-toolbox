@@ -30,7 +30,7 @@ export const DEFAULT_JSON = {
             ]
         },
         "morkdb": {
-            "image": "trueagi/das:mork-server-1.0.4",
+            "image": "trueagi/das:mork-server-1.0.5",
             "port": 40022
         },
         "remote_peers": [
@@ -80,7 +80,7 @@ export const DEFAULT_JSON = {
             "image": "trueagi/das:1.0.0-metta-parser"
         },
         "morkdb": {
-            "image": "trueagi/das:mork-loader-1.0.4"
+            "image": "trueagi/das:mork-loader-1.0.5"
         }
     },
     "agents": {

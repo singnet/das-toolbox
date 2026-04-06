@@ -14,3 +14,7 @@ This tool allows managing self-hosted GitHub Actions runners using Docker.
 
 [Full documentation](das-runner-manager/README.md)
 
+### das-web-interface
+This web application allows configuration/setup for das/das-cli using clear and intuitive web interface.
+
+[Full documentation](das-dashboard/README.md)

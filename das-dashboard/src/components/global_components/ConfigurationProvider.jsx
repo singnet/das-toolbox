@@ -8,14 +8,14 @@ export function ConfigurationProvider({ children }){
 
     const [config, setConfig] = useState(
         {
-            "schema_version": 1.0,
+            "schema_version": "1.0",
             "atomdb": {},
             "loaders": {
                 "metta": {
                     "image": "trueagi/das:1.0.0-metta-parser"
                 },
                 "morkdb": {
-                    "image": "trueagi/das:mork-loader-1.0.4"
+                    "image": "trueagi/das:mork-loader-1.0.5"
                 }
             },
             "agents": {},

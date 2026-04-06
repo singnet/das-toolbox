@@ -1,16 +1,11 @@
-# React + Vite
+### DAS UI for Configuration/Setup
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a simple and intuitive web interface, created to make das/das-cli's setup easier to do and to visualize.
 
-Currently, two official plugins are available:
+### Running the interface locally:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. If you are in the DAS' project main folder, change to './das-dashboard'
+2. Run 'npm install'
+3. Run 'npm run dev'
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+That's all, you should be able to run the web app perfectly and use its full features.

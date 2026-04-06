@@ -22,7 +22,7 @@ export async function saveFileWithPicker(data){
             suggestedName: "config.json",
             types: [
                 {
-                    description: "Json configuration for DAS/DAS-CLI",
+                    description: ".json",
                     accept: {"application/json": [".json"]}
                 }
             ]

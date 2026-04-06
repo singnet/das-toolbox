@@ -1,15 +1,16 @@
 import { Button } from "@mui/material";
 import { useConfig } from "../../global_components/ConfigurationProvider";
 import { useToast } from "../../global_components/ToastProvider";
+import { useRef } from "react";
 
 export function InMemoryOptions({ onSave }){
 
     const { updateSection } = useConfig()
     const { showToast } = useToast()
 
-    const section = {
+    const section = useRef({
         "type": "inmemorydb"
-    }
+    })
 
     return (
         <Button variant="contained" color="success" onClick={
