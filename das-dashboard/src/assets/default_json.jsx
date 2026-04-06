@@ -145,5 +145,10 @@ export const DEFAULT_JSON = {
             "initial_spreading_rate_lowerbound": 0.5,
             "initial_spreading_rate_upperbound": 0.7
         }
+    },
+    "environment": {
+        "jupyter": {
+            "endpoint": "locahost:40019"
+        }
     }
 }
