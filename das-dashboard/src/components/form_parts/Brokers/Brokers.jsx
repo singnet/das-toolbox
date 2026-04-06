@@ -1,85 +1,105 @@
 import { Box, Button, TextField, Typography } from "@mui/material"
 import { useRef } from "react"
+import { useConfig } from "../../global_components/ConfigurationProvider"
+import { useToast } from "../../global_components/ToastProvider"
 
-export function BrokersForm({ onSectionSave }) {
-  const form = useRef({
-    attentionPort: "40001",
+export function BrokersForm() {
 
-    contextPort: "40006",
-    contextRange: "46000:46999",
+  const { updateSection, getDefault } = useConfig()
+  const { showToast } = useToast()
 
-    atomdbPort: "40007",
-    atomdbRange: "47000:47999"
+  const defaults = getDefault().brokers || {}
+
+  const section = useRef({
+    attention: {
+      endpoint: defaults?.attention?.endpoint || "localhost:40001"
+    },
+    context: {
+      endpoint: defaults?.context?.endpoint || "localhost:40006",
+      ports_range: defaults?.context?.ports_range || "46000:46999"
+    },
+    atomdb: {
+      endpoint: defaults?.atomdb?.endpoint || "localhost:40007",
+      ports_range: defaults?.atomdb?.ports_range || "47000:47999"
+    }
   })
 
-  const isValidRange = (range) => {
-    const match = range.match(/^(\d+):(\d+)$/)
-    if (!match) return false
+  const getPort = (endpoint) => endpoint.split(":")[1]
+  const getStart = (range) => range.split(":")[0]
+  const getEnd = (range) => range.split(":")[1]
 
-    const start = Number(match[1])
-    const end = Number(match[2])
-
-    return start < end && start >= 1 && end <= 65535
+  const updateEndpoint = (key, value) => {
+    section.current[key].endpoint = `localhost:${value}`
   }
 
-  const handleSave = () => {
-    const data = form.current
-
-    const section = {
-      attention: {
-        endpoint: `localhost:${data.attentionPort}`
-      },
-      context: {
-        endpoint: `localhost:${data.contextPort}`,
-        ports_range: data.contextRange
-      },
-      atomdb: {
-        endpoint: `localhost:${data.atomdbPort}`,
-        ports_range: data.atomdbRange
-      }
-    }
-
-    onSectionSave("brokers", section)
+  const updateRangeStart = (key, value) => {
+    const [, end] = section.current[key].ports_range.split(":")
+    section.current[key].ports_range = `${value}:${end}`
   }
+
+  const updateRangeEnd = (key, value) => {
+    const [start] = section.current[key].ports_range.split(":")
+    section.current[key].ports_range = `${start}:${value}`
+  }
+
+  const SectionBlock = ({ title, name, hasRange = false }) => (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      
+      <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 1 }}>
+        {title}
+      </Typography>
+
+      <TextField
+        label={`${title} Port`}
+        fullWidth
+        defaultValue={getPort(section.current[name].endpoint)}
+        onChange={e => updateEndpoint(name, e.target.value)}
+      />
+
+      {hasRange && (
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 1
+          }}
+        >
+          <TextField
+            label="Port range start"
+            fullWidth
+            defaultValue={getStart(section.current[name].ports_range)}
+            onChange={e => updateRangeStart(name, e.target.value)}
+          />
+
+          <TextField
+            label="Port range end"
+            fullWidth
+            defaultValue={getEnd(section.current[name].ports_range)}
+            onChange={e => updateRangeEnd(name, e.target.value)}
+          />
+        </Box>
+      )}
+
+    </Box>
+  )
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+
       <Typography variant="h6">Brokers Configuration</Typography>
 
-      <TextField
-        label="Attention Broker Port"
-        type="number"
-        onChange={(e) => (form.current.attentionPort = e.target.value)}
-        defaultValue={40001}
-      />
+      <SectionBlock title="Attention" name="attention" />
+      <SectionBlock title="Context" name="context" hasRange />
+      <SectionBlock title="AtomDB" name="atomdb" hasRange />
 
-      <TextField
-        label="Context Broker Port"
-        type="number"
-        onChange={(e) => (form.current.contextPort = e.target.value)}
-        defaultValue={40006}
-      />
-      <TextField
-        label="Context Broker Range"
-        helperText={"Port range must be in 'start:end' format"}
-        onChange={(e) => (form.current.contextRange = e.target.value)}
-        defaultValue={"46000:46999"} 
-      />
-
-      <TextField
-        label="AtomDB Broker Port"
-        type="number"
-        onChange={(e) => (form.current.atomdbPort = e.target.value)}
-        defaultValue={40007}
-      />
-      <TextField
-        label="AtomDB Broker Range"
-        helperText={"Port range must be in 'start:end' format"}
-        onChange={(e) => (form.current.atomdbRange = e.target.value)}
-        defaultValue={"47000:47999"} 
-      />
-
-      <Button variant="contained" color="success" onClick={handleSave}>
+      <Button
+        variant="contained"
+        color="success"
+        onClick={() =>{
+          updateSection("brokers", structuredClone(section.current))
+          showToast("Brokers saved successfully!")
+        }}
+      >
         Save brokers section
       </Button>
     </Box>

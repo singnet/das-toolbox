@@ -1,86 +1,130 @@
 import { TextField, FormControlLabel, Checkbox, Button } from "@mui/material"
 import { useState, useRef } from "react"
 import { ClusterForm } from "./ClusterForm"
+import { useConfig } from "../../global_components/ConfigurationProvider"
+import { useToast } from "../../global_components/ToastProvider"
 
-export function RedisMongoOptions({ onSave }) {
+export function RedisMongoOptions() {
 
-  const form = useRef({
-    redisPort: "", 
-    mongoPort: "",
-    mongoUser: "",
-    mongoPass: "",
-    redisCluster: false, 
-    mongoCluster: false,
-    redisNodes: [], 
-    mongoNodes: []
+  const { updateSection, getDefault } = useConfig()
+  const { showToast } = useToast()
+
+  const defaults = getDefault().atomdb || {}
+
+  const section = useRef({
+    type: "redismongodb",
+    redis: {
+      endpoint: defaults?.redis?.endpoint || "localhost:40020",
+      cluster: defaults?.redis?.cluster || false,
+      nodes: defaults?.redis?.nodes || []
+    },
+    mongodb: {
+      endpoint: defaults?.mongodb?.endpoint || "localhost:40021",
+      username: defaults?.mongodb?.username || "admin",
+      password: defaults?.mongodb?.password || "admin",
+      cluster: defaults?.mongodb?.cluster || false,
+      cluster_secret_key: defaults?.mongodb?.cluster_secret_key || "",
+      nodes: defaults?.mongodb?.nodes || []
+    }
   })
 
-  const [showRedis, setShowRedis] = useState(false)
-  const [showMongo, setShowMongo] = useState(false)
-
-  const handleSave = () => {
-
-    const defaultNode = [{ context: "default", ip: "localhost", username: "root" }];
-
-    const getSafeNodes = (isCluster, nodes) => {
-        if (isCluster && nodes && nodes.length > 0) return nodes;
-        return defaultNode;
-    };
-
-    const data = form.current
-    const section = {
-      "redis": { 
-        "endpoint": `localhost:${data.redisPort}`,
-        "cluster": data.redisCluster, 
-        "nodes": getSafeNodes(data.redisCluster, data.redisNodes)
-    },
-
-      "mongodb": { 
-        "endpoint": `localhost:${data.mongoPort}`, 
-        "username": data.mongoUser, 
-        "password": data.mongoPass,
-        "cluster": data.mongoCluster, 
-        "cluster_secret_key": "None",
-        "nodes": getSafeNodes(data.mongoCluster, data.mongoNodes)
-      }
-    }
-    onSave(section)
-  }
+  const [showRedis, setShowRedis] = useState(section.current.redis.cluster)
+  const [showMongo, setShowMongo] = useState(section.current.mongodb.cluster)
 
   return (
     <>
-        <TextField fullWidth label="Redis Port" type="number" margin="normal" defaultValue={40020} 
-        onChange={(e) => form.current.redisPort = e.target.value} />
-        
-        <TextField fullWidth label="Mongo Port" type="number" margin="normal" defaultValue={40021}
-        onChange={(e) => form.current.mongoPort = e.target.value} />
+      <TextField
+        fullWidth
+        label="Redis Port"
+        type="number"
+        margin="normal"
+        defaultValue={section.current.redis.endpoint.split(":")[1]}
+        onChange={(e) =>
+          section.current.redis.endpoint = `localhost:${e.target.value}`
+        }
+      />
 
-        <TextField fullWidth label="MongoDB Username" type="text" margin="normal" defaultValue={"admin"} 
-            onChange={(e) => form.current.mongoUser = e.target.value} />
-        
-        <TextField fullWidth label="MongoDB Password" type="password" margin="normal" defaultValue={"admin"}
-            onChange={(e) => form.current.mongoPass = e.target.value} />
+      <TextField
+        fullWidth
+        label="Mongo Port"
+        type="number"
+        margin="normal"
+        defaultValue={section.current.mongodb.endpoint.split(":")[1]}
+        onChange={(e) =>
+          section.current.mongodb.endpoint = `localhost:${e.target.value}`
+        }
+      />
 
-        <FormControlLabel label="Mongo Cluster" control={
-        <Checkbox onChange={(e) => { 
-            form.current.mongoCluster = e.target.checked
-            setShowMongo(e.target.checked) 
-        }} />
-        }/>
+      <TextField
+        fullWidth
+        label="MongoDB Username"
+        margin="normal"
+        defaultValue={section.current.mongodb.username}
+        onChange={(e) =>
+          section.current.mongodb.username = e.target.value
+        }
+      />
 
-        <FormControlLabel label="Redis Cluster" control={
-        <Checkbox onChange={(e) => { 
-            form.current.redisCluster = e.target.checked
-            setShowRedis(e.target.checked) 
-        }} />
-        }/>
+      <TextField
+        fullWidth
+        label="MongoDB Password"
+        type="password"
+        margin="normal"
+        defaultValue={section.current.mongodb.password}
+        onChange={(e) =>
+          section.current.mongodb.password = e.target.value
+        }
+      />
 
-        {showRedis && <ClusterForm onChange={(nodes) => form.current.redisNodes = nodes} />}
-        {showMongo && <ClusterForm onChange={(nodes) => form.current.mongoNodes = nodes} />}
+      <FormControlLabel
+        label="Mongo Cluster - (Won't work on das-cli currently)"
+        control={
+          <Checkbox
+            defaultChecked={section.current.mongodb.cluster}
+            onChange={(e) => {
+              section.current.mongodb.cluster = e.target.checked
+              setShowMongo(e.target.checked)
+            }}
+          />
+        }
+      />
 
-        <Button variant="contained" color="success" onClick={handleSave} sx={{ mt: 2 }}>
+      <FormControlLabel
+        label="Redis Cluster - (Won't work on das-cli currently)"
+        control={
+          <Checkbox
+            defaultChecked={section.current.redis.cluster}
+            onChange={(e) => {
+              section.current.redis.cluster = e.target.checked
+              setShowRedis(e.target.checked)
+            }}
+          />
+        }
+      />
+
+      {showRedis && (
+        <ClusterForm
+          onChange={(nodes) => (section.current.redis.nodes = nodes)}
+        />
+      )}
+
+      {showMongo && (
+        <ClusterForm
+          onChange={(nodes) => (section.current.mongodb.nodes = nodes)}
+        />
+      )}
+
+      <Button
+        variant="contained"
+        color="success"
+        onClick={() => {
+          updateSection("atomdb", structuredClone(section.current))
+          showToast("AtomDB saved successfully!")
+        }}
+        sx={{ mt: 2 }}
+      >
         Save AtomDB Section
-        </Button>
+      </Button>
     </>
   )
 }

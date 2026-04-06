@@ -29,11 +29,7 @@ export default function AtomDBForm({ onSectionSave }) {
       </TextField>
 
       {type === "redismongodb" && (
-        <RedisMongoOptions
-          onSave={(data) =>
-            onSectionSave("atomdb", { type, ...data })
-          }
-        />
+        <RedisMongoOptions/>
       )}
 
       {type === "morkmongodb" && (

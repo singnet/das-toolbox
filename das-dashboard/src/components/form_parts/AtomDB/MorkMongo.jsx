@@ -1,48 +1,32 @@
 import { Button, Checkbox, FormControlLabel, TextField } from "@mui/material"
 import { useRef, useState } from "react"
 import { ClusterForm } from "./ClusterForm"
+import { useConfig } from "../../global_components/ConfigurationProvider"
+import { useToast } from "../../global_components/ToastProvider"
 
-export function MorkMongoOptions ({ onSave }) {
+export function MorkMongoOptions() {
 
-  const form = useRef({
-      morkPort: "",
-      mongoPort: "",
-      mongoUser: "",
-      mongoPass: "",
-      mongoCluster: false,
-      mongoNodes: [],
+  const { updateSection, getDefault } = useConfig()
+  const { showToast } = useToast()
+
+  const defaults = getDefault().atomdb || {}
+
+  const section = useRef({
+    type: "morkmongodb",
+    morkdb: {
+      endpoint: defaults?.morkdb?.endpoint || "localhost:40022"
+    },
+    mongodb: {
+      endpoint: defaults?.mongodb?.endpoint || "localhost:40021",
+      username: defaults?.mongodb?.username || "admin",
+      password: defaults?.mongodb?.password || "admin",
+      cluster: defaults?.mongodb?.cluster || false,
+      cluster_secret_key: defaults?.mongodb?.cluster_secret_key || "",
+      nodes: defaults?.mongodb?.nodes || []
+    }
   })
 
-  const [showMongo, setShowMongo] = useState(false)
-  
-  const handleSave = () => {
-    const data = form.current
-
-    const defaultNode = [{ context: "default", ip: "localhost", username: "root" }];
-
-    const getSafeNodes = (isCluster, nodes) => {
-      if (isCluster && nodes && nodes.length > 0) return nodes;
-      return defaultNode;
-    };
-
-    const section = {
-
-      "mongodb": {
-        "endpoint": `localhost:${data.mongoPort}`,
-        "username": data.mongoUser,
-        "password": data.mongoPass,
-        "cluster": data.mongoCluster,
-        "cluster_secret_key": "None",
-        "nodes": getSafeNodes(data.mongoCluster, data.mongoNodes)
-      },
-      "morkdb": {
-        "endpoint": `localhost:${data.morkPort}`
-      }
-
-    }
-
-    onSave(section)
-  }
+  const [showMongo, setShowMongo] = useState(section.current.mongodb.cluster)
 
   return (
     <>
@@ -51,9 +35,9 @@ export function MorkMongoOptions ({ onSave }) {
         label="MorkDB Port"
         type="number"
         margin="normal"
-        defaultValue={40022}
+        defaultValue={section.current.morkdb.endpoint.split(":")[1]}
         onChange={(e) =>
-          form.morkPort = e.target.value
+          section.current.morkdb.endpoint = `localhost:${e.target.value}`
         }
       />
 
@@ -62,21 +46,20 @@ export function MorkMongoOptions ({ onSave }) {
         label="MongoDB Port"
         type="number"
         margin="normal"
+        defaultValue={section.current.mongodb.endpoint.split(":")[1]}
         onChange={(e) =>
-          form.mongoPort = e.target.value
+          section.current.mongodb.endpoint = `localhost:${e.target.value}`
         }
-        defaultValue={40021}
       />
 
       <TextField
         fullWidth
         label="MongoDB Username"
-        type="text"
         margin="normal"
+        defaultValue={section.current.mongodb.username}
         onChange={(e) =>
-          form.mongoUser = e.target.value
+          section.current.mongodb.username = e.target.value
         }
-        defaultValue={"admin"}
       />
 
       <TextField
@@ -84,22 +67,40 @@ export function MorkMongoOptions ({ onSave }) {
         label="MongoDB Password"
         type="password"
         margin="normal"
+        defaultValue={section.current.mongodb.password}
         onChange={(e) =>
-          form.mongoPass = e.target.value
+          section.current.mongodb.password = e.target.value
         }
-        defaultValue={"admin"}
       />
 
-      <FormControlLabel label="Mongo Cluster" control={
-      <Checkbox onChange={(e) => { 
-          form.current.mongoCluster = e.target.checked
-          setShowMongo(e.target.checked) 
-      }} />
-      }/>
+      <FormControlLabel
+        label="Mongo Cluster"
+        control={
+          <Checkbox
+            defaultChecked={section.current.mongodb.cluster}
+            onChange={(e) => {
+              section.current.mongodb.cluster = e.target.checked
+              setShowMongo(e.target.checked)
+            }}
+          />
+        }
+      />
 
-      {showMongo && <ClusterForm onChange={(nodes) => form.current.mongoNodes = nodes} />}
+      {showMongo && (
+        <ClusterForm
+          onChange={(nodes) => (section.current.mongodb.nodes = nodes)}
+        />
+      )}
 
-      <Button variant="contained" color="success" onClick={handleSave} sx={{ mt: 2 }}>
+      <Button
+        variant="contained"
+        color="success"
+        onClick={() => {
+          updateSection("atomdb", structuredClone(section.current))
+          showToast("AtomDB saved successfully!")
+        }}
+        sx={{ mt: 2 }}
+      >
         Save AtomDB Section
       </Button>
     </>

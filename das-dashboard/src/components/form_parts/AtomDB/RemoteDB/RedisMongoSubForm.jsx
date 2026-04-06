@@ -1,52 +1,77 @@
 import { TextField, Box } from "@mui/material"
-import { useRef, useEffect } from "react"
+import { useEffect, useRef } from "react"
+import { useConfig } from "../../../global_components/ConfigurationProvider"
 
 export function RedisMongoSubForm({ onChange, category }) {
-  const data = useRef({
-    redisPort: "40020",
-    mongoPort: "40021",
-    user: "admin",
-    pass: "admin"
+
+  const { getDefault } = useConfig()
+  const defaults = getDefault().atomdb || {}
+
+  const section = useRef({
+    type: "redismongodb",
+    redis: {
+      endpoint: defaults?.redis?.endpoint || "localhost:40020",
+      cluster: defaults?.redis?.cluster || false,
+      nodes: defaults?.redis?.nodes || [{ context: "default", ip: "localhost", username: "root" }]
+    },
+    mongodb: {
+      endpoint: defaults?.mongodb?.endpoint || "localhost:40021",
+      username: defaults?.mongodb?.username || "admin",
+      password: defaults?.mongodb?.password || "admin",
+      cluster: defaults?.mongodb?.cluster || false,
+      cluster_secret_key: defaults?.mongodb?.cluster_secret_key || "None",
+      nodes: defaults?.mongodb?.nodes || [{ context: "default", ip: "localhost", username: "root" }]
+    }
   })
 
   useEffect(() => {
-    update()
+    onChange(structuredClone(section.current), category)
   }, [])
-
-  const update = (field, value) => {
-    if (field) data.current[field] = value
-
-    const node = [
-      { context: "default", ip: "localhost", username: "root" }
-    ]
-
-    onChange(
-      {
-        type: "redismongodb",
-        redis: {
-          endpoint: `localhost:${data.current.redisPort}`,
-          cluster: false,
-          nodes: node
-        },
-        mongodb: {
-          endpoint: `localhost:${data.current.mongoPort}`,
-          username: data.current.user,
-          password: data.current.pass,
-          cluster: false,
-          cluster_secret_key: "None",
-          nodes: node
-        }
-      },
-      category
-    )
-  }
 
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, mt: 1 }}>
-      <TextField label="Redis Port" size="small" defaultValue="40020" onChange={e => update("redisPort", e.target.value)} />
-      <TextField label="Mongo Port" size="small" defaultValue="40021" onChange={e => update("mongoPort", e.target.value)} />
-      <TextField label="Mongo User" size="small" defaultValue="admin" onChange={e => update("user", e.target.value)} />
-      <TextField label="Mongo Pass" size="small" type="password" defaultValue="admin" onChange={e => update("pass", e.target.value)} />
+
+      <TextField
+        label="Redis Port"
+        size="small"
+        defaultValue={section.current.redis.endpoint.split(":")[1]}
+        onChange={e => {
+          section.current.redis.endpoint = `localhost:${e.target.value}`
+          onChange(structuredClone(section.current), category)
+        }}
+      />
+
+      <TextField
+        label="Mongo Port"
+        size="small"
+        defaultValue={section.current.mongodb.endpoint.split(":")[1]}
+        onChange={e => {
+          section.current.mongodb.endpoint = `localhost:${e.target.value}`
+          onChange(structuredClone(section.current), category)
+        }}
+      />
+
+      <TextField
+        label="Mongo User"
+        size="small"
+        defaultValue={section.current.mongodb.username}
+        onChange={e => {
+          section.current.mongodb.username = e.target.value
+          onChange(structuredClone(section.current), category)
+        }}
+      />
+
+      <TextField
+        label="Mongo Pass"
+        size="small"
+        type="password"
+        defaultValue={section.current.mongodb.password}
+        onChange={e => {
+          section.current.mongodb.password = e.target.value
+          onChange(structuredClone(section.current), category)
+        }}
+      />
+
     </Box>
   )
 }

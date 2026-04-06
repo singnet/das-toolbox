@@ -1,20 +1,19 @@
 import { Box, Button, TextField, Typography } from "@mui/material"
 import { useRef } from "react"
+import { useConfig } from "../../global_components/ConfigurationProvider"
+import { useToast } from "../../global_components/ToastProvider"
 
 export function EnvironmentForm({ onSectionSave }) {
-  const form = useRef({
-    jupyterPort: "40019"
-  })
 
-  const handleSave = () => {
-    const section = {
-      jupyter: {
-        endpoint: `localhost:${form.current.jupyterPort}`
-      }
+  const { updateSection, getDefault } = useConfig()
+  const { showToast } = useToast()
+  const defaults = getDefault()
+
+  const section = useRef({
+    jupyter: {
+      endpoint: `localhost:40019`
     }
-
-    onSectionSave("environment", section)
-  }
+  })
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -23,11 +22,14 @@ export function EnvironmentForm({ onSectionSave }) {
       <TextField
         label="Jupyter Notebook Port"
         type="number"
-        defaultValue="40019"
+        defaultValue={ defaults.environment.jupyter.endpoint.split(":")[1] || "40019"}
         onChange={(e) => (form.current.jupyterPort = e.target.value)}
       />
 
-      <Button variant="contained" color="success" onClick={handleSave}>
+      <Button variant="contained" color="success" onClick={() => {
+        updateSection("environment", structuredClone(section.current))
+        showToast("Environment saved successfully!")
+      }}>
         Save environment section
       </Button>
     </Box>

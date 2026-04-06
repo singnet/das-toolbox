@@ -10,8 +10,14 @@ import {
 import { useState, useRef } from "react"
 import { RedisMongoSubForm } from "./RedisMongoSubForm"
 import { MorkMongoSubForm } from "./MorkMongoSubForm"
+import { useConfig } from "../../../global_components/ConfigurationProvider"
+import { useToast } from "../../../global_components/ToastProvider"
 
-export function RemoteDBOptions({ onSave }) {
+export function RemoteDBOptions() {
+
+  const { updateSection } = useConfig()
+  const { showToast } = useToast()
+
   const [peers, setPeers] = useState([])
   const peersRefs = useRef({})
 
@@ -81,15 +87,13 @@ export function RemoteDBOptions({ onSave }) {
     }
   }
 
-  const handleFinalSave = () => {
+  const handleSave = () => {
     const cleanedPeers = Object.values(peersRefs.current)
       .filter(peer => {
         if (!peer.type) return false
 
         if (peer.type === "redismongodb" && (!peer.redis || !peer.mongodb)) return false
         if (peer.type === "morkmongodb" && (!peer.mongodb || !peer.morkdb)) return false
-
-        if (!peer.local_persistence || peer.local_persistence.type === "inmemorydb") return false
 
         return true
       })
@@ -100,7 +104,6 @@ export function RemoteDBOptions({ onSave }) {
           context: peer.context
         }
 
-        // MAIN
         if (peer.type === "redismongodb") {
           base.redis = peer.redis
           base.mongodb = peer.mongodb
@@ -111,31 +114,20 @@ export function RemoteDBOptions({ onSave }) {
           base.morkdb = peer.morkdb
         }
 
-        // LOCAL
-        const lp = peer.local_persistence
+        const lp = peer.local_persistence || { type: "inmemorydb" }
 
-        if (lp.type === "redismongodb") {
-          base.local_persistence = {
-            type: "redismongodb",
-            context: `${peer.context}local_`,
-            redis: lp.redis,
-            mongodb: lp.mongodb
-          }
-        }
-
-        if (lp.type === "morkmongodb") {
-          base.local_persistence = {
-            type: "morkmongodb",
-            context: `${peer.context}local_`,
-            mongodb: lp.mongodb,
-            morkdb: lp.morkdb
-          }
+        base.local_persistence = {
+          type: lp.type,
+          context: `${peer.context}local_`,
+          ...(lp.redis && { redis: lp.redis }),
+          ...(lp.mongodb && { mongodb: lp.mongodb }),
+          ...(lp.morkdb && { morkdb: lp.morkdb })
         }
 
         return base
       })
 
-    onSave({
+    updateSection("atomdb", {
       remote_peers: cleanedPeers
     })
   }
@@ -245,7 +237,11 @@ export function RemoteDBOptions({ onSave }) {
         + Add Peer
       </Button>
 
-      <Button onClick={handleFinalSave} fullWidth color="success">
+      <Button onClick={() => {
+        handleSave()
+        showToast("AtomDB saved successfully!")
+      }
+      } fullWidth color="success">
         Save
       </Button>
     </Box>

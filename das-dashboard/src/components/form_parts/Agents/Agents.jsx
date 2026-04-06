@@ -1,116 +1,109 @@
 import { Box, Button, TextField, Typography } from "@mui/material"
 import { useRef } from "react"
+import { useConfig } from "../../global_components/ConfigurationProvider"
+import { useToast } from "../../global_components/ToastProvider"
 
-export function AgentsForm({ onSectionSave }) {
-  const form = useRef({
-    queryPort: "40002",
-    queryRange: "42000:42999",
+export function AgentsForm() {
 
-    linkPort: "40003",
-    linkRange: "43000:43999",
+  const { updateSection, getDefault } = useConfig()
+  const { showToast } = useToast()
 
-    inferencePort: "40004",
-    inferenceRange: "44000:44999",
+  const defaults = getDefault().agents || {}
 
-    evolutionPort: "40005",
-    evolutionRange: "45000:45999"
+  const section = useRef({
+    query: {
+      endpoint: defaults?.query?.endpoint || "localhost:40002",
+      ports_range: defaults?.query?.ports_range || "42000:42999"
+    },
+    link_creation: {
+      endpoint: defaults?.link_creation?.endpoint || "localhost:40003",
+      ports_range: defaults?.link_creation?.ports_range || "43000:43999"
+    },
+    inference: {
+      endpoint: defaults?.inference?.endpoint || "localhost:40004",
+      ports_range: defaults?.inference?.ports_range || "44000:44999"
+    },
+    evolution: {
+      endpoint: defaults?.evolution?.endpoint || "localhost:40005",
+      ports_range: defaults?.evolution?.ports_range || "45000:45999"
+    }
   })
 
-  const isValidRange = (range) => {
-    const match = range.match(/^(\d+):(\d+)$/)
-    if (!match) return false
-
-    const start = Number(match[1])
-    const end = Number(match[2])
-
-    return start < end && start >= 1 && end <= 65535
+  const updateEndpoint = (key, value) => {
+    section.current[key].endpoint = `localhost:${value}`
   }
 
-  const handleSave = () => {
-    const data = form.current
-
-    const ranges = [
-      data.queryRange,
-      data.linkRange,
-      data.inferenceRange,
-      data.evolutionRange
-    ]
-
-    const section = {
-      query: {
-        endpoint: `localhost:${data.queryPort}`,
-        ports_range: data.queryRange
-      },
-      link_creation: {
-        endpoint: `localhost:${data.linkPort}`,
-        ports_range: data.linkRange
-      },
-      inference: {
-        endpoint: `localhost:${data.inferencePort}`,
-        ports_range: data.inferenceRange
-      },
-      evolution: {
-        endpoint: `localhost:${data.evolutionPort}`,
-        ports_range: data.evolutionRange
-      }
-    }
-
-    onSectionSave("agents", section)
+  const updateRangeStart = (key, value) => {
+    const [, end] = section.current[key].ports_range.split(":")
+    section.current[key].ports_range = `${value}:${end}`
   }
+
+  const updateRangeEnd = (key, value) => {
+    const [start] = section.current[key].ports_range.split(":")
+    section.current[key].ports_range = `${start}:${value}`
+  }
+
+  const getPort = (endpoint) => endpoint.split(":")[1]
+  const getStart = (range) => range.split(":")[0]
+  const getEnd = (range) => range.split(":")[1]
+
+  const SectionBlock = ({ title, name }) => (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      
+      <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 1 }}>
+        {title}
+      </Typography>
+
+      <TextField
+        label={`${title} Port`}
+        fullWidth
+        defaultValue={getPort(section.current[name].endpoint)}
+        onChange={e => updateEndpoint(name, e.target.value)}
+      />
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 1
+        }}
+      >
+        <TextField
+          label="Port range start"
+          fullWidth
+          defaultValue={getStart(section.current[name].ports_range)}
+          onChange={e => updateRangeStart(name, e.target.value)}
+        />
+
+        <TextField
+          label="Port range end"
+          fullWidth
+          defaultValue={getEnd(section.current[name].ports_range)}
+          onChange={e => updateRangeEnd(name, e.target.value)}
+        />
+      </Box>
+
+    </Box>
+  )
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      
       <Typography variant="h6">Agents Configuration</Typography>
 
-      <TextField
-        label="Query Port"
-        type="number"
-        onChange={(e) => (form.current.queryPort = e.target.value)}
-        defaultValue={40002}
-      />
-      <TextField
-        label="Query Ports Range (start:end)"
-        onChange={(e) => (form.current.queryRange = e.target.value)}
-        defaultValue={"42000:42999"}
-      />
+      <SectionBlock title="Query" name="query" />
+      <SectionBlock title="Link Creation" name="link_creation" />
+      <SectionBlock title="Inference" name="inference" />
+      <SectionBlock title="Evolution" name="evolution" />
 
-      <TextField
-        label="Link Creation Port"
-        type="number"
-        onChange={(e) => (form.current.linkPort = e.target.value)}
-        defaultValue={40003}
-      />
-      <TextField
-        label="Link Creation Ports Range"
-        onChange={(e) => (form.current.linkRange = e.target.value)}
-        defaultValue={"43000:43999"}
-      />
-
-      <TextField
-        label="Inference Port"
-        type="number"
-        onChange={(e) => (form.current.inferencePort = e.target.value)}
-        defaultValue={40004}
-      />
-      <TextField
-        label="Inference Ports Range"
-        onChange={(e) => (form.current.inferenceRange = e.target.value)}
-        defaultValue={"44000:44999"}
-      />
-
-      <TextField
-        label="Evolution Port"
-        type="number"
-        onChange={(e) => (form.current.evolutionPort = e.target.value)}
-        defaultValue={40005}
-      />
-      <TextField
-        label="Evolution Ports Range"
-        onChange={(e) => (form.current.evolutionRange = e.target.value)}
-        defaultValue={"45000:45999"}
-      />
-
-      <Button variant="contained" color="success" onClick={handleSave}>
+      <Button
+        variant="contained"
+        color="success"
+        onClick={() => {
+          updateSection("agents", structuredClone(section.current))
+          showToast("Agents saved successfully!")
+        }}
+      >
         Save agents section
       </Button>
     </Box>
