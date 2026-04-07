@@ -26,17 +26,28 @@ export function ConfigurationProvider({ children }){
     )
 
     const getDefault = () => {
-        return DEFAULT_CONFIGURATION
+        return new Proxy(DEFAULT_CONFIGURATION, {
+            get(target, prop) {
+            try {
+                const saved = sessionStorage.getItem(`config_${prop}`)
+                if (saved) return JSON.parse(saved)
+            } catch (e) {}
+
+            return target[prop]
+            }
+        })
     }
 
     const updateSection = (sectionName, sectionData) => {
-
         setConfig(prev => ({
             ...prev,
             [sectionName]: sectionData
-        })
-        )
+        }))
 
+        sessionStorage.setItem(
+            `config_${sectionName}`,
+            JSON.stringify(sectionData)
+        )
     }
 
     return(
