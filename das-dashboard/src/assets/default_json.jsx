@@ -10,7 +10,7 @@ export const DEFAULT_JSON = {
                 {
                     "context": "default",
                     "ip": "localhost",
-                    "username": "arturgontijo"
+                    "username": "root"
                 }
             ]
         },
@@ -25,7 +25,7 @@ export const DEFAULT_JSON = {
                 {
                     "context": "default",
                     "ip": "localhost",
-                    "username": "arturgontijo"
+                    "username": "root"
                 }
             ]
         },
