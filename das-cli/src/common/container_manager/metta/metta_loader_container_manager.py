@@ -29,7 +29,7 @@ class MettaLoaderContainerManager(ContainerManager):
         self._options = options
 
     def _gen_metta_loader_command(self, filename: str) -> str:
-        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'mork_mongodb' else ""
+        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'morkmongodb' else ""
         exec_command = f"db_loader {filename} {skip_redis}".strip()
 
         return exec_command
@@ -60,17 +60,17 @@ class MettaLoaderContainerManager(ContainerManager):
                     },
                 },
                 stdin_open=True,
-                tty=True,
+                tty=False,
                 auto_remove=False,
             )
 
             self.logs()
 
-            exit_code = self.get_container_exit_status(container)
-            container.remove(v=True, force=True)
+            #exit_code = self.get_container_exit_status(container)
+            #container.remove(v=True, force=True)
 
-            if exit_code != 0:
-                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
+            # if exit_code != 0:
+            #     raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
 
             return None
         except docker.errors.APIError as e:
