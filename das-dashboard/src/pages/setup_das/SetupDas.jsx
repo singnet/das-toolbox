@@ -32,13 +32,15 @@ export default function SetupDasPage() {
   const [section, setSection] = useState("atomdb")
   const [openJson, setOpenJson] = useState(false)
 
+  const isNotEmpty = (obj) => obj && Object.keys(obj).length > 0
+
   const isConfigValid = () => {
     return (
-      config.atomdb &&
-      config.agents &&
-      config.brokers &&
-      config.params &&
-      config.environment
+      isNotEmpty(config.atomdb) &&
+      isNotEmpty(config.agents) &&
+      isNotEmpty(config.brokers) &&
+      isNotEmpty(config.params) &&
+      isNotEmpty(config.environment)
     )
   }
 
