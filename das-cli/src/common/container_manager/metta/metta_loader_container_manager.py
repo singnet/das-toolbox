@@ -66,11 +66,11 @@ class MettaLoaderContainerManager(ContainerManager):
 
             self.logs()
 
-            #exit_code = self.get_container_exit_status(container)
-            #container.remove(v=True, force=True)
+            exit_code = self.get_container_exit_status(container)
+            container.remove(v=True, force=True)
 
-            # if exit_code != 0:
-            #     raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
+            if exit_code != 0:
+                raise DockerError(f"File '{os.path.basename(path)}' could not be loaded.")
 
             return None
         except docker.errors.APIError as e:
