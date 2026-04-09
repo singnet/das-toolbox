@@ -9,7 +9,9 @@ import {
   Button,
   Dialog,
   DialogContent,
-  Divider
+  Divider,
+  DialogTitle,
+  DialogActions
 } from "@mui/material"
 
 import SettingsIcon from "@mui/icons-material/Settings"
@@ -24,32 +26,22 @@ import { BrokersForm } from "../../components/form_parts/Brokers/Brokers"
 import { ParamsForm } from "../../components/form_parts/AgentsParams/AgentsParams"
 import { EnvironmentForm } from "../../components/form_parts/Environment/Environment"
 import { useConfig } from "../../components/global_components/ConfigurationProvider"
+import handleLoadConfig from "../../utils/FileLoader"
 
 export default function SetupDasPage() {
 
-  const { config } = useConfig()
+  const { config, loadExternalConfiguration, resetConfiguration } = useConfig()
 
   const [section, setSection] = useState("atomdb")
   const [openJson, setOpenJson] = useState(false)
-
-  const isNotEmpty = (obj) => obj && Object.keys(obj).length > 0
-
-  const isConfigValid = () => {
-    return (
-      isNotEmpty(config.atomdb) &&
-      isNotEmpty(config.agents) &&
-      isNotEmpty(config.brokers) &&
-      isNotEmpty(config.params) &&
-      isNotEmpty(config.environment)
-    )
-  }
+  const [openResetDialog, setResetDialog] = useState(false)
 
   const sections = [
-    { key: "atomdb", label: "ATOMDB" },
-    { key: "agents", label: "AGENTS" },
-    { key: "brokers", label: "BROKERS" },
-    { key: "params", label: "AGENT PARAMS" },
-    { key: "environment", label: "ENVIRONMENT" }
+    { key: "atomdb", label: "AtomDB" },
+    { key: "agents", label: "Agents" },
+    { key: "brokers", label: "Brokers" },
+    { key: "params", label: "Agent Params" },
+    { key: "environment", label: "Environment" }
   ]
 
   return (
@@ -83,8 +75,38 @@ export default function SetupDasPage() {
               <Box className="sidebarButtons">
 
                 <Button
+                variant="contained"
+                component="label"
+                sx={{
+                    backgroundColor: "#f8a231",
+                    color: "#fff",
+                    "&:hover": { backgroundColor: "#e4942c" }
+                  }}
+                onClick={() => setResetDialog(true)}
+                >
+                  Reset Configuration
+                </Button>
+
+                <Button
                   variant="contained"
-                  disabled={!isConfigValid()}
+                  component="label"
+                  sx={{
+                    backgroundColor: "#8ba73f",
+                    color: "#fff",
+                    "&:hover": { backgroundColor: "#7b9436" }
+                  }}
+                >
+                  Load Config
+                  <input
+                    type="file"
+                    hidden
+                    accept=".json"
+                    onChange={(e) => handleLoadConfig(e, loadExternalConfiguration)}
+                  />
+                </Button>
+
+                <Button
+                  variant="contained"
                   onClick={() => saveFile(config)}
                   sx={{
                     backgroundColor: "#4caf50",
@@ -136,7 +158,7 @@ export default function SetupDasPage() {
               </Card>
             </Box>
 
-            {/* JSON VIEW */}
+            {/* CONFIRM RESET */}
             <Dialog
               open={openJson}
               onClose={() => setOpenJson(false)}
@@ -144,9 +166,28 @@ export default function SetupDasPage() {
               maxWidth="md"
             >
               <DialogContent>
-                <Typography>DAS Config Preview:</Typography>
+                <Box sx={{display: "flex", alignContent: "center", justifyContent: "space-between"}}>
+                  <Typography sx={{alignContent:"center"}}>DAS Config Preview:</Typography>
+                  <Button onClick={() => setOpenJson(false)}>Close</Button>
+                </Box>
                 <Divider sx={{ my: 1 }} />
                 <pre>{JSON.stringify(config, null, 2)}</pre>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog
+              open={openResetDialog}
+              onClose={() => setOpenJson(false)}
+              fullWidth
+              maxWidth="md"
+            >
+              <DialogContent>
+                <DialogTitle>Confirm reset</DialogTitle>
+                <DialogContent>Are you sure you want to reset your settings? Everything will turn into default values.</DialogContent>
+                <DialogActions>
+                  <Button onClick={() => {setResetDialog(false)}}>Cancel</Button>
+                  <Button onClick={() => {setResetDialog(false); resetConfiguration()}} autoFocus>Confirm</Button>
+                </DialogActions>
               </DialogContent>
             </Dialog>
 

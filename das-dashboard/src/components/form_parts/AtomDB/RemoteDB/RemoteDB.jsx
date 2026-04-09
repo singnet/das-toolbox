@@ -185,7 +185,7 @@ export function RemoteDBOptions() {
           <Divider sx={{ my: 2 }} />
 
           <Typography variant="caption">
-            LOCAL PERSISTENCE TYPE
+            Local Persistence Type
           </Typography>
 
           <TextField

@@ -1,32 +1,15 @@
 import { useContext, useState, createContext } from "react";
-import { DEFAULT_JSON } from "../../assets/default_json";
+import { DEFAULT_JSON, DEFAULT_REDISMONGO_SCHEMA } from "../../assets/default_json";
 
 const ConfigContext = createContext(null)
-const DEFAULT_CONFIGURATION = structuredClone(DEFAULT_JSON)
+const DEFAULT_VALUES = structuredClone(DEFAULT_JSON)
 
 export function ConfigurationProvider({ children }){
 
-    const [config, setConfig] = useState(
-        {
-            "schema_version": "1.0",
-            "atomdb": {},
-            "loaders": {
-                "metta": {
-                    "image": "trueagi/das:1.0.0-metta-parser"
-                },
-                "morkdb": {
-                    "image": "trueagi/das:mork-loader-1.0.5"
-                }
-            },
-            "agents": {},
-            "brokers": {},
-            "params": {},
-            "environment": {}
-        }
-    )
+    const [config, setConfig] = useState(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
 
     const getDefault = () => {
-        return new Proxy(DEFAULT_CONFIGURATION, {
+        return new Proxy(DEFAULT_VALUES, {
             get(target, prop) {
             try {
                 const saved = sessionStorage.getItem(`config_${prop}`)
@@ -50,8 +33,25 @@ export function ConfigurationProvider({ children }){
         )
     }
 
+    const loadExternalConfiguration = (file) => {
+        const newConfig = file
+        setConfig(newConfig)
+
+        Object.entries(file).forEach(([key, value]) => {
+            sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
+        })
+
+        location.reload()
+    }
+
+    const resetConfiguration = () => {
+        setConfig(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
+        sessionStorage.clear()
+        location.reload()
+    }
+
     return(
-        <ConfigContext.Provider value={{config, updateSection, getDefault}}>
+        <ConfigContext.Provider value={{config, updateSection, getDefault, loadExternalConfiguration, resetConfiguration}}>
             { children }
         </ConfigContext.Provider>
     )

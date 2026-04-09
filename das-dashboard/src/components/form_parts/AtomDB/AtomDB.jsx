@@ -4,9 +4,14 @@ import { MorkMongoOptions } from "./MorkMongo"
 import { useState } from "react"
 import { InMemoryOptions } from "./InMemory"
 import { RemoteDBOptions } from "./RemoteDB/RemoteDB"
+import { useConfig } from "../../global_components/ConfigurationProvider"
 
 export default function AtomDBForm({ onSectionSave }) {
-  const [type, setType] = useState("")
+
+  const { getDefault } = useConfig()
+  const atomDB = getDefault().atomdb || "redismongodb"
+
+  const [type, setType] = useState(atomDB.type)
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
