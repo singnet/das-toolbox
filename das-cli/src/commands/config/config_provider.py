@@ -10,6 +10,7 @@ from .config_sections.brokers import brokers_config_section
 from .config_sections.jupyter import jupyter_notebook_section
 from .config_sections.loaders import loaders_config_section
 from .config_sections.service_params import params_config_section
+from .config_sections.savefile import savefile_path_section
 
 
 class ConfigProvider(ABC):
@@ -81,15 +82,21 @@ class InteractiveConfigProvider(ConfigProvider):
 
         config: Dict[str, Any] = {}
 
+        save_file_path, overwrite_file = savefile_path_section()
+
+        if overwrite_file:
+            self._settings.enable_overwrite_mode()
+
         for config_step in config_steps:
             config.update(config_step(settings=self._settings))
 
         final_config = {**self._get_current_or_default_config(), **config}
 
-        return final_config
+        return (final_config, save_file_path)
 
 
 class NonInteractiveConfigProvider(ConfigProvider):
+
     def __init__(self, settings: Settings) -> None:
         super().__init__(settings)
         self._settings = settings
