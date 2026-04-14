@@ -9,6 +9,7 @@ from common.docker.exceptions import DockerContainerDuplicateError
 from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 from ..bus_node.busnode_command_registry import BusNodeCommandRegistry
+from settings.config import CONFIGFILE_PATH
 
 
 class BusNodeContainerManager(ContainerManager):
@@ -33,14 +34,11 @@ class BusNodeContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def _extract_user_exp_path(self) -> str:
-        return os.path.expanduser("~/.das/config.json")
-
     def start_container(self, ports_range: str, **kwargs) -> None:
         self.raise_running_container()
         self.raise_on_port_in_use([self._options.get("service_port")])
 
-        user_config_volume = self._extract_user_exp_path()
+        user_config_volume = CONFIGFILE_PATH
 
         try:
             service = self._options.get("service")
@@ -57,7 +55,7 @@ class BusNodeContainerManager(ContainerManager):
                 },
                 volumes={
                     user_config_volume: {
-                        "bind": user_config_volume,
+                        "bind": CONFIGFILE_PATH,
                         "mode": "ro",
                     }
                 },
