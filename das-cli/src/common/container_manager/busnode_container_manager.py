@@ -1,4 +1,3 @@
-import os
 from typing import Dict
 
 import docker
@@ -6,10 +5,9 @@ import docker
 from common import Container, ContainerImageMetadata, ContainerMetadata
 from common.docker import ContainerManager
 from common.docker.exceptions import DockerContainerDuplicateError
-from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION
+from settings.config import CONFIGFILE_PATH, DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 from ..bus_node.busnode_command_registry import BusNodeCommandRegistry
-from settings.config import CONFIGFILE_PATH
 
 
 class BusNodeContainerManager(ContainerManager):

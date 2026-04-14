@@ -6,6 +6,7 @@ from typing import Any, Dict
 from common.utils import deep_merge_dicts
 from settings.config import CONFIGFILE_PATH
 
+
 class ConfigStore(ABC):
     @abstractmethod
     def get(self, key: str, default: Any = None) -> Any:
@@ -76,7 +77,7 @@ class ConfigStore(ABC):
 
 
 class JsonConfigStore(ConfigStore):
-    def __init__(self, env_file_path:str):
+    def __init__(self, env_file_path: str):
         self._file_path = CONFIGFILE_PATH
         self._env_file_path = env_file_path
         self._content: Dict[str, Any] = {}
@@ -92,7 +93,7 @@ class JsonConfigStore(ConfigStore):
 
     def get_path(self) -> str:
         return self._env_file_path
-    
+
     def set_path(self, new_file_path) -> None:
         self._file_path = new_file_path
         env_file = open(self._env_file_path, "w")
@@ -149,7 +150,6 @@ class JsonConfigStore(ConfigStore):
 
         with open(self._file_path, "w") as f:
             json.dump(data_to_save, f, indent=2)
-
 
         self._content = data_to_save
         self._new_content = {}

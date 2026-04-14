@@ -1,7 +1,8 @@
 import getpass
 import tempfile
-from common.config.loader import EnvFileLoader
 from pathlib import Path
+
+from common.config.loader import EnvFileLoader
 
 VERSION = '1.0.6'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
@@ -13,7 +14,7 @@ SERVICES_NETWORK_NAME = "host"
 DAS_PATH = Path.home() / ".das"
 SECRETS_PATH = DAS_PATH / ".env"
 
-CONFIGFILE_PATH = EnvFileLoader(SECRETS_PATH).load().get("configpath", " ")
+CONFIGFILE_PATH = EnvFileLoader(SECRETS_PATH).load().get("configpath", "")
 
 # LOG
 

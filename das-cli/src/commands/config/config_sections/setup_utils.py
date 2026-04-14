@@ -12,7 +12,7 @@ def get_default_value(settings: Settings, path: str) -> str | Dict[str, Any] | N
     if existing_value is None:
         try:
             keys = path.split(".")
-            value = DEFAULT_VALUES_DICT
+            value: Any = DEFAULT_VALUES_DICT
 
             for key in keys:
                 value = value.get(key, None)

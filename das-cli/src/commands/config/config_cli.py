@@ -13,7 +13,6 @@ from common import (
     StdoutSeverity,
     StdoutType,
 )
-from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
 from common.prompt_types import AbsolutePath
 
 from .config_docs import (
@@ -87,7 +86,8 @@ class ConfigSet(Command):
         )
 
     def interactive_mode(self) -> None:
-        config_mappings, save_path = self._interactive_config_provider.setup_settings()
+        config_mappings = self._interactive_config_provider.setup_settings()
+        save_path = config_mappings.pop("file_path")
         self._interactive_config_provider.apply_values_to_settings(config_mappings)
         self._save(save_path=save_path)
 
@@ -111,11 +111,11 @@ class ConfigSet(Command):
 
         if config_key_value and file is not None:
             return self.non_interactive_mode(config_key_value, file)
-        
+
         elif file is not None:
             return self._set_file_path(file)
-        
-        else: 
+
+        else:
             return self.interactive_mode()
 
 

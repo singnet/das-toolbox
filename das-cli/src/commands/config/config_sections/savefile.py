@@ -1,14 +1,16 @@
+import os
+
 from common.command import Command
 from common.prompt_types import AbsolutePath
 from settings.config import CONFIGFILE_PATH
-import os
 
-def savefile_path_section():
+
+def savefile_path_section() -> tuple[str, bool]:
 
     save_path = Command.prompt(
         "Enter the path where you will save your configuration file",
         default=CONFIGFILE_PATH,
-        type=AbsolutePath(file_okay = True, dir_okay = False)
+        type=AbsolutePath(file_okay=True, dir_okay=False),
     )
 
     reset_file = False

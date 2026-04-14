@@ -9,8 +9,8 @@ from .config_sections.atomdb import atomdb_config_section
 from .config_sections.brokers import brokers_config_section
 from .config_sections.jupyter import jupyter_notebook_section
 from .config_sections.loaders import loaders_config_section
-from .config_sections.service_params import params_config_section
 from .config_sections.savefile import savefile_path_section
+from .config_sections.service_params import params_config_section
 
 
 class ConfigProvider(ABC):
@@ -87,12 +87,14 @@ class InteractiveConfigProvider(ConfigProvider):
         if overwrite_file:
             self._settings.enable_overwrite_mode()
 
+        config.update({"file_path": save_file_path})
+
         for config_step in config_steps:
             config.update(config_step(settings=self._settings))
 
         final_config = {**self._get_current_or_default_config(), **config}
 
-        return (final_config, save_file_path)
+        return final_config
 
 
 class NonInteractiveConfigProvider(ConfigProvider):

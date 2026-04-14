@@ -14,11 +14,7 @@ class Module(InjectorModule):
 
     def configure(self, binder: Binder) -> None:
         for dep, provider in self._dependency_list:
-            binder.bind(
-                interface=dep,
-                to=provider,
-                scope=singleton
-            )
+            binder.bind(interface=dep, to=provider, scope=singleton)
 
     def get_instance(self):
         return self._instance

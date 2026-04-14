@@ -202,7 +202,7 @@ EXAMPLES
     Set all configuration options interactively:
 
         $ das-cli config set
-    
+
     Set a configuration option non-interactively:
 
         $ das-cli config set --file={path-to-your-config-file} atomdb.mongodb.endpoint="localhost:40040"
