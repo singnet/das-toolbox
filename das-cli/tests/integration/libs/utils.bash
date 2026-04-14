@@ -7,6 +7,7 @@ export test_fixtures_dir="${BATS_TEST_DIRNAME}/fixtures"
 export das_log_file="/tmp/$current_user-das-cli.log"
 export das_config_dir="${HOME}/.das"
 export das_config_file="${das_config_dir}/config.json"
+export das_env_file="${das_config_dir}/.env"
 
 function clean_string() {
     local a=${1//[^[:alnum:]]/}
@@ -114,9 +115,7 @@ function set_config() {
 }
 
 function unset_config() {
-    if [ -f "$das_config_file" ]; then
-        rm "$das_config_file"
-    fi
+    rm -f "$das_config_file" "$das_env_file"
 }
 
 function set_log() {
@@ -129,23 +128,25 @@ function unset_log() {
     fi
 }
 
-function use_config() {
-    local config="$1"
-    local config_path="${test_fixtures_dir}/config/${config}.json"
-
-    [ -f "${config_path}" ] || {
-        echo "Config '${config_path}' does not exist" && exit 1
-    }
+function set_env_config_path() {
+    local path="$1"
 
     mkdir -p "${das_config_dir}"
 
-    if [ -d "${das_config_file}" ]; then
-        rm -rf "${das_config_file}"
-    fi
+    echo "configpath=${path}" > "${das_env_file}"
+}
 
-    unset_config
+function use_config() {
+    local config="$1"
+    local config_source="${test_fixtures_dir}/config/${config}.json"
 
-    cp "${config_path}" "${das_config_file}"
+    mkdir -p "${das_config_dir}"
+    
+    cp -f "${config_source}" "${das_config_file}"
+    
+    chmod 644 "${das_config_file}"
+
+    set_env_config_path "${das_config_file}"
 }
 
 function listen_port() {
@@ -208,4 +209,8 @@ function update_json_key() {
     else
         jq --arg val "$new_value" "$jq_path = \$val" "$file" > "$file.tmp" && mv "$file.tmp" "$file"
     fi
+}
+
+function fix_env() {
+    echo "configpath=${das_config_file}" > "${das_env_file}"
 }

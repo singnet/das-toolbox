@@ -14,7 +14,7 @@ setup() {
 
     run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
 }
 
 @test "Checking syntax of a valid MeTTa file" {
@@ -62,7 +62,7 @@ setup() {
 
     run das-cli metta load "$test_fixtures_dir/metta/animals.metta"
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
 }
 
 @test "Loading a MeTTa file with a relative path" {

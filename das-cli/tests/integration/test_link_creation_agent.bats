@@ -39,7 +39,7 @@ teardown() {
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
 }
 
 @test "Fails to stop the Link Creation Agent when configuration file is not set" {
@@ -47,7 +47,7 @@ teardown() {
 
     run das-cli link-creation-agent stop
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
 }
 
 @test "Fails to restart the Link Creation Agent when configuration file is not set" {
@@ -58,7 +58,7 @@ teardown() {
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
 }
 
 @test "Start Link Creation Agent when Query Agent is not up" {

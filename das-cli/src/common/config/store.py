@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 from common.utils import deep_merge_dicts
-from common.config.loader import EnvFileLoader
+from settings.config import CONFIGFILE_PATH
 
 class ConfigStore(ABC):
     @abstractmethod
@@ -77,7 +77,7 @@ class ConfigStore(ABC):
 
 class JsonConfigStore(ConfigStore):
     def __init__(self, env_file_path:str):
-        self._file_path = None
+        self._file_path = CONFIGFILE_PATH
         self._env_file_path = env_file_path
         self._content: Dict[str, Any] = {}
         self._new_content: Dict[str, Any] = {}
@@ -105,15 +105,6 @@ class JsonConfigStore(ConfigStore):
         return len(self.get_content().items()) > 0
 
     def rewind(self):
-        env_loader = EnvFileLoader(self._env_file_path)
-        env_data = env_loader.load()
-
-        self._file_path = env_data.get("configpath")
-
-        if not self._file_path:
-            self._content = {}
-            return self
-
         try:
             with open(self._file_path, "r") as f:
                 self._content = json.load(f)

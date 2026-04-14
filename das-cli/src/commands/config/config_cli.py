@@ -66,7 +66,6 @@ class ConfigSet(Command):
         super().__init__()
 
         self._settings = settings
-        self._settings.enable_overwrite_mode()
         self._remote_context_manager = remote_context_manager
         self._non_interactive_config_provider = non_interactive_config_provider
         self._interactive_config_provider = interactive_config_provider

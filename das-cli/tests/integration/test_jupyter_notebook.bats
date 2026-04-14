@@ -28,7 +28,7 @@ teardown() {
     for cmd in "${cmds[@]}"; do
         run das-cli jupyter-notebook $cmd
 
-        assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+        assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
     done
 }
 
