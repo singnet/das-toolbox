@@ -1,5 +1,6 @@
 import getpass
 import tempfile
+from common.config.loader import EnvFileLoader
 from pathlib import Path
 
 VERSION = '1.0.6'
@@ -9,9 +10,10 @@ SERVICES_NETWORK_NAME = "host"
 
 # PATHS
 
-USER_DAS_PATH = Path.home() / ".das"
+DAS_PATH = Path.home() / ".das"
+SECRETS_PATH = DAS_PATH / ".env"
 
-SECRETS_PATH = USER_DAS_PATH / "config.json"
+CONFIGFILE_PATH = EnvFileLoader(SECRETS_PATH).load().get("configpath", " ")
 
 # LOG
 
