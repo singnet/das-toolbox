@@ -6,6 +6,7 @@ import hyperon
 import os
 import json
 import shutil
+from pathlib import Path
 
 class BackendType(Enum):
     REDIS_MONGO = "redismongodb"
@@ -32,12 +33,16 @@ def restart_metta():
     metta = hyperon.MeTTa()
 
 def setup_environment():
+
     home_folder = os.path.expanduser("~")
+    env_path = os.path.join(home_folder, ".das", ".env")
     target_path = os.path.join(home_folder, ".das", "config.json")
     source_path = os.path.abspath("tests/integration/fixtures/config/simple.json")
     
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     shutil.copy(source_path, target_path)
+    with open(env_path, mode="w+") as f:
+        f.write(f"configpath={target_path}")
 
 def start_db():
     command = ["das-cli", "db", "start"]
