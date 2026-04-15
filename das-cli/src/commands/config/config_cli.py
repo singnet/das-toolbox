@@ -25,6 +25,7 @@ from .config_docs import (
 )
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
+from settings.config import CONFIGFILE_PATH
 
 class ConfigSet(Command):
     name = "set"
@@ -109,8 +110,8 @@ class ConfigSet(Command):
         config_key_value: Optional[tuple] = None,
     ):
 
-        if config_key_value and file is not None:
-            return self.non_interactive_mode(config_key_value, file)
+        if config_key_value is not None:
+            return self.non_interactive_mode(config_key_value, CONFIGFILE_PATH)
 
         elif file is not None:
             return self._set_file_path(file)

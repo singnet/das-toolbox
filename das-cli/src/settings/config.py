@@ -2,9 +2,10 @@ import getpass
 import tempfile
 from pathlib import Path
 
+from settings.__version__ import VERSION
 from common.config.loader import EnvFileLoader
 
-VERSION = '1.0.6'
+VERSION = VERSION
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "host"
