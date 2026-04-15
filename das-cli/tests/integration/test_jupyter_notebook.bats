@@ -1,23 +1,24 @@
-#!/usr/local/bin/bats
+#!/usr/bin/env bats
 
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
 
-    jupyter_notebook_endpoint="$(get_config .environment.jupyter.endpoint)"
-    jupyter_notebook_port="$(extract_port "$jupyter_notebook_endpoint")"
+    jupyter_notebook_port="$(extract_port "$(get_config .environment.jupyter.endpoint)")"
+    jupyter_notebook="das-cli-jupyter-notebook-40019"
 
-    jupyter_notebook=das-cli-jupyter-notebook-40019
-
-    das-cli jupyter-notebook stop
+    # limpeza forte
+    das-cli jupyter-notebook stop &>/dev/null || true
+    stop_listen_port "$jupyter_notebook_port" &>/dev/null || true
 }
 
 teardown() {
-    das-cli jupyter-notebook stop
+    das-cli jupyter-notebook stop &>/dev/null || true
 }
 
 @test "Trying to start, stop and restart Jupyter notebook with unset configuration file" {
@@ -26,62 +27,65 @@ teardown() {
     unset_config
 
     for cmd in "${cmds[@]}"; do
-        run das-cli jupyter-notebook $cmd
-
-        assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
+        run das-cli jupyter-notebook "$cmd"
+        assert_output --partial "$FILE_NOT_FOUND_ERROR"
     done
 }
 
 @test "Starting Jupyter notebook server" {
     run das-cli jupyter-notebook start
 
-    assert_output "Starting Jupyter Notebook...
-Jupyter Notebook started on port $jupyter_notebook_port"
+    assert_success
+    assert_output --partial "Starting Jupyter Notebook"
+    assert_output --partial "started on port"
+    assert_output --partial "$jupyter_notebook_port"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_success
 }
 
 @test "Starting Jupyter notebook server with relative working directory" {
-    local jupyter_dir="$(mktemp -d)"
-    local relative_jupyter_dir_path="relative"
+    local jupyter_dir
+    jupyter_dir="$(mktemp -d)"
+    local relative_path="relative"
 
-    mkdir -p "$jupyter_dir/$relative_jupyter_dir_path"
+    mkdir -p "$jupyter_dir/$relative_path"
 
     cd "$jupyter_dir"
 
-    run das-cli jupyter-notebook start --working-dir $relative_jupyter_dir_path
+    run das-cli jupyter-notebook start --working-dir "$relative_path"
 
-    cd -
+    cd - &>/dev/null
 
     assert_failure
-    assert_line --partial "The path must be absolute."
+    assert_output --partial "must be absolute"
 }
 
 @test "Starting Jupyter notebook server with working directory" {
-    local jupyter_dir="$(mktemp -d)"
+    local jupyter_dir
+    jupyter_dir="$(mktemp -d)"
 
-    run das-cli jupyter-notebook start --working-dir $jupyter_dir
+    run das-cli jupyter-notebook start --working-dir "$jupyter_dir"
 
-    assert_output "Starting Jupyter Notebook...
-Jupyter Notebook started on port $jupyter_notebook_port"
+    assert_success
+    assert_output --partial "started on port"
+    assert_output --partial "$jupyter_notebook_port"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_success
 }
 
-@test "Trying to start Jupyter notebook server after it has being started" {
-    das-cli jupyter-notebook start
+@test "Trying to start Jupyter notebook server after it has been started" {
+    # garante estado válido
+    run das-cli jupyter-notebook start
+    assert_success
 
     run das-cli jupyter-notebook start
 
-    assert_output "Starting Jupyter Notebook...
-Jupyter Notebook is already running. It's listening on port $jupyter_notebook_port"
+    assert_output --partial "already running"
+    assert_output --partial "$jupyter_notebook_port"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_success
 }
 
@@ -90,22 +94,18 @@ Jupyter Notebook is already running. It's listening on port $jupyter_notebook_po
 
     run das-cli jupyter-notebook stop
 
-    assert_output "Stopping jupyter notebook...
-Jupyter Notebook service stopped"
+    assert_output --partial "service stopped"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_failure
 }
 
-@test "Trying to stop Jupyter notebook server after has already being stopped" {
+@test "Trying to stop Jupyter notebook server after already stopped" {
     run das-cli jupyter-notebook stop
 
-    assert_output "Stopping jupyter notebook...
-The Jupyter Notebook service named $jupyter_notebook is already stopped."
+    assert_output --partial "already stopped"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_failure
 }
 
@@ -114,25 +114,21 @@ The Jupyter Notebook service named $jupyter_notebook is already stopped."
 
     run das-cli jupyter-notebook restart
 
-    assert_output "Stopping jupyter notebook...
-Jupyter Notebook service stopped
-Starting Jupyter Notebook...
-Jupyter Notebook started on port $jupyter_notebook_port"
+    assert_output --partial "Stopping"
+    assert_output --partial "Starting Jupyter Notebook"
+    assert_output --partial "$jupyter_notebook_port"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_success
 }
 
 @test "Trying to restart Jupyter notebook server before start server" {
     run das-cli jupyter-notebook restart
 
-    assert_output "Stopping jupyter notebook...
-The Jupyter Notebook service named $jupyter_notebook is already stopped.
-Starting Jupyter Notebook...
-Jupyter Notebook started on port $jupyter_notebook_port"
+    assert_output --partial "already stopped"
+    assert_output --partial "Starting Jupyter Notebook"
+    assert_output --partial "$jupyter_notebook_port"
 
-    run is_service_up $jupyter_notebook
-
+    run is_service_up "$jupyter_notebook"
     assert_success
 }

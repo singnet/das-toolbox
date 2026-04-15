@@ -3,6 +3,7 @@
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
@@ -18,7 +19,7 @@ function ensure_env() {
 
     run das-cli config list
 
-    assert_output --partial "[FileNotFoundError]"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "listing config with valid configuration file" {
@@ -60,7 +61,7 @@ function ensure_env() {
 
     run das-cli config list
 
-    assert_output --partial "[FileNotFoundError]"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "raises error when schema version is invalid" {
@@ -71,7 +72,7 @@ function ensure_env() {
 
     run das-cli config list
 
-    assert_output --partial "[ValueError]"
+    assert_output --partial "$VALUE_ERROR_MSG"
 }
 
 @test "use_config correctly sets env and file" {

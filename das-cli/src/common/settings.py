@@ -84,7 +84,7 @@ class Settings:
     def raise_on_missing_file(self):
         if not self.exists():
             raise FileNotFoundError(
-                "No existing configuration path was found. You can run the command `config set` to create a configuration file or point to an existing file."
+                "Configuration file not found. You can run the command 'config set' to create a configuration file or point to an existing file."
             )
 
     def validate_configuration_file(self):

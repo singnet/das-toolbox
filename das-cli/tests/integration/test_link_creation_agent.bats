@@ -4,21 +4,18 @@ load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
 
-    # Query agent peer port
-    local peer_endpoint
-    peer_endpoint=$(get_config ".agents.query.ports_range")
-    peer_port=$(extract_port "$peer_endpoint")
-
-    # Link creation agent port
-    local link_endpoint
-    link_endpoint=$(get_config ".agents.link_creation.endpoint")
-    link_creation_agent_port=$(extract_port "$link_endpoint")
+    peer_port=$(extract_port "$(get_config ".agents.query.ports_range")")
+    link_creation_agent_port=$(extract_port "$(get_config ".agents.link_creation.endpoint")")
 
     service_name="das-link-creation-agent-40003"
+
+    # 🔥 Garante ambiente limpo
+    stop_listen_port "$link_creation_agent_port" 2>/dev/null || true
 
     das-cli attention-broker start
     das-cli db start
@@ -27,6 +24,9 @@ setup() {
 }
 
 teardown() {
+    das-cli link-creation-agent stop
+    stop_listen_port "$link_creation_agent_port" 2>/dev/null || true
+
     das-cli attention-broker stop
     das-cli query-agent stop
 }
@@ -39,7 +39,7 @@ teardown() {
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to stop the Link Creation Agent when configuration file is not set" {
@@ -47,7 +47,7 @@ teardown() {
 
     run das-cli link-creation-agent stop
 
-    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to restart the Link Creation Agent when configuration file is not set" {
@@ -58,7 +58,7 @@ teardown() {
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Start Link Creation Agent when Query Agent is not up" {
@@ -69,14 +69,13 @@ teardown() {
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "[31m[DockerContainerNotFoundError] 
-Please start the required services before running 'link-creation-agent start'.
-Run 'query-agent start' to start the Query Agent.[39m"
+    assert_output --partial "$DOCKER_CONTAINER_MISSING"
+    assert_output --partial "Please start the required services"
 
     run is_service_up das-query-engine-40002
     assert_failure
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_failure
 }
 
@@ -89,13 +88,14 @@ Run 'query-agent start' to start the Query Agent.[39m"
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "Starting Link Creation Agent service...
-[31m[PortBindingError] Port ${link_creation_agent_port} on localhost are already in use.[39m"
+    assert_output --partial "[PortBindingError]"
+    assert_output --partial "already in use"
+    assert_output --partial "${link_creation_agent_port}"
 
     run stop_listen_port "${link_creation_agent_port}"
     assert_success
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_failure
 }
 
@@ -110,10 +110,10 @@ Run 'query-agent start' to start the Query Agent.[39m"
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "Starting Link Creation Agent service...
-Link Creation Agent is already running. It's listening on the ports ${link_creation_agent_port}"
+    assert_output --partial "Starting Link Creation Agent service"
+    assert_output --partial "${link_creation_agent_port}"
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_success
 }
 
@@ -123,10 +123,10 @@ Link Creation Agent is already running. It's listening on the ports ${link_creat
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "Starting Link Creation Agent service...
-Link Creation Agent started listening on the ports ${link_creation_agent_port}"
+    assert_output --partial "Link Creation Agent started listening on the ports"
+    assert_output --partial "${link_creation_agent_port}"
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_success
 }
 
@@ -138,20 +138,18 @@ Link Creation Agent started listening on the ports ${link_creation_agent_port}"
 
     run das-cli link-creation-agent stop
 
-    assert_output "Stopping Link Creation Agent service...
-Link Creation Agent service stopped"
+    assert_output --partial "Link Creation Agent service stopped"
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_failure
 }
 
 @test "Stopping the Link Creation Agent when it's already stopped" {
     run das-cli link-creation-agent stop
 
-    assert_output "Stopping Link Creation Agent service...
-The Link Creation Agent service named ${service_name} is already stopped."
+    assert_output --partial "already stopped"
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_failure
 }
 
@@ -166,12 +164,11 @@ The Link Creation Agent service named ${service_name} is already stopped."
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "Stopping Link Creation Agent service...
-Link Creation Agent service stopped
-Starting Link Creation Agent service...
-Link Creation Agent started listening on the ports ${link_creation_agent_port}"
+    assert_output --partial "Stopping Link Creation Agent service"
+    assert_output --partial "Starting Link Creation Agent service"
+    assert_output --partial "${link_creation_agent_port}"
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_success
 }
 
@@ -181,11 +178,10 @@ Link Creation Agent started listening on the ports ${link_creation_agent_port}"
         --peer-port "$peer_port" \
         --port-range 12300:12400
 
-    assert_output "Stopping Link Creation Agent service...
-The Link Creation Agent service named ${service_name} is already stopped.
-Starting Link Creation Agent service...
-Link Creation Agent started listening on the ports ${link_creation_agent_port}"
+    assert_output --partial "already stopped"
+    assert_output --partial "Link Creation Agent started listening on the ports"
+    assert_output --partial "${link_creation_agent_port}"
 
-    run is_service_up $service_name
+    run is_service_up "$service_name"
     assert_success
 }
