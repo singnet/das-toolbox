@@ -14,6 +14,7 @@ from common import (
     StdoutType,
 )
 from common.prompt_types import AbsolutePath
+from settings.config import CONFIGFILE_PATH
 
 from .config_docs import (
     HELP_CONFIG,
@@ -24,9 +25,8 @@ from .config_docs import (
     SHORT_HELP_CONFIG_SET,
 )
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
-from .config_sections.normalize_file import verify_normalize_missing_values
+from .config_sections.normalize_file import verify_populate_missing_values
 
-from settings.config import CONFIGFILE_PATH
 
 class ConfigSet(Command):
     name = "set"
@@ -73,11 +73,11 @@ class ConfigSet(Command):
 
     def _set_file_path(self, save_path) -> None:
         self._settings.set_path(save_path)
-        verify_normalize_missing_values(self._settings, save_path)
+        verify_populate_missing_values(self._settings, save_path)
 
         self.stdout(
             "Formatting file and setting up incorrect/incomplete values.",
-            severity=StdoutSeverity.WARNING
+            severity=StdoutSeverity.WARNING,
         )
 
         self._settings.save_path()
