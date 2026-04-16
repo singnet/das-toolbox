@@ -9,15 +9,13 @@ load 'libs/errors'
 setup() {
     use_config "simple"
 
-    local peer_endpoint
-    peer_endpoint=$(get_config ".agents.query.ports_range")
-    peer_port=$(extract_port "$peer_endpoint")
-
-    local context_endpoint
-    context_endpoint=$(get_config ".brokers.context.endpoint")
-    context_broker_port=$(extract_port "$context_endpoint")
+    peer_port=$(extract_port "$(get_config ".agents.query.ports_range")")
+    context_broker_port=$(extract_port "$(get_config ".brokers.context.endpoint")")
 
     service_name="das-context-broker-${context_broker_port}"
+
+    # 🔥 GARANTE AMBIENTE LIMPO
+    stop_listen_port "$context_broker_port" 2>/dev/null || true
 
     das-cli db start
     das-cli attention-broker start
@@ -26,9 +24,11 @@ setup() {
 }
 
 teardown() {
+    das-cli context-broker stop
+    stop_listen_port "$context_broker_port" 2>/dev/null || true
+
     das-cli query-agent stop
     das-cli attention-broker stop
-    das-cli context-broker stop
 }
 
 @test "Fails to start the Context Broker when configuration file is not set" {
@@ -88,7 +88,10 @@ teardown() {
         --peer-port "$peer_port" \
         --port-range 12700:12800
 
-    assert_output --partial "$PORT_IN_USE_ERROR"
+    # ✅ validação robusta
+    assert_output --partial "[PortBindingError]"
+    assert_output --partial "Port ${context_broker_port}"
+    assert_output --partial "already in use"
 
     run stop_listen_port "${context_broker_port}"
     assert_success
@@ -110,6 +113,7 @@ teardown() {
 
     assert_output --partial "Starting Context Broker service"
     assert_output --partial "already running"
+    assert_output --partial "${context_broker_port}"
 
     run is_service_up "$service_name"
     assert_success
@@ -122,6 +126,7 @@ teardown() {
         --port-range 12700:12800
 
     assert_output --partial "Context Broker started on port"
+    assert_output --partial "${context_broker_port}"
 
     run is_service_up "$service_name"
     assert_success
@@ -163,6 +168,7 @@ teardown() {
 
     assert_output --partial "Stopping Context Broker service"
     assert_output --partial "Starting Context Broker service"
+    assert_output --partial "${context_broker_port}"
 
     run is_service_up "$service_name"
     assert_success
@@ -176,6 +182,7 @@ teardown() {
 
     assert_output --partial "already stopped"
     assert_output --partial "Context Broker started on port"
+    assert_output --partial "${context_broker_port}"
 
     run is_service_up "$service_name"
     assert_success

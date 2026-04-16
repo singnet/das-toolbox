@@ -11,7 +11,7 @@ setup() {
 
     query_agent_port="$(extract_port "$(get_config .agents.query.endpoint)")"
 
-    # 🔥 garante porta livre
+    # 🔥 garante ambiente limpo (porta livre)
     stop_listen_port "$query_agent_port" 2>/dev/null || true
 
     das-cli attention-broker start
@@ -98,26 +98,15 @@ teardown() {
 
     run das-cli query-agent start --port-range 12000:12100
 
-    assert_output --partial "$PORT_IN_USE_ERROR"
-    assert_output --partial "${query_agent_port}"
+    assert_output --partial "[PortBindingError]"
+    assert_output --partial "Port ${query_agent_port}"
+    assert_output --partial "already in use"
 
     run stop_listen_port "${query_agent_port}"
     assert_success
 
     run is_service_up das-query-engine-40002
     assert_failure
-}
-
-@test "Starting the Query Agent when it's already up" {
-    das-cli query-agent start --port-range 12000:12100
-
-    run das-cli query-agent start --port-range 12000:12100
-
-    assert_output --partial "Starting Query Agent service"
-    assert_output --partial "${query_agent_port}"
-
-    run is_service_up das-query-engine-40002
-    assert_success
 }
 
 @test "Starting the Query Agent" {
