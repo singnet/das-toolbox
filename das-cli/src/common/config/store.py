@@ -70,7 +70,7 @@ class ConfigStore(ABC):
         """Set the new configuration file path or identifier."""
         pass
 
-    def save_path(self, file_path: str) -> None:
+    def save_path(self) -> None:
         """Save the new configuration file path of identifier."""
         pass
 

@@ -1,18 +1,17 @@
 import getpass
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 from common.docker import RemoteContextManager
+from common.docker.remote_context_manager import Server
 from common.settings import Settings
 from common.utils import get_rand_token
 
 
 def normalize_servers(
-    nodes: List[Dict[str, Any]],
-    current_user: str,
-    context_manager: RemoteContextManager
+    nodes: List[Dict[str, Any]], current_user: str, context_manager: RemoteContextManager
 ) -> List[Dict[str, Any]]:
     updated_nodes = []
-    servers_to_create_context: List[Dict[str, str]] = []
+    servers_to_create_context: List[Server] = []
 
     for node in nodes:
         username = node.get("username")
@@ -27,10 +26,12 @@ def normalize_servers(
 
         elif context in [None, "", "None"]:
             servers_to_create_context.append(
-                {
-                    "ip": ip,
-                    "username": username or current_user,
-                }
+                Server(
+                    {
+                        "ip": ip,
+                        "username": username or current_user,
+                    }
+                )
             )
 
         else:
@@ -55,9 +56,7 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
         mongodb_nodes = mongodb.get("nodes", [])
 
         if mongodb_nodes:
-            mongodb["nodes"] = normalize_servers(
-                mongodb_nodes, current_user, context_manager
-            )
+            mongodb["nodes"] = normalize_servers(mongodb_nodes, current_user, context_manager)
 
         if mongodb.get("cluster"):
             secret = mongodb.get("cluster_secret_key")
@@ -71,9 +70,7 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
         redis_nodes = redis.get("nodes", [])
 
         if redis_nodes:
-            redis["nodes"] = normalize_servers(
-                redis_nodes, current_user, context_manager
-            )
+            redis["nodes"] = normalize_servers(redis_nodes, current_user, context_manager)
 
     settings.set_content(content)
 
