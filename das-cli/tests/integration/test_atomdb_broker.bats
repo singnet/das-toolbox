@@ -1,9 +1,10 @@
-#!/usr/local/bin/bats
+#!/usr/bin/env bats
 
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
@@ -22,9 +23,9 @@ teardown() {
     unset_config
 
     for cmd in "${cmds[@]}"; do
-        run das-cli atomdb-broker $cmd
+        run das-cli atomdb-broker "$cmd"
 
-        assert_output "[31m[FileNotFoundError] No existing configuration path was found. You can run the command \`config set\` to create a configuration file or point to an existing file.[39m"
+        assert_output --partial "$FILE_NOT_FOUND_ERROR"
     done
 }
 
