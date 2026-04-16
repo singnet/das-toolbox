@@ -1,12 +1,13 @@
+import sys
 from pathlib import Path
 from setuptools import find_packages, setup
-
-from src.settings.config import VERSION
-
 
 CURRENT_PATH = Path(__file__).resolve().parent
 SRC_PATH = CURRENT_PATH / "src"
 
+sys.path.insert(0, str(SRC_PATH))
+
+from settings.__version__ import VERSION
 
 def read_text_file(path: Path) -> str:
     try:

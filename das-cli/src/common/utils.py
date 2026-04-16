@@ -60,9 +60,9 @@ def retry(func: Callable, max_retries=5, interval=2, *args, **kwargs):
             time.sleep(interval)
 
 
-def search_dict_key(dict: dict, path: str):
+def search_dict_key(dict: dict[str, Any], path: str):
     keys = path.split(".")
-    value = dict
+    value: Any = dict
 
     for key in keys:
         value = value.get(key, None)

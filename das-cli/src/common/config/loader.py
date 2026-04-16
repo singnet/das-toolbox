@@ -1,5 +1,6 @@
 import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Dict, Optional
 
 
@@ -22,7 +23,7 @@ class CompositeLoader(ConfigLoader):
 
 
 class EnvFileLoader(ConfigLoader):
-    def __init__(self, path: Optional[str]):
+    def __init__(self, path: Optional[Path]):
         self._path = path
 
     def _format_key(self, key: str) -> str:

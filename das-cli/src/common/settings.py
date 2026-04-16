@@ -44,6 +44,9 @@ class Settings:
     def get_path(self):
         return self._store.get_path()
 
+    def set_path(self, new_file_path):
+        self._store.set_path(new_file_path)
+
     def get_dir_path(self):
         return self._store.get_dir_path()
 
@@ -74,14 +77,14 @@ class Settings:
         base_dict_version = get_core_defaults_dict()["schema_version"]
 
         if self._store.get("schema_version") != base_dict_version:
-            mismatch_message = f"Your configuration file in {self.get_path()} doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
+            mismatch_message = "Your configuration file doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
 
             raise ValueError(mismatch_message)
 
     def raise_on_missing_file(self):
         if not self.exists():
             raise FileNotFoundError(
-                f"Configuration file not found in {self.get_path()}. You can run the command `config set` to create a configuration file."
+                "Configuration file not found. You can run the command 'config set' to create a configuration file or point to an existing file."
             )
 
     def validate_configuration_file(self):

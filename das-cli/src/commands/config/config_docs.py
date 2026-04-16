@@ -8,7 +8,7 @@ SYNOPSIS
 
 DESCRIPTION
     The 'config set' command prompts the user to configure various DAS CLI components,
-    such as ports, container names, and cluster settings.
+    such as service endpoints, ports ranges, cluster settings, and runtime parameters.
 
     For each configuration option, a prompt is displayed with a suggested default value
     (if available). If a value has been set previously, it is shown as the default.
@@ -16,222 +16,200 @@ DESCRIPTION
 SECTIONS
 
     ┌────────────────────┐
-    │ 1. schema_version  │
-    | 2. AtomDB Backend  │
+    │ 1. Schema Version  │
+    │ 2. AtomDB Backend  │
     │ 3. Loaders         │
     │ 4. Brokers         │
     │ 5. Agents          │
-    │ 6. AttentionBroker │
-    │ 7. Agent params    │
-    │ 8. Jupyter Notebook│
+    │ 6. Parameters      │
+    │ 7. Environment     │
     └────────────────────┘
+
 
 OPTIONS AND VARIABLES
 
-SCHEMA VERSION CONFIGURATION (schema_version)
+SCHEMA VERSION (schema_version)
 
-    This variable stores the version of the schema file used by DAS CLI. It is used to verify the integrity of the schema file and ensure that the correct version is being used.
-    After completion, the path to the generated configuration file will be shown. This file
-    governs how DAS commands interact with services such as Redis, MongoDB, OpenFaaS, etc.
+    Defines the version of the configuration schema used by DAS CLI.
+    This is used internally to validate compatibility between CLI versions
+    and configuration structure.
 
 
-SERVICES CONFIGURATION (services.*)
+ATOMDB BACKEND (atomdb)
 
-    ATOMDB BACKEND CONFIGURATION (database.atomdb_backend)
+    atomdb.type
+        Defines the backend used for AtomDB storage.
+        Supported values:
+        - redismongodb
+        - morkmongodb
 
-        database.atomdb_backend
-            Defines the backend used for AtomDB storage. Supported options are:
-            - redis_mongodb: Uses Redis for caching and MongoDB for persistent storage.
-            - mork_mongodb: Uses MorkDB for caching and MongoDB for persistent storage
 
-    REDIS CONFIGURATION (redis.*)
+    REDIS CONFIGURATION (atomdb.redis)
 
-        redis.port
-            Defines the port number on which the Redis server is listening.
-            The user must ensure this port is available on the server where das-cli
-            is running and also on other nodes if a cluster is being used.
+        atomdb.redis.endpoint
+            Redis connection endpoint in the format:
+                host:port
 
-            If using a firewall like `ufw`, the user can allow the necessary ports
-            for cluster communication using the commands below, assuming the Redis
-            instance operates on port 7000:
+        atomdb.redis.cluster
+            Enable or disable Redis cluster mode (true/false).
 
-                sudo ufw allow 7000/tcp
-                sudo ufw allow 17000/tcp
+        atomdb.redis.nodes
+            List of Redis nodes used in cluster mode.
 
-            The cluster bus uses port 10000 + redis.port, so for a Redis instance
-            running on port 7000, port 17000 must also be allowed.
+        atomdb.redis.nodes.[].context
+            Docker context used to connect to the node.
 
-            It is recommended to restrict access to specific IP addresses for each
-            node. This practice enhances security and minimizes potential vulnerabilities.
+        atomdb.redis.nodes.[].ip
+            Node IP address.
 
-        redis.container_name
-            Specifies the name of the Docker container running the Redis server.
+        atomdb.redis.nodes.[].username
+            SSH username used to access the node.
 
-        redis.cluster
-            Indicates whether a Redis cluster is being used (true/false).
 
-            To allow cluster setup and communication, passwordless SSH access must be configured:
+    MONGODB CONFIGURATION (atomdb.mongodb)
 
-            - Generate an RSA key (on the first machine only):
+        atomdb.mongodb.endpoint
+            MongoDB connection endpoint:
+                host:port
 
-                ssh-keygen
+        atomdb.mongodb.username
+            Username used for authentication.
 
-            Leave the password empty when prompted.
+        atomdb.mongodb.password
+            Password used for authentication.
 
-            - Distribute the public key (~/.ssh/id_rsa.pub) to all other machines
-            in the cluster by adding it to their ~/.ssh/authorized_keys files.
+        atomdb.mongodb.cluster
+            Enable or disable MongoDB cluster mode (true/false).
 
-            This allows the first machine to SSH into all others without a
-            password, which is necessary for automated Redis cluster initialization.
+        atomdb.mongodb.cluster_secret_key
+            Shared key used between cluster nodes.
 
-            All machines participating in the Redis cluster must:
+        atomdb.mongodb.nodes
+            List of MongoDB nodes.
 
-            - Use the default Docker context:
+        atomdb.mongodb.nodes.[].context
+            Docker context for remote execution.
 
-                docker context use default
+        atomdb.mongodb.nodes.[].ip
+            Node IP address.
 
-            - Ensure that the current user has permission to run Docker commands
-            (e.g., is part of the `docker` group):
+        atomdb.mongodb.nodes.[].username
+            SSH username for the node.
 
-                sudo usermod -aG docker $USER
 
-        redis.nodes
-            List of Redis nodes. Minimum 1 node (standalone), 3 nodes (cluster).
-            Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them.
-            This is essential because Docker communicates between nodes remotely to deploy images with Redis.
-            To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster.
-            Ensure that port 22 is open on all servers to allow SSH connections.
+LOADERS (loaders)
 
-        redis.nodes.[].context
-            The name of the Docker context containing connection information for the remote Docker instances of other nodes.
+    loaders.metta.image
+        Docker image used for the MeTTa loader.
 
-        redis.nodes.[].ip
-            IP address of the node.
+    loaders.morkdb.image
+        Docker image used for the MorkDB loader.
 
-        redis.nodes.[].username
-            SSH username to connect to the node.
 
-    MONGODB CONFIGURATION (mongodb.*)
+AGENTS (agents)
 
-        mongodb.port
-            Port where the MongoDB server listens.
-            The user must ensure this port is available on the server where das-cli is running.
+    agents.query.endpoint
+        Endpoint for the Query Agent.
 
-        mongodb.container_name
-            Specifies the name of the Docker container running the MongoDB server.
+    agents.query.ports_range
+        Range of ports used by Query Agent workers.
 
-        mongodb.username
-            The username for connecting to the MongoDB server.
+    agents.link_creation.endpoint
+        Endpoint for the Link Creation Agent.
 
-        mongodb.password
-            The password for connecting to the MongoDB server.
+    agents.link_creation.ports_range
+        Range of ports used by Link Creation workers.
 
-        mongodb.cluster
-            Enable MongoDB clustering (true/false).
+    agents.inference.endpoint
+        Endpoint for the Inference Agent.
 
-        mongodb.cluster_secret_key
-            Secret key shared among cluster nodes for authentication.
+    agents.inference.ports_range
+        Range of ports used by Inference workers.
 
-        mongodb.nodes
-            List of MongoDB nodes. Minimum 1 node (standalone), 3 nodes (cluster).
-            Additionally, it is necessary to configure an SSH key and utilize this key on each node to ensure SSH connectivity between them.
-            This is essential because Docker communicates between nodes remotely to deploy images with MongoDB. To establish SSH connectivity, generate an SSH key using `ssh-keygen` and add this key to all servers in the cluster.
-            Ensure that port 22 is open on all servers to allow SSH connections.
+    agents.evolution.endpoint
+        Endpoint for the Evolution Agent.
 
-        mongodb.nodes.[].context
-            The name of the Docker context containing connection information for the remote Docker instances of other nodes.
+    agents.evolution.ports_range
+        Range of ports used by Evolution workers.
 
-        mongodb.nodes.[].ip
-            IP address of the node.
 
-        mongodb.nodes.[].username
-            SSH username to connect to the node.
+BROKERS (brokers)
 
-    MORKDB CONFIGURATION (morkdb.*)
-        morkdb.port
-            Port where the MorkDB server listens.
-            The user must ensure this port is available on the server where das-cli is running.
+    brokers.attention.endpoint
+        Endpoint for the Attention Broker.
 
-        morkdb.container_name
-            Specifies the name of the Docker container running the MorkDB server.
+    brokers.context.endpoint
+        Endpoint for the Context Broker.
 
-    LOADER CONFIGURATION (loader.*)
+    brokers.context.ports_range
+        Port range for Context Broker workers.
 
-        loader.container_name
-            Specifies the name of the Docker container running the Loader.
+    brokers.atomdb.endpoint
+        Endpoint for the AtomDB Broker.
 
-    JUPYTER NOTEBOOK CONFIGURATION (jupyter_notebook.*)
+    brokers.atomdb.ports_range
+        Port range for AtomDB Broker workers.
 
-        jupyter_notebook.port
-            Port where the Jupyter Notebook server listens.
 
-        jupyter_notebook.container_name
-            specifies the name of the Docker container running the Jupyter Notebook server.
+PARAMETERS (params)
 
-    DAS PEER CONFIGURATION (das_peer.*)
+    params.query.max_answers
+    params.query.max_bundle_size
+    params.query.count_flag
+    params.query.attention_update_flag
+    params.query.unique_assignment_flag
+    params.query.positive_importance_flag
+    params.query.populate_metta_mapping
+    params.query.use_metta_as_query_tokens
 
-        das_peer.container_name
-            Specifies the Docker container name for the DAS peer, which acts as the main server. This name is essential for managing and communicating with the DAS peer container.
+        Runtime parameters controlling query execution behavior.
 
-    DBMS PEER CONFIGURATION (dbms_peer.*)
 
-        dbms_peer.container_name
-            Specifies the Docker container name for the DBMS peer, which connects to the DAS peer to send data.
+    params.link_creation.repeat_count
+    params.link_creation.query_interval
+    params.link_creation.query_timeout
 
-    ATTENTION BROKER CONFIGURATION (attention_broker.*)
+        Controls link creation execution behavior.
 
-        attention_broker.port
-            Listening port for the Attention Broker.
-            The user must ensure this port is available on the server where DAS is running.
 
-        attention_broker.container_name
-            Specifies the name of the Docker container running the Attention Broker.
+    params.evolution.elitism_rate
+    params.evolution.max_generations
+    params.evolution.population_size
+    params.evolution.selection_rate
+    params.evolution.total_attention_tokens
 
-    QUERY AGENT CONFIGURATION (query_agent.*)
+        Controls evolutionary algorithm behavior.
 
-        query_agent.port
-            Listening port for the Query Agent.
-            The user must ensure this port is available on the server.
 
-        query_agent.container_name
-            Specifies the name of the Docker container running the Query Agent.
+    params.context.context
+    params.context.use_cache
+    params.context.enforce_cache_recreation
+    params.context.initial_rent_rate
+    params.context.initial_spreading_rate_lowerbound
+    params.context.initial_spreading_rate_upperbound
 
-    LINK CREATION AGENT CONFIGURATION (link_creation_agent.*)
+        Controls context management behavior.
 
-        link_creation_agent.port
-            Listening port for the Link Creation Agent.
 
-        link_creation_agent.container_name
-            Specifies the name of the Docker container running the Link Creation Agent.
+ENVIRONMENT (environment)
 
-    EVOLUTION AGENT CONFIGURATION (evolution.*)
-
-        evolution.port
-            Listening port for the Evolution.
-            The user must ensure this port is available on the server.
-
-        evolution.container_name
-            Specifies the name of the Docker container running the Evolution.
-
-    CONTEXT BROKER CONFIGURATION (context_broker.*)
-
-        context_broker.port
-            Listening port for the Context Broker.
-            The user must ensure this port is available on the server.
-
-        context_broker.container_name
-            Specifies the name of the Docker container running the Context Broker.
+    environment.jupyter.endpoint
+        Endpoint where Jupyter Notebook server is exposed.
 
 
 EXAMPLES
 
     Set all configuration options interactively:
+
         $ das-cli config set
 
+    Set a configuration option non-interactively:
+
+        $ das-cli config set --file={path-to-your-config-file} atomdb.mongodb.endpoint="localhost:40040"
 
 """
 
-SHORT_HELP_CONFIG_SET = "Interactively set DAS CLI configuration parameters."
+SHORT_HELP_CONFIG_SET = "Interactively or non-interactively set DAS CLI configuration parameters."
 
 HELP_CONFIG_LIST = """Display all current configuration values used by the DAS CLI.
 
