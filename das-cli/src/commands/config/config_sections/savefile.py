@@ -20,6 +20,4 @@ def savefile_path_section() -> tuple[str, bool]:
             "This file already exists, would you like to reset/overwrite it's existing values?"
         )
 
-    print(reset_file)
-
     return (save_path, reset_file)
