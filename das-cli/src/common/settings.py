@@ -47,6 +47,9 @@ class Settings:
     def set_path(self, new_file_path):
         self._store.set_path(new_file_path)
 
+    def save_path(self):
+        self._store.save_path()
+
     def get_dir_path(self):
         return self._store.get_dir_path()
 
