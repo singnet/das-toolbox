@@ -24,6 +24,7 @@ from .config_docs import (
     SHORT_HELP_CONFIG_SET,
 )
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
+from .config_sections.normalize_file import verify_normalize_missing_values
 
 from settings.config import CONFIGFILE_PATH
 
@@ -72,6 +73,14 @@ class ConfigSet(Command):
 
     def _set_file_path(self, save_path) -> None:
         self._settings.set_path(save_path)
+        verify_normalize_missing_values(self._settings, save_path)
+
+        self.stdout(
+            "Formatting file and setting up incorrect/incomplete values.",
+            severity=StdoutSeverity.WARNING
+        )
+
+        self._settings.save_path()
         self.stdout(
             f"Configuration file set to -> {self._settings.get_dir_path()}",
             severity=StdoutSeverity.SUCCESS,
@@ -81,6 +90,7 @@ class ConfigSet(Command):
         self._remote_context_manager.commit()
         self._settings.set_path(save_path)
         self._settings.save()
+        self._settings.save_path()
         self.stdout(
             f"Configuration file saved -> {self._settings.get_dir_path()}",
             severity=StdoutSeverity.SUCCESS,
@@ -89,8 +99,9 @@ class ConfigSet(Command):
     def interactive_mode(self) -> None:
         config_mappings = self._interactive_config_provider.setup_settings()
         save_path = config_mappings.pop("file_path")
+
         self._interactive_config_provider.apply_values_to_settings(config_mappings)
-        self._save(save_path=save_path)
+        self._save(save_path)
 
     def non_interactive_mode(self, config_key_value: tuple, config_path=str) -> None:
         key, value = config_key_value
