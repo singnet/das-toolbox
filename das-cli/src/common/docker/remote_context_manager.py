@@ -78,6 +78,22 @@ class RemoteContextManager:
                 if status_code != 0:
                     raise Exception(f"Context {context_name} could not be removed from docker")
 
+    def _clear_existing_contexts(self) -> None:
+        contexts: bytes = subprocess.check_output(
+            ["docker", "context", "ls", "--format", "{{.Name}}\t{{.Description}}"]
+        )
+
+        lines = contexts.decode().splitlines()
+
+        contexts_list: List[str] = [
+            line.split("\t")[0]
+            for line in lines
+            if "das-cli" in line and not line.startswith("default")
+        ]
+
+        if contexts_list:
+            subprocess.call(["docker", "context", "rm", "-f", *contexts_list])
+
     def remove_servers_context(self, server_contexts: List[str]):
         self._events.append(
             ServerContextEvent({"type": ServerContextAction.REMOVE, "data": server_contexts})

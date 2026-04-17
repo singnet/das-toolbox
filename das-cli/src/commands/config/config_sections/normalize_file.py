@@ -49,6 +49,7 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
     current_user = getpass.getuser()
 
     context_manager = RemoteContextManager()
+    context_manager._clear_existing_contexts()
 
     mongodb = content.get("atomdb", {}).get("mongodb", {})
 
