@@ -7,3 +7,4 @@ build
 bin/
 *.egg-info
 .env/
+.vite/
