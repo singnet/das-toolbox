@@ -20,7 +20,7 @@ export const DEFAULT_JSON = {
             "username": "admin",
             "password": "admin",
             "cluster": false,
-            "cluster_secret_key": "8UDJSgpUCaVOTQG",
+            "cluster_secret_key": "None",
             "nodes": [
                 {
                     "context": "default",
@@ -174,7 +174,7 @@ export const DEFAULT_REDISMONGO_SCHEMA = {
             "username": "admin",
             "password": "admin",
             "cluster": false,
-            "cluster_secret_key": "8UDJSgpUCaVOTQG",
+            "cluster_secret_key": "None",
             "nodes": [
                 {
                     "context": "default",

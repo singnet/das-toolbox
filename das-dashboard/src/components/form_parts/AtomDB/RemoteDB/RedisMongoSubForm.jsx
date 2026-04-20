@@ -34,6 +34,7 @@ export function RedisMongoSubForm({ onChange, category }) {
       <TextField
         label="Redis Port"
         size="small"
+        type="number"
         defaultValue={section.current.redis.endpoint.split(":")[1]}
         onChange={e => {
           section.current.redis.endpoint = `localhost:${e.target.value}`
@@ -44,6 +45,7 @@ export function RedisMongoSubForm({ onChange, category }) {
       <TextField
         label="Mongo Port"
         size="small"
+        type="number"
         defaultValue={section.current.mongodb.endpoint.split(":")[1]}
         onChange={e => {
           section.current.mongodb.endpoint = `localhost:${e.target.value}`

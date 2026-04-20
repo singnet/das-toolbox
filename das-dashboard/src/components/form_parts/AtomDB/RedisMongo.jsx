@@ -77,7 +77,7 @@ export function RedisMongoOptions() {
       />
 
       <FormControlLabel
-        label="Mongo Cluster - (Won't work on das-cli currently)"
+        label="Mongo Cluster"
         control={
           <Checkbox
             defaultChecked={section.current.mongodb.cluster}
@@ -90,7 +90,7 @@ export function RedisMongoOptions() {
       />
 
       <FormControlLabel
-        label="Redis Cluster - (Won't work on das-cli currently)"
+        label="Redis Cluster"
         control={
           <Checkbox
             defaultChecked={section.current.redis.cluster}

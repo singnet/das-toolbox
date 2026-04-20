@@ -32,6 +32,7 @@ export function MorkMongoSubForm({ onChange, category }) {
       <TextField
         label="MorkDB Port"
         size="small"
+        type="number"
         defaultValue={section.current.morkdb.endpoint.split(":")[1]}
         onChange={e => {
           section.current.morkdb.endpoint = `localhost:${e.target.value}`
@@ -42,6 +43,7 @@ export function MorkMongoSubForm({ onChange, category }) {
       <TextField
         label="Mongo Port"
         size="small"
+        type="number"
         defaultValue={section.current.mongodb.endpoint.split(":")[1]}
         onChange={e => {
           section.current.mongodb.endpoint = `localhost:${e.target.value}`

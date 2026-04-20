@@ -52,6 +52,7 @@ export function BrokersForm() {
       <TextField
         label={`${title} Port`}
         fullWidth
+        type="number"
         defaultValue={getPort(section.current[name].endpoint)}
         onChange={e => updateEndpoint(name, e.target.value)}
       />
@@ -67,6 +68,7 @@ export function BrokersForm() {
           <TextField
             label="Port range start"
             fullWidth
+            type="number"
             defaultValue={getStart(section.current[name].ports_range)}
             onChange={e => updateRangeStart(name, e.target.value)}
           />
@@ -74,6 +76,7 @@ export function BrokersForm() {
           <TextField
             label="Port range end"
             fullWidth
+            type="number"
             defaultValue={getEnd(section.current[name].ports_range)}
             onChange={e => updateRangeEnd(name, e.target.value)}
           />
