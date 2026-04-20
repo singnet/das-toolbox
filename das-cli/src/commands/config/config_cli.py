@@ -13,7 +13,6 @@ from common import (
     StdoutSeverity,
     StdoutType,
 )
-from common.config.loader import CompositeLoader, EnvFileLoader, EnvVarLoader
 from common.prompt_types import AbsolutePath
 
 from .config_docs import (
@@ -26,6 +25,7 @@ from .config_docs import (
 )
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 
+from settings.config import CONFIGFILE_PATH
 
 class ConfigSet(Command):
     name = "set"
@@ -36,8 +36,8 @@ class ConfigSet(Command):
 
     params = [
         CommandOption(
-            ["--from-env"],
-            help="Path to an environment file to load initial configuration values from to be suggested as the default value in the interactive prompts.",
+            ["--file"],
+            help="Path to an already existing das config file",
             required=False,
             type=AbsolutePath(
                 file_okay=True,
@@ -66,34 +66,33 @@ class ConfigSet(Command):
         super().__init__()
 
         self._settings = settings
-        self._settings.enable_overwrite_mode()
         self._remote_context_manager = remote_context_manager
         self._non_interactive_config_provider = non_interactive_config_provider
         self._interactive_config_provider = interactive_config_provider
 
-    def _save(self) -> None:
+    def _set_file_path(self, save_path) -> None:
+        self._settings.set_path(save_path)
+        self.stdout(
+            f"Configuration file set to -> {self._settings.get_dir_path()}",
+            severity=StdoutSeverity.SUCCESS,
+        )
+
+    def _save(self, save_path: str) -> None:
         self._remote_context_manager.commit()
+        self._settings.set_path(save_path)
         self._settings.save()
         self.stdout(
             f"Configuration file saved -> {self._settings.get_dir_path()}",
             severity=StdoutSeverity.SUCCESS,
         )
 
-    def interactive_mode(self, from_env: Optional[str]) -> None:
-        self._settings.replace_loader(
-            loader=CompositeLoader(
-                [
-                    EnvFileLoader(from_env),
-                    EnvVarLoader(),
-                ]
-            )
-        )
-
+    def interactive_mode(self) -> None:
         config_mappings = self._interactive_config_provider.setup_settings()
+        save_path = config_mappings.pop("file_path")
         self._interactive_config_provider.apply_values_to_settings(config_mappings)
-        self._save()
+        self._save(save_path=save_path)
 
-    def non_interactive_mode(self, config_key_value: tuple) -> None:
+    def non_interactive_mode(self, config_key_value: tuple, config_path=str) -> None:
         key, value = config_key_value
 
         self._non_interactive_config_provider.raise_property_invalid(key)
@@ -103,17 +102,22 @@ class ConfigSet(Command):
         self._non_interactive_config_provider.apply_values_to_settings(config_mappings)
         self._settings.set(key, value)
 
-        self._save()
+        self._save(config_path)
 
     def run(
         self,
-        from_env: Optional[str] = None,
+        file: Optional[str] = None,
         config_key_value: Optional[tuple] = None,
     ):
-        if config_key_value:
-            return self.non_interactive_mode(config_key_value)
 
-        return self.interactive_mode(from_env=from_env)
+        if config_key_value is not None:
+            return self.non_interactive_mode(config_key_value, CONFIGFILE_PATH)
+
+        elif file is not None:
+            return self._set_file_path(file)
+
+        else:
+            return self.interactive_mode()
 
 
 class ConfigList(Command):

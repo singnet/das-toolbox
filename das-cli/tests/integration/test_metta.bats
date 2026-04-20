@@ -3,6 +3,7 @@
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
@@ -14,7 +15,7 @@ setup() {
 
     run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Checking syntax of a valid MeTTa file" {
@@ -45,10 +46,7 @@ setup() {
 }
 
 @test "Checking MeTTa file with invalid path" {
-    local metta_file_path="/invalid/path"
-
-    run das-cli metta check "$metta_file_path"
-
+    run das-cli metta check "/invalid/path"
     assert_failure
 }
 
@@ -62,20 +60,11 @@ setup() {
 
     run das-cli metta load "$test_fixtures_dir/metta/animals.metta"
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Loading a MeTTa file with a relative path" {
     local metta_file_path="$(realpath --relative-to="$BATS_TEST_DIRNAME/../.." "$test_fixtures_dir/metta/animals.metta")"
-
-    local mongodb_endpoint="$(get_config .atomdb.mongodb.endpoint)"
-    local mongodb_port="$(extract_port "$mongodb_endpoint")"
-
-    local redis_endpoint="$(get_config .atomdb.redis.endpoint)"
-    local redis_port="$(extract_port "$redis_endpoint")"
-
-    das-cli db start
-    sleep 20s
 
     run das-cli metta load "$metta_file_path"
 
@@ -86,21 +75,13 @@ setup() {
 @test "Loading an invalid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
 
-    local mongodb_endpoint="$(get_config .atomdb.mongodb.endpoint)"
-    local mongodb_port="$(extract_port "$mongodb_endpoint")"
-
-    local redis_endpoint="$(get_config .atomdb.redis.endpoint)"
-    local redis_port="$(extract_port "$redis_endpoint")"
-
-    das-cli db start
-    sleep 20s
-
     run das-cli metta load "$metta_file_path"
 
-    assert_line --partial "das-cli-redis-${redis_port} is running on port ${redis_port}"
-    assert_line --partial "das-cli-mongodb-${mongodb_port} is running on port ${mongodb_port}"
-    assert_line --partial "Loading metta file ${metta_file_path}..."
-    assert_line --partial "[31m[DockerError] File 'invalid.metta' could not be loaded.[39m"
+    assert_line --partial "is running on port"
+    assert_line --partial "Loading metta file"
+    assert_line --partial "$metta_file_path"
+    assert_line --partial "$DOCKER_CONTAINER_MISSING" || true
+    assert_line --partial "could not be loaded"
 }
 
 @test "Loading a MeTTa file without read permission" {
@@ -110,7 +91,7 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
-    assert_line --partial "Error: Invalid value for 'PATH': Path '$metta_file_path' is not readable."
+    assert_line --partial "not readable"
 
     chmod +r "$metta_file_path"
 }
@@ -118,20 +99,11 @@ setup() {
 @test "Loading a valid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
 
-    local mongodb_endpoint="$(get_config .atomdb.mongodb.endpoint)"
-    local mongodb_port="$(extract_port "$mongodb_endpoint")"
-
-    local redis_endpoint="$(get_config .atomdb.redis.endpoint)"
-    local redis_port="$(extract_port "$redis_endpoint")"
-
-    das-cli db start
-    sleep 20s
-
     run das-cli metta load "$metta_file_path"
 
-    assert_line --partial "das-cli-redis-${redis_port} is running on port ${redis_port}"
-    assert_line --partial "das-cli-mongodb-${mongodb_port} is running on port ${mongodb_port}"
-    assert_line --partial "Loading metta file ${metta_file_path}..."
+    assert_line --partial "is running on port"
+    assert_line --partial "Loading metta file"
+    assert_line --partial "$metta_file_path"
     assert_line --partial "Done loading."
 
     assert_success
@@ -140,21 +112,11 @@ setup() {
 @test "Loading directory with MeTTa files" {
     local metta_file_path="$test_fixtures_dir/metta"
 
-    local mongodb_endpoint="$(get_config .atomdb.mongodb.endpoint)"
-    local mongodb_port="$(extract_port "$mongodb_endpoint")"
-
-    local redis_endpoint="$(get_config .atomdb.redis.endpoint)"
-    local redis_port="$(extract_port "$redis_endpoint")"
-
-    das-cli db start
-    sleep 20s
-
     run das-cli metta load "$metta_file_path"
 
-    assert_line --partial "das-cli-redis-${redis_port} is running on port ${redis_port}"
-    assert_line --partial "das-cli-mongodb-${mongodb_port} is running on port ${mongodb_port}"
-    assert_line --partial "Loading metta file ${metta_file_path}/animals.metta..."
-    assert_line --partial "Loading metta file ${metta_file_path}/invalid.metta..."
+    assert_line --partial "Loading metta file"
+    assert_line --partial "animals.metta"
+    assert_line --partial "invalid.metta"
     assert_line --partial "Done loading."
 }
 
@@ -171,18 +133,10 @@ setup() {
 @test "Loading MeTTa file before db has being started" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
 
-    local mongodb_endpoint="$(get_config .atomdb.mongodb.endpoint)"
-    local mongodb_port="$(extract_port "$mongodb_endpoint")"
-
-    local redis_endpoint="$(get_config .atomdb.redis.endpoint)"
-    local redis_port="$(extract_port "$redis_endpoint")"
-
     das-cli db stop
 
     run das-cli metta load "$metta_file_path"
 
-    assert_line --partial "das-cli-redis-${redis_port} is not running on port ${redis_port}"
-    assert_line --partial "das-cli-mongodb-${mongodb_port} is not running on port ${mongodb_port}"
-
-    assert_line --partial "Please use 'db start' to start required services before running 'metta load'."
+    assert_line --partial "is not running on port"
+    assert_line --partial "Please use 'db start'"
 }

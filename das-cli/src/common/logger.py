@@ -3,8 +3,7 @@ import logging
 from settings.config import LOG_FILE_NAME
 
 
-class LoggerError(Exception):
-    ...  # noqa: E701
+class LoggerError(Exception): ...  # noqa: E701
 
 
 class Logger:

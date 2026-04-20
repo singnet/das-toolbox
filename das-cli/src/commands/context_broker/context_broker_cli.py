@@ -138,7 +138,7 @@ class ContextBrokerStart(Command):
 
         container = self._get_container()
         context_broker_port = container.port
-        
+
         try:
             self._context_broker_bus_node_manager.start_container(port_range, **kwargs)
 

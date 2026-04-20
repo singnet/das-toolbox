@@ -3,12 +3,10 @@ import subprocess
 from typing import Union
 
 
-class DasPackageUpdateError(Exception):
-    ...  # noqa: E701
+class DasPackageUpdateError(Exception): ...  # noqa: E701
 
 
-class DasNotFoundError(DasPackageUpdateError):
-    ...  # noqa: E701
+class DasNotFoundError(DasPackageUpdateError): ...  # noqa: E701
 
 
 class DasUbuntuAdvancedPackagingTool:

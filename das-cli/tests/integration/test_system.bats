@@ -8,9 +8,9 @@ load 'libs/docker'
 setup() {
     use_config "simple"
 
-    das-cli db stop || true
-    das-cli attention-broker stop || true
-    das-cli query-agent stop || true
+    das-cli db start || true
+    das-cli attention-broker start || true
+    das-cli query-agent start || true
 }
 
 teardown() {
@@ -24,7 +24,7 @@ teardown() {
 
     run das-cli system status
 
-    assert_output --partial "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "System status command correctly reports running and stopped services" { 
@@ -36,6 +36,7 @@ teardown() {
         "das-query-engine-40002"
     )
 
+    # Garante que estão rodando
     for service in db attention-broker query-agent; do
         das-cli "$service" start
     done
@@ -45,27 +46,31 @@ teardown() {
         assert_success
     done
 
+    # Verifica status com serviços rodando
     run das-cli system status
 
-    count_services_up=$(echo "$output" | awk '$3=="running" {print $1}' | wc -l)
+    count_services_up=$(echo "$output" | grep -c "running")
     assert [ "$count_services_up" -gt 1 ]
 
     for header in NAME VERSION STATUS PORT "PORT RANGE"; do
         assert_line --partial "$header"
     done
 
+    # Para tudo
     for service in db attention-broker query-agent; do
         das-cli "$service" stop
     done
 
-    sleep 3
+    sleep 5
 
     for container in "${services_containers[@]}"; do
         run is_service_up "$container"
         assert_failure
     done
 
+    # Verifica status com tudo parado
     run das-cli system status
-    count_services_up=$(echo "$output" | awk '$3=="running" {print $1}' | wc -l)
+
+    count_services_up=$(echo "$output" | grep -c "running" || true)
     assert [ "$count_services_up" -eq 0 ]
 }

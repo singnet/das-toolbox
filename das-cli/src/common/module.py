@@ -2,6 +2,7 @@ from typing import Any, List
 
 from injector import Binder
 from injector import Module as InjectorModule
+from injector import singleton
 
 
 class Module(InjectorModule):
@@ -12,11 +13,8 @@ class Module(InjectorModule):
         super().__init__()
 
     def configure(self, binder: Binder) -> None:
-        for module in self._dependency_list:
-            binder.bind(
-                interface=module[0],
-                to=module[1],
-            )
+        for dep, provider in self._dependency_list:
+            binder.bind(interface=dep, to=provider, scope=singleton)
 
     def get_instance(self):
         return self._instance

@@ -96,8 +96,8 @@ class MongodbContainerManager(ContainerManager):
                 "MaximumRetryCount": 5,
             },
             environment={
-                "MONGO_INITDB_ROOT_USERNAME": username,
-                "MONGO_INITDB_ROOT_PASSWORD": password,
+                "MONGODB_INITDB_ROOT_USERNAME": username,
+                "MONGODB_INITDB_ROOT_PASSWORD": password,
             },
             healthcheck={
                 "Test": ["CMD-SHELL", f"mongosh --port {port} --eval 'db.adminCommand(\"ping\")'"],
@@ -164,9 +164,7 @@ class MongodbContainerManager(ContainerManager):
                 stats[name] = db.getCollection(name).estimatedDocumentCount();
             });
             JSON.stringify(stats);
-        """.strip().replace(
-            "\n", " "
-        )
+        """.strip().replace("\n", " ")
 
         command = (
             f'bash -c "mongosh --port {mongodb_port} -u {mongodb_username} -p {mongodb_password} '

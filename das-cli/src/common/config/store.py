@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 from common.utils import deep_merge_dicts
+from settings.config import CONFIGFILE_PATH
 
 
 class ConfigStore(ABC):
@@ -65,14 +66,20 @@ class ConfigStore(ABC):
         pass
 
     @abstractmethod
+    def set_path(self, new_file_path) -> None:
+        """Set the new configuration file path or identifier."""
+        pass
+
+    @abstractmethod
     def get_dir_path(self) -> str:
         """Get the directory path where the configuration is stored."""
         pass
 
 
 class JsonConfigStore(ConfigStore):
-    def __init__(self, file_path: str):
-        self._file_path = file_path
+    def __init__(self, env_file_path: str):
+        self._file_path = CONFIGFILE_PATH
+        self._env_file_path = env_file_path
         self._content: Dict[str, Any] = {}
         self._new_content: Dict[str, Any] = {}
         self._overwrite_mode = False
@@ -85,7 +92,12 @@ class JsonConfigStore(ConfigStore):
         self._new_content = content
 
     def get_path(self) -> str:
-        return self._file_path
+        return self._env_file_path
+
+    def set_path(self, new_file_path) -> None:
+        self._file_path = new_file_path
+        env_file = open(self._env_file_path, "w")
+        env_file.write(f"configpath={self._file_path}\n")
 
     def get_dir_path(self) -> str:
         return os.path.dirname(self._file_path)
@@ -99,11 +111,12 @@ class JsonConfigStore(ConfigStore):
                 self._content = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self._content = {}
+
         return self
 
     def enable_overwrite_mode(self):
         self._overwrite_mode = True
-        self._new_content = {}
+        self._content = {}
         return self
 
     def get(self, key: str, default: Any = None):
@@ -124,6 +137,10 @@ class JsonConfigStore(ConfigStore):
         return self
 
     def save(self):
+
+        if not self._file_path:
+            raise RuntimeError("Config path not defined")
+
         os.makedirs(os.path.dirname(self._file_path), exist_ok=True)
 
         if self._overwrite_mode:

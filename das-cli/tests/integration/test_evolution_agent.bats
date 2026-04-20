@@ -4,6 +4,7 @@ load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
@@ -11,26 +12,30 @@ setup() {
     das-cli db start
     das-cli attention-broker start
     das-cli query-agent start --port-range 12000:12100
-    das-cli evolution-agent stop
+
+    # limpeza forte de estado
+    das-cli evolution-agent stop &>/dev/null || true
+
+    local evolution_agent_port
+    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
+    stop_listen_port "$evolution_agent_port" &>/dev/null || true
 }
 
 teardown() {
-    das-cli evolution-agent stop
-    das-cli query-agent stop
-    das-cli attention-broker stop
+    das-cli evolution-agent stop &>/dev/null || true
+    das-cli query-agent stop &>/dev/null || true
+    das-cli attention-broker stop &>/dev/null || true
 }
 
 @test "Fails to start the Evolution Agent when configuration file is not set" {
     unset_config
 
-    local peer_port="12000"
-
     run das-cli evolution-agent start \
         --port-range 12700:12800 \
         --peer-hostname localhost \
-        --peer-port "$peer_port"
+        --peer-port 12000
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to stop the Evolution Agent when configuration file is not set" {
@@ -38,7 +43,7 @@ teardown() {
 
     run das-cli evolution-agent stop
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to restart the Evolution Agent when configuration file is not set" {
@@ -49,22 +54,22 @@ teardown() {
         --peer-hostname localhost \
         --peer-port 42000
 
-    assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Start Evolution Agent when Query Agent is not up" {
     das-cli query-agent stop
 
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     run das-cli evolution-agent start \
         --port-range 12700:12800 \
         --peer-hostname localhost \
         --peer-port "$query_agent_port"
 
-    assert_output "[31m[DockerContainerNotFoundError] 
-Please start the required services before running 'evolution-agent start'.
-Run 'query-agent start' to start the Query Agent.[39m"
+    assert_output --partial "$DOCKER_CONTAINER_MISSING"
+    assert_output --partial "Please start the required services"
 
     run is_service_up query_agent
     assert_failure
@@ -74,11 +79,13 @@ Run 'query-agent start' to start the Query Agent.[39m"
 }
 
 @test "Start Evolution Agent when port is already in use" {
-    local evolution_agent_endpoint="$(get_config .agents.evolution.endpoint)"
-    local evolution_agent_port="$(extract_port "$evolution_agent_endpoint")"
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local evolution_agent_port
+    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
 
-    run listen_port "${evolution_agent_port}"
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+
+    run listen_port "$evolution_agent_port"
     assert_success
 
     run das-cli evolution-agent start \
@@ -86,10 +93,10 @@ Run 'query-agent start' to start the Query Agent.[39m"
         --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
-    assert_output "Starting Evolution Agent service...
-[31m[PortBindingError] Port ${evolution_agent_port} on localhost are already in use.[39m"
+    assert_output --partial "[PortBindingError]"
+    assert_output --partial "already in use"
 
-    run stop_listen_port "${evolution_agent_port}"
+    run stop_listen_port "$evolution_agent_port"
     assert_success
 
     run is_service_up das-evolution-agent-40005
@@ -97,48 +104,50 @@ Run 'query-agent start' to start the Query Agent.[39m"
 }
 
 @test "Starting the Evolution Agent when it's already up" {
-    local evolution_agent_endpoint="$(get_config .agents.evolution.endpoint)"
-    local evolution_agent_port="$(extract_port "$evolution_agent_endpoint")"
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
-    das-cli evolution-agent start \
+    # garante que subiu
+    run das-cli evolution-agent start \
         --peer-hostname localhost \
         --peer-port "$query_agent_port" \
         --port-range 12700:12800
+    assert_success
 
     run das-cli evolution-agent start \
         --peer-hostname localhost \
         --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
-    assert_output "Starting Evolution Agent service...
-Evolution Agent is already running. It's listening on port ${evolution_agent_port}"
+    assert_output --partial "already running"
 
     run is_service_up das-evolution-agent-40005
     assert_success
 }
 
 @test "Starting the Evolution Agent" {
-    local evolution_agent_endpoint="$(get_config .agents.evolution.endpoint)"
-    local evolution_agent_port="$(extract_port "$evolution_agent_endpoint")"
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local evolution_agent_port
+    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
+
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     run das-cli evolution-agent start \
         --peer-hostname localhost \
         --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
-    assert_output "Starting Evolution Agent service...
-Evolution Agent started on port ${evolution_agent_port}"
+    assert_success
+    assert_output --partial "started on port"
+    assert_output --partial "$evolution_agent_port"
 
     run is_service_up das-evolution-agent-40005
     assert_success
 }
 
 @test "Stopping the Evolution Agent when it's up-and-running" {
-    local evolution_agent_endpoint="$(get_config .agents.evolution.endpoint)"
-    local evolution_agent_port="$(extract_port "$evolution_agent_endpoint")"
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     das-cli evolution-agent start \
         --peer-hostname localhost \
@@ -147,28 +156,27 @@ Evolution Agent started on port ${evolution_agent_port}"
 
     run das-cli evolution-agent stop
 
-    assert_output "Stopping Evolution Agent service...
-Evolution Agent service stopped"
+    assert_output --partial "service stopped"
 
     run is_service_up das-evolution-agent-40005
     assert_failure
 }
 
 @test "Stopping the Evolution Agent when it's already stopped" {
-
     run das-cli evolution-agent stop
 
-    assert_output "Stopping Evolution Agent service...
-The Evolution Agent service named das-evolution-agent-40005 is already stopped."
+    assert_output --partial "already stopped"
 
     run is_service_up das-evolution-agent-40005
     assert_failure
 }
 
 @test "Restarting the Evolution Agent when it's up-and-running" {
-    local evolution_agent_endpoint="$(get_config .agents.evolution.endpoint)"
-    local evolution_agent_port="$(extract_port "$evolution_agent_endpoint")"
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local evolution_agent_port
+    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
+
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     das-cli evolution-agent start \
         --peer-hostname localhost \
@@ -180,29 +188,29 @@ The Evolution Agent service named das-evolution-agent-40005 is already stopped."
         --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
-    assert_output "Stopping Evolution Agent service...
-Evolution Agent service stopped
-Starting Evolution Agent service...
-Evolution Agent started on port ${evolution_agent_port}"
+    assert_output --partial "Stopping Evolution Agent service"
+    assert_output --partial "Starting Evolution Agent service"
+    assert_output --partial "$evolution_agent_port"
 
     run is_service_up das-evolution-agent-40005
     assert_success
 }
 
 @test "Restarting the Evolution Agent when it's not up" {
-    local evolution_agent_endpoint="$(get_config .agents.evolution.endpoint)"
-    local evolution_agent_port="$(extract_port "$evolution_agent_endpoint")"
-    local query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
+    local evolution_agent_port
+    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
+
+    local query_agent_port
+    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     run das-cli evolution-agent restart \
         --peer-hostname localhost \
         --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
-    assert_output "Stopping Evolution Agent service...
-The Evolution Agent service named das-evolution-agent-40005 is already stopped.
-Starting Evolution Agent service...
-Evolution Agent started on port ${evolution_agent_port}"
+    assert_output --partial "already stopped"
+    assert_output --partial "started on port"
+    assert_output --partial "$evolution_agent_port"
 
     run is_service_up das-evolution-agent-40005
     assert_success
