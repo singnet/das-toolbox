@@ -7,4 +7,4 @@ build
 bin/
 *.egg-info
 .env/
-das-dashboard/
+.vite/
