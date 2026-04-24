@@ -10,8 +10,8 @@ import {
 import { useState, useRef } from "react"
 import { RedisMongoSubForm } from "./RedisMongoSubForm"
 import { MorkMongoSubForm } from "./MorkMongoSubForm"
-import { useConfig } from "../../../global_components/ConfigurationProvider"
-import { useToast } from "../../../global_components/ToastProvider"
+import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { useToast } from "../../../global_providers/ToastProvider"
 
 export function RemoteDBOptions() {
 

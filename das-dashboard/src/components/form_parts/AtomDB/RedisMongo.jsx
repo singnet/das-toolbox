@@ -1,8 +1,8 @@
 import { TextField, FormControlLabel, Checkbox, Button } from "@mui/material"
 import { useState, useRef } from "react"
 import { ClusterForm } from "./ClusterForm"
-import { useConfig } from "../../global_components/ConfigurationProvider"
-import { useToast } from "../../global_components/ToastProvider"
+import { useConfig } from "../../global_providers/ConfigurationProvider"
+import { useToast } from "../../global_providers/ToastProvider"
 
 export function RedisMongoOptions() {
 

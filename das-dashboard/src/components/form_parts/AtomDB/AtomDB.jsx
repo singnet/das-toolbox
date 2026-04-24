@@ -4,7 +4,7 @@ import { MorkMongoOptions } from "./MorkMongo"
 import { useState } from "react"
 import { InMemoryOptions } from "./InMemory"
 import { RemoteDBOptions } from "./RemoteDB/RemoteDB"
-import { useConfig } from "../../global_components/ConfigurationProvider"
+import { useConfig } from "../../global_providers/ConfigurationProvider"
 
 export default function AtomDBForm({ onSectionSave }) {
 
