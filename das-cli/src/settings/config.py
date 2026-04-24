@@ -2,8 +2,8 @@ import getpass
 import tempfile
 from pathlib import Path
 
-from settings.__version__ import VERSION
 from common.config.loader import EnvFileLoader
+from settings.__version__ import VERSION
 
 VERSION = VERSION
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"

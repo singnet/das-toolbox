@@ -70,6 +70,10 @@ class ConfigStore(ABC):
         """Set the new configuration file path or identifier."""
         pass
 
+    def save_path(self) -> None:
+        """Save the new configuration file path of identifier."""
+        pass
+
     @abstractmethod
     def get_dir_path(self) -> str:
         """Get the directory path where the configuration is stored."""
@@ -79,7 +83,7 @@ class ConfigStore(ABC):
 class JsonConfigStore(ConfigStore):
     def __init__(self, env_file_path: str):
         self._file_path = CONFIGFILE_PATH
-        self._env_file_path = env_file_path
+        self._env_path = env_file_path
         self._content: Dict[str, Any] = {}
         self._new_content: Dict[str, Any] = {}
         self._overwrite_mode = False
@@ -92,11 +96,13 @@ class JsonConfigStore(ConfigStore):
         self._new_content = content
 
     def get_path(self) -> str:
-        return self._env_file_path
+        return self._env_path
 
-    def set_path(self, new_file_path) -> None:
+    def set_path(self, new_file_path: str) -> None:
         self._file_path = new_file_path
-        env_file = open(self._env_file_path, "w")
+
+    def save_path(self) -> None:
+        env_file = open(self._env_path, "w")
         env_file.write(f"configpath={self._file_path}\n")
 
     def get_dir_path(self) -> str:
