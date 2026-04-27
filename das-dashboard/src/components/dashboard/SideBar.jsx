@@ -10,12 +10,13 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
-// Icons
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 import LayersIcon from "@mui/icons-material/Layers";
 import WorkIcon from "@mui/icons-material/Work";
+
+import { useDashboardContext } from "../global_providers/DashboardContextProvider";
 
 const SidebarContainer = styled(Box)({
   width: 240,
@@ -59,7 +60,9 @@ const StyledItem = styled(ListItemButton)({
 });
 
 export function SideBar() {
+
   const [selected, setSelected] = useState("overview");
+  const { currentContext, setCurrentContext } = useDashboardContext()
 
   return (
     <SidebarContainer>
@@ -71,7 +74,10 @@ export function SideBar() {
 
         <StyledItem
           selected={selected === "overview"}
-          onClick={() => setSelected("overview")}
+          onClick={() => { 
+            setSelected("overview") 
+            setCurrentContext("overview")
+          }}
         >
           <ListItemIcon>
             <SettingsEthernetIcon fontSize="small" />
@@ -85,7 +91,10 @@ export function SideBar() {
 
         <StyledItem
           selected={selected === "architecture"}
-          onClick={() => setSelected("architecture")}
+          onClick={() => {
+            setSelected("architecture")
+            setCurrentContext("architecture")
+          }}
         >
           <ListItemIcon>
             <AccountTreeIcon fontSize="small" />
