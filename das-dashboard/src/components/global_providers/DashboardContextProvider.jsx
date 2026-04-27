@@ -15,6 +15,8 @@ export default function DashboardContextProvider( { children } ) {
     return (
         <DashboardContext.Provider
         value={{
+            currentContext,
+            setCurrentContext,
             currentMachine,
             setCurrentMachine,
             currentService,

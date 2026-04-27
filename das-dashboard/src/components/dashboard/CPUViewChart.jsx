@@ -1,9 +1,15 @@
 import { LineChart } from "@mui/x-charts";
 
-export function CPUViewChart({ machine }) {
+export function CPUViewChart({ machine, currentService }) {
   if (!machine) return null;
 
-  const series = machine.metrics.agents.map((agent) => ({
+  const filteredAgents = currentService
+    ? machine.metrics.agents.filter(
+        (agent) => agent.name === currentService
+      )
+    : machine.metrics.agents;
+
+  const series = filteredAgents.map((agent) => ({
     data: agent.cpu,
     label: agent.name,
     curve: "monotoneX",

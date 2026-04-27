@@ -1,10 +1,15 @@
 import { LineChart } from "@mui/x-charts";
 
-
-export function MemoryViewChart({ machine }) {
+export function MemoryViewChart({ machine, currentService }) {
   if (!machine) return null;
 
-  const series = machine.metrics.agents.map((agent) => ({
+  const filteredAgents = currentService
+    ? machine.metrics.agents.filter(
+        (agent) => agent.name === currentService
+      )
+    : machine.metrics.agents;
+
+  const series = filteredAgents.map((agent) => ({
     data: agent.memory,
     label: agent.name,
     curve: "monotoneX",
@@ -21,9 +26,9 @@ export function MemoryViewChart({ machine }) {
       ]}
       yAxis={[
         {
-            label: "Memory (MB)"
-        }
-        ]}
+          label: "Memory (MB)",
+        },
+      ]}
       series={series}
       height={250}
       grid={{ horizontal: true }}

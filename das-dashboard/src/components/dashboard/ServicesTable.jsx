@@ -9,12 +9,14 @@ import {
   IconButton,
   Box,
   Chip,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+
+import { useDashboardContext } from "../global_providers/DashboardContextProvider";
 
 const TableContainer = styled(Paper)({
   border: "1px solid #ccc",
@@ -35,6 +37,9 @@ const BodyCell = styled(TableCell)({
 });
 
 const StyledRow = styled(TableRow)({
+  cursor: "pointer",
+  transition: "0.2s ease",
+
   "&:hover": {
     backgroundColor: "#f9f9f9",
   },
@@ -51,18 +56,25 @@ const ActionButton = styled(IconButton)({
 });
 
 export function AgentTable({ machine }) {
+  const { currentService, setCurrentService } = useDashboardContext();
+
   if (!machine) return null;
 
   const getStatusColor = (status) =>
     status === "Running" ? "success" : "error";
 
+  const handleSelect = (agentName) => {
+    setCurrentService((current) =>
+      current === agentName ? null : agentName
+    );
+  };
+
   return (
     <TableContainer elevation={1}>
       <Table>
-
         <TableHead>
           <TableRow>
-            <HeaderCell>Agent Name</HeaderCell>
+            <HeaderCell>Container Name</HeaderCell>
             <HeaderCell>Port</HeaderCell>
             <HeaderCell>Status</HeaderCell>
             <HeaderCell>Age</HeaderCell>
@@ -75,59 +87,81 @@ export function AgentTable({ machine }) {
         <TableBody>
           {machine.agents.length === 0 ? (
             <TableRow>
-              <BodyCell colSpan={6} align="center">
+              <BodyCell colSpan={7} align="center">
                 No agents running
               </BodyCell>
             </TableRow>
           ) : (
+            machine.agents.map((agent) => {
+              const selected = currentService === agent.name;
 
-            machine.agents.map((agent) => (
-              <StyledRow key={agent.name}>
+              return (
+                <StyledRow
+                  key={agent.name}
+                  onClick={() => handleSelect(agent.name)}
+                  sx={{
+                    backgroundColor: selected
+                      ? "#f9fcd1"
+                      : "inherit",
 
-                <BodyCell>{agent.name}</BodyCell>
-                <BodyCell>{agent.port}</BodyCell>
+                    "&:hover": {
+                      backgroundColor: selected
+                        ? "#e5ebf1"
+                        : "#f9f9f9",
+                    },
+                  }}
+                >
+                  <BodyCell>{agent.name}</BodyCell>
+                  <BodyCell>{agent.port}</BodyCell>
 
-                <BodyCell>
-                  <Chip
-                    label={agent.status}
-                    color={getStatusColor(agent.status)}
-                    size="medium"
-                  />
-                </BodyCell>
+                  <BodyCell>
+                    <Chip
+                      label={agent.status}
+                      color={getStatusColor(agent.status)}
+                      size="medium"
+                    />
+                  </BodyCell>
 
-                <BodyCell>{agent.age}</BodyCell>
-                <BodyCell>{agent.cpu}</BodyCell>
-                <BodyCell>{agent.memory}</BodyCell>
+                  <BodyCell>{agent.age}</BodyCell>
+                  <BodyCell>{agent.cpu}</BodyCell>
+                  <BodyCell>{agent.memory}</BodyCell>
 
-                <BodyCell align="right">
-                  <ActionsBox>
+                  <BodyCell align="right">
+                    <ActionsBox>
+                      
+                      <Tooltip title="Start">
+                        <ActionButton
+                          color="success"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <PlayCircleIcon />
+                        </ActionButton>
+                      </Tooltip>
 
-                    <Tooltip title="Start">
-                      <ActionButton color="success">
-                        <PlayCircleIcon />
-                      </ActionButton>
-                    </Tooltip>
+                      <Tooltip title="Stop">
+                        <ActionButton
+                          color="error"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <StopCircleIcon />
+                        </ActionButton>
+                      </Tooltip>
 
-                    <Tooltip title="Stop">
-                      <ActionButton color="error">
-                        <StopCircleIcon />
-                      </ActionButton>
-                    </Tooltip>
+                      <Tooltip title="Restart">
+                        <ActionButton
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <RestartAltIcon />
+                        </ActionButton>
+                      </Tooltip>
 
-                    <Tooltip title="Restart">
-                      <ActionButton>
-                        <RestartAltIcon />
-                      </ActionButton>
-                    </Tooltip>
-
-                  </ActionsBox>
-                </BodyCell>
-
-              </StyledRow>
-            ))
+                    </ActionsBox>
+                  </BodyCell>
+                </StyledRow>
+              );
+            })
           )}
         </TableBody>
-
       </Table>
     </TableContainer>
   );
