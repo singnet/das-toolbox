@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 
 import { CPUViewChart } from "./CPUViewChart";
 import { MemoryViewChart } from "./MemoryViewChart";
-import { AgentTable } from "./ServicesTable";
+import { AgentTable } from "./servicestable/ServicesTable";
 
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 

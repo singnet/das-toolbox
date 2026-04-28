@@ -33,35 +33,77 @@ export const mockMachines = [
     agents: [
       {
         name: "das-attention-broker-40001",
+        image: "attention-broker:latest",
         port: 40001,
         status: "Running",
+        health: "Healthy",
         age: "2h",
         memory: "1200MB",
-        cpu: "45%"
+        cpu: "45%",
       },
       {
         name: "das-query-engine-40002",
+        image: "query-engine:latest",
         port: 40002,
         status: "Running",
+        health: "Healthy",
         age: "5h",
         memory: "800MB",
-        cpu: "30%"
+        cpu: "30%",
       },
       {
         name: "das-cli-mongodb-40020",
+        image: "mongo:7",
         port: 40020,
         status: "Running",
+        health: "Healthy",
         age: "1d",
         memory: "2048MB",
-        cpu: "13%"
+        cpu: "13%",
+        clusterNodes: [
+          {
+            context: "primary",
+            ip: "192.168.120.10",
+            username: "mongo-admin",
+          },
+          {
+            context: "secondary",
+            ip: "192.168.120.11",
+            username: "mongo-replica",
+          },
+          {
+            context: "secondary",
+            ip: "192.168.120.12",
+            username: "mongo-replica",
+          },
+        ],
       },
       {
         name: "das-cli-redis-40021",
+        image: "redis:7",
         port: 40021,
         status: "Running",
+        health: "Healthy",
         age: "1d",
         memory: "80MB",
-        cpu: "7%"
+        cpu: "7%",
+        clusterNodes: [
+          {
+            context: "master",
+            ip: "192.168.120.20",
+            username: "redis-admin",
+          },
+          {
+            context: "replica",
+            ip: "192.168.120.21",
+            username: "redis-replica",
+          },
+          {
+            context: "replica",
+            ip: "192.168.120.22",
+            username: "redis-replica",
+          },
+        ],
       },
     ],
   },
@@ -90,19 +132,23 @@ export const mockMachines = [
     agents: [
       {
         name: "das-context-broker-40004",
+        image: "context-broker:latest",
         port: 40004,
         status: "Running",
+        health: "Healthy",
         age: "1d",
         memory: "200MB",
-        cpu: "20%"
+        cpu: "20%",
       },
       {
         name: "das-link-creation-agent-40007",
+        image: "link-agent:latest",
         port: 40007,
         status: "Running",
+        health: "Healthy",
         age: "30m",
         memory: "95MB",
-        cpu: "35%"
+        cpu: "35%",
       },
     ],
   },
@@ -112,7 +158,7 @@ export const mockMachines = [
     running: false,
 
     metrics: {
-      timestamps: ["10:00", "10:05", "10:10", "10:15", "10:20", "10:25"],
+      timestamps: [],
       agents: [],
     },
 
