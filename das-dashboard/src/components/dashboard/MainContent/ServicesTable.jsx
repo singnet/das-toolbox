@@ -16,7 +16,7 @@ import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
-import { useDashboardContext } from "../global_providers/DashboardContextProvider";
+import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 
 const TableContainer = styled(Paper)({
   border: "1px solid #ccc",

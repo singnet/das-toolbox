@@ -5,7 +5,7 @@ import { CPUViewChart } from "./CPUViewChart";
 import { MemoryViewChart } from "./MemoryViewChart";
 import { AgentTable } from "./ServicesTable";
 
-import { useDashboardContext } from "../global_providers/DashboardContextProvider";
+import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 
 const MainBoxGrid = styled(Box)({
   display: "grid",

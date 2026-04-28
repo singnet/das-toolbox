@@ -18,8 +18,8 @@ import {
 } from "@mui/icons-material";
 
 import { useState } from "react";
-import { useDashboardContext } from "../global_providers/DashboardContextProvider";
-import { mockMachines } from "../../pages/dashboard/dashboard_mock_data";
+import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { mockMachines } from "../../../pages/dashboard/dashboard_mock_data";
 
 const MAX_VISIBLE_TABS = 5;
 

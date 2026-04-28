@@ -16,7 +16,7 @@ import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 import LayersIcon from "@mui/icons-material/Layers";
 import WorkIcon from "@mui/icons-material/Work";
 
-import { useDashboardContext } from "../global_providers/DashboardContextProvider";
+import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 
 const SidebarContainer = styled(Box)({
   width: 240,
