@@ -8,7 +8,10 @@ import {
   ListItemIcon,
   Divider
 } from "@mui/material";
-import { useEffect, useState } from "react";
+
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+
+import { useEffect, useRef, useState } from "react";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
@@ -17,6 +20,7 @@ import LayersIcon from "@mui/icons-material/Layers";
 import WorkIcon from "@mui/icons-material/Work";
 
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import handleLoadConfig from "../../../utils/FileLoader";
 
 const SidebarContainer = styled(Box)({
   width: 240,
@@ -64,6 +68,13 @@ export function SideBar() {
   const [selected, setSelected] = useState("overview");
   const { currentContext, setCurrentContext } = useDashboardContext()
 
+  const fileInputRef = useRef(null);
+
+  const onLoad = (parsedConfig) => {
+    console.log(parsedConfig);
+    // Skip this for now, but should load on the dashboardContext component when everything is implemented.
+  };
+
   return (
     <SidebarContainer>
       <Title variant="h6">DAS</Title>
@@ -101,6 +112,25 @@ export function SideBar() {
           </ListItemIcon>
           <ListItemText primary="Architecture" />
         </StyledItem>
+
+        <Divider sx={{ my: 1 }} />
+
+        <SectionLabel>ACTIONS</SectionLabel>
+
+        <StyledItem onClick={() => fileInputRef.current?.click()}>
+          <ListItemIcon>
+            <FileUploadIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Load Config File" />
+        </StyledItem>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(e) => handleLoadConfig(e, onLoad)}
+        />
 
       </StyledList>
     </SidebarContainer>
