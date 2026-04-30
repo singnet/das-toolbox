@@ -19,6 +19,10 @@ import {
 import { InlineInfo } from "./InlineInfo";
 import { MetricBar } from "./MetricBar";
 
+import { CPUViewChart } from "../MainContent/CPUViewChart";
+import { MemoryViewChart } from "../MainContent/MemoryViewChart";
+import { ServiceChart } from "./ServiceChart";
+
 const EXPECTED_SERVICES = {
   Agents: [
     "das-query-engine-40002",
@@ -42,8 +46,29 @@ const EXPECTED_SERVICES = {
   ],
 };
 
+const SERVICE_LABELS = {
+  "das-query-engine-40002": "Query Agent",
+  "das-link-creation-agent-40007":
+    "Link Creation Agent",
+  "das-inference-agent-40008": "Inference Agent",
+  "das-evolution-agent-40009": "Evolution Agent",
+
+  "das-attention-broker-40001": "Attention Broker",
+  "das-context-broker-40004": "Context Broker",
+  "das-atomdb-broker-40010": "AtomDB Broker",
+
+  "metta-loader": "Metta Loader",
+  "metta-mork-loader": "Metta Mork Loader",
+
+  "das-cli-mongodb-40020": "MongoDB",
+  "das-cli-redis-40021": "Redis",
+  "das-morkdb-40022": "MorkDB",
+};
+
 export default function ArchitectureView() {
   const [tab, setTab] = useState(0);
+  const [selectedService, setSelectedService] =
+    useState(null);
 
   const tabNames = [
     "Agents",
@@ -71,10 +96,22 @@ export default function ArchitectureView() {
           type = "Loaders";
         }
 
+        const metricEntry =
+          machine.metrics.agents.find(
+            (m) => m.name === agent.name
+          );
+
         collected.push({
           ...agent,
+          displayName:
+            SERVICE_LABELS[agent.name] || agent.name,
           type,
           hostServer: machine.serverIp,
+          metrics: metricEntry || {
+            cpu: [0, 0, 0, 0, 0, 0],
+            memory: [0, 0, 0, 0, 0, 0],
+          },
+          timestamps: machine.metrics.timestamps,
         });
       });
     });
@@ -89,6 +126,8 @@ export default function ArchitectureView() {
           if (!existingNames.includes(name)) {
             collected.push({
               name,
+              displayName:
+                SERVICE_LABELS[name] || name,
               type,
               hostServer: "-",
               status: "Offline",
@@ -98,6 +137,18 @@ export default function ArchitectureView() {
               cpu: "0%",
               port: "-",
               image: "-",
+              metrics: {
+                cpu: [0, 0, 0, 0, 0, 0],
+                memory: [0, 0, 0, 0, 0, 0],
+              },
+              timestamps: [
+                "10:00",
+                "10:05",
+                "10:10",
+                "10:15",
+                "10:20",
+                "10:25",
+              ],
             });
           }
         });
@@ -137,11 +188,29 @@ export default function ArchitectureView() {
     return Math.min((numeric / 2500) * 100, 100);
   };
 
+  const selectedMachine = selectedService
+    ? {
+        metrics: {
+          timestamps: selectedService.timestamps,
+          agents: [
+            {
+              name: selectedService.name,
+              cpu: selectedService.metrics.cpu,
+              memory: selectedService.metrics.memory,
+            },
+          ],
+        },
+      }
+    : null;
+
   return (
     <Container>
       <Tabs
         value={tab}
-        onChange={(e, value) => setTab(value)}
+        onChange={(e, value) => {
+          setTab(value);
+          setSelectedService(null);
+        }}
         sx={{ mb: 3 }}
       >
         {tabNames.map((name) => (
@@ -151,7 +220,19 @@ export default function ArchitectureView() {
 
       <Grid>
         {filteredServices.map((service) => (
-          <ServerCard key={service.name}>
+          <ServerCard
+            key={service.name}
+            onClick={() =>
+              setSelectedService(service)
+            }
+            sx={{
+              cursor: "pointer",
+              border:
+                selectedService?.name === service.name
+                  ? "1px solid #60a5fa"
+                  : undefined,
+            }}
+          >
             <Box
               display="flex"
               justifyContent="space-between"
@@ -166,12 +247,21 @@ export default function ArchitectureView() {
                     fontWeight="bold"
                     fontSize={14}
                   >
+                    {service.displayName}
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    color="#94a3b8"
+                  >
                     {service.name}
                   </Typography>
 
                   <Typography
                     variant="caption"
-                    color="#94a3b8"
+                    display="block"
+                    color="#64748b"
                   >
                     Host: {service.hostServer}
                   </Typography>
@@ -185,8 +275,9 @@ export default function ArchitectureView() {
                   background: `${getStatusColor(
                     service.status
                   )}20`,
-                  color: getStatusColor(service.status),
-                  fontWeight: 600,
+                  color: getStatusColor(
+                    service.status
+                  ),
                 }}
               />
             </Box>
@@ -204,21 +295,12 @@ export default function ArchitectureView() {
             />
 
             <Box display="grid" gap={0.75} mt={2}>
-              <InlineInfo
-                label="Port"
-                value={service.port}
-              />
-
+              <InlineInfo label="Port" value={service.port} />
               <InlineInfo
                 label="Image"
                 value={service.image}
               />
-
-              <InlineInfo
-                label="Uptime"
-                value={service.age}
-              />
-
+              <InlineInfo label="Uptime" value={service.age} />
               <InlineInfo
                 label="Service Health"
                 value={service.health}
@@ -230,6 +312,10 @@ export default function ArchitectureView() {
           </ServerCard>
         ))}
       </Grid>
+
+      {selectedService && (
+          <ServiceChart selectedMachine={selectedMachine} selectedService={selectedService}></ServiceChart>
+      )}
     </Container>
   );
 }
