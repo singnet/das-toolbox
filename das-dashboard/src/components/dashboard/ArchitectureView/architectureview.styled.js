@@ -2,22 +2,24 @@ import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
 
 export const Container = styled(Box)({
-  padding: 20,
+  marginLeft: "15px",
+  marginRight: "15px"
 });
 
 export const Grid = styled(Box)({
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-  gap: 14,
+  gridTemplateColumns:
+    "repeat(auto-fill, minmax(380px, 1fr))",
+  gap: 16,
 });
 
-export const ServerCard = styled(Box)({
+export const StyledCard = styled(Box)({
   background: "#0f172a",
   border: "1px solid #1e293b",
   borderRadius: 12,
-  padding: 14,
+  padding: 18,
   color: "#e2e8f0",
-  minHeight: 120,
+  minHeight: 260,
 
   display: "flex",
   flexDirection: "column",

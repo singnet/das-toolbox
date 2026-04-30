@@ -4,7 +4,7 @@ import { MainContent } from "../../components/dashboard/MainContent/MainContent"
 import { MemoryViewChart } from "../../components/dashboard/MainContent/MemoryViewChart";
 import { ServerTab } from "../../components/dashboard/MainContent/servertab/ServerTab";
 import { SideBar } from "../../components/dashboard/MainContent/SideBar";
-import ArchitectureView from "../../components/dashboard/ArchitectureView/ArchitectureViewCard";
+import ArchitectureView from "../../components/dashboard/ArchitectureView/ArchitectureView";
 
 import { useDashboardContext } from "../../components/global_providers/DashboardContextProvider";
 
