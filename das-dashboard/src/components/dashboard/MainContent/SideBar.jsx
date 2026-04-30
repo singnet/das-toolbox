@@ -21,6 +21,7 @@ import WorkIcon from "@mui/icons-material/Work";
 
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 import handleLoadConfig from "../../../utils/FileLoader";
+import { Polyline } from "@mui/icons-material";
 
 const SidebarContainer = styled(Box)({
   width: 240,
@@ -65,7 +66,7 @@ const StyledItem = styled(ListItemButton)({
 
 export function SideBar() {
 
-  const [selected, setSelected] = useState("overview");
+  const [selected, setSelected] = useState("servers");
   const { currentContext, setCurrentContext } = useDashboardContext()
 
   const fileInputRef = useRef(null);
@@ -81,36 +82,36 @@ export function SideBar() {
 
       <StyledList>
 
-        <SectionLabel>WORKLOADS</SectionLabel>
+        <SectionLabel>INFRA</SectionLabel>
 
         <StyledItem
-          selected={selected === "overview"}
+          selected={selected === "servers"}
           onClick={() => { 
-            setSelected("overview") 
-            setCurrentContext("overview")
+            setSelected("servers") 
+            setCurrentContext("servers")
           }}
         >
           <ListItemIcon>
             <SettingsEthernetIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Overview" />
+          <ListItemText primary="Servers" />
         </StyledItem>
 
         <Divider sx={{ my: 1 }} />
 
-        <SectionLabel>INFRA</SectionLabel>
+        <SectionLabel>ARCHITECTURE</SectionLabel>
 
         <StyledItem
-          selected={selected === "architecture"}
+          selected={selected === "agents"}
           onClick={() => {
-            setSelected("architecture")
-            setCurrentContext("architecture")
+            setSelected("agents")
+            setCurrentContext("agents")
           }}
         >
           <ListItemIcon>
-            <AccountTreeIcon fontSize="small" />
+            <Polyline fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Architecture" />
+          <ListItemText primary="Agents" />
         </StyledItem>
 
         <Divider sx={{ my: 1 }} />

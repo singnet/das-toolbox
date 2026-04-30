@@ -16,14 +16,14 @@ export default function DashboardPage() {
   const renderContent = () => {
 
     switch (currentContext) {
-      case "overview":
+      case "servers":
         return (
           <Box flex={1}>
             <ServerTab></ServerTab>
             <MainContent></MainContent>
           </Box>
         );
-      case "architecture":
+      case "agents":
         return (
           <Box flex={1}>
             <ArchitectureView></ArchitectureView>
