@@ -1,6 +1,6 @@
 import { TextField, Box } from "@mui/material"
 import { useEffect, useRef } from "react"
-import { useConfig } from "../../../global_components/ConfigurationProvider"
+import { useConfig } from "../../../global_providers/ConfigurationProvider"
 
 export function RedisMongoSubForm({ onChange, category }) {
 

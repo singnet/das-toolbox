@@ -1,7 +1,7 @@
 import { Box, Button, TextField, Typography } from "@mui/material"
 import { useRef } from "react"
-import { useConfig } from "../../global_components/ConfigurationProvider"
-import { useToast } from "../../global_components/ToastProvider"
+import { useConfig } from "../../global_providers/ConfigurationProvider"
+import { useToast } from "../../global_providers/ToastProvider"
 
 export function EnvironmentForm({ onSectionSave }) {
 
