@@ -1,5 +1,5 @@
-from dtos.dashboard_action_dto import DashboardActionDTO
-from enums.action_types import ActionTypes;
+from shared.dtos.dashboard_action_dto import DashboardActionDTO
+from shared.enums.action_types import ActionTypes;
 import subprocess
 
 class ContainerServices():
