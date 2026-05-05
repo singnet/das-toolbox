@@ -10,6 +10,7 @@ import SetupDasPage from './pages/setup_das/SetupDas.jsx'
 import { Dashboard } from '@mui/icons-material'
 import DashboardPage from './pages/dashboard/Dashboard.jsx'
 import DashboardContextProvider from './components/global_providers/DashboardContextProvider.jsx'
+import ProfilePage from './pages/profile/ProfilePage.jsx'
 
 
 function App() {
@@ -19,11 +20,16 @@ function App() {
       <BrowserRouter>
         <Navbar />
             <Routes>
-                <Route path='/config' element={
+                <Route path='/configuration' element={
                   <ToastProvider>
                     <ConfigurationProvider>
                       <SetupDasPage/>
                     </ConfigurationProvider>
+                  </ToastProvider>
+                }/>
+                <Route path='/profiles' element={
+                  <ToastProvider>
+                    <ProfilePage />
                   </ToastProvider>
                 }/>
                 <Route path='/dashboard' element={
