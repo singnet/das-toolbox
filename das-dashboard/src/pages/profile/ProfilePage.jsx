@@ -2,10 +2,6 @@ import { useState } from "react";
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Paper,
   TextField,
   Typography,
@@ -18,53 +14,47 @@ import { createProfile } from "./service/ProfileServices";
 export default function ProfilePage() {
   const { showToast } = useToast();
 
-  const [showRestartWarning, setShowRestartWarning] =
-    useState(false);
-
   const [form, setForm] = useState({
-    profileName: "",
     sshUsername: "",
-    sshKeyPath: "",
+    sshKeyFile: null,
   });
 
   const verifyForm = (form) => {
     const errors = [];
 
     const invalidUserChars = /[^a-zA-Z0-9._-]/g;
-    const invalidPathChars = /[^a-zA-Z0-9/._~-]/g;
-
-    if (form.profileName.length < 4) {
-        errors.push(
-        "Profile name must contain at least 4 characters."
-        );
-    }
 
     if (
-        form.sshUsername.length < 3 ||
-        form.sshUsername.toLowerCase() === "root" ||
-        invalidUserChars.test(form.sshUsername)
+      form.sshUsername.length < 3 ||
+      form.sshUsername.toLowerCase() === "root" ||
+      invalidUserChars.test(form.sshUsername)
     ) {
-        errors.push(
+      errors.push(
         "SSH Username must have at least 3 characters, cannot be 'root', and may only contain letters, numbers, '.', '_' or '-'."
-        );
+      );
     }
 
-    if (
-        form.sshKeyPath.length < 4 ||
-        invalidPathChars.test(form.sshKeyPath)
-    ) {
-        errors.push(
-        "SSH Key Path is invalid or contains unsupported characters."
-        );
+    if (!form.sshKeyFile) {
+      errors.push("SSH Key File is required.");
     }
 
     return errors;
-    };
+  };
 
   const handleChange = (field) => (event) => {
     setForm((prev) => ({
       ...prev,
       [field]: event.target.value,
+    }));
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setForm((prev) => ({
+      ...prev,
+      sshKeyFile: file,
     }));
   };
 
@@ -76,30 +66,14 @@ export default function ProfilePage() {
       return;
     }
 
-    const isCustomPath =
-      !form.sshKeyPath.startsWith("~/.ssh") &&
-      !form.sshKeyPath.startsWith("/home");
+    try {
+      await createProfile(form);
 
-    if (isCustomPath) {
-      setShowRestartWarning(true);
+      showToast("Profile saved successfully.", "success");
+    } catch (error) {
+      console.error(error.response?.data || error);
+      showToast("Failed to save profile.", "error");
     }
-
-    try{
-        await createProfile(form);
-
-        showToast(
-        "Profile saved successfully.",
-        "success"
-        );
-    }
-
-    catch (error) {
-        showToast(
-            "Failed to save profile.",
-            "error"
-        )
-    }
-
   };
 
   return (
@@ -114,21 +88,10 @@ export default function ProfilePage() {
         }}
       >
         <Typography variant="h5" fontWeight={700} mb={3}>
-          Create SSH Profile
+          SSH Profile
         </Typography>
 
-        <Box
-          display="flex"
-          flexDirection="column"
-          gap={3}
-        >
-          <TextField
-            label="Profile Name"
-            value={form.profileName}
-            onChange={handleChange("profileName")}
-            fullWidth
-          />
-
+        <Box display="flex" flexDirection="column" gap={3}>
           <TextField
             label="SSH Username"
             value={form.sshUsername}
@@ -137,55 +100,28 @@ export default function ProfilePage() {
           />
 
           <TextField
-            label="SSH Key Path"
-            value={form.sshKeyPath}
-            onChange={handleChange("sshKeyPath")}
+            label="SSH Key File"
+            value={form.sshKeyFile?.name || ""}
             fullWidth
+            disabled
           />
 
-          <Button
-            variant="contained"
-            onClick={handleSave}
-          >
+          <Button variant="outlined" component="label">
+            Select SSH Key File
+            <input
+              type="file"
+              hidden
+              onChange={handleFileSelect}
+            />
+          </Button>
+
+          <Typography fontSize={10} textAlign={"center"}>Tip: Keys in hidden folders can be revealed with 'Ctrl + H' on Linux or 'Command + Shift + .' on macOS.'</Typography>
+
+          <Button variant="contained" onClick={handleSave}>
             Save Profile
           </Button>
         </Box>
       </Paper>
-
-      <Dialog
-        open={showRestartWarning}
-        onClose={() =>
-          setShowRestartWarning(false)
-        }
-      >
-        <DialogTitle>
-          Dashboard Restart Required
-        </DialogTitle>
-
-        <DialogContent>
-          <Typography>
-            The selected SSH key path is outside the
-            default <strong>~/.ssh</strong> directory.
-          </Typography>
-
-          <Typography mt={2}>
-            You will need to restart the dashboard stack
-            before this profile can be used.
-
-            (Ignore if not running the UI via containers)
-          </Typography>
-        </DialogContent>
-
-        <DialogActions>
-          <Button
-            onClick={() =>
-              setShowRestartWarning(false)
-            }
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
     </PageContainer>
   );
 }
