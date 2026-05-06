@@ -9,8 +9,9 @@ This is a simple and intuitive web interface, created to make das/das-cli's setu
 
 - If node isn't version 22 or higher. We recommend that you run this command:
 
-> (Make sure you have the NVM tool, in case you don't have it, read [this](https://github.com/nvm-sh/nvm#install--update-script))
 > 'nvm install node --lts'
+
+(Make sure you have the NVM tool, in case you don't have it, read [this](https://github.com/nvm-sh/nvm#install--update-script))
   
 ### Running the interface locally:
 1. If you are in the root folder of the DAS project, change directory to './das-dashboard'
