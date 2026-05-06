@@ -1,14 +1,35 @@
 from shared.dtos.dashboard_action_dto import DashboardActionDTO
 from shared.enums.action_types import ActionTypes;
+from shared.exceptions.custom_exceptions import DasCliCommandException, DasCliNotInstalledException
+
 import subprocess
 
 class ContainerServices():
 
-    def _run_subprocess(self, service_name : str, action : str, **kwargs):
+    def _run_subprocess(self, service_name: str, action: str, *extra_args):
 
-        results = subprocess.run(['das-cli', service_name, action, *kwargs.values], check=True)
+        try:
+            cmd = ["das-cli", service_name, action, *extra_args]
 
-        return results
+            results = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            if results.returncode != 0:
+                raise DasCliCommandException(
+                    error_message="There was an error running this das cli command.",
+                    stderror=results.stderr
+                )
+
+            return results
+
+        except FileNotFoundError:
+            raise DasCliNotInstalledException(
+                error_message="das-cli executable was not found in PATH."
+            )
 
     def _verify_if_remote(self, requestDTO: DashboardActionDTO):
         is_remote = requestDTO.target_ip not in [
@@ -18,14 +39,15 @@ class ContainerServices():
         ]
 
         if not is_remote:
-            return {}
+            return []
 
-        return {
-            "remote": "--remote",
-            "ip_address": requestDTO.target_ip,
-            "port": requestDTO.target_port,
-            "ssh_path": requestDTO.target_ssh_file_path,
-        }
+        return [
+            "--remote",
+            "--host", requestDTO.target_ip,
+            "-u", requestDTO.target_username,
+            "-p", str(requestDTO.target_port),
+            "-k", requestDTO.target_ssh_file_path,
+        ]
 
 
 
@@ -33,7 +55,11 @@ class ContainerServices():
 
         remote_args = self._verify_if_remote(requestDTO)
 
-        result = self._run_subprocess(requestDTO.target_service, ActionTypes.START.value, **remote_args)
+        result = self._run_subprocess(
+            requestDTO.target_service,
+            ActionTypes.START.value,
+            *remote_args
+        )
 
         return result
 
@@ -41,7 +67,11 @@ class ContainerServices():
 
         remote_args = self._verify_if_remote(requestDTO)
 
-        result = self._run_subprocess(requestDTO.target_service, ActionTypes.STOP.value, **remote_args)
+        result = self._run_subprocess(
+            requestDTO.target_service,
+            ActionTypes.START.value,
+            *remote_args
+        )
 
         return result
 
@@ -50,7 +80,11 @@ class ContainerServices():
 
         remote_args = self._verify_if_remote(requestDTO)
 
-        result = self._run_subprocess(requestDTO.target_service, ActionTypes.RESTART.value, **remote_args)
+        result = self._run_subprocess(
+            requestDTO.target_service,
+            ActionTypes.START.value,
+            *remote_args
+        )
 
         return result
 
