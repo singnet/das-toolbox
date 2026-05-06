@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from shared.enums.action_types import ActionTypes
 from shared.dtos.dashboard_action_dto import DashboardActionDTO
@@ -15,8 +16,16 @@ PROFILE_SERVICES = ProfileServices()
 
 dashboard_app = FastAPI()
 
-### Dashboard Action Endpoints (Start, Stop or Restart a container/service)
+dashboard_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+### Dashboard Action Endpoints (Start, Stop or Restart a container/service)
+# TODO: Change this and remove request object, execute everything internally via profile.
 @dashboard_app.post(f"{BASE_ENDPOINT}/service")
 def execute_server_action(action : ActionTypes, action_request: DashboardActionDTO):
 
@@ -40,7 +49,7 @@ def execute_server_action(action : ActionTypes, action_request: DashboardActionD
 
 
 ### UI Profile Endpoints (Create SSH Profile)
-@dashboard_app.post(f"{BASE_ENDPOINT}/profile")
+@dashboard_app.post(f"/profile")
 def create_user_profile(dashboard_profile : DashboardProfileDto):
     response = PROFILE_SERVICES.save_dashboard_profile(dashboard_profile)
 
