@@ -1,8 +1,9 @@
 FROM python:3.12-slim
 
-WORKDIR /application
+COPY . .
 
-COPY . /application/
+RUN mkdir -p /runtime_keys \
+    && chmod 700 /runtime_keys
 
 RUN ["pip", "install", "-r", "requirements.txt"]
 
