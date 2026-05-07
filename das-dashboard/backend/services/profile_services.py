@@ -1,29 +1,70 @@
 from shared.dtos.dashboard_profile_dto import DashboardProfileDto
-import os.path
+
+from shared.exceptions.custom_exceptions import ProfileSaveException, ProfileNotFoundException
+
+import os
 import json
 
+
 EXPANDED_HOME = os.path.expanduser("~")
-DEFAULT_PROFILE_PATH = os.path.join(EXPANDED_HOME, ".das", "webapp_profile.json")
 
-class ProfileServices():
+DEFAULT_PROFILE_PATH = os.path.join(
+    EXPANDED_HOME,
+    ".das",
+    "webapp_profile.json"
+)
 
-    def save_dashboard_profile(self, request : DashboardProfileDto) -> str:
+DEFAULT_KEY_CLONE_PATH = os.path.join(EXPANDED_HOME, ".das", ".remote_key")
+
+
+class ProfileServices:
+
+    def _remove_old_profile(self, previous_profile):
+        old_key_path = previous_profile.get("profile_ssh_keypath")
+
+        if old_key_path and os.path.exists(old_key_path):
+            os.remove(old_key_path)
+
+    async def _save_ssh_copy(self, request):
+        
+        content = await request.sshKeyFile.read()
+
+        with open(DEFAULT_KEY_CLONE_PATH, "wb") as key_file:
+            key_file.write(content)
+            key_file.close()
+
+        os.chmod(DEFAULT_KEY_CLONE_PATH, 0o400)
+
+    def load_dashboard_profile_safe(self) -> dict | None:
+        if not os.path.exists(DEFAULT_PROFILE_PATH):
+            return None
 
         try:
-            with open(DEFAULT_PROFILE_PATH, "w+") as file:
-                file.write(
-                    request.model_dump_json()
-                )
+            with open(DEFAULT_PROFILE_PATH, "r") as file:
+                return json.load(file)
+            
+        except FileNotFoundError:
+            return ProfileNotFoundException(f"No profile was found at: {DEFAULT_PROFILE_PATH}")
 
-            return "User profile was created sucessfully."
-        
-        except:
-            return ""
 
-    def _load_dashboard_profile(self): # Will be used in "load server static"
+    async def save_dashboard_profile(self, request: DashboardProfileDto) -> str:
 
-        file = open(DEFAULT_PROFILE_PATH, "r")
-        file_json = json.loads(file.read())
+        try:
+            previous_profile = self.load_dashboard_profile_safe()
 
-        print(file_json)
-    
+            if previous_profile:
+                self._remove_old_profile(previous_profile)
+
+            await self._save_ssh_copy(request)
+
+            profile_json = {
+                "profile_username": request.sshUsername,
+                "profile_ssh_keypath": DEFAULT_KEY_CLONE_PATH,
+            }
+
+            with open(DEFAULT_PROFILE_PATH, "w") as profile_file:
+                json.dump(profile_json, profile_file)
+
+            return;
+        except Exception:
+            raise ProfileSaveException("An internal I/O error prevented the profile from being saved.")

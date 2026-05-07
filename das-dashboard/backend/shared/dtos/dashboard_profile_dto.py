@@ -1,6 +1,17 @@
-from pydantic import BaseModel, Field
+from fastapi import Form, UploadFile, File
+from pydantic import BaseModel
 
 class DashboardProfileDto(BaseModel):
-    profile_username: str = Field(alias="profileName")
-    profile_ssh_username: str = Field(alias="sshUsername")
-    profile_ssh_keypath: str = Field(alias="sshKeyPath")
+    sshUsername: str
+    sshKeyFile: UploadFile
+
+    @classmethod
+    def as_form(
+        cls,
+        sshUsername: str = Form(..., alias="sshUsername"),
+        sshKeyFile: UploadFile = File(..., alias="sshKeyFile")
+    ):
+        return cls(
+            sshUsername=sshUsername,
+            sshKeyFile=sshKeyFile
+        )

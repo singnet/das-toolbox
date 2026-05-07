@@ -5,7 +5,8 @@ from custom_exceptions import DasCliNotInstalledException, DasCliCommandExceptio
 class AppExceptionHandlers():
 
     def __init__(self, app : FastAPI):
-        app.add_exception_handler(500, self.handleDasCliCommandError)
+        app.add_exception_handler(DasCliCommandException, self.handleDasCliCommandError)
+        app.add_exception_handler(DasCliNotInstalledException, self.handleDasCliNotInstalledError)
 
     def handleDasCliCommandError(exception : DasCliCommandException):
         return JSONResponse(

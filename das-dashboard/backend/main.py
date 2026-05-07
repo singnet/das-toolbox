@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends
 
 from shared.enums.action_types import ActionTypes
 from shared.dtos.dashboard_action_dto import DashboardActionDTO
@@ -24,21 +25,25 @@ dashboard_app.add_middleware(
     allow_headers=["*"],
 )
 
+### TODO: When everything is ready move endpoints to dedicated files
+
 ### Dashboard Action Endpoints (Start, Stop or Restart a container/service)
-# TODO: Change this and remove request object, execute everything internally via profile.
 @dashboard_app.post(f"{BASE_ENDPOINT}/service")
 def execute_server_action(action : ActionTypes, action_request: DashboardActionDTO):
 
     match action:
 
         case ActionTypes.START:
-            CONTAINER_SERVICES.start_das_cli_container(action_request)
+            result = CONTAINER_SERVICES.start_das_cli_container(action_request)
+            return JSONResponse(status_code=200, content={"message": "Command ran succesfully with no errors.", "cli_message": result})
 
         case ActionTypes.STOP:
-            CONTAINER_SERVICES.stop_das_cli_container(action_request)
+            result = CONTAINER_SERVICES.stop_das_cli_container(action_request)
+            return JSONResponse(status_code=200, content={"message": "Command ran succesfully with no errors.", "cli_message": result})
 
         case ActionTypes.RESTART:
-            CONTAINER_SERVICES.restart_das_cli_container(action_request)
+            result = CONTAINER_SERVICES.restart_das_cli_container(action_request)
+            return JSONResponse(status_code=200, content={"message": "Command ran succesfully with no errors.", "cli_message": result})
 
         case _:
             return JSONResponse(
@@ -49,20 +54,13 @@ def execute_server_action(action : ActionTypes, action_request: DashboardActionD
 
 
 ### UI Profile Endpoints (Create SSH Profile)
-@dashboard_app.post(f"/profile")
-def create_user_profile(dashboard_profile : DashboardProfileDto):
-    response = PROFILE_SERVICES.save_dashboard_profile(dashboard_profile)
+@dashboard_app.post("/profile")
+async def create_user_profile(
+    dashboard_profile: DashboardProfileDto = Depends(DashboardProfileDto.as_form)
+):
+    await PROFILE_SERVICES.save_dashboard_profile(dashboard_profile)
 
-    if len(response) != 0:
-        return JSONResponse(
-            status_code=200,
-            content=response
-        )
-    
-    return JSONResponse(
-        status_code=500,
-        content="There was an internal error while saving your profile."
-    )
+    return JSONResponse(status_code=201, content={"message":"The user's SSH profile was created sucessfully."})
 
 
 
