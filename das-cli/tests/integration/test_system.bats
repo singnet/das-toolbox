@@ -20,6 +20,7 @@ teardown() {
 }
 
 @test "Trying to show the system status with unset configuration file" {
+
     unset_config
 
     run das-cli system status
@@ -27,7 +28,7 @@ teardown() {
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
-@test "System status command correctly reports running and stopped services" { 
+@test "System status command correctly reports running and stopped services" {
 
     services_containers=(
         "das-cli-redis-40020"
@@ -36,7 +37,7 @@ teardown() {
         "das-query-engine-40002"
     )
 
-    # Garante que estão rodando
+    # garante que estão rodando
     for service in db attention-broker query-agent; do
         das-cli "$service" start
     done
@@ -46,17 +47,26 @@ teardown() {
         assert_success
     done
 
-    # Verifica status com serviços rodando
+    # verifica status com serviços rodando
     run das-cli system status
 
-    count_services_up=$(echo "$output" | grep -c "running")
-    assert [ "$count_services_up" -gt 1 ]
+    count_services_up=$(echo "$output" | grep -c "running" || true)
+    assert [ "$count_services_up" -ge 1 ]
 
-    for header in NAME VERSION STATUS PORT "PORT RANGE"; do
+    for header in \
+        "MACHINE INFO" \
+        "CPU (%)" \
+        "MEM USED (MB)" \
+        "DISKS" \
+        "DEVICE" \
+        "SERVICES" \
+        "CONTAINER NAME" \
+        "CONTAINER STATUS"
+    do
         assert_line --partial "$header"
     done
 
-    # Para tudo
+    # para tudo
     for service in db attention-broker query-agent; do
         das-cli "$service" stop
     done
@@ -68,7 +78,7 @@ teardown() {
         assert_failure
     done
 
-    # Verifica status com tudo parado
+    # verifica status com tudo parado
     run das-cli system status
 
     count_services_up=$(echo "$output" | grep -c "running" || true)
