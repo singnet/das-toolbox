@@ -22,11 +22,11 @@ class SystemInfoExtractor:
 
     def get_cpu_info(self):
         cpuUsagePercent = psutil.cpu_percent()
-        cpuPhysicalCores = psutil.cpu_count(logical=False)
+        cpuTotalCores = psutil.cpu_count()
 
         return {
             "cpuUsage" : cpuUsagePercent,
-            "cpuTotalPhysCores" : cpuPhysicalCores
+            "cpuTotalCores" : cpuTotalCores
         }
 
     def get_memory_info(self):
@@ -52,7 +52,6 @@ class SystemInfoExtractor:
                 generalDiskInfo = shutil.disk_usage(partition.mountpoint)
                 diskTotalMB = round(generalDiskInfo.total / 1024 ** 2)
                 diskUsedMB = round(generalDiskInfo.used / 1024 ** 2)
-                diskFreeMB = round(generalDiskInfo.free / 1024 ** 2)
 
                 formatted_partitions.append(
                     {
