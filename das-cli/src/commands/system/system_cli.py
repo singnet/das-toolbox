@@ -144,6 +144,8 @@ class SystemStatus(Command):
                     }
 
                 os.system("clear")
+
+                self.stdout(system_info, stdout_type=StdoutType.MACHINE_READABLE)
                 self._format_info_for_display(system_info)
                 time.sleep(1)
 
