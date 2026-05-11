@@ -1,17 +1,10 @@
+import os
 import threading
 import time
-import os
 
-import click
 from injector import inject
 
-from common import (
-    Command,
-    CommandGroup,
-    Settings,
-    StdoutType,
-    CommandOption
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutType
 from common.container_manager.system_containers_manager import (
     SystemContainersManager,
 )
@@ -41,10 +34,10 @@ class SystemStatus(Command):
     params = [
         CommandOption(
             ["--stream", "-s"],
-            help = "Shows system status in a constant stream mode, updating each second.",
-            default = False,
-            required = False,
-            is_flag = True,
+            help="Shows system status in a constant stream mode, updating each second.",
+            default=False,
+            required=False,
+            is_flag=True,
         )
     ]
 
@@ -70,10 +63,7 @@ class SystemStatus(Command):
             "DisksInfo": self._sysinfo.get_disks_info(),
         }
 
-        service_output = (
-            self._system_containers_manager
-            .get_services_status()
-        )
+        service_output = self._system_containers_manager.get_services_status()
 
         return {
             "machineInfo": machine_info,
@@ -81,8 +71,8 @@ class SystemStatus(Command):
         }
 
     def _run_stream(self) -> None:
-        latest_machine = {}
-        latest_services = {}
+        latest_machine: dict[str, str] = {}
+        latest_services: dict[str, str] = {}
 
         lock = threading.Lock()
 
@@ -112,10 +102,7 @@ class SystemStatus(Command):
             while True:
 
                 try:
-                    data = (
-                        self._system_containers_manager
-                        .get_services_status()
-                    )
+                    data = self._system_containers_manager.get_services_status()
                     with lock:
                         latest_services.clear()
                         latest_services.update(data)

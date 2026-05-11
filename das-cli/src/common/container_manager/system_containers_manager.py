@@ -1,4 +1,3 @@
-import re
 from datetime import datetime, timezone
 
 from common.docker.docker_manager import DockerManager
@@ -7,11 +6,7 @@ from common.settings import Settings
 
 class SystemContainersManager(DockerManager):
 
-    def __init__(
-        self,
-        settings: Settings,
-        exec_context: str | None = None
-    ) -> None:
+    def __init__(self, settings: Settings, exec_context: str | None = None) -> None:
 
         super().__init__(exec_context)
 
@@ -19,9 +14,7 @@ class SystemContainersManager(DockerManager):
 
     def _list_service_containers(self) -> list:
 
-        return self.get_docker_client().containers.list(
-            filters={"name": "das"}
-        )
+        return self.get_docker_client().containers.list(filters={"name": "das"})
 
     def get_services_status(self) -> dict:
 
@@ -56,10 +49,7 @@ class SystemContainersManager(DockerManager):
 
     def _extract_port(self, container) -> str:
 
-        ports = container.attrs.get(
-            "NetworkSettings",
-            {}
-        ).get("Ports", {})
+        ports = container.attrs.get("NetworkSettings", {}).get("Ports", {})
 
         for container_port, mappings in ports.items():
 
@@ -74,29 +64,18 @@ class SystemContainersManager(DockerManager):
 
     def _extract_health(self, container) -> str:
 
-        health = (
-            container.attrs
-            .get("State", {})
-            .get("Health", {})
-            .get("Status")
-        )
+        health = container.attrs.get("State", {}).get("Health", {}).get("Status")
 
         return health or "-"
 
     def _calculate_uptime(self, container) -> str:
 
-        started_at = (
-            container.attrs
-            .get("State", {})
-            .get("StartedAt")
-        )
+        started_at = container.attrs.get("State", {}).get("StartedAt")
 
         if not started_at:
             return "-"
 
-        started = datetime.fromisoformat(
-            started_at.replace("Z", "+00:00")
-        )
+        started = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
 
         now = datetime.now(timezone.utc)
 
@@ -132,16 +111,9 @@ class SystemContainersManager(DockerManager):
 
         cpu_percent = self._calculate_cpu_percent(stats)
 
-        memory_usage = (
-            stats
-            .get("memory_stats", {})
-            .get("usage", 0)
-        )
+        memory_usage = stats.get("memory_stats", {}).get("usage", 0)
 
-        memory_mb = round(
-            memory_usage / (1024 * 1024),
-            2
-        )
+        memory_mb = round(memory_usage / (1024 * 1024), 2)
 
         return {
             "cpu_percent": round(cpu_percent, 2),
@@ -153,17 +125,9 @@ class SystemContainersManager(DockerManager):
         cpu_stats = stats.get("cpu_stats", {})
         previous_cpu_stats = stats.get("precpu_stats", {})
 
-        cpu_total = (
-            cpu_stats
-            .get("cpu_usage", {})
-            .get("total_usage", 0)
-        )
+        cpu_total = cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
 
-        prevcpu_total = (
-            previous_cpu_stats
-            .get("cpu_usage", {})
-            .get("total_usage", 0)
-        )
+        prevcpu_total = previous_cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
 
         system_cpu = cpu_stats.get("system_cpu_usage", 0)
         prevsystem_cpu = previous_cpu_stats.get("system_cpu_usage", 0)
@@ -173,9 +137,6 @@ class SystemContainersManager(DockerManager):
 
         if system_used_cpu > 0 and container_used_cpu > 0:
 
-            return (
-                container_used_cpu
-                / system_used_cpu
-            ) * 100.0
+            return (container_used_cpu / system_used_cpu) * 100.0
 
         return 0.0

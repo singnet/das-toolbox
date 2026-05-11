@@ -1,7 +1,7 @@
-import os
-import time
 import shutil
+
 import psutil
+
 
 class SystemInfoExtractor:
 
@@ -24,17 +24,14 @@ class SystemInfoExtractor:
         cpuUsagePercent = psutil.cpu_percent()
         cpuTotalCores = psutil.cpu_count()
 
-        return {
-            "cpuUsage" : cpuUsagePercent,
-            "cpuTotalCores" : cpuTotalCores
-        }
+        return {"cpuUsage": cpuUsagePercent, "cpuTotalCores": cpuTotalCores}
 
     def get_memory_info(self):
         memoryInfo = psutil.virtual_memory()
 
         return {
-            "totalMemory" : round(memoryInfo.total / 1024 ** 2),
-            "usedMemory": round(memoryInfo.used / 1024 ** 2),
+            "totalMemory": round(memoryInfo.total / 1024**2),
+            "usedMemory": round(memoryInfo.used / 1024**2),
         }
 
     def get_disks_info(self):
@@ -50,8 +47,8 @@ class SystemInfoExtractor:
                 partition_mntpoint = partition.mountpoint
 
                 generalDiskInfo = shutil.disk_usage(partition.mountpoint)
-                diskTotalMB = round(generalDiskInfo.total / 1024 ** 2)
-                diskUsedMB = round(generalDiskInfo.used / 1024 ** 2)
+                diskTotalMB = round(generalDiskInfo.total / 1024**2)
+                diskUsedMB = round(generalDiskInfo.used / 1024**2)
 
                 formatted_partitions.append(
                     {
@@ -63,4 +60,3 @@ class SystemInfoExtractor:
                 )
 
         return formatted_partitions
-

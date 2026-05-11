@@ -19,9 +19,9 @@ class SystemModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._system_extractor = SystemInfoExtractor()
-        
+
         self._dependency_list = [
             (SystemContainersManager, SystemContainerManagerFactory().build()),
             (SystemInfoExtractor, self._system_extractor),
             (Settings, self._settings),
-        ]        
+        ]
