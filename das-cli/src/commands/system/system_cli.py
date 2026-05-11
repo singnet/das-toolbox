@@ -43,7 +43,8 @@ class SystemStatus(Command):
             ["--stream", "-s"],
             help = "Shows system status in a constant stream mode, updating each second.",
             default = False,
-            required = False
+            required = False,
+            is_flag = True,
         )
     ]
 
