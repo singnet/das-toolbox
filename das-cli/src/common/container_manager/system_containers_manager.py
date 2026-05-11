@@ -1,81 +1,142 @@
-import re
+from datetime import datetime, timezone
 
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
-from common.utils import extract_service_name
 
 
 class SystemContainersManager(DockerManager):
+
     def __init__(self, settings: Settings, exec_context: str | None = None) -> None:
+
         super().__init__(exec_context)
 
         self._settings = settings
 
-    def _get_services(self) -> list:
-        services = []
-        services_settings = self._settings.get("services", {})
+    def _list_service_containers(self) -> list:
 
-        for service_settings in services_settings.values():
-            service_name = service_settings.get("container_name")
-            if service_name:
-                services.append(service_name)
+        return self.get_docker_client().containers.list(filters={"name": "das"})
+
+    def get_services_status(self) -> dict:
+
+        containers = self._list_service_containers()
+
+        services = {}
+
+        for container in containers:
+            stats = self._safe_get_container_stats(container)
+
+            services[container.name] = {
+                "container_name": container.name,
+                "image": self._extract_image(container),
+                "port": self._extract_port(container),
+                "age": self._calculate_uptime(container),
+                "cpu_percent": stats.get("cpu_percent", 0),
+                "memory_mb": stats.get("memory_mb", 0),
+                "status": container.status,
+                "service_health": self._extract_health(container),
+            }
 
         return services
 
-    def _list_service_containers(self, all: bool = False) -> list:
-        services = self._get_services()
-        return self.get_docker_client().containers.list(all=all, filters={"name": services})
+    def _extract_image(self, container) -> str:
 
-    def get_services_status(self) -> dict:
-        expected_services = self._get_services()
-        containers = self._list_service_containers(all=True)
+        tags = getattr(container.image, "tags", [])
 
-        status = {}
+        if tags:
+            return tags[0]
 
-        for container in containers:
-            service_name = extract_service_name(container.name)
-            version = self._extract_version(container)
-            port_range = self._extract_port_range(container)
-            port = container.name.split("-")[-1] or None
+        return "-"
 
-            status[service_name] = {
-                "status": container.status,
-                "version": version,
-                "port": port,
-                "port_range": port_range,
+    def _extract_port(self, container) -> str:
+
+        ports = container.attrs.get("NetworkSettings", {}).get("Ports", {})
+
+        for container_port, mappings in ports.items():
+
+            if mappings and isinstance(mappings, list):
+
+                host_port = mappings[0].get("HostPort")
+
+                if host_port:
+                    return host_port
+
+        return "-"
+
+    def _extract_health(self, container) -> str:
+
+        health = container.attrs.get("State", {}).get("Health", {}).get("Status")
+
+        return health or "-"
+
+    def _calculate_uptime(self, container) -> str:
+
+        started_at = container.attrs.get("State", {}).get("StartedAt")
+
+        if not started_at:
+            return "-"
+
+        started = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+
+        now = datetime.now(timezone.utc)
+
+        timePassed = now - started
+
+        days = timePassed.days
+        hours = timePassed.seconds // 3600
+        minutes = (timePassed.seconds % 3600) // 60
+
+        if days > 0:
+            return f"{days}d {hours}h"
+
+        if hours > 0:
+            return f"{hours}h {minutes}m"
+
+        return f"{minutes}m"
+
+    def _safe_get_container_stats(self, container) -> dict:
+
+        try:
+            stats = container.stats(stream=False)
+
+            return self._parse_container_stats(stats)
+
+        except Exception:
+
+            return {
+                "cpu_percent": 0,
+                "memory_mb": 0,
             }
 
-        for service in expected_services:
-            service_name = extract_service_name(service)
-            if service_name not in status:
-                status[service_name] = {
-                    "status": "not running",
-                    "version": ("unknown",),
-                    "port": None,
-                    "port_range": None,
-                }
+    def _parse_container_stats(self, stats: dict) -> dict:
 
-        return status
+        cpu_percent = self._calculate_cpu_percent(stats)
 
-    def _extract_version(self, container) -> tuple:
-        image_tags = getattr(container.image, "tags", [])
-        if image_tags:
-            tag = image_tags[0].split(":")
-            version_str = tag[1] if len(tag) > 1 else "latest"
-            match = re.search(r"v?(\d+\.\d+\.\d+)", version_str)
-            return match.groups() if match else (version_str,)
-        return ("unknown",)
+        memory_usage = stats.get("memory_stats", {}).get("usage", 0)
 
-    def _extract_port_range(self, container) -> str | None:
-        args = container.attrs.get("Args") or container.attrs.get("Config", {}).get("Cmd") or []
+        memory_mb = round(memory_usage / (1024 * 1024), 2)
 
-        if not isinstance(args, list):
-            return None
+        return {
+            "cpu_percent": round(cpu_percent, 2),
+            "memory_mb": memory_mb,
+        }
 
-        port_range_pattern = re.compile(r"^\d{2,5}:\d{2,5}$")
+    def _calculate_cpu_percent(self, stats: dict) -> float:
 
-        for arg in args:
-            if isinstance(arg, str) and port_range_pattern.match(arg):
-                return arg
+        cpu_stats = stats.get("cpu_stats", {})
+        previous_cpu_stats = stats.get("precpu_stats", {})
 
-        return None
+        cpu_total = cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
+
+        prevcpu_total = previous_cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
+
+        system_cpu = cpu_stats.get("system_cpu_usage", 0)
+        prevsystem_cpu = previous_cpu_stats.get("system_cpu_usage", 0)
+
+        container_used_cpu = cpu_total - prevcpu_total
+        system_used_cpu = system_cpu - prevsystem_cpu
+
+        if system_used_cpu > 0 and container_used_cpu > 0:
+
+            return (container_used_cpu / system_used_cpu) * 100.0
+
+        return 0.0
