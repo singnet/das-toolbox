@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
 
+from dateutil.parser import isoparse
 
 class SystemContainersManager(DockerManager):
 
@@ -75,7 +76,7 @@ class SystemContainersManager(DockerManager):
         if not started_at:
             return "-"
 
-        started = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+        started = isoparse(started_at)
 
         now = datetime.now(timezone.utc)
 
@@ -140,3 +141,4 @@ class SystemContainersManager(DockerManager):
             return (container_used_cpu / system_used_cpu) * 100.0
 
         return 0.0
+
