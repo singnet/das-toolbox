@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 
+from dateutil.parser import isoparse
+
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
 
-from dateutil.parser import isoparse
 
 class SystemContainersManager(DockerManager):
 
@@ -141,4 +142,3 @@ class SystemContainersManager(DockerManager):
             return (container_used_cpu / system_used_cpu) * 100.0
 
         return 0.0
-
