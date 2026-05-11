@@ -417,13 +417,36 @@ class Command:
     def confirm(text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
-    def _handle_default_output(self, entry: OutputBufferEntry) -> None:
+    def _handle_default_output(self, entry: OutputBufferEntry, stream_mode = False) -> None:
         if self.output_format == "plain":
             self._print_colored(entry.message, entry.severity, entry.new_line)
 
-    def _handle_machine_readable_output(self, entry: OutputBufferEntry) -> None:
-        if self.output_format != "plain":
-            self._output_buffer.append(entry)
+    def _handle_machine_readable_output(
+        self,
+        entry: OutputBufferEntry,
+        stream_mode: bool = False,
+    ) -> None:
+
+        if self.output_format == "plain":
+            return
+
+        if stream_mode:
+
+            if self.output_format == "json":
+                click.echo(json.dumps(entry.message), nl=True)
+                sys.stdout.flush()
+
+            elif self.output_format == "yaml":
+                click.echo(
+                    yaml.dump(entry.message, sort_keys=False),
+                    nl=True,
+                )
+                sys.stdout.flush()
+
+            return
+
+        self._output_buffer.append(entry)
+
 
     def stdout(
         self,
@@ -431,6 +454,7 @@ class Command:
         stdout_type: StdoutType = StdoutType.DEFAULT,
         severity: StdoutSeverity = StdoutSeverity.INFO,
         new_line: bool = True,
+        stream_mode : bool = False,
     ) -> None:
         entry = OutputBufferEntry(
             message=content,
@@ -445,7 +469,7 @@ class Command:
         }
 
         handler = handlers.get(stdout_type, self._handle_default_output)
-        handler(entry)
+        handler(entry, stream_mode)
 
     def run(self, *args, **kwargs):
         raise NotImplementedError(

@@ -133,7 +133,7 @@ class SystemStatus(Command):
 
                 os.system("clear")
 
-                self.stdout(system_info, stdout_type=StdoutType.MACHINE_READABLE)
+                self.stdout(system_info, stdout_type=StdoutType.MACHINE_READABLE, stream_mode=True)
                 self._format_info_for_display(system_info)
                 time.sleep(1)
 
