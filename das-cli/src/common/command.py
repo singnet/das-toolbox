@@ -417,7 +417,7 @@ class Command:
     def confirm(text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
-    def _handle_default_output(self, entry: OutputBufferEntry, stream_mode = False) -> None:
+    def _handle_default_output(self, entry: OutputBufferEntry, stream_mode=False) -> None:
         if self.output_format == "plain":
             self._print_colored(entry.message, entry.severity, entry.new_line)
 
@@ -447,14 +447,13 @@ class Command:
 
         self._output_buffer.append(entry)
 
-
     def stdout(
         self,
         content: Any,
         stdout_type: StdoutType = StdoutType.DEFAULT,
         severity: StdoutSeverity = StdoutSeverity.INFO,
         new_line: bool = True,
-        stream_mode : bool = False,
+        stream_mode: bool = False,
     ) -> None:
         entry = OutputBufferEntry(
             message=content,
@@ -463,7 +462,7 @@ class Command:
             new_line=new_line,
         )
 
-        handlers: Dict[StdoutType, Callable[[OutputBufferEntry], None]] = {
+        handlers: Dict[StdoutType, Callable[[OutputBufferEntry, bool], None]] = {
             StdoutType.DEFAULT: self._handle_default_output,
             StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
         }
