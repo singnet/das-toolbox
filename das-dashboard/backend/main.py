@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, WebSocket, WebSocketDisconnect
+from fastapi import Depends, WebSocket, WebSocketDisconnect, UploadFile, File
+
 
 
 from shared.enums.action_types import ActionTypes
@@ -63,6 +64,16 @@ async def create_user_profile(
     await PROFILE_SERVICES.save_dashboard_profile(dashboard_profile)
 
     return JSONResponse(status_code=201, content={"message":"The user's SSH profile was created sucessfully."})
+
+@dashboard_app.post(f"{BASE_ENDPOINT}/config")
+async def save_config(config_file: UploadFile = File(...)):
+
+    result = await PROFILE_SERVICES.save_config(config_file)
+
+    return JSONResponse(
+        status_code=201,
+        content=result
+    )
 
 
 ### Dashboard Data Endpoints (Get static info, real-time, specific service)
