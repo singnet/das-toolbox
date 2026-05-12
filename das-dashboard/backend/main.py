@@ -6,9 +6,9 @@ from fastapi import Depends, WebSocket, WebSocketDisconnect
 
 from shared.enums.action_types import ActionTypes
 from shared.enums.metric_scope import MetricScope
-from shared.dtos.request.dashboard_action_dto import DashboardActionDTO
-from shared.dtos.request.dashboard_profile_dto import DashboardProfileDto
-from shared.dtos.request.dashboard_get_metrics_dto import GetMetricsDto
+from shared.dtos.dashboard_action_dto import DashboardActionDTO
+from shared.dtos.dashboard_profile_dto import DashboardProfileDto
+from shared.dtos.dashboard_get_metrics_dto import GetMetricsDto
 
 from services.container_services import ContainerServices
 from services.profile_services import ProfileServices
