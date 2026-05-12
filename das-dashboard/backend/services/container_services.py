@@ -1,4 +1,4 @@
-from shared.dtos.request.dashboard_action_dto import DashboardActionDTO
+from shared.dtos.dashboard_action_dto import DashboardActionDTO
 from shared.enums.action_types import ActionTypes;
 from shared.exceptions.custom_exceptions import DasCliCommandException, DasCliNotInstalledException
 

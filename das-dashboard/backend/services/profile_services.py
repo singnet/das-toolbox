@@ -1,4 +1,4 @@
-from shared.dtos.request.dashboard_profile_dto import DashboardProfileDto
+from shared.dtos.dashboard_profile_dto import DashboardProfileDto
 
 from shared.exceptions.custom_exceptions import ProfileSaveException, ProfileNotFoundException
 

@@ -67,8 +67,8 @@ async def create_user_profile(
 
 ### Dashboard Data Endpoints (Get static info, real-time, specific service)
 @dashboard_app.get(f"{BASE_ENDPOINT}/metrics")
-def fetch_initial_info(metrics_request : GetMetricsDto):
-    result = METRICS_SERVICES.load_server_metrics(metrics_request)
+async def fetch_initial_info(metric_scope: MetricScope, target_ip : str):
+    result = await METRICS_SERVICES.load_server_metrics(metric_scope, target_ip)
 
     return JSONResponse(
         status_code=200,

@@ -3,7 +3,7 @@ import json
 import asyncio
 import re
 
-from shared.dtos.request.dashboard_get_metrics_dto import GetMetricsDto
+from shared.dtos.dashboard_get_metrics_dto import GetMetricsDto
 from shared.enums.metric_scope import MetricScope
 from shared.exceptions.custom_exceptions import DasCliNotInstalledException
 
@@ -24,7 +24,7 @@ class MetricsServices:
                 check=True,
             )
 
-            return results.stdout
+            return results
 
         except FileNotFoundError:
             raise DasCliNotInstalledException(
@@ -47,15 +47,7 @@ class MetricsServices:
                 error_message="das-cli executable was not found in PATH."
             )
 
-
-    def load_server_metrics(self, requestDTO: GetMetricsDto):
-
-        result = self.run_command()
-
-        return json.loads(result)
-
-
-    async def define_response_scope(self, metric_scope : MetricScope, parsed : dict):
+    def define_response_scope(self, metric_scope : MetricScope, parsed : dict):
 
         match metric_scope:
             case MetricScope.SERVER:
@@ -73,6 +65,15 @@ class MetricsServices:
             
             case _:
                 return parsed
+
+    async def load_server_metrics(self, metric_scope : MetricScope, target_ip : str = None):
+
+        result = self.run_command()
+        json_parsed = json.loads(result.stdout)
+
+        response = self.define_response_scope(metric_scope, json_parsed)
+
+        return response
 
     async def stream_server_metrics(self, metric_scope : MetricScope):
 
@@ -96,7 +97,7 @@ class MetricsServices:
 
                 try:
                     json_parsed = json.loads(line)
-                    response = await self.define_response_scope(metric_scope, json_parsed)
+                    response = self.define_response_scope(metric_scope, json_parsed)
 
                     yield response
 
