@@ -1,19 +1,24 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends
+from fastapi import Depends, WebSocket, WebSocketDisconnect
+
 
 from shared.enums.action_types import ActionTypes
-from shared.dtos.dashboard_action_dto import DashboardActionDTO
-from shared.dtos.dashboard_profile_dto import DashboardProfileDto
+from shared.enums.metric_scope import MetricScope
+from shared.dtos.request.dashboard_action_dto import DashboardActionDTO
+from shared.dtos.request.dashboard_profile_dto import DashboardProfileDto
+from shared.dtos.request.dashboard_get_metrics_dto import GetMetricsDto
 
 from services.container_services import ContainerServices
 from services.profile_services import ProfileServices
+from services.metrics_services import MetricsServices
 
 BASE_ENDPOINT = "/dashboard"
 
 CONTAINER_SERVICES = ContainerServices()
 PROFILE_SERVICES = ProfileServices()
+METRICS_SERVICES = MetricsServices()
 
 dashboard_app = FastAPI()
 
@@ -24,8 +29,6 @@ dashboard_app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-### TODO: When everything is ready move endpoints to dedicated files
 
 ### Dashboard Action Endpoints (Start, Stop or Restart a container/service)
 @dashboard_app.post(f"{BASE_ENDPOINT}/service")
@@ -52,9 +55,8 @@ def execute_server_action(action : ActionTypes, action_request: DashboardActionD
             )
 
 
-
-### UI Profile Endpoints (Create SSH Profile)
-@dashboard_app.post("/profile")
+### UI Profile Endpoints (Create SSH Profile/Get profile and config info)
+@dashboard_app.post(f"{BASE_ENDPOINT}/profile")
 async def create_user_profile(
     dashboard_profile: DashboardProfileDto = Depends(DashboardProfileDto.as_form)
 ):
@@ -63,74 +65,23 @@ async def create_user_profile(
     return JSONResponse(status_code=201, content={"message":"The user's SSH profile was created sucessfully."})
 
 
-
 ### Dashboard Data Endpoints (Get static info, real-time, specific service)
-@dashboard_app.get(f"{BASE_ENDPOINT}/server")
-def fetch_initial_server_info(): # Will return static info from the server like CPU Cores, Total Memory, Total Disk(s) size. Will also retrieve user's profile (If he has one).
-    pass
-    '''
-        Will return something like
-        ServerInfo {
-        
-            Server_username:
-            Running operational system:
-            CPU Info (cores):
-            Memory Info (total):
-            Disks (what partitions/mounted FS):
-            Total disk memory:
-        
-        }
-        '''
+@dashboard_app.get(f"{BASE_ENDPOINT}/metrics")
+def fetch_initial_info(metrics_request : GetMetricsDto):
+    result = METRICS_SERVICES.load_server_metrics(metrics_request)
 
-@dashboard_app.websocket(f"{BASE_ENDPOINT}/server/ws")
-def get_server_info(): # Will return non-static info like server name/cpu/memory/disk info.
-    pass
-    '''
-        Will return something like
-        ServerInfo {
-        
-            CPU Info (usage % current):
-            Memory Info (usage % current):
-            Disk usage (current):
-        
-        }
-    '''
+    return JSONResponse(
+        status_code=200,
+        content=result
+    )
 
 
+@dashboard_app.websocket(f"{BASE_ENDPOINT}/metrics/stream")
+async def stream_server_metrics(websocket: WebSocket, metric_scope: MetricScope, target_ip : str):
+    await websocket.accept()
 
-@dashboard_app.get(f"{BASE_ENDPOINT}/service")
-def get_service_static_info(service_name : str): # Will return static or nonstatic info like names/ports for the specified service.
-    pass
-    '''
-        Will return something like
-        ServiceInfo {
-        
-            Service name:
-            Service container name:
-            Service container desc/info:
-            Service port:
-        
-        }
-        '''
-
-@dashboard_app.websocket(f"{BASE_ENDPOINT}/service")
-def get_service_info(service_name : str): # Returns non-static info for the specified service, can specify service by container_name.
-    pass
-    '''
-    Will return something like
-    ServiceInfo {
-    
-        CPU Avg: XX%
-        CPU Now: XX%
-        Memory Avg: YY%
-        Memory Now: YY%
-        Service name:
-        Service container name:
-        Service port:
-        Service container status:    
-        Service Health status:
-        Service Age:
-    
-    }
-    '''
-
+    try:
+        async for metric in METRICS_SERVICES.stream_server_metrics(metric_scope):
+            await websocket.send_json(metric)
+    except WebSocketDisconnect:
+        pass

@@ -1,4 +1,4 @@
-from shared.dtos.dashboard_profile_dto import DashboardProfileDto
+from shared.dtos.request.dashboard_profile_dto import DashboardProfileDto
 
 from shared.exceptions.custom_exceptions import ProfileSaveException, ProfileNotFoundException
 
@@ -16,8 +16,16 @@ DEFAULT_PROFILE_PATH = os.path.join(
 
 DEFAULT_KEY_CLONE_PATH = os.path.join(EXPANDED_HOME, ".das", ".remote_key")
 
+DEFAULT_CONFIG_PATH = os.path.join(
+    EXPANDED_HOME,
+    ".das",
+    ".env"
+)
 
 class ProfileServices:
+
+    def load_profile_and_config():
+        pass
 
     def _remove_old_profile(self, previous_profile):
         old_key_path = previous_profile.get("profile_ssh_keypath")

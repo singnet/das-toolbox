@@ -1,4 +1,4 @@
-from shared.dtos.dashboard_action_dto import DashboardActionDTO
+from shared.dtos.request.dashboard_action_dto import DashboardActionDTO
 from shared.enums.action_types import ActionTypes;
 from shared.exceptions.custom_exceptions import DasCliCommandException, DasCliNotInstalledException
 
@@ -31,8 +31,8 @@ class ContainerServices():
                 error_message="das-cli executable was not found in PATH."
             )
 
-    def _verify_if_remote(self, requestDTO: DashboardActionDTO):
-        is_remote = requestDTO.target_ip not in [
+    def _mount_remote_args(self, requestDTO: DashboardActionDTO):
+        is_remote = requestDTO.targetIp not in [
             "localhost",
             "127.0.0.1",
             "0.0.0.0",
@@ -40,20 +40,19 @@ class ContainerServices():
 
         if not is_remote:
             return []
-
-        return [
-            "--remote",
-            "--host", requestDTO.target_ip,
-            "-u", requestDTO.target_username,
-            "-p", str(requestDTO.target_port),
-            "-k", requestDTO.target_ssh_file_path,
-        ]
+        else:
+            return [
+                "--remote",
+                "--host", requestDTO.targetIp,
+                "-u", requestDTO.targetUsername,
+                "-k", requestDTO.target_ssh_file_path,
+            ]
 
 
 
     def start_das_cli_container(self, requestDTO : DashboardActionDTO):
 
-        remote_args = self._verify_if_remote(requestDTO)
+        remote_args = self._mount_remote_args(requestDTO)
 
         result = self._run_subprocess(
             requestDTO.target_service,
@@ -65,7 +64,7 @@ class ContainerServices():
 
     def stop_das_cli_container(self, requestDTO : DashboardActionDTO):
 
-        remote_args = self._verify_if_remote(requestDTO)
+        remote_args = self._mount_remote_args(requestDTO)
 
         result = self._run_subprocess(
             requestDTO.target_service,
@@ -78,7 +77,7 @@ class ContainerServices():
 
     def restart_das_cli_container(self, requestDTO : DashboardActionDTO):
 
-        remote_args = self._verify_if_remote(requestDTO)
+        remote_args = self._mount_remote_args(requestDTO)
 
         result = self._run_subprocess(
             requestDTO.target_service,

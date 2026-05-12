@@ -1,11 +1,11 @@
 from pydantic import BaseModel
+from shared.enums.action_types import ActionTypes
 
 class DashboardActionDTO(BaseModel):
-    target_ip : str
-    target_port : int
-    target_username : str
-    target_ssh_file_path: str
-    target_service : str
+    targetIp : str
+    targetUsername : str
+    targetService : str
+    targetAction : ActionTypes
 
 
     
