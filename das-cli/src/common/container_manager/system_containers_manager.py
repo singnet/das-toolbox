@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from dateutil.parser import isoparse
+
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
 
@@ -75,7 +77,7 @@ class SystemContainersManager(DockerManager):
         if not started_at:
             return "-"
 
-        started = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+        started = isoparse(started_at)
 
         now = datetime.now(timezone.utc)
 
