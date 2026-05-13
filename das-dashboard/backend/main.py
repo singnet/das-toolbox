@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, WebSocket, WebSocketDisconnect, UploadFile, File
 
 
-
 from shared.enums.action_types import ActionTypes
 from shared.enums.metric_scope import MetricScope
 from shared.dtos.dashboard_action_dto import DashboardActionDTO
