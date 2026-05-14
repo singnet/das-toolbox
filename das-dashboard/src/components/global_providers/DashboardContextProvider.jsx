@@ -97,7 +97,7 @@ export default function DashboardContextProvider({ children }) {
             return () => {
             if (socketRef.current) socketRef.current.close();
             };
-    }, [currentMachine]);
+    }, [currentMachine?.serverIp]);
 
     function pushSnapshot(servicesData) {
         const timestamp = new Date().toLocaleTimeString('pt-BR', {

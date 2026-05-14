@@ -56,11 +56,15 @@ export async function fetchDashboardDataStatic(metricScope = "all", targetIp = "
   }
 }
 
-export function fetchDashboardDataStream(onMessage) {
-  const socket = new WebSocket("ws://localhost:8000/dashboard/metrics/stream?metric_scope=all&target_ip=localhost");
+export function fetchDashboardDataStream(onMessage, targetIp = "localhost") {
+  const ip = targetIp || "localhost";
+  
+  const socketUrl = `ws://localhost:8000/dashboard/metrics/stream?metric_scope=all&target_ip=${ip}`;
+  
+  const socket = new WebSocket(socketUrl);
 
   socket.onopen = () => {
-    console.log("WebSocket successfully connected.");
+    console.log(`[WebSocket] Connected to metrics stream: ${ip}`);
   };
 
   socket.onmessage = (event) => {
@@ -68,16 +72,16 @@ export function fetchDashboardDataStream(onMessage) {
       const data = JSON.parse(event.data);
       onMessage?.(data);
     } catch (err) {
-      console.error("Error processing websocket data.", err);
+      console.error("[WebSocket] Error parsing incoming data:", err);
     }
   };
 
   socket.onerror = (err) => {
-    console.error("Error in WebSocket:", err);
+    console.error(`[WebSocket] Connection error on host ${ip}:`, err);
   };
 
   socket.onclose = (event) => {
-    console.log("WebSocket closed:", event.code, event.reason);
+    console.log(`[WebSocket] Connection closed for ${ip}. Code: ${event.code}`);
   };
 
   return socket;
