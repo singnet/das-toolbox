@@ -100,13 +100,11 @@ class SystemStatus(Command):
         def docker_loop():
 
             while True:
-
                 try:
                     data = self._system_containers_manager.get_services_status()
                     with lock:
                         latest_services.clear()
                         latest_services.update(data)
-
                 except Exception as e:
                     print(f"[docker_loop] {e}")
 

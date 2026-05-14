@@ -2,108 +2,73 @@ import subprocess
 import json
 import asyncio
 import re
-
-from shared.dtos.dashboard_get_metrics_dto import GetMetricsDto
 from shared.enums.metric_scope import MetricScope
 from shared.exceptions.custom_exceptions import DasCliNotInstalledException
 
-
 class MetricsServices:
-
     def __init__(self):
-        pass
+        self.ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 
-    def run_command(self):
+    def _get_base_command(self, target_info: dict):
+        ip = target_info.get("ip", "127.0.0.1")
+        is_local = ip in ["localhost", "127.0.0.1", "0.0.0.0"]
+        
+        if is_local:
+            return ["das-cli"]
+        
+        cmd = ["das-cli", "--remote", "--host", ip]
+        if target_info.get("username"):
+            cmd.extend(["-u", target_info["username"]])
+        if target_info.get("key_file"):
+            cmd.extend(["-k", target_info["key_file"]])
+        if target_info.get("port"):
+            cmd.extend(["-p", str(target_info["port"])])
+            
+        return cmd
 
+    def run_command(self, target_info: dict):
         try:
-
-            results = subprocess.run(
-                ["das-cli", "system", "status", "-o", "json"],
-                capture_output=True,
-                text=True,
-                check=True,
+            base_cmd = self._get_base_command(target_info)
+            return subprocess.run(
+                base_cmd + ["system", "status", "-o", "json"],
+                capture_output=True, text=True, check=True,
             )
-
-            return results
-
         except FileNotFoundError:
-            raise DasCliNotInstalledException(
-                error_message="das-cli executable was not found in PATH."
-            )
+            raise DasCliNotInstalledException(error_message="das-cli not found.")
 
-    def run_command_stream(self):
-
+    def run_command_stream(self, target_info: dict):
         try:
+            base_cmd = self._get_base_command(target_info)
             return subprocess.Popen(
-                ["das-cli", "system", "status", "--stream", "-o", "json"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
+                base_cmd + ["system", "status", "--stream", "-o", "json"],
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                text=True, bufsize=1,
             )
-
         except FileNotFoundError:
-            raise DasCliNotInstalledException(
-                error_message="das-cli executable was not found in PATH."
-            )
+            raise DasCliNotInstalledException(error_message="das-cli not found.")
 
-    def define_response_scope(self, metric_scope : MetricScope, parsed : dict):
+    def define_response_scope(self, metric_scope: MetricScope, parsed: dict, target_ip: str):
+        parsed["machine"] = {"ip": target_ip}
+        if metric_scope == MetricScope.SERVER:
+            return {"machineInfo": parsed.get("machineInfo", {}), "machine": parsed["machine"]}
+        if metric_scope == MetricScope.SERVICE:
+            return {"serviceInfo": parsed.get("serviceInfo", {}), "machine": parsed["machine"]}
+        return parsed
 
-        match metric_scope:
-            case MetricScope.SERVER:
-                return {
-                    "machineInfo": parsed.get("machineInfo", {})
-                }
-            
-            case MetricScope.SERVICE:
-                return {
-                    "serviceInfo": parsed.get("serviceInfo", {})
-                }
-            
-            case MetricScope.ALL:
-                return parsed
-            
-            case _:
-                return parsed
+    async def load_server_metrics(self, metric_scope: MetricScope, target_info: dict):
+        result = self.run_command(target_info)
+        return self.define_response_scope(metric_scope, json.loads(result.stdout), target_info.get("ip"))
 
-    async def load_server_metrics(self, metric_scope : MetricScope, target_ip : str = None):
-
-        result = self.run_command()
-        json_parsed = json.loads(result.stdout)
-
-        response = self.define_response_scope(metric_scope, json_parsed)
-
-        return response
-
-    async def stream_server_metrics(self, metric_scope : MetricScope):
-
-        process = self.run_command_stream()
-
-        ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-
+    async def stream_server_metrics(self, metric_scope: MetricScope, target_info: dict):
+        process = self.run_command_stream(target_info)
         try:
             while True:
-
-                line = await asyncio.to_thread(
-                    process.stdout.readline
-                )
-
-                if not line:
-                    break
-
-                line = ansi_escape.sub('', line).strip() # This clears the first line that comes with ANSI broken chars.
-                if not line:
-                    continue
-
+                line = await asyncio.to_thread(process.stdout.readline)
+                if not line: break
+                line = self.ansi_escape.sub('', line).strip()
+                if not line or not line.startswith('{'): continue
                 try:
-                    json_parsed = json.loads(line)
-                    response = self.define_response_scope(metric_scope, json_parsed)
-
-                    yield response
-
-                except json.JSONDecodeError as e:
-                    print("JSON ERROR:", repr(line))
-                    print(e)
-                    continue
+                    yield self.define_response_scope(metric_scope, json.loads(line), target_info.get("ip"))
+                except json.JSONDecodeError: continue
         finally:
-            process.kill()
+            process.terminate()
