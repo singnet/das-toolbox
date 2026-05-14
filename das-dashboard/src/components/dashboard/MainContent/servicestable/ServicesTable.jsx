@@ -36,10 +36,10 @@ export function AgentTable({ machine }) {
     const targetIp = currentMachine?.serverIp || "localhost";
     
     try {
-      console.log(`Executando ${actionType} em ${containerName} (${targetIp})`);
+      console.log(`Executing ${actionType} in ${containerName} (${targetIp})`);
       await executeDashboardAction(containerName, actionType.toLowerCase(), targetIp);
     } catch (error) {
-      console.error("Falha ao executar ação:", error);
+      console.error("Error while executing action:", error);
     }
   };
 

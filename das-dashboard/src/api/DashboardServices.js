@@ -5,17 +5,12 @@ export async function executeDashboardAction(container_name, action, target_ip) 
   const prefix = container_name.replace(/-\d+$/, '');
   const shortServiceName = SERVICE_CLI_NAMES[prefix] || prefix;
 
-  const reqBody = {
-    target_ip: target_ip,
-    target_username: "nonetest",
-    target_service: shortServiceName,
-    target_ction: action
-  };
-
   try {
-    const response = await api.post(`/dashboard/service`, reqBody, {
+    const response = await api.post(`/dashboard/service`, null, {
       params: { 
-        action: action
+        action: action,
+        targetIp: target_ip,
+        targetService: shortServiceName
       }
     });
     
