@@ -9,7 +9,7 @@ import {
 
 import { PageContainer } from "./profilepage.styled";
 import { useToast } from "../../components/global_providers/ToastProvider";
-import { createProfile } from "./service/ProfileServices";
+import { createProfile } from "../../api/ProfileServices";
 
 export default function ProfilePage() {
   const { showToast } = useToast();

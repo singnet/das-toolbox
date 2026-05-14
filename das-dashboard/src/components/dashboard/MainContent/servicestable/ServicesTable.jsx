@@ -3,69 +3,79 @@ import {
   TableHead,
   TableRow,
   TableBody,
-  Box,
-  Typography,
 } from "@mui/material";
 
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-
+import { executeDashboardAction } from "../../../../api/DashboardServices";
 import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
-
-import {
-  TableContainer,
-  HeaderCell,
-} from "./servicestable.styled";
+import { TableContainer, HeaderCell } from "./servicestable.styled";
 import { ServerInfoHeader } from "./ServerInfoHeader";
 
 export function AgentTable({ machine }) {
-  const { currentService, setCurrentService } =
-    useDashboardContext();
-
-  if (!machine) return null;
+  const { 
+    services,      
+    currentService,     
+    setCurrentService,
+    currentMachine 
+  } = useDashboardContext();
 
   const getStatusColor = (status) =>
-    status === "Running" ? "success" : "error";
+    status === "running" ? "success" : "error";
 
   const getHealthStatusColor = (health) =>
-    health === "Healthy" ? "success" : "error";
+    health === "healthy" ? "success" : "error";
 
-  const handleSelect = (agentName) => {
+  const handleSelect = (containerName) => {
     setCurrentService((current) =>
-      current === agentName ? null : agentName
+      current === containerName ? null : containerName
     );
   };
 
+  const handleAction = async (actionType, containerName) => {
+    const targetIp = currentMachine?.serverIp || "localhost";
+    
+    try {
+      console.log(`Executando ${actionType} em ${containerName} (${targetIp})`);
+      await executeDashboardAction(containerName, actionType.toLowerCase(), targetIp);
+    } catch (error) {
+      console.error("Falha ao executar ação:", error);
+    }
+  };
+
+  if (!machine) return null;
+
   return (
     <>
-      <ServerInfoHeader></ServerInfoHeader>
+      <ServerInfoHeader />
 
       <TableContainer elevation={1}>
         <Table>
           <TableHead>
             <TableRow>
               <HeaderCell>Container Name</HeaderCell>
-              <HeaderCell>Container Info</HeaderCell>
+              <HeaderCell>Image</HeaderCell>
               <HeaderCell>Port</HeaderCell>
               <HeaderCell>Age</HeaderCell>
               <HeaderCell>CPU (%)</HeaderCell>
               <HeaderCell>Memory (MB)</HeaderCell>
-              <HeaderCell>Container Status</HeaderCell>
-              <HeaderCell>Service Health</HeaderCell>
+              <HeaderCell>Status</HeaderCell>
+              <HeaderCell>Health</HeaderCell>
               <HeaderCell align="right">Actions</HeaderCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {machine.agents.length === 0 ? (
+            {services.length === 0 ? (
               <EmptyContent />
             ) : (
-              machine.agents.map((agent) => (
+              services.map((service) => (
                 <AgentRow
-                  key={agent.name}
-                  agent={agent}
-                  selected={currentService === agent.name}
+                  key={service.container_name}
+                  agent={service}
+                  selected={currentService === service.container_name}
                   handleSelect={handleSelect}
+                  onAction={handleAction}
                   getStatusColor={getStatusColor}
                   getHealthStatusColor={getHealthStatusColor}
                 />

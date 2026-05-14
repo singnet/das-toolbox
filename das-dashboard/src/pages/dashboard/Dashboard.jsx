@@ -3,7 +3,7 @@ import { CPUViewChart } from "../../components/dashboard/MainContent/CPUViewChar
 import { MainContent } from "../../components/dashboard/MainContent/MainContent";
 import { MemoryViewChart } from "../../components/dashboard/MainContent/MemoryViewChart";
 import { ServerTab } from "../../components/dashboard/MainContent/servertab/ServerTab";
-import { SideBar } from "../../components/dashboard/MainContent/SideBar";
+import { SideBar } from "../../components/dashboard/MainContent/sidebar/SideBar";
 import ArchitectureView from "../../components/dashboard/ArchitectureView/ArchitectureView";
 
 import { useDashboardContext } from "../../components/global_providers/DashboardContextProvider";

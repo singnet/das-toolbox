@@ -21,17 +21,20 @@ export function MainContent() {
   const {
     currentMachine,
     currentService,
+    getAggregatedMetrics,
   } = useDashboardContext();
+
+  const aggregatedData = getAggregatedMetrics();
 
   return (
     <MainBoxGrid>
       <CPUViewChart
-        machine={currentMachine}
+        machine={aggregatedData} 
         currentService={currentService}
       />
 
       <MemoryViewChart
-        machine={currentMachine}
+        machine={aggregatedData}
         currentService={currentService}
       />
 

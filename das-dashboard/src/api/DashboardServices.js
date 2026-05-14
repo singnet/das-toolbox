@@ -6,22 +6,22 @@ export async function executeDashboardAction(container_name, action, target_ip) 
   const shortServiceName = SERVICE_CLI_NAMES[prefix] || prefix;
 
   const reqBody = {
-    targetIp: target_ip,
-    targetUsername: "nonetest",
-    targetService: shortServiceName,
-    targetAction: action
+    target_ip: target_ip,
+    target_username: "nonetest",
+    target_service: shortServiceName,
+    target_ction: action
   };
 
   try {
-    const response = await api.get(`/dashboard/service`, {
+    const response = await api.post(`/dashboard/service`, reqBody, {
       params: { 
-        action: action,
-        ...reqBody 
+        action: action
       }
     });
+    
     return response.data;
   } catch (error) {
-    console.error("Action execution failed:", error);
+    console.error("Action execution failed:", error.response?.data || error.message);
     throw error;
   }
 }
