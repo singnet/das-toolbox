@@ -9,28 +9,35 @@ class MetricsServices:
     def __init__(self):
         self.ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 
-    def _get_base_command(self, target_info: dict):
+    def _build_full_command(self, target_info: dict, sub_commands: list, extra_flags: list = None):
         ip = target_info.get("ip", "127.0.0.1")
         is_local = ip in ["localhost", "127.0.0.1", "0.0.0.0"]
         
-        if is_local:
-            return ["das-cli"]
+        cmd = ["das-cli"] + sub_commands
         
-        cmd = ["das-cli", "--remote", "--host", ip]
-        if target_info.get("username"):
-            cmd.extend(["-u", target_info["username"]])
-        if target_info.get("key_file"):
-            cmd.extend(["-k", target_info["key_file"]])
-        if target_info.get("port"):
-            cmd.extend(["-p", str(target_info["port"])])
+        if not is_local:
+            cmd.extend(["--remote", "--host", ip])
+            if target_info.get("username"):
+                cmd.extend(["-u", target_info["username"]])
+            if target_info.get("key_file"):
+                cmd.extend(["-k", target_info["key_file"]])
+            if target_info.get("port"):
+                cmd.extend(["-p", str(target_info["port"])])
+        
+        if extra_flags:
+            cmd.extend(extra_flags)
             
         return cmd
 
     def run_command(self, target_info: dict):
         try:
-            base_cmd = self._get_base_command(target_info)
+            full_cmd = self._build_full_command(
+                target_info, 
+                ["system", "status"], 
+                ["-o", "json"]
+            )
             return subprocess.run(
-                base_cmd + ["system", "status", "-o", "json"],
+                full_cmd,
                 capture_output=True, text=True, check=True,
             )
         except FileNotFoundError:
@@ -38,9 +45,13 @@ class MetricsServices:
 
     def run_command_stream(self, target_info: dict):
         try:
-            base_cmd = self._get_base_command(target_info)
+            full_cmd = self._build_full_command(
+                target_info, 
+                ["system", "status"], 
+                ["--stream", "-o", "json"]
+            )
             return subprocess.Popen(
-                base_cmd + ["system", "status", "--stream", "-o", "json"],
+                full_cmd,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, bufsize=1,
             )
@@ -48,12 +59,18 @@ class MetricsServices:
             raise DasCliNotInstalledException(error_message="das-cli not found.")
 
     def define_response_scope(self, metric_scope: MetricScope, parsed: dict, target_ip: str):
-        parsed["machine"] = {"ip": target_ip}
+
+        if isinstance(parsed, list) and len(parsed) > 0:
+            server_json = parsed[0]
+        else:
+            server_json = parsed
+
         if metric_scope == MetricScope.SERVER:
-            return {"machineInfo": parsed.get("machineInfo", {}), "machine": parsed["machine"]}
+            return [{"ip": target_ip , "machineInfo": server_json.get("machineInfo", {})}]
         if metric_scope == MetricScope.SERVICE:
-            return {"serviceInfo": parsed.get("serviceInfo", {}), "machine": parsed["machine"]}
-        return parsed
+            return [{"ip": target_ip, "serviceInfo": server_json.get("serviceInfo", {})}]
+        
+        return [{"ip": target_ip, **server_json}]
 
     async def load_server_metrics(self, metric_scope: MetricScope, target_info: dict):
         result = self.run_command(target_info)

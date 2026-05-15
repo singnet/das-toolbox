@@ -95,7 +95,7 @@ class SystemStatus(Command):
                 except Exception as e:
                     print(f"[machine_loop] {e}")
 
-                time.sleep(1)
+                time.sleep(2)
 
         def docker_loop():
 
@@ -108,7 +108,6 @@ class SystemStatus(Command):
                 except Exception as e:
                     print(f"[docker_loop] {e}")
 
-                time.sleep(2)
 
         threading.Thread(
             target=machine_loop,
@@ -210,7 +209,7 @@ class SystemStatus(Command):
                     "CONTAINER INFO": info.get("image", "-"),
                     "PORT": info.get("port", "-"),
                     "AGE": info.get("age", "-"),
-                    "CPU (%)": info.get("cpu_percent", 0),
+                    "CPU (% / Core)": info.get("cpu_percent", 0),
                     "MEMORY(MB)": info.get("memory_mb", 0),
                     "CONTAINER STATUS": info.get("status", "-"),
                     "SERVICE HEALTH": info.get("service_health", "-"),
@@ -224,7 +223,7 @@ class SystemStatus(Command):
                 "CONTAINER INFO",
                 "PORT",
                 "AGE",
-                "CPU (%)",
+                "CPU (% / Core)",
                 "MEMORY(MB)",
                 "CONTAINER STATUS",
                 "SERVICE HEALTH",

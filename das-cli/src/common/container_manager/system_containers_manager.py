@@ -106,12 +106,16 @@ class SystemContainersManager(DockerManager):
     def _calculate_cpu_percent(self, stats: dict) -> float:
         cpu_stats = stats.get("cpu_stats", {})
         previous_cpu_stats = stats.get("precpu_stats", {})
+
         cpu_total = cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
-        prevcpu_total = previous_cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
+        previous_cpu_total = previous_cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
+
         system_cpu = cpu_stats.get("system_cpu_usage", 0)
-        prevsystem_cpu = previous_cpu_stats.get("system_cpu_usage", 0)
-        container_used_cpu = cpu_total - prevcpu_total
-        system_used_cpu = system_cpu - prevsystem_cpu
+        previous_system_cpu = previous_cpu_stats.get("system_cpu_usage", 0)
+
+        container_used_cpu = cpu_total - previous_cpu_total
+        system_used_cpu = system_cpu - previous_system_cpu
+
         if system_used_cpu > 0 and container_used_cpu > 0:
-            return (container_used_cpu / system_used_cpu) * 100.0
+            return (container_used_cpu / system_used_cpu) * 100.0 * 12
         return 0.0

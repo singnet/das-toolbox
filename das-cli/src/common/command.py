@@ -4,6 +4,7 @@ from contextlib import suppress
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, TypedDict
+from .utils import env_to_dict
 
 import click
 import yaml
@@ -112,7 +113,7 @@ class Command:
         ),
         CommandOption(
             ["--user", "-u"],
-            type=ValidUsername(),
+            type=str,
             help="SSH username for the remote connection",
             required=False,
         ),
@@ -302,22 +303,27 @@ class Command:
         return config
 
     def _check_remote_config(self, remote_kwargs):
-        REMOTE_SECRETS_PATH = "$HOME/.das/config.json"
+        REMOTE_SECRETS_PATH = "$HOME/.das/.env"
 
         try:
-            raw_local_config = json.loads(SECRETS_PATH.read_text())
-            local_config = self._normalize_config(raw_local_config)
+            env_dict = env_to_dict(SECRETS_PATH)
+            raw_config = open(env_dict.get("configpath", "r")).read()
 
-        except Exception:
-            raise FileNotFoundError(f"Local configuration file not found at {SECRETS_PATH}")
+            local_config = json.loads(raw_config)
+
+        except Exception as e:
+            raise FileNotFoundError(f"The configuration file at: {env_dict.get('configpath')} contains errors or is missing content. Verify your configuration settings and try again.")
 
         try:
-            result = Connection(**remote_kwargs).run(f"cat {REMOTE_SECRETS_PATH}", hide=True)
-            raw_remote_config = json.loads(result.stdout)
-            remote_config = self._normalize_config(raw_remote_config)
+            command = f"grep 'configpath' {REMOTE_SECRETS_PATH} | cut -d'=' -f2 | xargs cat"
+            result = Connection(**remote_kwargs).run(command, hide=True)
+            remote_config = json.loads(result.stdout)
 
         except UnexpectedExit:
             raise FileNotFoundError(f"Remote configuration file not found at {REMOTE_SECRETS_PATH}")
+        
+        except Exception as e:
+            print(e)
 
         if local_config == remote_config:
             return

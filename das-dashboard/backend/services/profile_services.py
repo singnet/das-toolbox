@@ -4,12 +4,13 @@ import subprocess
 from fastapi import UploadFile
 from shared.exceptions.custom_exceptions import ProfileSaveException
 
-CONFIG_DIR = "/opt/das/.das"
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".das")
 UPLOAD_CONFIG_PATH = os.path.join(CONFIG_DIR, "webconfig.json")
 DEFAULT_PROFILE_PATH = os.path.join(CONFIG_DIR, "webapp_profile.json")
 DEFAULT_KEY_CLONE_PATH = os.path.join(CONFIG_DIR, ".remote_key")
 
 class ProfileServices:
+
     async def save_config(self, config_file: UploadFile):
         try:
             os.makedirs(CONFIG_DIR, exist_ok=True)

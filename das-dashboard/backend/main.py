@@ -38,14 +38,16 @@ def get_target_info(ip: str) -> dict:
 async def execute_server_action(
     action: ActionTypes, 
     targetIp: str = Query(...), 
-    targetService: str = Query(...)
+    targetService: str = Query(...),
+    containerName: str = Query(...),
 ):
     target_info = get_target_info(targetIp)
     
     result = CONTAINER_SERVICES.manage_container(
         service_name=targetService,
         action=action.value,
-        target_info=target_info
+        target_info=target_info,
+        container_name=containerName,
     )
 
     return JSONResponse(

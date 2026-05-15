@@ -12,6 +12,24 @@ from typing import Any, Callable, Dict, List, Optional
 from common.logger import logger
 
 
+def env_to_dict(path_to_env : str):
+    '''Opens an .env file and provide a dictionary with key/value pairs.'''
+    content : dict = {}
+
+    with open(path_to_env, "r") as env_file:
+
+        for line in env_file:
+            line.strip()
+
+            if not line or line.startswith("#"):
+                continue
+
+            if "=" in line:
+                key, value = line.split("=")
+                content[key.strip()] = value.strip()
+    
+    return content
+
 def is_executable_bin():
     return getattr(sys, "frozen", False)
 
