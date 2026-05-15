@@ -13,11 +13,12 @@ import { StatusIcon } from "./servertab.styled";
 export function ServerDrawer({
   drawerOpen,
   setDrawerOpen,
-  machines,
+  machines = [],
   currentMachine,
   selectMachine,
   setStatusColor,
 }) {
+
   return (
     <Drawer
       anchor="right"
@@ -32,6 +33,7 @@ export function ServerDrawer({
           height: "100%",
         }}
       >
+
         <Box p={2}>
           <Typography variant="h6">
             All Servers
@@ -41,7 +43,9 @@ export function ServerDrawer({
         <Divider sx={{ borderColor: "#334155" }} />
 
         <List>
+
           {machines.map((server) => (
+
             <ListItemButton
               key={server.serverIp}
               onClick={() => selectMachine(server.serverIp)}
@@ -49,6 +53,7 @@ export function ServerDrawer({
                 currentMachine?.serverIp === server.serverIp
               }
             >
+
               <StatusIcon
                 sx={{
                   color: setStatusColor(server.running),
@@ -59,15 +64,21 @@ export function ServerDrawer({
               <ListItemText
                 primary={server.serverIp}
                 secondary={
-                  server.running ? "Online" : "Offline"
+                  server.running
+                    ? "Online"
+                    : "Offline"
                 }
                 secondaryTypographyProps={{
                   color: "#94a3b8",
                 }}
               />
+
             </ListItemButton>
+
           ))}
+
         </List>
+
       </Box>
     </Drawer>
   );

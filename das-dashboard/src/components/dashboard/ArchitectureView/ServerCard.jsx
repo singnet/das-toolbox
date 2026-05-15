@@ -25,17 +25,19 @@ export function ServerCard({
   selectedService,
   setSelectedService,
 }) {
+  const isSelected = selectedService?.name === service.name;
+
   return (
     <StyledCard
-      onClick={() =>
-        setSelectedService(service)
-      }
+      onClick={() => setSelectedService(service)}
       sx={{
         cursor: "pointer",
-        border:
-          selectedService?.name === service.name
-            ? "1px solid #60a5fa"
-            : undefined,
+        border: isSelected ? "2px solid #60a5fa" : "1px solid #e2e8f0", // Borda mais visível
+        transition: "all 0.2s ease",
+        "&:hover": {
+            borderColor: "#60a5fa",
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)"
+        }
       }}
     >
       <Box
@@ -45,35 +47,12 @@ export function ServerCard({
         gap={2}
         mb={2}
       >
-        <Box
-          display="flex"
-          gap={1.5}
-          alignItems="flex-start"
-          flex={1}
-          minWidth={0}
-        >
-          <StorageIcon
-            sx={{
-              color: "#60a5fa",
-              mt: "2px",
-              flexShrink: 0,
-            }}
-          />
+        <Box display="flex" gap={1.5} alignItems="flex-start" flex={1} minWidth={0}>
+          <StorageIcon sx={{ color: "#60a5fa", mt: "2px", flexShrink: 0 }} />
 
           <Box flex={1} minWidth={0}>
-            <Typography
-              fontWeight="bold"
-              fontSize={14}
-            >
+            <Typography fontWeight="bold" fontSize={14} noWrap>
               {service.displayName}
-            </Typography>
-
-            <Typography
-              variant="caption"
-              display="block"
-              color="#64748b"
-            >
-              Host: {service.hostServer}
             </Typography>
 
             <Typography
@@ -82,9 +61,11 @@ export function ServerCard({
               color="#64748b"
               sx={{
                 whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
               }}
             >
-              Container: {service.name}
+              ID: {service.name}
             </Typography>
           </Box>
         </Box>
@@ -94,12 +75,9 @@ export function ServerCard({
           label={service.status}
           sx={{
             flexShrink: 0,
-            background: `${getStatusColor(
-              service.status
-            )}20`,
-            color: getStatusColor(
-              service.status
-            ),
+            fontWeight: "bold",
+            background: `${getStatusColor(service.status)}20`,
+            color: getStatusColor(service.status),
           }}
         />
       </Box>
@@ -121,11 +99,9 @@ export function ServerCard({
         <InlineInfo label="Image" value={service.image} />
         <InlineInfo label="Uptime" value={service.age} />
         <InlineInfo
-          label="Service Health"
+          label="Health"
           value={service.health}
-          valueColor={getHealthColor(
-            service.health
-          )}
+          valueColor={getHealthColor(service.health)}
         />
       </Box>
     </StyledCard>

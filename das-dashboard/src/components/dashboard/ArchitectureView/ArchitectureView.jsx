@@ -1,136 +1,79 @@
 import { useMemo, useState } from "react";
-
-import { mockMachines } from "../../../pages/dashboard/dashboard_mock_data";
-
-import {
-  Container,
-  Grid,
-} from "./architectureview.styled";
-
+import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { Container, Grid } from "./architectureview.styled";
 import { ServiceChart } from "./ServiceChart";
 import { ServerCard } from "./ServerCard";
-
-import {
-  StyledTab,
-  StyledTabs,
-} from "../MainContent/servertab/servertab.styled";
-
-import {
-  EXPECTED_SERVICES,
-  SERVICE_LABELS,
-} from "./utils/constants";
+import { StyledTab, StyledTabs } from "../MainContent/servertab/servertab.styled";
+import { EXPECTED_SERVICES, SERVICE_LABELS } from "./utils/constants";
 
 export default function ArchitectureView() {
+  const { services, getAggregatedMetrics, lastUpdate } = useDashboardContext();
   const [tab, setTab] = useState(0);
-  const [selectedService, setSelectedService] =
-    useState(null);
+  const [selectedServiceName, setSelectedServiceName] = useState(null);
 
-  const tabNames = [
-    "Agents",
-    "Brokers",
-    "Loaders",
-    "AtomDB",
-  ];
+  const tabNames = ["Agents", "Brokers", "Loaders", "AtomDB"];
 
-  const services = useMemo(() => {
-    const collected = [];
+  const processedServices = useMemo(() => {
+    const finalData = [];
+    const aggregated = getAggregatedMetrics();
 
-    mockMachines.forEach((machine) => {
-      machine.agents.forEach((agent) => {
-        let type = "Agents";
+    Object.entries(EXPECTED_SERVICES).forEach(([category, expectedList]) => {
+      expectedList.forEach((baseName) => {
+        const realService = services.find((s) => 
+            s.container_name === baseName || 
+            s.container_name.startsWith(`${baseName}-`)
+        );
 
-        if (
-          agent.name.includes("mongodb") ||
-          agent.name.includes("redis") ||
-          agent.name.includes("mork")
-        ) {
-          type = "AtomDB";
-        } else if (agent.name.includes("broker")) {
-          type = "Brokers";
-        } else if (agent.name.includes("loader")) {
-          type = "Loaders";
+        if (realService) {
+          const history = aggregated.agents.find(a => a.name === realService.container_name) || { cpu: [], memory: [] };
+
+          finalData.push({
+            name: realService.container_name,
+            displayName: SERVICE_LABELS[baseName] || realService.container_name,
+            type: category,
+            status: realService.status === "running" ? "Running" : "Offline",
+            cpu: `${realService.cpu_percent}%`,
+            memory: `${Math.round(realService.memory_mb)}MB`,
+            port: realService.port || "-",
+            image: realService.image,
+            age: realService.age,
+            health: realService.service_health === "healthy" ? "Healthy" : 
+                    (realService.service_health === "-" ? "Running" : "Unhealthy"),
+            isPlaceholder: false,
+            metrics: {
+              cpu: history.cpu,
+              memory: history.memory
+            },
+            timestamps: aggregated.timestamps
+          });
+        } else {
+          finalData.push({
+            name: baseName,
+            displayName: SERVICE_LABELS[baseName] || baseName,
+            type: category,
+            status: "Offline",
+            cpu: "0%",
+            memory: "0MB",
+            port: "-",
+            image: "-",
+            age: "-",
+            health: "No status",
+            isPlaceholder: true,
+            metrics: { cpu: [], memory: [] },
+            timestamps: aggregated.timestamps
+          });
         }
-
-        const metricEntry =
-          machine.metrics.agents.find(
-            (m) => m.name === agent.name
-          );
-
-        collected.push({
-          ...agent,
-          displayName:
-            SERVICE_LABELS[agent.name] || agent.name,
-          type,
-          hostServer: machine.serverIp,
-          metrics: metricEntry || {
-            cpu: [0, 0, 0, 0, 0, 0],
-            memory: [0, 0, 0, 0, 0, 0],
-          },
-          timestamps: machine.metrics.timestamps,
-        });
       });
     });
 
-    const existingNames = collected.map(
-      (service) => service.name
-    );
+    return finalData;
+  }, [services, lastUpdate, getAggregatedMetrics]);
 
-    Object.entries(EXPECTED_SERVICES).forEach(
-      ([type, names]) => {
-        names.forEach((name) => {
-          if (!existingNames.includes(name)) {
-            collected.push({
-              name,
-              displayName:
-                SERVICE_LABELS[name] || name,
-              type,
-              hostServer: "-",
-              status: "Offline",
-              health: "No status",
-              age: "-",
-              memory: "0MB",
-              cpu: "0%",
-              port: "-",
-              image: "-",
-              metrics: {
-                cpu: [0, 0, 0, 0, 0, 0],
-                memory: [0, 0, 0, 0, 0, 0],
-              },
-              timestamps: [
-                "10:00",
-                "10:05",
-                "10:10",
-                "10:15",
-                "10:20",
-                "10:25",
-              ],
-            });
-          }
-        });
-      }
-    );
-
-    return collected;
-  }, []);
-
-  const filteredServices = services.filter(
+  const filteredServices = processedServices.filter(
     (service) => service.type === tabNames[tab]
   );
 
-  const selectedMachine = selectedService
-    ? {
-        metrics: {
-          timestamps: selectedService.timestamps,
-          agents: [
-            {
-              name: selectedService.name,
-              cpu: selectedService.metrics.cpu,
-              memory: selectedService.metrics.memory,
-            },
-          ],
-        },
-      }
-    : null;
+  const selectedService = processedServices.find(s => s.name === selectedServiceName);
 
   return (
     <Container>
@@ -138,7 +81,7 @@ export default function ArchitectureView() {
         value={tab}
         onChange={(e, value) => {
           setTab(value);
-          setSelectedService(null);
+          setSelectedServiceName(null);
         }}
         sx={{ mb: 3 }}
       >
@@ -152,17 +95,14 @@ export default function ArchitectureView() {
           <ServerCard
             key={service.name}
             service={service}
-            selectedService={selectedService}
-            setSelectedService={setSelectedService}
+            selectedService={selectedService} 
+            setSelectedService={(s) => setSelectedServiceName(s?.name || null)}
           />
         ))}
       </Grid>
 
       {selectedService && (
-        <ServiceChart
-          selectedMachine={selectedMachine}
-          selectedService={selectedService}
-        />
+        <ServiceChart selectedService={selectedService} />
       )}
     </Container>
   );
