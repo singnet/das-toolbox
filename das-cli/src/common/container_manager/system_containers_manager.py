@@ -7,6 +7,7 @@ import re
 class SystemContainersManager(DockerManager):
 
     def __init__(self, settings: Settings, exec_context: str | None = None) -> None:
+
         super().__init__(exec_context)
         self._settings = settings
 
