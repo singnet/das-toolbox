@@ -57,7 +57,7 @@ export function AgentTable({ machine }) {
               <HeaderCell>Image</HeaderCell>
               <HeaderCell>Port</HeaderCell>
               <HeaderCell>Age</HeaderCell>
-              <HeaderCell>CPU (%)</HeaderCell>
+              <HeaderCell>CPU (% / Core)</HeaderCell>
               <HeaderCell>Memory (MB)</HeaderCell>
               <HeaderCell>Status</HeaderCell>
               <HeaderCell>Health</HeaderCell>

@@ -1,5 +1,5 @@
 import api from "./AxiosBaseClient";
-import { SERVICE_CLI_NAMES } from "../components/dashboard/ArchitectureView/utils/constants"
+import { SERVICE_CLI_NAMES } from "../components/dashboard/ArchitectureView/utils/constants";
 
 export async function executeDashboardAction(container_name, action, target_ip) {
   const prefix = container_name.replace(/-\d+$/, '');
@@ -10,7 +10,8 @@ export async function executeDashboardAction(container_name, action, target_ip) 
       params: { 
         action: action,
         targetIp: target_ip,
-        targetService: shortServiceName
+        targetService: shortServiceName,
+        containerName: container_name
       }
     });
     
@@ -53,8 +54,10 @@ export async function fetchDashboardDataStatic(metricScope = "all", targetIp = "
 
 export function fetchDashboardDataStream(onMessage, targetIp = "localhost") {
   const ip = targetIp || "localhost";
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const host = window.location.hostname === "localhost" ? "localhost:8000" : window.location.host;
   
-  const socketUrl = `ws://localhost:8000/dashboard/metrics/stream?metric_scope=all&target_ip=${ip}`;
+  const socketUrl = `${protocol}://${host}/dashboard/metrics/stream?metric_scope=all&target_ip=${ip}`;
   
   const socket = new WebSocket(socketUrl);
 

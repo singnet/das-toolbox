@@ -41,7 +41,7 @@ export function CPUViewChart({ machine, currentService }) {
         scaleType: "point",
         hideTooltip: true
       }]}
-      yAxis={[{ min: 0, max: 100, label: "CPU (%)" }]}
+      yAxis={[{ min: 0, max: 100, label: "CPU (%/Core)" }]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 40 }}
