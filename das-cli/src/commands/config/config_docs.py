@@ -41,7 +41,9 @@ ATOMDB BACKEND (atomdb)
         Defines the backend used for AtomDB storage.
         Supported values:
         - redismongodb
-        - morkmongodb
+        - morkdb
+        - inmemorydb
+        - remotedb
 
 
     REDIS CONFIGURATION (atomdb.redis)
