@@ -3,7 +3,7 @@ from typing import Callable, Dict
 
 from common import Settings
 from common.config.store import JsonConfigStore
-from settings.config import CONFIGFILE_PATH
+from settings.config import CURRENT_CONFIGFILE_PATH
 
 
 class BusNodeCommandRegistry:
@@ -24,7 +24,7 @@ class BusNodeCommandRegistry:
             "remotedb": "remotedb",
         }
 
-        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(CONFIGFILE_PATH)))
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(CURRENT_CONFIGFILE_PATH)))
 
     def build(self, service, endpoint, ports_range, options, **args):
         handler = self._commands.get(service)
@@ -45,7 +45,7 @@ class BusNodeCommandRegistry:
     def _gen_default_cmd(self, service, endpoint, ports_range):
         db_flag = self._check_atomdb_type_flag()
 
-        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {db_flag} --config={CONFIGFILE_PATH}".strip()
+        return f"busnode --service={service} --endpoint={endpoint} --ports-range={ports_range} {db_flag} --config={CURRENT_CONFIGFILE_PATH}".strip()
 
     def _cmd_atomdb_broker(self, service, endpoint, ports_range, options, **args):
         base = self._gen_default_cmd(service, endpoint, ports_range)

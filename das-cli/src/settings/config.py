@@ -15,7 +15,8 @@ SERVICES_NETWORK_NAME = "host"
 DAS_PATH = Path.home() / ".das"
 SECRETS_PATH = DAS_PATH / ".env"
 
-CONFIGFILE_PATH = EnvFileLoader(SECRETS_PATH).load().get("configpath", "")
+DEFAULT_CONFIGFILE_PATH = DAS_PATH / "config.json"
+CURRENT_CONFIGFILE_PATH = EnvFileLoader(SECRETS_PATH).load().get("configpath", DEFAULT_CONFIGFILE_PATH)
 
 # LOG
 

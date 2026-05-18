@@ -5,7 +5,7 @@ import docker
 from common import Container, ContainerImageMetadata, ContainerMetadata
 from common.docker import ContainerManager
 from common.docker.exceptions import DockerContainerDuplicateError
-from settings.config import CONFIGFILE_PATH, DAS_IMAGE_NAME, DAS_IMAGE_VERSION
+from settings.config import CURRENT_CONFIGFILE_PATH, DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 from ..bus_node.busnode_command_registry import BusNodeCommandRegistry
 
@@ -36,7 +36,7 @@ class BusNodeContainerManager(ContainerManager):
         self.raise_running_container()
         self.raise_on_port_in_use([self._options.get("service_port")])
 
-        user_config_volume = CONFIGFILE_PATH
+        user_config_volume = CURRENT_CONFIGFILE_PATH
 
         try:
             service = self._options.get("service")
@@ -53,7 +53,7 @@ class BusNodeContainerManager(ContainerManager):
                 },
                 volumes={
                     user_config_volume: {
-                        "bind": CONFIGFILE_PATH,
+                        "bind": CURRENT_CONFIGFILE_PATH,
                         "mode": "ro",
                     }
                 },
