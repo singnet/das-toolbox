@@ -24,7 +24,9 @@ class BusNodeCommandRegistry:
             "remotedb": "remotedb",
         }
 
-        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(CURRENT_CONFIGFILE_PATH)))
+        self._settings = Settings(
+            store=JsonConfigStore(os.path.expanduser(CURRENT_CONFIGFILE_PATH))
+        )
 
     def build(self, service, endpoint, ports_range, options, **args):
         handler = self._commands.get(service)

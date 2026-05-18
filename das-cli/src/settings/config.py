@@ -16,7 +16,9 @@ DAS_PATH = Path.home() / ".das"
 SECRETS_PATH = DAS_PATH / ".env"
 
 DEFAULT_CONFIGFILE_PATH = DAS_PATH / "config.json"
-CURRENT_CONFIGFILE_PATH = EnvFileLoader(SECRETS_PATH).load().get("configpath", DEFAULT_CONFIGFILE_PATH)
+CURRENT_CONFIGFILE_PATH = (
+    EnvFileLoader(SECRETS_PATH).load().get("configpath", DEFAULT_CONFIGFILE_PATH)
+)
 
 # LOG
 
