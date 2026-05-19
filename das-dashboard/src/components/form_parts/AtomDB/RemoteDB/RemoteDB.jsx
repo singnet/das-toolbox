@@ -57,7 +57,7 @@ export function RemoteDBOptions() {
         }
       }
 
-      if (subFormData.type === "morkmongodb") {
+      if (subFormData.type === "morkdb") {
         peersRefs.current[id] = {
           ...cleaned,
           mongodb: subFormData.mongodb,
@@ -76,9 +76,9 @@ export function RemoteDBOptions() {
         }
       }
 
-      if (subFormData.type === "morkmongodb") {
+      if (subFormData.type === "morkdb") {
         peersRefs.current[id].local_persistence = {
-          type: "morkmongodb",
+          type: "morkdb",
           context: `${base.context}local_`,
           mongodb: subFormData.mongodb,
           morkdb: subFormData.morkdb
@@ -93,7 +93,7 @@ export function RemoteDBOptions() {
         if (!peer.type) return false
 
         if (peer.type === "redismongodb" && (!peer.redis || !peer.mongodb)) return false
-        if (peer.type === "morkmongodb" && (!peer.mongodb || !peer.morkdb)) return false
+        if (peer.type === "morkdb" && (!peer.mongodb || !peer.morkdb)) return false
 
         return true
       })
@@ -109,7 +109,7 @@ export function RemoteDBOptions() {
           base.mongodb = peer.mongodb
         }
 
-        if (peer.type === "morkmongodb") {
+        if (peer.type === "morkdb") {
           base.mongodb = peer.mongodb
           base.morkdb = peer.morkdb
         }
@@ -166,7 +166,7 @@ export function RemoteDBOptions() {
               }}
             >
               <MenuItem value="redismongodb">Redis + Mongo</MenuItem>
-              <MenuItem value="morkmongodb">Mork + Mongo</MenuItem>
+              <MenuItem value="morkdb">Mork + Mongo</MenuItem>
             </TextField>
           </Box>
 
@@ -214,7 +214,7 @@ export function RemoteDBOptions() {
           >
             <MenuItem value="inmemorydb">In Memory</MenuItem>
             <MenuItem value="redismongodb">Redis + MongoDB</MenuItem>
-            <MenuItem value="morkmongodb">MorkDB + MongoDB</MenuItem>
+            <MenuItem value="morkdb">MorkDB + MongoDB</MenuItem>
           </TextField>
 
           {peer.localType === "redismongodb" && (
@@ -224,7 +224,7 @@ export function RemoteDBOptions() {
             />
           )}
 
-          {peer.localType === "morkmongodb" && (
+          {peer.localType === "morkdb" && (
             <MorkMongoSubForm
               category="local"
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}

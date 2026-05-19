@@ -12,7 +12,7 @@ export function MorkMongoOptions() {
   const defaults = getDefault().atomdb || {}
 
   const section = useRef({
-    type: "morkmongodb",
+    type: "morkdb",
     morkdb: {
       endpoint: defaults?.morkdb?.endpoint || "localhost:40022"
     },

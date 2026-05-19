@@ -174,10 +174,10 @@ def build_local_persistence(settings: Settings, base_name: str) -> Dict[str, Any
         "Select local persistence type",
         options={
             "MongoDB + Redis": "redismongodb",
-            "MongoDB + MorkDB": "morkmongodb",
+            "MongoDB + MorkDB": "morkdb",
             "InMemoryDB": "inmemorydb",
         },
-        default="morkmongodb",
+        default="morkdb",
     )
 
     config = {"type": persistence_type, "context": f"{base_name}_local_"}
@@ -186,7 +186,7 @@ def build_local_persistence(settings: Settings, base_name: str) -> Dict[str, Any
         case "redismongodb":
             config.update(mongo_setup(settings, skip_cluster=True))
             config.update(redis_setup(settings, skip_cluster=True))
-        case "morkmongodb":
+        case "morkdb":
             config.update(mongo_setup(settings, skip_cluster=True))
             config.update(mork_setup(settings))
         case "inmemorydb":
@@ -200,7 +200,7 @@ def setup_peer(settings: Settings, iteration_num: int) -> Dict[str, Any]:
         "Select the Remote peer backend type",
         options={
             "MongoDB + Redis": "redismongodb",
-            "MongoDB + MorkDB": "morkmongodb",
+            "MongoDB + MorkDB": "morkdb",
             "InMemoryDB": "inmemorydb",
         },
         default="redismongodb",
@@ -218,7 +218,7 @@ def setup_peer(settings: Settings, iteration_num: int) -> Dict[str, Any]:
         case "redismongodb":
             peer.update(mongo_setup(settings, skip_cluster=True))
             peer.update(redis_setup(settings, skip_cluster=True))
-        case "morkmongodb":
+        case "morkdb":
             peer.update(mongo_setup(settings, skip_cluster=True))
             peer.update(mork_setup(settings))
         case "inmemorydb":
@@ -249,7 +249,7 @@ def atomdb_config_section(settings: Settings):
         "Select the AtomDB backend type",
         options={
             "MongoDB + Redis": "redismongodb",
-            "MongoDB + MorkDB": "morkmongodb",
+            "MongoDB + MorkDB": "morkdb",
             "InMemoryDB": "inmemorydb",
             "RemoteDB": "remotedb",
         },
@@ -262,8 +262,8 @@ def atomdb_config_section(settings: Settings):
             atomdb_config.update(mongo_setup(settings, skip_cluster=False))
             atomdb_config.update(redis_setup(settings, skip_cluster=False))
 
-        case "morkmongodb":
-            atomdb_config.update({"type": "morkmongodb"})
+        case "morkdb":
+            atomdb_config.update({"type": "morkdb"})
             atomdb_config.update(mongo_setup(settings, skip_cluster=False))
             atomdb_config.update(mork_setup(settings))
 

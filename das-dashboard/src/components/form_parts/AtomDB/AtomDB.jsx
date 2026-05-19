@@ -28,7 +28,7 @@ export default function AtomDBForm({ onSectionSave }) {
         onChange={(e) => setType(e.target.value)}
       >
         <MenuItem value="redismongodb">Redis + MongoDB</MenuItem>
-        <MenuItem value="morkmongodb">Mork + MongoDB</MenuItem>
+        <MenuItem value="morkdb">Mork + MongoDB</MenuItem>
         <MenuItem value="inmemorydb">In Memory</MenuItem>
         <MenuItem value="remotedb">Remote DB (Multi-Peer)</MenuItem>
       </TextField>
@@ -37,7 +37,7 @@ export default function AtomDBForm({ onSectionSave }) {
         <RedisMongoOptions/>
       )}
 
-      {type === "morkmongodb" && (
+      {type === "morkdb" && (
         <MorkMongoOptions
           onSave={(data) =>
             onSectionSave("atomdb", { type, ...data })
