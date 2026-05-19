@@ -8,7 +8,7 @@ export function MorkMongoSubForm({ onChange, category }) {
   const defaults = getDefault().atomdb || {}
 
   const section = useRef({
-    type: "morkmongodb",
+    type: "morkdb",
     mongodb: {
       endpoint: defaults?.mongodb?.endpoint || "localhost:40021",
       username: defaults?.mongodb?.username || "admin",
