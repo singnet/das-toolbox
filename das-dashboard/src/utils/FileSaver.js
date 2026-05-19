@@ -1,18 +1,4 @@
-export default async function saveFile(data){
-
-    try{
-        const handle = await saveFileWithPicker(data)
-    }
-    catch (err) {
-        if (err.name === "AbortError"){
-            return
-        }
-        else{
-            saveFileFallback(data)
-        }
-    }
-
-}
+import axios from "axios"
 
 export async function saveFileWithPicker(data){
 
@@ -42,6 +28,22 @@ export async function saveFileWithPicker(data){
     catch (err) {
         console.error('Error saving config.json', err.name, err.message)
         throw err
+    }
+
+}
+
+export default async function saveFile(data){
+
+    try{
+        const handle = await saveFileWithPicker(data)
+    }
+    catch (err) {
+        if (err.name === "AbortError"){
+            return
+        }
+        else{
+            saveFileFallback(data)
+        }
     }
 
 }

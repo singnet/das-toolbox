@@ -26,7 +26,7 @@ import { BrokersForm } from "../../components/form_parts/Brokers/Brokers"
 import { ParamsForm } from "../../components/form_parts/AgentsParams/AgentsParams"
 import { EnvironmentForm } from "../../components/form_parts/Environment/Environment"
 import { useConfig } from "../../components/global_providers/ConfigurationProvider"
-import handleLoadConfig from "../../utils/FileLoader"
+import { handleLoadConfig } from "../../utils/FileLoader"
 
 export default function SetupDasPage() {
 

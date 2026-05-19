@@ -1,4 +1,5 @@
-export default function handleLoadConfig(event, onLoad) {
+
+export function handleLoadConfig(event, onLoad) {
   const file = event.target.files[0];
   if (!file) return;
 
@@ -8,7 +9,7 @@ export default function handleLoadConfig(event, onLoad) {
     try {
       const parsed = JSON.parse(e.target.result);
 
-      onLoad(parsed);
+      onLoad({parsed, file});
     } 
     catch (err) {
       console.error("Invalid JSON:", err);

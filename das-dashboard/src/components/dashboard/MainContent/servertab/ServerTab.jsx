@@ -1,17 +1,8 @@
-import { useState } from "react";
-
-import {
-  Box,
-  IconButton,
-} from "@mui/material";
-
+import { useState, useEffect } from "react";
+import { Box, IconButton } from "@mui/material";
 import { Menu as MenuIcon } from "@mui/icons-material";
-
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-import { mockMachines } from "../../../../pages/dashboard/dashboard_mock_data";
-
 import { ServerDrawer } from "./ServerDrawer";
-
 import {
   Container,
   Header,
@@ -24,28 +15,42 @@ import {
 const MAX_VISIBLE_TABS = 8;
 
 export function ServerTab() {
-  const { currentMachine, setCurrentMachine } =
-    useDashboardContext();
+  const {
+    machines,
+    currentMachine,
+    setCurrentMachine,
+  } = useDashboardContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const setStatusColor = (running) =>
-    running ? "green" : "darkgrey";
+  useEffect(() => {
+    if (machines.length > 0 && !currentMachine) {
+      setCurrentMachine(machines[0]);
+    }
+  }, [machines, currentMachine, setCurrentMachine]);
 
-  const visibleServers =
-    mockMachines.slice(0, MAX_VISIBLE_TABS);
+  const setStatusColor = (running) => (running ? "green" : "darkgrey");
 
-  const hiddenServers =
-    mockMachines.slice(MAX_VISIBLE_TABS);
+  const visibleServers = machines.slice(0, MAX_VISIBLE_TABS);
+  const hiddenServers = machines.slice(MAX_VISIBLE_TABS);
 
   const selectMachine = (serverIp) => {
-    const selectedMachine = mockMachines.find(
-      (machine) => machine.serverIp === serverIp
-    );
-
-    setCurrentMachine(selectedMachine);
-    setDrawerOpen(false);
+    const selectedMachine = machines.find((m) => m.serverIp === serverIp);
+    if (selectedMachine) {
+      setCurrentMachine(selectedMachine);
+      setDrawerOpen(false);
+    }
   };
+
+  if (!machines || machines.length === 0) {
+    return (
+      <Container>
+        <Header>
+          <Title>No servers loaded. Please load a config file.</Title>
+        </Header>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -66,10 +71,10 @@ export function ServerTab() {
       </Header>
 
       <StyledTabs
-        value={currentMachine?.serverIp || false}
-        onChange={(e, newValue) =>
-          selectMachine(newValue)
-        }
+        value={currentMachine?.serverIp ?? false}
+        onChange={(_, newValue) => selectMachine(newValue)}
+        variant="scrollable"
+        scrollButtons="auto"
       >
         {visibleServers.map((server) => (
           <StyledTab

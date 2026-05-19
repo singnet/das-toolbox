@@ -33,11 +33,11 @@ export function ConfigurationProvider({ children }){
         )
     }
 
-    const loadExternalConfiguration = (file) => {
-        const newConfig = file
+    const loadExternalConfiguration = ({ parsed }) => {
+        const newConfig = parsed
         setConfig(newConfig)
 
-        Object.entries(file).forEach(([key, value]) => {
+        Object.entries(parsed).forEach(([key, value]) => {
             sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
         })
 

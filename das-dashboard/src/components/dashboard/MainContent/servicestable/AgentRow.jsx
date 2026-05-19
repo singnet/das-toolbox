@@ -1,18 +1,8 @@
-import {
-  Chip,
-  Tooltip,
-} from "@mui/material";
-
+import { Chip, Tooltip } from "@mui/material";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-
-import {
-  StyledRow,
-  BodyCell,
-  ActionsBox,
-  ActionButton,
-} from "./servicestable.styled";
+import { StyledRow, BodyCell, ActionsBox, ActionButton } from "./servicestable.styled";
 
 export function AgentRow({
   agent,
@@ -20,68 +10,80 @@ export function AgentRow({
   handleSelect,
   getStatusColor,
   getHealthStatusColor,
+  onAction, 
 }) {
+  
+  const executeAction = (e, actionType) => {
+    e.stopPropagation();
+    if (onAction) {
+      onAction(actionType, agent.container_name);
+    }
+  };
+
   return (
     <StyledRow
-      onClick={() => handleSelect(agent.name)}
+      onClick={() => handleSelect(agent.container_name)}
       sx={{
-        backgroundColor: selected ? "#f9fcd1" : "inherit",
-
-        "&:hover": {
-          backgroundColor: selected
-            ? "#e5ebf1"
-            : "#f9f9f9",
-        },
+        backgroundColor: selected ? "#f8fafc" : "inherit", // Ajustado para um tom mais suave
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        "&:hover": { backgroundColor: selected ? "#f1f5f9" : "#f8fafc" },
       }}
     >
-      <BodyCell>{agent.name}</BodyCell>
-      <BodyCell>{agent.image}</BodyCell>
+      <BodyCell sx={{ fontWeight: 500 }}>{agent.container_name}</BodyCell>
+      <BodyCell color="textSecondary">{agent.image}</BodyCell>
       <BodyCell>{agent.port}</BodyCell>
       <BodyCell>{agent.age}</BodyCell>
-      <BodyCell>{agent.cpu}</BodyCell>
-      <BodyCell>{agent.memory}</BodyCell>
+
+      <BodyCell>{agent.cpu_percent}%</BodyCell>
+      <BodyCell>{Math.round(agent.memory_mb)} MB</BodyCell>
 
       <BodyCell>
         <Chip
           label={agent.status}
           color={getStatusColor(agent.status)}
-          size="medium"
+          size="small"
+          sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.75rem' }}
         />
       </BodyCell>
 
       <BodyCell>
         <Chip
-          label={agent.health}
-          color={getHealthStatusColor(agent.health)}
-          size="medium"
+          label={agent.service_health === "-" ? "Running" : agent.service_health}
+          color={getHealthStatusColor(agent.service_health === "healthy" ? "healthy" : "unhealthy")}
+          size="small"
+          sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.75rem' }}
         />
       </BodyCell>
 
       <BodyCell align="right">
         <ActionsBox>
           <Tooltip title="Start">
-            <ActionButton
-              color="success"
-              onClick={(e) => e.stopPropagation()}
+            <ActionButton 
+              onClick={(e) => executeAction(e, "START")}
+              disabled={agent.status === "running"}
+              sx={{ color: agent.status === "running" ? "action.disabled" : "success.main" }}
             >
-              <PlayCircleIcon />
+              <PlayCircleIcon fontSize="small" />
             </ActionButton>
           </Tooltip>
 
           <Tooltip title="Stop">
-            <ActionButton
-              color="error"
-              onClick={(e) => e.stopPropagation()}
+            <ActionButton 
+              onClick={(e) => executeAction(e, "STOP")}
+              disabled={agent.status !== "running"}
+              sx={{ color: agent.status !== "running" ? "action.disabled" : "error.main" }}
             >
-              <StopCircleIcon />
+              <StopCircleIcon fontSize="small" />
             </ActionButton>
           </Tooltip>
 
           <Tooltip title="Restart">
-            <ActionButton
-              onClick={(e) => e.stopPropagation()}
+            <ActionButton 
+              onClick={(e) => executeAction(e, "RESTART")}
+              sx={{ color: "primary.main" }}
             >
-              <RestartAltIcon />
+              <RestartAltIcon fontSize="small" />
             </ActionButton>
           </Tooltip>
         </ActionsBox>
