@@ -73,6 +73,9 @@ class ConfigSet(Command):
 
     def _set_file_path(self, save_path) -> None:
         self._settings.set_path(save_path)
+
+        self._settings.rewind()
+
         verify_populate_missing_values(self._settings, save_path)
 
         self.stdout(
