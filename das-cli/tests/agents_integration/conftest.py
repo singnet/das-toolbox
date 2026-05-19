@@ -10,7 +10,7 @@ from pathlib import Path
 
 class BackendType(Enum):
     REDIS_MONGO = "redismongodb"
-    MORK_MONGO = "morkmongodb"
+    MORK_MONGO = "morkdb"
 
 SERVICE_LIST = [
     "attention-broker",

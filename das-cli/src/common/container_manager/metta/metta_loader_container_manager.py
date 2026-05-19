@@ -29,7 +29,7 @@ class MettaLoaderContainerManager(ContainerManager):
         self._options = options
 
     def _gen_metta_loader_command(self, filename: str) -> str:
-        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'morkmongodb' else ""
+        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'morkdb' else ""
         exec_command = f"db_loader {filename} {skip_redis}".strip()
 
         return exec_command

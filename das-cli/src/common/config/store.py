@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 from common.utils import deep_merge_dicts
-from settings.config import CONFIGFILE_PATH
+from settings.config import CURRENT_CONFIGFILE_PATH
 
 
 class ConfigStore(ABC):
@@ -82,7 +82,7 @@ class ConfigStore(ABC):
 
 class JsonConfigStore(ConfigStore):
     def __init__(self, env_file_path: str):
-        self._file_path = CONFIGFILE_PATH
+        self._file_path = CURRENT_CONFIGFILE_PATH
         self._env_path = env_file_path
         self._content: Dict[str, Any] = {}
         self._new_content: Dict[str, Any] = {}
@@ -96,7 +96,7 @@ class JsonConfigStore(ConfigStore):
         self._new_content = content
 
     def get_path(self) -> str:
-        return self._env_path
+        return self._file_path
 
     def set_path(self, new_file_path: str) -> None:
         self._file_path = new_file_path

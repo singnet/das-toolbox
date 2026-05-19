@@ -14,7 +14,7 @@ from common import (
     StdoutType,
 )
 from common.prompt_types import AbsolutePath
-from settings.config import CONFIGFILE_PATH
+from settings.config import CURRENT_CONFIGFILE_PATH
 
 from .config_docs import (
     HELP_CONFIG,
@@ -81,8 +81,9 @@ class ConfigSet(Command):
         )
 
         self._settings.save_path()
+
         self.stdout(
-            f"Configuration file set to -> {self._settings.get_dir_path()}",
+            f"Configuration file set to -> {self._settings.get_path()}",
             severity=StdoutSeverity.SUCCESS,
         )
 
@@ -91,8 +92,9 @@ class ConfigSet(Command):
         self._settings.set_path(save_path)
         self._settings.save()
         self._settings.save_path()
+
         self.stdout(
-            f"Configuration file saved -> {self._settings.get_dir_path()}",
+            f"Configuration file saved -> {self._settings.get_path()}",
             severity=StdoutSeverity.SUCCESS,
         )
 
@@ -122,7 +124,7 @@ class ConfigSet(Command):
     ):
 
         if config_key_value is not None:
-            return self.non_interactive_mode(config_key_value, CONFIGFILE_PATH)
+            return self.non_interactive_mode(config_key_value, CURRENT_CONFIGFILE_PATH)
 
         elif file is not None:
             return self._set_file_path(file)
