@@ -19,8 +19,11 @@ This is a simple and intuitive web interface, created to make das/das-cli's setu
 3. Run 'npm run dev'
 
 ### Running locally via docker:
+
 1. If you are in the root folder of the DAS project, change directory to './das-dashboard'
 2. On your terminal, run 'docker build -t das-dashboard .'
 3. Then run 'docker run -d --network host --name das-dashboard das-dashboard:latest' and you'll have a node server hosting the interface locally.
+
+PS. Server will start by default on port 5173 (default vite port)
 
 That's all, you should be able to run the web app perfectly and use its full features.

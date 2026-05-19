@@ -108,7 +108,7 @@ class Command:
         ),
         CommandOption(
             ["--host"],
-            type=ValidUsername,
+            type=ValidUsername(),
             help="Remote host to connect to",
             required=False,
         ),
