@@ -4,7 +4,6 @@ from contextlib import suppress
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, TypedDict
-from .utils import env_to_dict
 
 import click
 import yaml
@@ -19,6 +18,8 @@ from common.execution_context import ExecutionContext, SSHParams
 from common.prompt_types import ValidUsername
 from common.utils import log_exception
 from settings.config import SECRETS_PATH
+
+from .utils import env_to_dict
 
 
 class SelectOption(TypedDict):
@@ -107,7 +108,7 @@ class Command:
         ),
         CommandOption(
             ["--host"],
-            type=str,
+            type=ValidUsername,
             help="Remote host to connect to",
             required=False,
         ),
@@ -311,8 +312,10 @@ class Command:
 
             local_config = json.loads(raw_config)
 
-        except Exception as e:
-            raise FileNotFoundError(f"The configuration file at: {env_dict.get('configpath')} contains errors or is missing content. Verify your configuration settings and try again.")
+        except Exception:
+            raise FileNotFoundError(
+                f"The configuration file at: {env_dict.get('configpath')} contains errors or is missing content. Verify your configuration settings and try again."
+            )
 
         try:
             command = f"grep 'configpath' {REMOTE_SECRETS_PATH} | cut -d'=' -f2 | xargs cat"
@@ -321,7 +324,7 @@ class Command:
 
         except UnexpectedExit:
             raise FileNotFoundError(f"Remote configuration file not found at {REMOTE_SECRETS_PATH}")
-        
+
         except Exception as e:
             print(e)
 

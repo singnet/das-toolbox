@@ -108,7 +108,6 @@ class SystemStatus(Command):
                 except Exception as e:
                     print(f"[docker_loop] {e}")
 
-
         threading.Thread(
             target=machine_loop,
             daemon=True,

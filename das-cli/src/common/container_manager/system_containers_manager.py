@@ -1,8 +1,11 @@
+import re
 from datetime import datetime, timezone
+
 from dateutil.parser import isoparse
+
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
-import re
+
 
 class SystemContainersManager(DockerManager):
 
@@ -55,13 +58,13 @@ class SystemContainersManager(DockerManager):
             if "--endpoint" in arg and ":" in arg:
                 return arg.split(":")[-1]
             if arg == "--port" and i + 1 < len(args):
-                return args[i+1]
-        
+                return args[i + 1]
+
         # fallback to container name
         name_match = re.search(r'-(\d+)$', container.name)
         if name_match:
             return name_match.group(1)
-        
+
         return "-"
 
     def _extract_health(self, container) -> str:

@@ -12,9 +12,9 @@ from typing import Any, Callable, Dict, List, Optional
 from common.logger import logger
 
 
-def env_to_dict(path_to_env : str):
+def env_to_dict(path_to_env: Path):
     '''Opens an .env file and provide a dictionary with key/value pairs.'''
-    content : dict = {}
+    content: dict = {}
 
     with open(path_to_env, "r") as env_file:
 
@@ -27,8 +27,9 @@ def env_to_dict(path_to_env : str):
             if "=" in line:
                 key, value = line.split("=")
                 content[key.strip()] = value.strip()
-    
+
     return content
+
 
 def is_executable_bin():
     return getattr(sys, "frozen", False)
