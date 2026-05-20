@@ -13,6 +13,8 @@ import {
 } from './sidebar.styled';
 
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
 import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 import { Polyline } from "@mui/icons-material";
 
@@ -21,15 +23,13 @@ import { useRef, useState } from "react";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { handleLoadConfig } from "../../../../utils/FileLoader";
 import { saveConfigtoDashboard } from "../../../../api/DashboardServices";
+import { ConfirmDialog } from "../../Dialogs/DialogBoxes";
 
 export function SideBar() {
+
   const [selected, setSelected] = useState("servers");
-
-  const {
-    setCurrentContext,
-    setDashboardBaseValues
-  } = useDashboardContext();
-
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const {setCurrentContext, setDashboardBaseValues} = useDashboardContext();
   const fileInputRef = useRef(null);
 
   const onLoad = async ({ parsed, file }) => {
@@ -42,6 +42,10 @@ export function SideBar() {
       console.error("Config load failed:", err);
     }
   };
+
+  const onConfirmDialog = () => {
+     console.log("DOING ACTION CONFIRMED BY USER.")
+  }
 
   return (
     <SidebarContainer>
@@ -85,11 +89,31 @@ export function SideBar() {
         <SectionLabel>ACTIONS</SectionLabel>
 
         <StyledItem onClick={() => fileInputRef.current?.click()}>
-          <ListItemIcon>
-            <FileUploadIcon fontSize="small" />
-          </ListItemIcon>
+          <ListItemIcon><FileUploadIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Load Config File" />
         </StyledItem>
+
+        <StyledItem onClick={() => setDialogOpen(true)}>
+          <ListItemIcon><PlayArrowIcon fontSize="small"></PlayArrowIcon></ListItemIcon>
+          <ListItemText primary="Start Architecture"/> 
+        </StyledItem>
+
+        <StyledItem onClick={() => setDialogOpen(true)}>
+          <ListItemIcon><StopIcon fontSize="small"></StopIcon></ListItemIcon>
+          <ListItemText primary="Stop Architecture"/> 
+        </StyledItem>
+
+        <StyledItem onClick={() => setDialogOpen(true)}>
+          <ListItemIcon><PlayArrowIcon fontSize="small"></PlayArrowIcon></ListItemIcon>
+          <ListItemText primary="Start AtomDB"/> 
+        </StyledItem>
+
+        <StyledItem onClick={() => setDialogOpen(true)}>
+          <ListItemIcon><StopIcon fontSize="small"></StopIcon></ListItemIcon>
+          <ListItemText primary="Stop AtomDB"/> 
+        </StyledItem>
+
+        <ConfirmDialog dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} action={onConfirmDialog} message={"Are you sure you want to execute this action?"}/>
 
         <input
           ref={fileInputRef}
