@@ -1,36 +1,22 @@
 import os
 import json
-import subprocess
 from fastapi import UploadFile
+from pathlib import Path
 from shared.exceptions.custom_exceptions import ProfileSaveException
 
-CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".das")
-UPLOAD_CONFIG_PATH = os.path.join(CONFIG_DIR, "webconfig.json")
-DEFAULT_PROFILE_PATH = os.path.join(CONFIG_DIR, "webapp_profile.json")
-DEFAULT_KEY_CLONE_PATH = os.path.join(CONFIG_DIR, ".remote_key")
+CONFIG_DIR = os.path.join(Path.home(), ".das")
+PROFILE_PATH = os.path.join(CONFIG_DIR, "web_profile.json")
+KEY_CLONE_PATH = os.path.join(CONFIG_DIR, "web_key")
 
 class ProfileServices:
 
-    async def save_config(self, config_file: UploadFile):
-        try:
-            os.makedirs(CONFIG_DIR, exist_ok=True)
-            content = await config_file.read()
-            
-            with open(UPLOAD_CONFIG_PATH, "wb") as f:
-                f.write(content)
-            
-            result = subprocess.run(
-                ["das-cli", "config", "set", "--file", UPLOAD_CONFIG_PATH],
-                capture_output=True, text=True, check=True
-            )
-            return {"message": "Config applied", "stdout": result.stdout}
-        except Exception as e:
-            raise Exception(f"Failed to apply config: {str(e)}")
+    def __init__(self):
+        pass
 
     def load_dashboard_profile_safe(self) -> dict | None:
-        if not os.path.exists(DEFAULT_PROFILE_PATH): return None
+        if not os.path.exists(PROFILE_PATH): return None
         try:
-            with open(DEFAULT_PROFILE_PATH, "r") as f:
+            with open(PROFILE_PATH, "r") as f:
                 return json.load(f)
         except: return None
 
@@ -39,12 +25,12 @@ class ProfileServices:
             os.makedirs(CONFIG_DIR, exist_ok=True)
             
             content = await key_file.read()
-            with open(DEFAULT_KEY_CLONE_PATH, "wb") as f:
+            with open(KEY_CLONE_PATH, "wb") as f:
                 f.write(content)
-            os.chmod(DEFAULT_KEY_CLONE_PATH, 0o400)
+            os.chmod(KEY_CLONE_PATH, 0o400)
 
-            profile_data = {"profile_username": username, "profile_ssh_keypath": DEFAULT_KEY_CLONE_PATH}
-            with open(DEFAULT_PROFILE_PATH, "w") as f:
+            profile_data = {"profile_username": username, "profile_ssh_keypath": KEY_CLONE_PATH}
+            with open(PROFILE_PATH, "w") as f:
                 json.dump(profile_data, f)
             
             return "Profile saved successfully"

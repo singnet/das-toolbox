@@ -108,13 +108,13 @@ class Command:
         ),
         CommandOption(
             ["--host"],
-            type=ValidUsername(),
+            type=str,
             help="Remote host to connect to",
             required=False,
         ),
         CommandOption(
             ["--user", "-u"],
-            type=str,
+            type=ValidUsername(),
             help="SSH username for the remote connection",
             required=False,
         ),
@@ -210,25 +210,29 @@ class Command:
         return (True, remote_kwargs)
 
     def _dict_to_command_line_args(self, d: dict) -> str:
-        """
-        Convert dict to command line args
-
-        Params:
-            d (dict): the dict to be converted convert
-
-        """
         args = []
+
+        positional_args = {
+            p.name
+            for p in self.params
+            if isinstance(p, CommandArgument)
+        }
+
         for key, value in d.items():
+            if value is None:
+                continue
+
+            if key in positional_args:
+                args.append(str(value))
+                continue
+
             arg_key = str(key).replace("_", "-")
 
             if isinstance(value, bool):
                 if value:
                     args.append(f"--{arg_key}")
             else:
-                if value:
-                    arg_value = str(value).lower()
-                    arg = f"--{arg_key} {arg_value}"
-                    args.append(arg)
+                args.append(f"--{arg_key} {str(value)}")
 
         return " ".join(args)
 
@@ -347,7 +351,9 @@ class Command:
         try:
             self._check_remote_config(remote_kwargs)
             Connection(**remote_kwargs).run(command)
-        except UnexpectedExit:
+        except UnexpectedExit as e:
+            print(e)
+
             self.stdout(
                 "[ERROR] das-cli is missing on the remote machine. Verify the installation.",
                 severity=StdoutSeverity.ERROR,

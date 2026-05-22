@@ -39,7 +39,6 @@ async def execute_server_action(
     action: ActionTypes, 
     targetIp: str = Query(...), 
     targetService: str = Query(...),
-    containerName: str = Query(...),
 ):
     target_info = get_target_info(targetIp)
     
@@ -47,7 +46,6 @@ async def execute_server_action(
         service_name=targetService,
         action=action.value,
         target_info=target_info,
-        container_name=containerName,
     )
 
     return JSONResponse(
