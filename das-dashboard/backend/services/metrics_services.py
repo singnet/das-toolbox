@@ -1,91 +1,122 @@
-import subprocess
-import json
 import asyncio
+import json
 import re
+import subprocess
+
 from shared.enums.metric_scope import MetricScope
 from shared.exceptions.custom_exceptions import DasCliNotInstalledException
+from shared.internal.web_configuration import WebConfiguration
+
+
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
+
 
 class MetricsServices:
-    def __init__(self):
+
+    def __init__(self, web_config: WebConfiguration):
+        self.web_config = web_config
         self.ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 
-    def _build_full_command(self, target_info: dict, sub_commands: list, extra_flags: list = None):
-        ip = target_info.get("ip", "127.0.0.1")
-        is_local = ip in ["localhost", "127.0.0.1", "0.0.0.0"]
-        
-        cmd = ["das-cli"] + sub_commands
-        
-        if not is_local:
-            cmd.extend(["--remote", "--host", ip])
-            if target_info.get("username"):
-                cmd.extend(["-u", target_info["username"]])
-            if target_info.get("key_file"):
-                cmd.extend(["-k", target_info["key_file"]])
-            if target_info.get("port"):
-                cmd.extend(["-p", str(target_info["port"])])
-        
-        if extra_flags:
-            cmd.extend(extra_flags)
-            
+    def _is_remote(self, host: str) -> bool:
+        return host not in LOCAL_HOSTS
+
+    def _build_command(self, host: str, stream: bool = False):
+
+        cmd = ["das-cli", "system", "status"]
+
+        if self._is_remote(host):
+
+            profile = self.web_config.user_profile
+
+            cmd.extend([
+                "--remote",
+                "--host", host,
+                "-u", profile.get("profile_username", "root"),
+                "-k", profile.get("profile_ssh_keypath"),
+            ])
+
+        if stream:
+            cmd.append("--stream")
+
+        cmd.extend(["-o", "json"])
+
         return cmd
 
-    def run_command(self, target_info: dict):
+    def _run(self, host: str, stream: bool = False):
+
         try:
-            full_cmd = self._build_full_command(
-                target_info, 
-                ["system", "status"], 
-                ["-o", "json"]
-            )
+
+            command = self._build_command(host, stream)
+
+            if stream:
+                return subprocess.Popen(
+                    command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                )
+
             return subprocess.run(
-                full_cmd,
-                capture_output=True, text=True, check=True,
+                command,
+                capture_output=True,
+                text=True,
+                check=True,
             )
+
         except FileNotFoundError:
-            raise DasCliNotInstalledException(error_message="das-cli not found.")
-
-    def run_command_stream(self, target_info: dict):
-        try:
-            full_cmd = self._build_full_command(
-                target_info, 
-                ["system", "status"], 
-                ["--stream", "-o", "json"]
+            raise DasCliNotInstalledException(
+                error_message="das-cli not found."
             )
-            return subprocess.Popen(
-                full_cmd,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                text=True, bufsize=1,
-            )
-        except FileNotFoundError:
-            raise DasCliNotInstalledException(error_message="das-cli not found.")
 
-    def define_response_scope(self, metric_scope: MetricScope, parsed: dict, target_ip: str):
+    def define_response_scope(self, metric_scope: MetricScope, parsed: dict, host: str):
 
-        if isinstance(parsed, list) and len(parsed) > 0:
-            server_json = parsed[0]
-        else:
-            server_json = parsed
+        server_json = parsed[0] if isinstance(parsed, list) and parsed else parsed
 
         if metric_scope == MetricScope.SERVER:
-            return [{"ip": target_ip , "machineInfo": server_json.get("machineInfo", {})}]
+            return [{"ip": host, "machineInfo": server_json.get("machineInfo", {})}]
+
         if metric_scope == MetricScope.SERVICE:
-            return [{"ip": target_ip, "serviceInfo": server_json.get("serviceInfo", {})}]
-        
-        return [{"ip": target_ip, **server_json}]
+            return [{"ip": host, "serviceInfo": server_json.get("serviceInfo", {})}]
 
-    async def load_server_metrics(self, metric_scope: MetricScope, target_info: dict):
-        result = self.run_command(target_info)
-        return self.define_response_scope(metric_scope, json.loads(result.stdout), target_info.get("ip"))
+        return [{"ip": host, **server_json}]
 
-    async def stream_server_metrics(self, metric_scope: MetricScope, target_info: dict):
-        process = self.run_command_stream(target_info)
+    async def load_server_metrics(self, metric_scope: MetricScope, host: str):
+
+        result = self._run(host)
+
+        return self.define_response_scope(
+            metric_scope,
+            json.loads(result.stdout),
+            host,
+        )
+
+    async def stream_server_metrics(self, metric_scope: MetricScope, host: str):
+
+        process = self._run(host, stream=True)
+
         try:
+
             while True:
                 line = await asyncio.to_thread(process.stdout.readline)
-                if not line: break
+
+                if not line:
+                    break
+
                 line = self.ansi_escape.sub('', line).strip()
-                if not line or not line.startswith('{'): continue
+
+                if not line or not line.startswith('{'):
+                    continue
+
                 try:
-                    yield self.define_response_scope(metric_scope, json.loads(line), target_info.get("ip"))
-                except json.JSONDecodeError: continue
+                    yield self.define_response_scope(
+                        metric_scope,
+                        json.loads(line),
+                        host,
+                    )
+
+                except json.JSONDecodeError:
+                    continue
+
         finally:
             process.terminate()

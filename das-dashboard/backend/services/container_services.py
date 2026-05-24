@@ -1,89 +1,122 @@
-import shutil
 import subprocess
-from pathlib import Path
-from typing import Any, Dict
 
 import docker
 
-from shared.exceptions.custom_exceptions import DasCliCommandException
 from shared.enums.action_types import ActionTypes
+from shared.enums.das_services import DASServices
+from shared.internal.web_configuration import WebConfiguration
+from shared.exceptions.custom_exceptions import DasCliCommandException
 
-HOST_RUNTIME_BASE = "/opt/das-web/.das"
-CONTAINER_RUNTIME_BASE = "/opt/das/.das"
+
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
+
 
 class ContainerServices:
-    def __init__(self):
+
+    def __init__(self, web_config: WebConfiguration):
         self.local_docker = docker.from_env()
+        self.web_config = web_config
 
-    def _build_das_cli_command(
-        self,
-        service_name: str,
-        action: str,
-        target_info: Dict[str, Any],
-    ) -> list:
-        service_parts = service_name.split()
+    def _is_remote(self, host: str) -> bool:
+        return host not in LOCAL_HOSTS
 
-        cmd = ["das-cli"] + service_parts + [action]
+    def _resolve_query_peer(self):
 
-        ip = target_info.get("ip")
+        query = self.web_config.config_dictionary.get("query-agent")
 
-        if ip not in ("localhost", "127.0.0.1", "0.0.0.0"):
-            cmd.extend(
-                [
-                    "--remote",
-                    "--host",
-                    ip,
-                    "-u",
-                    target_info.get("username", "root"),
-                    "-k",
-                    target_info.get("key_file"),
-                ]
-            )
+        if not query:
+            return None
+
+        return {"host": query["host"], "port": query["port"]}
+
+    def build_das_cli_command(self, host: str, service: DASServices, action: str):
+
+        cmd = ["das-cli", service.value["command"], action]
+
+        peer = self._resolve_query_peer()
+
+        if service.value["requires_peer"] and peer and action != "stop":
+            cmd.extend(["--peer-hostname", peer["host"], "--peer-port", str(peer["port"])])
+
+        if self._is_remote(host):
+
+            profile = self.web_config.user_profile
+
+            cmd.extend([
+                "--remote",
+                "--host", host,
+                "-u", profile.get("profile_username", "root"),
+                "-k", profile.get("profile_ssh_keypath"),
+            ])
 
         cmd.extend(["-o", "json"])
 
         return cmd
 
-    def _execute_das_cli(
-        self,
-        service_name: str,
-        action: str,
-        target_info: Dict[str, Any],
-    ):
-        try:
-            cmd = self._build_das_cli_command(
-                service_name,
-                action,
-                target_info,
-            )
+    def run_das_cli_command(self, command: list):
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+        try:
+
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
 
             return {
                 "success": True,
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "command": cmd,
+                "command": command,
             }
 
         except subprocess.CalledProcessError as e:
-            error_msg = e.stderr or e.stdout
 
-            raise DasCliCommandException(f"das-cli failed: {error_msg}", "CLI error")
+            raise DasCliCommandException(e.stderr or e.stdout, "CLI error")
 
         except Exception as e:
-            raise DasCliCommandException(f"Failed to execute das-cli: {str(e)}", "Execution error")
 
-    def manage_container(
-        self,
-        action: ActionTypes,
-        target_info: Dict[str, Any],
-        service_name: str = None,
-    ):
+            raise DasCliCommandException(str(e), "Execution error")
 
-        return self._execute_das_cli(service_name, action, target_info)
+    def manage_container(self, host: str, action: ActionTypes, container_name: str, command : str = None):
+
+        service : DASServices = None
+
+        if command is None:
+            service = DASServices.from_container(container_name)
+        else:
+            service = DASServices.from_command(command)
+
+        command = self.build_das_cli_command(
+            host=host,
+            service=service,
+            action=action.value,
+        )
+
+        return self.run_das_cli_command(command)
+    
+    def orchestrate_architecture(self, host: str, action: ActionTypes):
+        
+        results = []
+
+        attention_broker_service = DASServices.from_command("attention-broker")
+        query_agent_service = DASServices.from_command("query-agent")
+
+        # Start these two as the DAS services have a dependency on them, so they are high priority.
+        attention_broker_cmd = self.build_das_cli_command(host=host,service=attention_broker_service, action=action.value)
+        query_agent_cmd = self.build_das_cli_command(host=host, service=query_agent_service, action=action.value)
+
+        result_ab = self.run_das_cli_command(attention_broker_cmd)
+        result_qa = self.run_das_cli_command(query_agent_cmd)
+
+        results.extend([result_ab, result_qa])
+
+        for key, value in self.web_config.config_dictionary.items():
+
+            if key in ("attention-broker", "query-agent", "db"):
+                continue
+            
+            service = DASServices.from_command(key)
+
+            command = self.build_das_cli_command(host=host, service=service, action=action.value)
+            result = self.run_das_cli_command(command)
+
+            results.append(result)
+        
+        return results

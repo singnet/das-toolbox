@@ -50,3 +50,22 @@ class ConfigServices:
             return config_dict
         except Exception:
             raise Exception("Error while trying to load config file.")
+
+    async def map_services(self, config_file: dict):
+
+        services = {}
+
+        def register(name: str, endpoint: str):
+            host, port = endpoint.split(":")
+            services[name] = {
+                "host": host,
+                "port": int(port),
+            }
+
+        for key, value in config_file.get("brokers", {}).items():
+            register(f"{key.replace('_', '-')}-broker", value["endpoint"])
+
+        for key, value in config_file.get("agents", {}).items():
+            register(f"{key.replace('_', '-')}-agent", value["endpoint"])
+
+        return services

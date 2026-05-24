@@ -1,22 +1,41 @@
-from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Depends
-from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from shared.enums.action_types import ActionTypes
 from shared.enums.metric_scope import MetricScope
+from shared.internal.web_configuration import WebConfiguration
 
 from services.container_services import ContainerServices
 from services.profile_services import ProfileServices
 from services.metrics_services import MetricsServices
+from services.config_services import ConfigServices
+
 
 BASE_ENDPOINT = "/dashboard"
 
+WEB_CONFIG = WebConfiguration()
 
-CONTAINER_SERVICES = ContainerServices()
-PROFILE_SERVICES = ProfileServices()
-METRICS_SERVICES = MetricsServices()
+CONTAINER_SERVICES = ContainerServices(WEB_CONFIG)
+PROFILE_SERVICES = ProfileServices(WEB_CONFIG)
+METRICS_SERVICES = MetricsServices(WEB_CONFIG)
+CONFIG_SERVICES = ConfigServices(WEB_CONFIG)
 
-dashboard_app = FastAPI(title="DAS Dashboard API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    WEB_CONFIG.load_user_profile()
+    WEB_CONFIG.load_config_dictionary()
+
+    yield
+
+
+dashboard_app = FastAPI(
+    title="DAS Dashboard API",
+    lifespan=lifespan,
+)
 
 dashboard_app.add_middleware(
     CORSMiddleware,
@@ -26,71 +45,126 @@ dashboard_app.add_middleware(
     allow_headers=["*"],
 )
 
-def get_target_info(ip: str) -> dict:
-    profile = PROFILE_SERVICES.load_dashboard_profile_safe()
+
+def build_target_info(host: str):
+
     return {
-        "ip": ip,
-        "username": profile.get("profile_username") if profile else None,
-        "key_file": profile.get("profile_ssh_keypath") if profile else None
+        "ip": host,
+        "username": WEB_CONFIG.user_profile.get("profile_username"),
+        "key_file": WEB_CONFIG.user_profile.get("profile_ssh_keypath"),
     }
 
+
 @dashboard_app.post(f"{BASE_ENDPOINT}/service")
-async def execute_server_action(
-    action: ActionTypes, 
-    targetIp: str = Query(...), 
-    targetService: str = Query(...),
+async def execute_action_on_service(
+    action: ActionTypes = Query(...),
+    host: str = Query(...),
+    container: str = Query(...),
 ):
-    target_info = get_target_info(targetIp)
-    
+
     result = CONTAINER_SERVICES.manage_container(
-        service_name=targetService,
-        action=action.value,
-        target_info=target_info,
+        host=host,
+        container_name=container,
+        action=action,
     )
 
-    return JSONResponse(
-        status_code=200, 
-        content={
-            "message": f"Service {action.value} command executed.",
-            "stdout": result.stdout if hasattr(result, 'stdout') else str(result)
-        }
+    return {
+        "message": f"Container {action.value} executed.",
+        "result": result,
+    }
+
+
+@dashboard_app.post(f"{BASE_ENDPOINT}/orchestrate")
+async def execute_action_on_architecture(
+    action: ActionTypes = Query(...),
+    host: str = Query(...),
+):
+
+    result = CONTAINER_SERVICES.orchestrate_architecture(
+        host=host,
+        action=action,
     )
 
+    return {
+        "message": f"Architecture {action.value} executed.",
+        "results": result,
+    }
+
+
+@dashboard_app.post(f"{BASE_ENDPOINT}/orchestrate/dbs")
+async def execute_action_on_dbs(
+    action: ActionTypes = Query(...),
+    host: str = Query(...),
+):
+
+    result = CONTAINER_SERVICES.manage_container(
+        host=host,
+        container_name=None,
+        command="db",
+        action=action,
+    )
+
+    return {
+        "message": f"Databases {action.value} executed.",
+        "result": result,
+    }
 
 @dashboard_app.post(f"{BASE_ENDPOINT}/profile")
 async def create_user_profile(
     sshUsername: str = Form(...),
-    sshKeyFile: UploadFile = File(...)
+    sshKeyFile: UploadFile = File(...),
 ):
-    msg = await PROFILE_SERVICES.save_dashboard_profile(sshUsername, sshKeyFile)
-    return JSONResponse(status_code=201, content={"message": msg})
+
+    result = await PROFILE_SERVICES.save_dashboard_profile(
+        sshUsername,
+        sshKeyFile,
+    )
+
+    WEB_CONFIG.load_user_profile()
+
+    return {"message": result}
+
 
 @dashboard_app.post(f"{BASE_ENDPOINT}/config")
-async def save_config(config_file: UploadFile = File(...)):
-    result = await PROFILE_SERVICES.save_config(config_file)
-    return JSONResponse(status_code=201, content=result)
+async def save_config(
+    config_file: UploadFile = File(...),
+):
+
+    result = await CONFIG_SERVICES.save_config(config_file)
+
+    WEB_CONFIG.load_config_dictionary()
+
+    return result
 
 
 @dashboard_app.get(f"{BASE_ENDPOINT}/metrics")
 async def fetch_initial_info(
-    metric_scope: MetricScope = Query(...), 
-    target_ip: str = Query(...)
+    metric_scope: MetricScope = Query(...),
+    host: str = Query(...),
 ):
-    target_info = get_target_info(target_ip)
-    result = await METRICS_SERVICES.load_server_metrics(metric_scope, target_info)
-    return JSONResponse(status_code=200, content=result)
+
+    return await METRICS_SERVICES.load_server_metrics(
+        metric_scope,
+        build_target_info(host),
+    )
+
 
 @dashboard_app.websocket(f"{BASE_ENDPOINT}/metrics/stream")
 async def stream_server_metrics(
-    websocket: WebSocket, 
-    metric_scope: MetricScope = Query(...), 
-    target_ip: str = Query(...)
+    websocket: WebSocket,
+    metric_scope: MetricScope = Query(...),
+    host: str = Query(...),
 ):
+
     await websocket.accept()
-    target_info = get_target_info(target_ip)
-    
+
     try:
-        async for metric in METRICS_SERVICES.stream_server_metrics(metric_scope, target_info):
+
+        async for metric in METRICS_SERVICES.stream_server_metrics(
+            metric_scope,
+            build_target_info(host),
+        ):
             await websocket.send_json(metric)
+
     except (WebSocketDisconnect, Exception):
         pass
