@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from custom_exceptions import DasCliNotInstalledException, DasCliCommandException
+from custom_exceptions import DasCliNotInstalledException, DasCliCommandException, FileSaveException
 
 class AppExceptionHandlers():
 
@@ -18,5 +18,11 @@ class AppExceptionHandlers():
         return JSONResponse(
             status_code=500,
             content={"message": "It seems DAS-CLI is not installed in this machine, make sure it is installed while running the server", "exceptionMessage": exception.message}
+        )
+
+    def handleFileSaveException(exception : FileSaveException):
+        return JSONResponse(
+            status_code=500,
+            content={"message": "There was an error trying to save the requested file.", "exceptionMessage": exception.message}
         )
 

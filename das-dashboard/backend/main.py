@@ -11,13 +11,14 @@ from services.container_services import ContainerServices
 from services.profile_services import ProfileServices
 from services.metrics_services import MetricsServices
 from services.config_services import ConfigServices
-
+from services.database_services import DatabaseServices
 
 BASE_ENDPOINT = "/dashboard"
 
 WEB_CONFIG = WebConfiguration()
 
 CONTAINER_SERVICES = ContainerServices(WEB_CONFIG)
+DATABASE_SERVICES = DatabaseServices(WEB_CONFIG)
 PROFILE_SERVICES = ProfileServices(WEB_CONFIG)
 METRICS_SERVICES = MetricsServices(WEB_CONFIG)
 CONFIG_SERVICES = ConfigServices(WEB_CONFIG)
@@ -107,6 +108,40 @@ async def execute_action_on_dbs(
     return {
         "message": f"Databases {action.value} executed.",
         "result": result,
+    }
+
+@dashboard_app.post(f"{BASE_ENDPOINT}/service/dbs/save")
+async def save_metta_file(
+    host: str = Query(...),
+    knowledge_base_file: UploadFile = File(...),
+):
+
+    saved_path = await DATABASE_SERVICES.save_metta_file(
+        host=host,
+        knowledge_file=knowledge_base_file,
+    )
+
+    return {
+        "message": "Knowledge file saved successfully.",
+        "saved_path": saved_path,
+    }
+
+
+@dashboard_app.post(f"{BASE_ENDPOINT}/service/dbs/load")
+async def load_metta_file(
+    host: str = Query(...),
+    metta_file_path: str = Query(...),
+):
+
+    result = DATABASE_SERVICES.load_metta_file_into_db(
+        host=host,
+        metta_file_path=metta_file_path,
+    )
+
+    return {
+        "message": "Knowledge file loaded into database successfully.",
+        "result": result,
+        "loaded_path": metta_file_path,
     }
 
 @dashboard_app.post(f"{BASE_ENDPOINT}/profile")
