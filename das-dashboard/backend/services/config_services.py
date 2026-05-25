@@ -4,10 +4,10 @@ from collections import defaultdict
 import json
 import os
 import subprocess
-from shared.internal.web_configuration import WebConfiguration
 
-CONFIG_DIR = os.path.join(Path.home(), ".das")
-UPLOAD_CONFIG_PATH = os.path.join(CONFIG_DIR, "webconfig.json")
+from shared.internal.web_configuration import WebConfiguration
+from shared.internal.constants import CONFIG_DIR, DEFAULT_WEBCONFIG_PATH
+
 
 class ConfigServices:
 
@@ -19,11 +19,11 @@ class ConfigServices:
             os.makedirs(CONFIG_DIR, exist_ok=True)
             content = await config_file.read()
 
-            with open(UPLOAD_CONFIG_PATH, "wb") as f:
+            with open(DEFAULT_WEBCONFIG_PATH, "wb") as f:
                 f.write(content)
 
             result = subprocess.run(
-                ["das-cli", "config", "set", "--file", UPLOAD_CONFIG_PATH], 
+                ["das-cli", "config", "set", "--file", DEFAULT_WEBCONFIG_PATH], 
                 capture_output=True, 
                 text=True, 
                 check=True
@@ -41,7 +41,7 @@ class ConfigServices:
 
     async def load_config(self):
         try:
-            with open(UPLOAD_CONFIG_PATH, "r") as f:
+            with open(DEFAULT_WEBCONFIG_PATH, "r") as f:
                 config_dict = json.load(f)
 
             if isinstance(config_dict, list):
