@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 
 from shared.internal.constants import DEFAULT_METTA_FILES_PATH
-from shared.exceptions.custom_exceptions import MettaFileSaveException
+from shared.exceptions.custom_exceptions import FileSaveException
 from shared.internal.web_configuration import WebConfiguration
 
 from paramiko import SSHClient, AutoAddPolicy
@@ -58,7 +58,7 @@ class DatabaseServices:
     async def save_metta_file(self, host: str, knowledge_file : UploadFile) -> str:
 
         file_name = knowledge_file.filename
-        file_path = f"{DEFAULT_METTA_FILES_PATH}/{file_name}"
+        file_path = f"{DEFAULT_METTA_FILES_PATH}{file_name}"
         file_exists = os.path.exists(file_path)
 
         if file_exists:
@@ -70,6 +70,8 @@ class DatabaseServices:
                 self._transfer_file_scp(host=host, file=knowledge_file)
 
             else:
+                os.makedirs(DEFAULT_METTA_FILES_PATH, exist_ok=True)
+
                 local_api_copy = open(file_path, "wb")
                 local_api_copy.write(await knowledge_file.read()) 
                 local_api_copy.close()
@@ -77,7 +79,7 @@ class DatabaseServices:
                 return file_path
             
         except Exception as e:
-            raise MettaFileSaveException(f"There was an error while trying to saving this metta file. \n{e}")
+            raise FileSaveException(f"There was an error while trying to saving this metta file. \n{e}")
 
     def load_metta_file_into_db(self, host: str, metta_file_path : str):
         cmd = ["das-cli", "metta", "load", metta_file_path]
