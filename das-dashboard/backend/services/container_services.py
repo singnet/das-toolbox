@@ -74,7 +74,7 @@ class ContainerServices:
 
             raise DasCliCommandException(str(e), "Execution error")
 
-    def manage_container(self, host: str, action: ActionTypes, container_name: str, command : str = None):
+    def manage_container(self, host: str, action: ActionTypes, container_name: str = None, command : str = None):
 
         service : DASServices = None
 

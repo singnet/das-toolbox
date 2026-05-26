@@ -30,9 +30,9 @@ class ConfigServices:
             )
 
             loaded_json = await self.load_config()
-            mapped_servers = await self.map_servers_services(loaded_json)
+            mapped_services = await self.map_services(loaded_json)
 
-            self.web_config.config_dictionary = mapped_servers
+            self.web_config.config_dictionary = mapped_services
 
             return {"message": "Config applied", "stdout": result.stdout}
 

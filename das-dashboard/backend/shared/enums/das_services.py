@@ -3,7 +3,7 @@ from enum import Enum
 class DASServices(Enum):
 
     ATOMDB = {
-        "pattern": ["das-cli-mongodb", "das-cli-redis", "das-cli-morkdb", "das-morkdb"],
+        "pattern": ["das-cli-mongodb", "das-cli-redis", "das-cli-morkdb", "das-morkdb", "db"],
         "command": "db",
         "requires_peer": False,
     }
@@ -55,9 +55,12 @@ class DASServices(Enum):
 
         for service in cls:
 
-            pattern = service.value["pattern"]
+            patterns = service.value["pattern"]
 
-            if container_name in pattern:
+            if isinstance(patterns, str):
+                patterns = [patterns]
+
+            if any(container_name in pattern for pattern in patterns):
                 return service
 
         raise ValueError(
@@ -69,7 +72,7 @@ class DASServices(Enum):
 
         for service in cls:
 
-            if command_name in service.value["command"]:
+            if command_name == service.value["command"]:
                 return service
             
         raise ValueError(

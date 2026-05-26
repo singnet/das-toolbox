@@ -46,48 +46,31 @@ dashboard_app.add_middleware(
     allow_headers=["*"],
 )
 
+@dashboard_app.post("/services/atomdb/metta/upload")
+async def upload_metta_file(host: str = Query(...), knowledge_base_file: UploadFile = File(...)):
 
-@dashboard_app.post("/services/{container_name}/start")
-async def start_service(container_name: str, host: str = Query(...)):
-
-    result = CONTAINER_SERVICES.manage_container(
+    saved_path = await DATABASE_SERVICES.save_metta_file(
         host=host,
-        container_name=container_name,
-        action=ActionTypes.START,
+        knowledge_file=knowledge_base_file,
     )
 
     return {
-        "message": f"Service {result} started successfully.",
-        "result": result,
+        "message": "Knowledge file uploaded successfully.",
+        "saved_path": saved_path,
     }
 
 
-@dashboard_app.post("/services/{container_name}/stop")
-async def stop_service(container_name: str, host: str = Query(...)):
+@dashboard_app.post("/services/atomdb/metta/load")
+async def load_metta_file(host: str = Query(...), metta_file_path: str = Query(...)):
 
-    result = CONTAINER_SERVICES.manage_container(
+    result = DATABASE_SERVICES.load_metta_file_into_db(
         host=host,
-        command=container_name,
-        action=ActionTypes.STOP,
+        metta_file_path=metta_file_path,
     )
 
     return {
-        "message": f"Service {container_name} stopped successfully.",
-        "result": result,
-    }
-
-
-@dashboard_app.post("/services/{container_name}/restart")
-async def restart_service(container_name: str, host: str = Query(...)):
-
-    result = CONTAINER_SERVICES.manage_container(
-        host=host,
-        command=container_name,
-        action=ActionTypes.RESTART,
-    )
-
-    return {
-        "message": f"Service {container_name} restarted successfully.",
+        "message": "Knowledge file loaded successfully.",
+        "loaded_path": metta_file_path,
         "result": result,
     }
 
@@ -151,35 +134,49 @@ async def stop_databases(host: str = Query(...)):
         "result": result,
     }
 
+@dashboard_app.post("/services/{container_name}/start")
+async def start_service(container_name: str, host: str = Query(...)):
 
-@dashboard_app.post("/services/atomdb/metta/upload")
-async def upload_metta_file(host: str = Query(...), knowledge_base_file: UploadFile = File(...)):
-
-    saved_path = await DATABASE_SERVICES.save_metta_file(
+    result = CONTAINER_SERVICES.manage_container(
         host=host,
-        knowledge_file=knowledge_base_file,
+        container_name=container_name,
+        action=ActionTypes.START,
     )
 
     return {
-        "message": "Knowledge file uploaded successfully.",
-        "saved_path": saved_path,
-    }
-
-
-@dashboard_app.post("/services/atomdb/metta/load")
-async def load_metta_file(host: str = Query(...), metta_file_path: str = Query(...)):
-
-    result = DATABASE_SERVICES.load_metta_file_into_db(
-        host=host,
-        metta_file_path=metta_file_path,
-    )
-
-    return {
-        "message": "Knowledge file loaded successfully.",
-        "loaded_path": metta_file_path,
+        "message": f"Service {result} started successfully.",
         "result": result,
     }
 
+
+@dashboard_app.post("/services/{container_name}/stop")
+async def stop_service(container_name: str, host: str = Query(...)):
+
+    result = CONTAINER_SERVICES.manage_container(
+        host=host,
+        container_name=container_name,
+        action=ActionTypes.STOP,
+    )
+
+    return {
+        "message": f"Service {container_name} stopped successfully.",
+        "result": result,
+    }
+
+
+@dashboard_app.post("/services/{container_name}/restart")
+async def restart_service(container_name: str, host: str = Query(...)):
+
+    result = CONTAINER_SERVICES.manage_container(
+        host=host,
+        container_name=container_name,
+        action=ActionTypes.RESTART,
+    )
+
+    return {
+        "message": f"Service {container_name} restarted successfully.",
+        "result": result,
+    }
 
 @dashboard_app.post("/profile")
 async def create_user_profile(sshUsername: str = Form(...), sshKeyFile: UploadFile = File(...)):
