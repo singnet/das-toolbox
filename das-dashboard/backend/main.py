@@ -47,74 +47,113 @@ dashboard_app.add_middleware(
 )
 
 
-def build_target_info(host: str):
-
-    return {
-        "ip": host,
-        "username": WEB_CONFIG.user_profile.get("profile_username"),
-        "key_file": WEB_CONFIG.user_profile.get("profile_ssh_keypath"),
-    }
-
-
-@dashboard_app.post(f"{BASE_ENDPOINT}/service")
-async def execute_action_on_service(
-    action: ActionTypes = Query(...),
-    host: str = Query(...),
-    container: str = Query(...),
-):
+@dashboard_app.post("/services/{service}/start")
+async def start_service(service: str, host: str = Query(...)):
 
     result = CONTAINER_SERVICES.manage_container(
         host=host,
-        container_name=container,
-        action=action,
+        command=service,
+        action=ActionTypes.START,
     )
 
     return {
-        "message": f"Container {action.value} executed.",
+        "message": f"Service {service} started successfully.",
         "result": result,
     }
 
 
-@dashboard_app.post(f"{BASE_ENDPOINT}/orchestrate")
-async def execute_action_on_architecture(
-    action: ActionTypes = Query(...),
-    host: str = Query(...),
-):
+@dashboard_app.post("/services/{service}/stop")
+async def stop_service(service: str, host: str = Query(...)):
 
-    result = CONTAINER_SERVICES.orchestrate_architecture(
+    result = CONTAINER_SERVICES.manage_container(
         host=host,
-        action=action,
+        command=service,
+        action=ActionTypes.STOP,
     )
 
     return {
-        "message": f"Architecture {action.value} executed.",
+        "message": f"Service {service} stopped successfully.",
+        "result": result,
+    }
+
+
+@dashboard_app.post("/services/{service}/restart")
+async def restart_service(service: str, host: str = Query(...)):
+
+    result = CONTAINER_SERVICES.manage_container(
+        host=host,
+        command=service,
+        action=ActionTypes.RESTART,
+    )
+
+    return {
+        "message": f"Service {service} restarted successfully.",
+        "result": result,
+    }
+
+
+@dashboard_app.post("/services/orchestration/start")
+async def start_orchestration(host: str = Query(...)):
+
+    result = CONTAINER_SERVICES.orchestrate_architecture(
+        host=host,
+        action=ActionTypes.START,
+    )
+
+    return {
+        "message": "Architecture started successfully.",
         "results": result,
     }
 
 
-@dashboard_app.post(f"{BASE_ENDPOINT}/orchestrate/dbs")
-async def execute_action_on_dbs(
-    action: ActionTypes = Query(...),
-    host: str = Query(...),
-):
+@dashboard_app.post("/services/orchestration/stop")
+async def stop_orchestration(host: str = Query(...)):
+
+    result = CONTAINER_SERVICES.orchestrate_architecture(
+        host=host,
+        action=ActionTypes.STOP,
+    )
+
+    return {
+        "message": "Architecture stopped successfully.",
+        "results": result,
+    }
+
+
+@dashboard_app.post("/services/atomdb/start")
+async def start_databases(host: str = Query(...)):
 
     result = CONTAINER_SERVICES.manage_container(
         host=host,
         container_name=None,
         command="db",
-        action=action,
+        action=ActionTypes.START,
     )
 
     return {
-        "message": f"Databases {action.value} executed.",
+        "message": "Databases started successfully.",
         "result": result,
     }
 
-@dashboard_app.post(f"{BASE_ENDPOINT}/service/dbs/save")
-async def save_metta_file(
-    host: str = Query(...),
-    knowledge_base_file: UploadFile = File(...),
-):
+
+@dashboard_app.post("/services/atomdb/stop")
+async def stop_databases(host: str = Query(...)):
+
+    result = CONTAINER_SERVICES.manage_container(
+        host=host,
+        container_name=None,
+        command="db",
+        action=ActionTypes.STOP,
+    )
+
+    return {
+        "message": "Databases stopped successfully.",
+        "result": result,
+    }
+
+
+@dashboard_app.post("/services/atomdb/metta/upload")
+async def upload_metta_file(host: str = Query(...), knowledge_base_file: UploadFile = File(...)):
 
     saved_path = await DATABASE_SERVICES.save_metta_file(
         host=host,
@@ -122,16 +161,13 @@ async def save_metta_file(
     )
 
     return {
-        "message": "Knowledge file saved successfully.",
+        "message": "Knowledge file uploaded successfully.",
         "saved_path": saved_path,
     }
 
 
-@dashboard_app.post(f"{BASE_ENDPOINT}/service/dbs/load")
-async def load_metta_file(
-    host: str = Query(...),
-    metta_file_path: str = Query(...),
-):
+@dashboard_app.post("/services/atomdb/metta/load")
+async def load_metta_file(host: str = Query(...), metta_file_path: str = Query(...)):
 
     result = DATABASE_SERVICES.load_metta_file_into_db(
         host=host,
@@ -139,66 +175,54 @@ async def load_metta_file(
     )
 
     return {
-        "message": "Knowledge file loaded into database successfully.",
-        "result": result,
+        "message": "Knowledge file loaded successfully.",
         "loaded_path": metta_file_path,
+        "result": result,
     }
 
-@dashboard_app.post(f"{BASE_ENDPOINT}/profile")
-async def create_user_profile(
-    sshUsername: str = Form(...),
-    sshKeyFile: UploadFile = File(...),
-):
 
-    result = await PROFILE_SERVICES.save_dashboard_profile(
-        sshUsername,
-        sshKeyFile,
-    )
-
+@dashboard_app.post("/profile")
+async def create_user_profile(sshUsername: str = Form(...), sshKeyFile: UploadFile = File(...)):
+    result = await PROFILE_SERVICES.save_dashboard_profile(sshUsername,sshKeyFile,)
     WEB_CONFIG.load_user_profile()
 
-    return {"message": result}
+    return {
+        "message": result,
+    }
 
 
-@dashboard_app.post(f"{BASE_ENDPOINT}/config")
-async def save_config(
-    config_file: UploadFile = File(...),
-):
+@dashboard_app.get("/profile")
+async def get_user_profile():
+    return WEB_CONFIG.user_profile
 
+
+@dashboard_app.post("/config")
+async def save_config(config_file: UploadFile = File(...),):
     result = await CONFIG_SERVICES.save_config(config_file)
-
     WEB_CONFIG.load_config_dictionary()
-
     return result
 
 
-@dashboard_app.get(f"{BASE_ENDPOINT}/metrics")
-async def fetch_initial_info(
-    metric_scope: MetricScope = Query(...),
-    host: str = Query(...),
-):
+@dashboard_app.get("/config")
+async def get_config():
+    return WEB_CONFIG.config_dictionary
+
+
+@dashboard_app.get("/metrics")
+async def fetch_initial_info(metric_scope: MetricScope = Query(...), host: str = Query(...)):
 
     return await METRICS_SERVICES.load_server_metrics(
         metric_scope,
-        build_target_info(host),
+        host,
     )
 
 
-@dashboard_app.websocket(f"{BASE_ENDPOINT}/metrics/stream")
-async def stream_server_metrics(
-    websocket: WebSocket,
-    metric_scope: MetricScope = Query(...),
-    host: str = Query(...),
-):
-
+@dashboard_app.websocket("/metrics/live-ws")
+async def stream_server_metrics(websocket: WebSocket, metric_scope: MetricScope, host: str):
     await websocket.accept()
 
     try:
-
-        async for metric in METRICS_SERVICES.stream_server_metrics(
-            metric_scope,
-            build_target_info(host),
-        ):
+        async for metric in METRICS_SERVICES.stream_server_metrics(metric_scope, host):
             await websocket.send_json(metric)
 
     except (WebSocketDisconnect, Exception):

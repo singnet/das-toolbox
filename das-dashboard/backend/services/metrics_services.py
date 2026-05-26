@@ -20,20 +20,23 @@ class MetricsServices:
     def _is_remote(self, host: str) -> bool:
         return host not in LOCAL_HOSTS
 
+    def _build_remote_flags(self, host: str):
+        if not self._is_remote(host):
+            return []
+
+        profile = self.web_config.user_profile
+
+        return [
+            "--remote",
+            "--host", host,
+            "-u", profile.get("profile_username", "root"),
+            "-k", profile.get("profile_ssh_keypath"),
+        ]
+
     def _build_command(self, host: str, stream: bool = False):
 
         cmd = ["das-cli", "system", "status"]
-
-        if self._is_remote(host):
-
-            profile = self.web_config.user_profile
-
-            cmd.extend([
-                "--remote",
-                "--host", host,
-                "-u", profile.get("profile_username", "root"),
-                "-k", profile.get("profile_ssh_keypath"),
-            ])
+        cmd.extend(self._build_remote_flags(host))
 
         if stream:
             cmd.append("--stream")
@@ -42,35 +45,34 @@ class MetricsServices:
 
         return cmd
 
-    def _run(self, host: str, stream: bool = False):
+    def _run_once(self, host: str):
 
         try:
-
-            command = self._build_command(host, stream)
-
-            if stream:
-                return subprocess.Popen(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
-                )
-
             return subprocess.run(
-                command,
+                self._build_command(host),
                 capture_output=True,
                 text=True,
                 check=True,
             )
 
         except FileNotFoundError:
-            raise DasCliNotInstalledException(
-                error_message="das-cli not found."
+            raise DasCliNotInstalledException(error_message="das-cli not found.")
+
+    def _run_stream(self, host: str):
+
+        try:
+            return subprocess.Popen(
+                self._build_command(host, stream=True),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
             )
 
-    def define_response_scope(self, metric_scope: MetricScope, parsed: dict, host: str):
+        except FileNotFoundError:
+            raise DasCliNotInstalledException(error_message="das-cli not found.")
 
+    def _define_response_scope(self, metric_scope: MetricScope, parsed: dict, host: str):
         server_json = parsed[0] if isinstance(parsed, list) and parsed else parsed
 
         if metric_scope == MetricScope.SERVER:
@@ -82,41 +84,32 @@ class MetricsServices:
         return [{"ip": host, **server_json}]
 
     async def load_server_metrics(self, metric_scope: MetricScope, host: str):
+        result = self._run_once(host)
 
-        result = self._run(host)
-
-        return self.define_response_scope(
+        return self._define_response_scope(
             metric_scope,
             json.loads(result.stdout),
             host,
         )
 
     async def stream_server_metrics(self, metric_scope: MetricScope, host: str):
-
-        process = self._run(host, stream=True)
+        process = self._run_stream(host)
 
         try:
-
             while True:
-                line = await asyncio.to_thread(process.stdout.readline)
 
+                line = await asyncio.to_thread(process.stdout.readline)
                 if not line:
                     break
 
-                line = self.ansi_escape.sub('', line).strip()
-
-                if not line or not line.startswith('{'):
+                line = self.ansi_escape.sub("", line).strip()
+                if not line or not line.startswith("{"):
                     continue
 
                 try:
-                    yield self.define_response_scope(
-                        metric_scope,
-                        json.loads(line),
-                        host,
-                    )
+                    yield self._define_response_scope(metric_scope, json.loads(line), host)
 
                 except json.JSONDecodeError:
                     continue
-
         finally:
             process.terminate()
