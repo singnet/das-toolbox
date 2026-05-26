@@ -15,9 +15,6 @@ export function EmptyState() {
       }}
     >
       <CloudUploadOutlined sx={{ fontSize: 80, color: "grey.500" }} />
-      <Typography variant="h5" color="white" sx={{ fontWeight: 300 }}>
-        Dashboard Inativo
-      </Typography>
       <Typography color="grey.400" align="center">
         No configuration file detected. <br />
         Please upload your configuration file using the button by the sidebar.

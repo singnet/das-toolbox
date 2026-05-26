@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
-import { CPUViewChart } from "../MainContent/CPUViewChart";
-import { MemoryViewChart } from "../MainContent/MemoryViewChart";
+import { CPUViewChart } from "../MainContent/charts/CPUViewChart";
+import { MemoryViewChart } from "../MainContent/charts/MemoryViewChart";
 
 export function ServiceChart({ selectedService }) {
   const { getAggregatedMetrics } = useDashboardContext();

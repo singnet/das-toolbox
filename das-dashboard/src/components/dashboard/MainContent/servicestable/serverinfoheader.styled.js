@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
+import { Box, Typography } from "@mui/material";
 
-const ServerInfoWrapper = styled(Box)({
+export const ServerInfoWrapper = styled(Box)({
   marginBottom: 24,
   paddingInline: 8,
 
@@ -12,7 +13,7 @@ const ServerInfoWrapper = styled(Box)({
   color: "#334155",
 });
 
-const ServerInfoBox = styled(Box)({
+export const ServerInfoBox = styled(Box)({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -21,20 +22,20 @@ const ServerInfoBox = styled(Box)({
   minWidth: 120,
 });
 
-const Divider = styled(Box)({
+export const Divider = styled(Box)({
   width: 1,
   height: 32,
   background: "#334155",
 });
 
-const Label = styled(Typography)({
+export const Label = styled(Typography)({
   fontSize: 11,
   color: "#334155",
   textTransform: "uppercase",
   letterSpacing: "0.04em",
 });
 
-const Value = styled(Typography)({
+export const Value = styled(Typography)({
   fontWeight: 600,
   color: "#334155",
 });

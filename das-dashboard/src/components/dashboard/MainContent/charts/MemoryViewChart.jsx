@@ -1,5 +1,5 @@
 import { LineChart } from "@mui/x-charts";
-import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 
 const stringToColor = (str) => {
   let hash = 0;
@@ -14,10 +14,10 @@ const stringToColor = (str) => {
   return color;
 };
 
-export function CPUViewChart({ machine, currentService }) {
+export function MemoryViewChart({ machine, currentService }) {
   const { getAggregatedMetrics } = useDashboardContext();
   
-  const data = machine || getAggregatedMetrics(); 
+  const data = machine || getAggregatedMetrics();
 
   if (!data?.agents?.length) return null;
 
@@ -26,7 +26,7 @@ export function CPUViewChart({ machine, currentService }) {
     : data.agents;
 
   const series = filtered.map((a) => ({
-    data: a.cpu,
+    data: a.memory,
     label: a.name,
     color: stringToColor(a.name),
     curve: "catmullRom",
@@ -39,9 +39,11 @@ export function CPUViewChart({ machine, currentService }) {
       xAxis={[{ 
         data: data.timestamps, 
         scaleType: "point",
-        hideTooltip: true
+        hideTooltip: true 
       }]}
-      yAxis={[{ min: 0, max: 100, label: "CPU (%/Core)" }]}
+      yAxis={[{ 
+        label: "Memory (MB)",
+      }]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 40 }}

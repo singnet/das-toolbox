@@ -33,9 +33,11 @@ function App() {
                   </ToastProvider>
                 }/>
                 <Route path='/dashboard' element={
-                  <DashboardContextProvider>
-                    <DashboardPage />
-                  </DashboardContextProvider>
+                  <ToastProvider>
+                    <DashboardContextProvider>
+                      <DashboardPage />
+                    </DashboardContextProvider>
+                  </ToastProvider>
                 }/>
             </Routes>
       </BrowserRouter>

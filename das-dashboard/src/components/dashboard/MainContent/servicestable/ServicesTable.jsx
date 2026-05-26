@@ -6,18 +6,25 @@ import {
 } from "@mui/material";
 
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-import { executeDashboardAction } from "../../../../api/DashboardServices";
+
+import {
+  startService,
+  stopService,
+  restartService,
+} from "../../../../api/ServicesAPI";
+
 import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
 import { ServerInfoHeader } from "./ServerInfoHeader";
 
 export function AgentTable({ machine }) {
-  const { 
-    services,      
-    currentService,     
+
+  const {
+    services,
+    currentService,
     setCurrentService,
-    currentMachine 
+    currentMachine
   } = useDashboardContext();
 
   const getStatusColor = (status) =>
@@ -26,22 +33,42 @@ export function AgentTable({ machine }) {
   const getHealthStatusColor = (health) =>
     health === "healthy" ? "success" : "error";
 
-  const handleSelect = (containerName) => {
-    setCurrentService((current) =>
+  function handleSelect(containerName) {
+    setCurrentService(current =>
       current === containerName ? null : containerName
     );
-  };
+  }
 
-  const handleAction = async (actionType, containerName) => {
-    const targetIp = currentMachine?.serverIp || "localhost";
-    
+  async function handleAction(actionType, containerName) {
+
+    const host = currentMachine?.serverIp || "localhost";
+
     try {
-      console.log(`Executing ${actionType} in ${containerName} (${targetIp})`);
-      await executeDashboardAction(containerName, actionType.toLowerCase(), targetIp);
+
+      console.log(`Executing ${actionType} on ${containerName} (${host})`);
+
+      switch (actionType.toLowerCase()) {
+
+        case "start":
+          await startService(containerName, host);
+          break;
+
+        case "stop":
+          await stopService(containerName, host);
+          break;
+
+        case "restart":
+          await restartService(containerName, host);
+          break;
+
+        default:
+          console.warn(`Unknown action: ${actionType}`);
+      }
+
     } catch (error) {
       console.error("Error while executing action:", error);
     }
-  };
+  }
 
   if (!machine) return null;
 
