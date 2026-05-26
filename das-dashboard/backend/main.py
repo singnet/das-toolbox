@@ -47,47 +47,47 @@ dashboard_app.add_middleware(
 )
 
 
-@dashboard_app.post("/services/{service}/start")
-async def start_service(service: str, host: str = Query(...)):
+@dashboard_app.post("/services/{container_name}/start")
+async def start_service(container_name: str, host: str = Query(...)):
 
     result = CONTAINER_SERVICES.manage_container(
         host=host,
-        command=service,
+        container_name=container_name,
         action=ActionTypes.START,
     )
 
     return {
-        "message": f"Service {service} started successfully.",
+        "message": f"Service {result} started successfully.",
         "result": result,
     }
 
 
-@dashboard_app.post("/services/{service}/stop")
-async def stop_service(service: str, host: str = Query(...)):
+@dashboard_app.post("/services/{container_name}/stop")
+async def stop_service(container_name: str, host: str = Query(...)):
 
     result = CONTAINER_SERVICES.manage_container(
         host=host,
-        command=service,
+        command=container_name,
         action=ActionTypes.STOP,
     )
 
     return {
-        "message": f"Service {service} stopped successfully.",
+        "message": f"Service {container_name} stopped successfully.",
         "result": result,
     }
 
 
-@dashboard_app.post("/services/{service}/restart")
-async def restart_service(service: str, host: str = Query(...)):
+@dashboard_app.post("/services/{container_name}/restart")
+async def restart_service(container_name: str, host: str = Query(...)):
 
     result = CONTAINER_SERVICES.manage_container(
         host=host,
-        command=service,
+        command=container_name,
         action=ActionTypes.RESTART,
     )
 
     return {
-        "message": f"Service {service} restarted successfully.",
+        "message": f"Service {container_name} restarted successfully.",
         "result": result,
     }
 
