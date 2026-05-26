@@ -1,53 +1,51 @@
 from enum import Enum
-import re
-
 
 class DASServices(Enum):
 
     ATOMDB = {
-        "pattern": r"das-(mongodb|redis|mork)",
+        "pattern": ["das-cli-mongodb", "das-cli-redis", "das-cli-morkdb", "das-morkdb"],
         "command": "db",
         "requires_peer": False,
     }
 
     QUERY_AGENT = {
-        "pattern": r"das-query-engine",
+        "pattern": "das-query-engine",
         "command": "query-agent",
         "requires_peer": False,
     }
 
     INFERENCE_AGENT = {
-        "pattern": r"das-inference-agent",
+        "pattern": "das-inference-agent",
         "command": "inference-agent",
         "requires_peer": True,
     }
 
     EVOLUTION_AGENT = {
-        "pattern": r"das-evolution-agent",
+        "pattern": "das-evolution-agent",
         "command": "evolution-agent",
         "requires_peer": True,
     }
 
     LINK_CREATION_AGENT = {
-        "pattern": r"das-link-creation-agent",
+        "pattern": "das-link-creation-agent",
         "command": "link-creation-agent",
         "requires_peer": True,
     }
 
     ATTENTION_BROKER = {
-        "pattern": r"das-attention-broker",
+        "pattern": "das-attention-broker",
         "command": "attention-broker",
         "requires_peer": False,
     }
 
     CONTEXT_BROKER = {
-        "pattern": r"das-context-broker",
+        "pattern": "das-context-broker",
         "command": "context-broker",
         "requires_peer": True,
     }
 
     ATOMDB_BROKER = {
-        "pattern": r"das-atomdb-broker",
+        "pattern": "das-atomdb-broker",
         "command": "atomdb-broker",
         "requires_peer": False,
     }
@@ -59,7 +57,7 @@ class DASServices(Enum):
 
             pattern = service.value["pattern"]
 
-            if re.search(pattern, container_name):
+            if container_name in pattern:
                 return service
 
         raise ValueError(
