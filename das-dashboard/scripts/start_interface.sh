@@ -2,29 +2,18 @@
 
 set -e
 
-PACKAGE_VERSION=${PACKAGE_VERSION:-1.0.7}
-
 FRONT_PORT=${FRONT_PORT:-5173}
 BACK_PORT=${BACK_PORT:-8000}
 
-echo "Building das-toolbox package version ${PACKAGE_VERSION}..."
-
-make build PACKAGE_VERSION=${PACKAGE_VERSION}
-
-echo "Copying package to backend context..."
-
-cp ./dist/das-toolbox_${PACKAGE_VERSION}_amd64.deb \
-   ./das-dashboard/backend/
-
 echo "Building frontend image..."
 
-docker build -t das-dashboard ./das-dashboard
+docker build -t das-dashboard .
 
 echo "Frontend image built successfully."
 
 echo "Building backend image..."
 
-docker build -t ui_backend ./das-dashboard/backend
+docker build -t ui_backend backend/
 
 echo "Backend image built successfully."
 
@@ -33,7 +22,7 @@ echo "Starting backend on port ${BACK_PORT}..."
 docker rm -f ui_backend >/dev/null 2>&1 || true
 
 docker run -d \
-  --name ui_backend-das-dashboard \
+  --name ui-backend-das-dashboard \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   --network host \
   ui_backend:latest \
