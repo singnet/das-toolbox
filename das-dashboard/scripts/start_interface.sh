@@ -23,10 +23,12 @@ docker rm -f ui_backend >/dev/null 2>&1 || true
 
 docker run -d \
   --name ui-backend-das-dashboard \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  --network host \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /usr/bin/das-cli:/usr/bin/das-cli:ro \
+  -v /opt/web-das:/opt/web-das \
+  --network=host \
   ui_backend:latest \
-  uvicorn main:dashboard_app --host 0.0.0.0 --port ${BACK_PORT}
+  uvicorn main:dashboard_app --host 0.0.0.0 --port 8000
 
 echo "Backend started successfully."
 
