@@ -33,7 +33,7 @@ echo "Starting backend on port ${BACK_PORT}..."
 docker rm -f ui_backend >/dev/null 2>&1 || true
 
 docker run -d \
-  --name ui_backend \
+  --name ui_backend-das-dashboard \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   --network host \
   ui_backend:latest \
@@ -46,7 +46,7 @@ echo "Starting frontend on port ${FRONT_PORT}..."
 docker rm -f das-dashboard >/dev/null 2>&1 || true
 
 docker run -d \
-  --name das-dashboard \
+  --name ui-frontend-das-dashboard \
   --network host \
   das-dashboard:latest \
   npm run dev -- --host 0.0.0.0 --port ${FRONT_PORT}
