@@ -6,14 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from shared.enums.action_types import ActionTypes
 from shared.enums.metric_scope import MetricScope
 from shared.internal.web_configuration import WebConfiguration
+from shared.exceptions.exception_handlers import AppExceptionHandlers
 
 from services.container_services import ContainerServices
 from services.profile_services import ProfileServices
 from services.metrics_services import MetricsServices
 from services.config_services import ConfigServices
 from services.database_services import DatabaseServices
-
-BASE_ENDPOINT = "/dashboard"
 
 WEB_CONFIG = WebConfiguration()
 
@@ -23,7 +22,6 @@ PROFILE_SERVICES = ProfileServices(WEB_CONFIG)
 METRICS_SERVICES = MetricsServices(WEB_CONFIG)
 CONFIG_SERVICES = ConfigServices(WEB_CONFIG)
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
@@ -32,11 +30,12 @@ async def lifespan(app: FastAPI):
 
     yield
 
-
 dashboard_app = FastAPI(
     title="DAS Dashboard API",
     lifespan=lifespan,
 )
+
+AppExceptionHandlers(dashboard_app)
 
 dashboard_app.add_middleware(
     CORSMiddleware,
@@ -47,11 +46,12 @@ dashboard_app.add_middleware(
 )
 
 @dashboard_app.post("/services/atomdb/metta/upload")
-async def upload_metta_file(host: str = Query(...), knowledge_base_file: UploadFile = File(...)):
+async def upload_metta_file(host: str = Query(...), force_overwrite : bool = Query(...), knowledge_base_file: UploadFile = File(...)):
 
     saved_path = await DATABASE_SERVICES.save_metta_file(
         host=host,
         knowledge_file=knowledge_base_file,
+        force_overwrite=force_overwrite,
     )
 
     return {

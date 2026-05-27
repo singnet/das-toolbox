@@ -35,3 +35,9 @@ class FileSaveException(Exception):
 
         self.message = error_message
         super().__init__(error_message)
+
+class FileAlreadyExistsException(Exception):
+
+    def __init__(self, message: str, file_path: str):
+        self.message = message
+        self.file_path = file_path

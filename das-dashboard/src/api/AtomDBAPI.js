@@ -1,15 +1,14 @@
 import api from "./AxiosBaseClient";
 
-export async function uploadMettaFile(host, file) {
+export async function uploadMettaFile(host, force_overwrite, file) {
   const formData = new FormData();
-
   formData.append("knowledge_base_file", file);
 
   const response = await api.post(
     "/services/atomdb/metta/upload",
     formData,
     {
-      params: { host },
+      params: { host, force_overwrite },
       headers: {
         "Content-Type": "multipart/form-data"
       }

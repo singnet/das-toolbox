@@ -1,9 +1,7 @@
 from fastapi import UploadFile
-
-from shared.internal.constants import DEFAULT_METTA_FILES_PATH
-from shared.exceptions.custom_exceptions import FileSaveException
+from shared.internal.constants import DEFAULT_METTA_FILES_PATH, REMOTE_METTA_FILES_PATH
+from shared.exceptions.custom_exceptions import FileSaveException, FileAlreadyExistsException
 from shared.internal.web_configuration import WebConfiguration
-
 from paramiko import SSHClient, AutoAddPolicy
 import subprocess
 import os
@@ -17,21 +15,16 @@ class DatabaseServices:
     def _get_remote_home(self, ssh: SSHClient):
         stdin, stdout, stderr = ssh.exec_command("echo $HOME")
         remote_home = stdout.read().decode().strip()
-
         return remote_home
 
     def _remote_file_exists(self, ssh: SSHClient, file_path: str):
-
         stdin, stdout, stderr = ssh.exec_command(
             f"test -f {file_path} && echo exists"
         )
-
         return stdout.read().decode().strip() == "exists"
 
+    def _transfer_file_scp(self, host : str, file : UploadFile, force_overwrite: bool):
 
-    def _transfer_file_scp (self, host : str, file : UploadFile):
-
-        # Setup connection values for transfer
         ssh_username = self.web_config.user_profile["profile_username"]
         ssh_key = self.web_config.user_profile["profile_ssh_keypath"]
 
@@ -40,60 +33,53 @@ class DatabaseServices:
         ssh.connect(hostname=host, username=ssh_username, key_filename=ssh_key)
         
         home = self._get_remote_home(ssh)
-        remote_save_path = f"{home}/.das/metta_files/{file.filename}"
+        remote_save_path = f"{home}{REMOTE_METTA_FILES_PATH}{file.filename}"
 
-        # Just to ensure that the folder exists
-        ssh.exec_command(f"mkdir -p {home}/.das/metta_files")
+        ssh.exec_command(f"mkdir -p {home}{REMOTE_METTA_FILES_PATH}")
 
-        if self._remote_file_exists(ssh, remote_save_path):
+        if self._remote_file_exists(ssh, remote_save_path) and not force_overwrite:
             ssh.close()
-            raise FileExistsError("File already exists on remote server.")
+            raise FileAlreadyExistsException(message="The uploaded file already exists in the user's machine.", file_path=remote_save_path)
 
         with SCPClient(ssh.get_transport()) as scp:
             scp.putfo(file.file, remote_path=remote_save_path)
         
         ssh.close()
 
+        return remote_save_path
 
-    async def save_metta_file(self, host: str, knowledge_file : UploadFile) -> str:
+    async def save_metta_file(self, host: str, knowledge_file : UploadFile, force_overwrite : bool):
 
         file_name = knowledge_file.filename
         file_path = f"{DEFAULT_METTA_FILES_PATH}{file_name}"
         file_exists = os.path.exists(file_path)
 
-        if file_exists:
-            raise FileExistsError(f"File already exists on {file_path}")
+        if file_exists and not force_overwrite:
+            raise FileAlreadyExistsException(message="The uploaded file already exists in the user's machine.", file_path=file_path)
 
-        try:
+        if host not in ("127.0.0.1", "0.0.0.0", "localhost"):
+            remote_path = self._transfer_file_scp(host=host, file=knowledge_file, force_overwrite=force_overwrite)
+            return remote_path
+        
+        else:
+            os.makedirs(DEFAULT_METTA_FILES_PATH, exist_ok=True)
 
-            if host not in ("127.0.0.1", "0.0.0.0", "localhost"):
-                self._transfer_file_scp(host=host, file=knowledge_file)
+            local_api_copy = open(file_path, "wb")
+            local_api_copy.write(await knowledge_file.read()) 
+            local_api_copy.close()
 
-            else:
-                os.makedirs(DEFAULT_METTA_FILES_PATH, exist_ok=True)
-
-                local_api_copy = open(file_path, "wb")
-                local_api_copy.write(await knowledge_file.read()) 
-                local_api_copy.close()
-
-                return file_path
+            return file_path
             
-        except Exception as e:
-            raise FileSaveException(f"There was an error while trying to saving this metta file. \n{e}")
 
     def load_metta_file_into_db(self, host: str, metta_file_path : str):
         cmd = ["das-cli", "metta", "load", metta_file_path]
 
         if host not in ("127.0.0.1", "0.0.0.0", "localhost"):
+
             ssh_username = self.web_config.user_profile["profile_username"]
             ssh_key = self.web_config.user_profile["profile_ssh_keypath"]
-
-            cmd.extend("--remote", "-h", host, "-u", ssh_username, "-k", ssh_key)
+            cmd.extend(["--remote", "-h", host, "-u", ssh_username, "-k", ssh_key])
 
         cmd.extend(["-o", "json"])
-
         result = subprocess.run(cmd, capture_output=True)
-
         return result
-
-

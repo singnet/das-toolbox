@@ -1,16 +1,13 @@
 import styled from "@emotion/styled";
 import { Box } from "@mui/material";
+import { useEffect, useState } from "react";
 
 import { CPUViewChart } from "./charts/CPUViewChart";
 import { MemoryViewChart } from "./charts/MemoryViewChart";
 import { AgentTable } from "./servicestable/ServicesTable";
 
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
-
-import {
-  LoadingOverlay,
-  EmptyState
-} from "./LoadingSkeleton";
+import { LoadingOverlay, EmptyState } from "./LoadingSkeleton";
 
 const MainBoxGrid = styled(Box)({
   display: "grid",
@@ -27,7 +24,6 @@ const TableBox = styled(Box)({
 });
 
 export function MainContent() {
-
   const {
     machines,
     currentMachine,
@@ -37,10 +33,20 @@ export function MainContent() {
     connectionError
   } = useDashboardContext();
 
+  const [isReady, setIsReady] = useState(false);
   const aggregatedData = getAggregatedMetrics();
 
-  if (machines.length === 0) {
+  useEffect(() => {
+    const hasEnoughHistory = aggregatedData?.timestamps?.length >= 5;
 
+    if (isConnected && hasEnoughHistory) {
+      setIsReady(true);
+    } else {
+      setIsReady(false);
+    }
+  }, [isConnected, aggregatedData]);
+
+  if (machines.length === 0) {
     return (
       <MainBoxGrid>
         <EmptyState />
@@ -49,7 +55,6 @@ export function MainContent() {
   }
 
   if (connectionError) {
-
     return (
       <MainBoxGrid>
         <EmptyState
@@ -60,8 +65,7 @@ export function MainContent() {
     );
   }
 
-  if (!isConnected) {
-
+  if (!isConnected || !isReady) {
     return (
       <MainBoxGrid>
         <LoadingOverlay />
@@ -71,7 +75,6 @@ export function MainContent() {
 
   return (
     <MainBoxGrid>
-
       <CPUViewChart
         machine={aggregatedData}
         currentService={currentService}
@@ -85,7 +88,6 @@ export function MainContent() {
       <TableBox>
         <AgentTable machine={currentMachine} />
       </TableBox>
-
     </MainBoxGrid>
   );
 }

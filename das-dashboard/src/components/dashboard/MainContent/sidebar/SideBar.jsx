@@ -1,52 +1,21 @@
-import {
-  ListItemText,
-  ListItemIcon,
-  Divider
-} from "@mui/material";
-
-import {
-  SidebarContainer,
-  Title,
-  StyledList,
-  SectionLabel,
-  StyledItem
-} from "./sidebar.styled";
-
+import { ListItemText, ListItemIcon, Divider } from "@mui/material";
+import { SidebarContainer, Title, StyledList, SectionLabel, StyledItem } from "./sidebar.styled";
 import { useRef, useState } from "react";
-
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useToast } from "../../../global_providers/ToastProvider";
-
 import { handleLoadConfig } from "../../../../utils/FileLoader";
-
 import { saveConfig } from "../../../../api/ConfigAPI";
-
-import {
-  startArchitecture,
-  stopArchitecture,
-  startDatabases,
-  stopDatabases
-} from "../../../../api/ServicesAPI";
-
-import {
-  uploadMettaFile,
-  loadMettaFile
-} from "../../../../api/AtomDBAPI";
-
-import {
-  navigationItems,
-  buildActionItems
-} from "./sidebar.constants";
-
+import { startArchitecture, stopArchitecture, startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
+import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
+import { navigationItems, buildActionItems } from "./sidebar.constants";
 import { ConfirmDialog } from "../../Dialogs/DialogBoxes";
 
 export function SideBar() {
-
   const [selected, setSelected] = useState("servers");
-
   const [dialogState, setDialogState] = useState({
     open: false,
     action: null,
+    cancelAction: null,
     message: ""
   });
 
@@ -58,10 +27,8 @@ export function SideBar() {
   } = useDashboardContext();
 
   const { showToast } = useToast();
-
   const fileInputRef = useRef(null);
   const mettaInputRef = useRef(null);
-
   const currentHost = currentMachine?.serverIp;
 
   const atomDbOnline = services.some(
@@ -81,170 +48,141 @@ export function SideBar() {
   );
 
   const onLoadConfig = async ({ parsed, file }) => {
-
     try {
-
       await saveConfig(file);
-
       setDashboardBaseValues(parsed);
-
-      showToast(
-        "Configuration loaded successfully.",
-        "success"
-      );
-
+      showToast("Configuration loaded successfully.", "success");
     } catch (err) {
-
       console.error("Config load failed:", err);
-
-      showToast(
-        "Failed to load configuration.",
-        "error"
-      );
+      showToast("Failed to load configuration.", "error");
     }
   };
 
   const handleMettaUpload = async (event) => {
-
     const file = event.target.files?.[0];
-
     if (!file) return;
 
+    const executeLoad = async (filePath) => {
+      showToast("Loading MeTTa file...", "info");
+      await loadMettaFile(currentHost, filePath);
+      showToast("MeTTa database loaded successfully.", "success");
+    };
+
+    const executeOverwrite = async () => {
+      showToast("Overwriting and uploading MeTTa file...", "info");
+      const uploadResponse = await uploadMettaFile(currentHost, true, file);
+      await executeLoad(uploadResponse.saved_path);
+    };
+
     try {
-
-      showToast(
-        "Uploading MeTTa database...",
-        "info"
-      );
-
-      const uploadResponse = await uploadMettaFile(
-        currentHost,
-        file
-      );
-
-      await loadMettaFile(
-        currentHost,
-        uploadResponse.saved_path
-      );
-
-      showToast(
-        "MeTTa database loaded successfully.",
-        "success"
-      );
-
+      showToast("Uploading MeTTa file...", "info");
+      const uploadResponse = await uploadMettaFile(currentHost, false, file);
+      await executeLoad(uploadResponse.saved_path);
     } catch (err) {
-
       console.error("MeTTa upload failed:", err);
+      if (err?.response?.status === 409 || err?.response?.data?.file_path) {
+        const responseData = err.response.data;
+        const existingFilePath = responseData.file_path;
 
-      showToast(
-        "Failed to load MeTTa database.",
-        "error"
-      );
+        openConfirmDialog(
+          "The file you're trying to upload into the server already exists. Do you want to overwrite it? (Clicking CANCEL will load the existing server file instead)",
+          async () => {
+            await executeOverwrite();
+          },
+          async () => {
+            await executeLoad(existingFilePath);
+          }
+        );
+        return;
+      }
+      showToast("Failed to load MeTTa database.", "error");
+    } finally {
+      if (event.target) event.target.value = "";
     }
   };
 
-  const openConfirmDialog = (message, action) => {
-
+  const openConfirmDialog = (message, action, cancelAction = null) => {
     setDialogState({
       open: true,
       action,
+      cancelAction,
       message
     });
   };
 
-  const closeDialog = () => {
-
+  const closeDialog = async () => {
+    if (dialogState.cancelAction) {
+      try {
+        await dialogState.cancelAction();
+      } catch (err) {
+        console.error("Cancel action failed:", err);
+      }
+    }
     setDialogState(prev => ({
       ...prev,
-      open: false
+      open: false,
+      cancelAction: null
     }));
   };
 
   const executeDialogAction = async () => {
-
     try {
-
       await dialogState.action?.();
-
     } catch (err) {
-
       console.error("Action execution failed:", err);
-
-      showToast(
-        "Action execution failed.",
-        "error"
-      );
-
+      showToast("Action execution failed.", "error");
     } finally {
-
-      closeDialog();
+      setDialogState(prev => ({ ...prev, open: false, cancelAction: null }));
     }
   };
 
   const handleArchitectureAction = () => {
-
     if (!atomDbOnline) {
-      showToast(
-        "AtomDB must be online before starting architecture.",
-        "warning"
-      );
-
+      showToast("AtomDB must be online before starting architecture.", "warning");
       return;
     }
 
     if (architectureOnline) {
-
       openConfirmDialog(
         "Are you sure you want to stop all DAS services? Everything will be shut down except for the AtomDBs.",
         async () => {
+          showToast("Stopping DAS services...", "info");
           await stopArchitecture(currentHost);
-          showToast(
-            "Architecture stopped successfully.",
-            "success"
-          );
+          showToast("Architecture stopped successfully.", "success");
         }
       );
-
       return;
     }
 
     openConfirmDialog(
       "Start architecture?",
       async () => {
+        showToast("Starting DAS services...", "info");
         await startArchitecture(currentHost);
-        showToast(
-          "Architecture started successfully.",
-          "success"
-        );
+        showToast("Architecture started successfully.", "success");
       }
     );
   };
 
   const handleDatabaseAction = () => {
-
     if (atomDbOnline) {
       openConfirmDialog(
         "Are you sure you want to stop the AtomDB service? All relevant data will be lost on shutdown.",
         async () => {
+          showToast("Stopping AtomDB services...", "info");
           await stopDatabases(currentHost);
-          showToast(
-            "AtomDB stopped successfully.",
-            "success"
-          );
+          showToast("AtomDB stopped successfully.", "success");
         }
       );
-
       return;
     }
 
     openConfirmDialog(
       "Start AtomDB?",
       async () => {
+        showToast("Starting AtomDB services...", "info");
         await startDatabases(currentHost);
-        showToast(
-          "AtomDB started successfully.",
-          "success"
-        );
+        showToast("AtomDB started successfully.", "success");
       }
     );
   };
@@ -260,21 +198,11 @@ export function SideBar() {
 
   return (
     <SidebarContainer>
-
-      <Title variant="h6">
-        DAS
-      </Title>
-
+      <Title variant="h6">DAS</Title>
       <StyledList>
-
-        <SectionLabel>
-          INFRA
-        </SectionLabel>
-
+        <SectionLabel>INFRA</SectionLabel>
         {navigationItems.map(item => {
-
           const Icon = item.icon;
-
           return (
             <StyledItem
               key={item.key}
@@ -287,17 +215,13 @@ export function SideBar() {
               <ListItemIcon>
                 <Icon fontSize="small" />
               </ListItemIcon>
-
               <ListItemText primary={item.label} />
             </StyledItem>
           );
         })}
 
         <Divider sx={{ my: 1 }} />
-
-        <SectionLabel>
-          ACTIONS
-        </SectionLabel>
+        <SectionLabel>ACTIONS</SectionLabel>
 
         <input
           ref={fileInputRef}
@@ -317,7 +241,6 @@ export function SideBar() {
 
         {actionItems.map(item => {
           const Icon = item.icon;
-
           return (
             <StyledItem
               key={item.label}
@@ -330,7 +253,6 @@ export function SideBar() {
               <ListItemIcon>
                 <Icon fontSize="small" />
               </ListItemIcon>
-
               <ListItemText primary={item.label} />
             </StyledItem>
           );
@@ -342,9 +264,7 @@ export function SideBar() {
           action={executeDialogAction}
           message={dialogState.message}
         />
-
       </StyledList>
-
     </SidebarContainer>
   );
 }
