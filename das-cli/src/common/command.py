@@ -377,6 +377,10 @@ class Command:
         except Exception as e:
             log_exception(e)
 
+            self.flush_stdout()
+
+            raise click.exceptions.Exit(1)
+
         self.flush_stdout()
 
     @staticmethod

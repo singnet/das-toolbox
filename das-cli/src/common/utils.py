@@ -133,7 +133,7 @@ def log_exception(e: Exception) -> None:
 
     logger().exception(error_message)
 
-    print(pretty_message)
+    print(pretty_message, file=sys.stderr)
 
 
 def print_table(
