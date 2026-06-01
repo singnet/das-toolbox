@@ -17,6 +17,10 @@ class ContainerServices:
         self.local_docker = docker.from_env()
         self.web_config = web_config
 
+    def _validate_return_error(self, return_stdout : str, return_stderr : str) -> bool:
+        pass
+
+    
     def _is_remote(self, host: str) -> bool:
         return host not in LOCAL_HOSTS
 
@@ -66,12 +70,11 @@ class ContainerServices:
                 "command": command,
             }
 
-        except subprocess.CalledProcessError as e:
 
+        except subprocess.CalledProcessError as e:
             raise DasCliCommandException(e.stderr or e.stdout, "CLI error")
 
         except Exception as e:
-
             raise DasCliCommandException(str(e), "Execution error")
 
     def manage_container(self, host: str, action: ActionTypes, container_name: str = None, command : str = None):

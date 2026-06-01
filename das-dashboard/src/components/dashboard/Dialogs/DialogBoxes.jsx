@@ -19,3 +19,21 @@ export function ConfirmDialog({ dialogOpen, setDialogOpen, message, action }){
     )
 
 }
+
+export function InfoDialog({ dialogOpen, setDialogOpen, message}){
+
+    return (
+        <>
+            <Dialog open = {dialogOpen}>
+                <Dialog>Server error:</Dialog>
+                <DialogContent>
+                    <DialogContentText>{message}</DialogContentText>
+                    <DialogActions>
+                        <Button onClick={() => setDialogOpen(false)} >Close</Button>
+                    </DialogActions>
+                </DialogContent>
+            </Dialog>
+        </>
+    )
+
+}

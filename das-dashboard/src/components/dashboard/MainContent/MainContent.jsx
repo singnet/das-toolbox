@@ -1,13 +1,15 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Box, Typography, Card } from "@mui/material";
+import { useMemo } from "react";
 
 import { CPUViewChart } from "./charts/CPUViewChart";
 import { MemoryViewChart } from "./charts/MemoryViewChart";
 import { AgentTable } from "./servicestable/ServicesTable";
-
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 import { LoadingOverlay, EmptyState } from "./LoadingSkeleton";
+
+import ErrorIcon from '@mui/icons-material/Error';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 const MainBoxGrid = styled(Box)({
   display: "grid",
@@ -23,6 +25,20 @@ const TableBox = styled(Box)({
   padding: "25px",
 });
 
+const ChartPlaceholderContainer = styled(Card)({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "360px",
+  margin: "25px",
+  backgroundColor: "rgba(0, 0, 0, 0.02)",
+  border: "2px dashed rgba(0, 0, 0, 0.12)",
+  boxShadow: "none",
+  color: "#9e9e9e",
+  gap: "8px",
+});
+
 export function MainContent() {
   const {
     machines,
@@ -30,23 +46,36 @@ export function MainContent() {
     currentService,
     getAggregatedMetrics,
     isConnected,
-    connectionError
+    connectionError,
+    machineStats
   } = useDashboardContext();
 
-  const [isReady, setIsReady] = useState(false);
-  const aggregatedData = getAggregatedMetrics();
+  const aggregatedData = useMemo(
+    () => getAggregatedMetrics(),
+    [getAggregatedMetrics]
+  );
 
-  useEffect(() => {
-    const hasEnoughHistory = aggregatedData?.timestamps?.length >= 5;
+  const hasHistory = useMemo(() => {
+    return !!(
+      aggregatedData &&
+      aggregatedData.timestamps &&
+      aggregatedData.timestamps.length >= 5
+    );
+  }, [aggregatedData]);
 
-    if (isConnected && hasEnoughHistory) {
-      setIsReady(true);
-    } else {
-      setIsReady(false);
-    }
-  }, [isConnected, aggregatedData]);
+  const hasInitialPayload = useMemo(() => {
+    return !!(machineStats && Object.keys(machineStats).length > 0);
+  }, [machineStats]);
 
-  if (machines.length === 0) {
+  if (connectionError) {
+    return (
+      <MainBoxGrid>
+        <EmptyState title={connectionError.title} description={connectionError.description} icon={ErrorIcon} />
+      </MainBoxGrid>
+    );
+  }
+
+  if (machines.length === 0 && !connectionError) {
     return (
       <MainBoxGrid>
         <EmptyState />
@@ -54,18 +83,7 @@ export function MainContent() {
     );
   }
 
-  if (connectionError) {
-    return (
-      <MainBoxGrid>
-        <EmptyState
-          title="Connection failed"
-          description="Unable to connect to metrics stream."
-        />
-      </MainBoxGrid>
-    );
-  }
-
-  if (!isConnected || !isReady) {
+  if (!isConnected && !hasInitialPayload) {
     return (
       <MainBoxGrid>
         <LoadingOverlay />
@@ -75,15 +93,33 @@ export function MainContent() {
 
   return (
     <MainBoxGrid>
-      <CPUViewChart
-        machine={aggregatedData}
-        currentService={currentService}
-      />
+      {hasHistory && isConnected ? (
+        <CPUViewChart machine={aggregatedData} currentService={currentService} />
+      ) : (
+        <ChartPlaceholderContainer>
+          <BarChartIcon sx={{ fontSize: 48, color: "rgba(0, 0, 0, 0.26)" }} />
+          <Typography variant="subtitle1" fontWeight="600" color="text.secondary">
+            CPU VIEW
+          </Typography>
+          <Typography variant="body2" color="text.disabled">
+            NO DATA TO BE DISPLAYED
+          </Typography>
+        </ChartPlaceholderContainer>
+      )}
 
-      <MemoryViewChart
-        machine={aggregatedData}
-        currentService={currentService}
-      />
+      {hasHistory && isConnected ? (
+        <MemoryViewChart machine={aggregatedData} currentService={currentService} />
+      ) : (
+        <ChartPlaceholderContainer>
+          <BarChartIcon sx={{ fontSize: 48, color: "rgba(0, 0, 0, 0.26)" }} />
+          <Typography variant="subtitle1" fontWeight="600" color="text.secondary">
+            MEMORY VIEW
+          </Typography>
+          <Typography variant="body2" color="text.disabled">
+            NO DATA TO BE DISPLAYED
+          </Typography>
+        </ChartPlaceholderContainer>
+      )}
 
       <TableBox>
         <AgentTable machine={currentMachine} />

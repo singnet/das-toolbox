@@ -5,7 +5,10 @@ from .custom_exceptions import (
     DasCliCommandException,
     DasCliNotInstalledException,
     FileSaveException,
-    FileAlreadyExistsException
+    FileAlreadyExistsException,
+    WebSocketError,
+    WebSocketMessageDecodeError,
+    WebSocketStreamEmpty
 )
 
 

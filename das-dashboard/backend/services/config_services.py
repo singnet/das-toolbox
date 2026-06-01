@@ -7,7 +7,7 @@ import subprocess
 
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import CONFIG_DIR, DEFAULT_WEBCONFIG_PATH
-
+from shared.exceptions.custom_exceptions import DasCliCommandException
 
 class ConfigServices:
 
@@ -29,6 +29,8 @@ class ConfigServices:
                 check=True
             )
 
+            print(result.stdout)
+
             loaded_json = await self.load_config()
             mapped_services = await self.map_services(loaded_json)
 
@@ -37,7 +39,7 @@ class ConfigServices:
             return {"message": "Config applied", "stdout": result.stdout}
 
         except Exception as e:
-            raise Exception(f"Failed to apply config: {str(e)}")
+            raise DasCliCommandException("There was an error while trying to set the configuration file in das-cli.", stderror=result.stderr)
 
     async def load_config(self):
         try:

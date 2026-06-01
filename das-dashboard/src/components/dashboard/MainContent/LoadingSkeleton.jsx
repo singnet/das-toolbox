@@ -1,24 +1,30 @@
 import { CircularProgress, Typography, Stack } from "@mui/material";
 import { CloudUploadOutlined, Sensors } from "@mui/icons-material";
+import ErrorIcon from '@mui/icons-material/Error';
 
-export function EmptyState() {
+export function EmptyState({ 
+  title = <>No configuration file detected. <br /> Please upload your configuration file using the button by the sidebar.</>, 
+  description = null,
+  icon: IconComponent = CloudUploadOutlined 
+}) {
   return (
     <Stack
       direction="column"
       alignItems="center"
       justifyContent="center"
-      sx={{
-        gridColumn: "span 2",
-        minHeight: "60vh",
-        gap: 2,
-        opacity: 0.5,
-      }}
+      sx={{ gridColumn: "span 2", minHeight: "60vh", gap: 1, opacity: 0.5 }}
     >
-      <CloudUploadOutlined sx={{ fontSize: 80, color: "grey.500" }} />
-      <Typography color="grey.400" align="center">
-        No configuration file detected. <br />
-        Please upload your configuration file using the button by the sidebar.
+      <IconComponent sx={{ fontSize: 80, color: "grey.500", mb: 1 }} />
+      
+      <Typography variant="h6" color="grey.500" align="center" sx={{ fontWeight: 400 }}>
+        {title}
       </Typography>
+
+      {description && (
+        <Typography variant="body2" color="grey.400" align="center">
+          {description}
+        </Typography>
+      )}
     </Stack>
   );
 }

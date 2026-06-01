@@ -81,5 +81,5 @@ class DatabaseServices:
             cmd.extend(["--remote", "-h", host, "-u", ssh_username, "-k", ssh_key])
 
         cmd.extend(["-o", "json"])
-        result = subprocess.run(cmd, capture_output=True)
-        return result
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.stdout

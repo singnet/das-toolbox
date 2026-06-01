@@ -18,34 +18,67 @@ export async function fetchDashboardDataStatic(metricScope = "all", host = "loca
   }
 }
 
-export function fetchDashboardDataStream(onMessage, host, {onOpen, onClose, onError} = {}) {
+export function fetchDashboardDataStream(onMessage, host, { onOpen, onClose, onError } = {}) {
   const socket = new WebSocket(
     `ws://${host}:8000/metrics/live-ws?metric_scope=all&host=${host}`
-  );
+  )
 
   socket.onopen = () => {
-    onOpen?.();
-  };
+    onOpen?.()
+  }
 
   socket.onmessage = (event) => {
     try {
-      const parsed = JSON.parse(event.data);
-      onMessage(parsed);
+      const parsed = JSON.parse(event.data)
+
+      if (parsed.type === "error") {
+        console.error("WebSocket application error:", parsed.message)
+
+        onError?.({
+          type: "application",
+          message: parsed.message,
+          raw: parsed
+        })
+
+        return
+      }
+
+      onMessage(parsed)
 
     } catch (err) {
-      console.error("WebSocket parse error:", err);
+      console.error("WebSocket parse error:", err)
+
+      onError?.({
+        type: "parse",
+        message: err.message,
+        raw: err
+      })
     }
-  };
+  }
 
-  socket.onerror = (err) => {
-    console.error("WebSocket error:", err);
-    onError?.(err);
-  };
+  socket.onerror = (event) => {
+    console.error("WebSocket transport error:", event)
 
-  socket.onclose = () => {
-    console.warn("WebSocket connection closed.");
-    onClose?.();
-  };
+    onError?.({
+      type: "transport",
+      message: "WebSocket transport error.",
+      raw: event
+    })
+  }
 
-  return socket;
+  socket.onclose = (event) => {
+    console.warn(
+      "WebSocket closed:",
+      event.code,
+      event.reason
+    )
+
+    onClose?.({
+      code: event.code,
+      reason: event.reason,
+      wasClean: event.wasClean
+    })
+  }
+
+  return socket
 }

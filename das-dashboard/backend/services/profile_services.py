@@ -46,7 +46,8 @@ class ProfileServices:
                 json.dump(profile_data, f)
 
             self.web_config.user_profile = profile_data
-            return "Profile saved successfully"
 
         except Exception as e:
-            raise ProfileSaveException(str(e))
+            raise ProfileSaveException(
+                error_message="Failed to save the profile configuration. The server storage may not be properly configured. Try restarting the server and try again."
+            )

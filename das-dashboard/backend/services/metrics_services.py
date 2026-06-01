@@ -4,9 +4,10 @@ import re
 import subprocess
 
 from shared.enums.metric_scope import MetricScope
-from shared.exceptions.custom_exceptions import DasCliNotInstalledException
+from shared.exceptions.custom_exceptions import DasCliNotInstalledException, WebSocketStreamEmpty, WebSocketError, WebSocketMessageDecodeError
 from shared.internal.web_configuration import WebConfiguration
 
+from fastapi import WebSocketException, WebSocketDisconnect
 
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
 
@@ -76,40 +77,62 @@ class MetricsServices:
         server_json = parsed[0] if isinstance(parsed, list) and parsed else parsed
 
         if metric_scope == MetricScope.SERVER:
-            return [{"ip": host, "machineInfo": server_json.get("machineInfo", {})}]
+            return {"ip": host, "machineInfo": server_json.get("machineInfo", {})}
 
         if metric_scope == MetricScope.SERVICE:
-            return [{"ip": host, "serviceInfo": server_json.get("serviceInfo", {})}]
+            return {"ip": host, "serviceInfo": server_json.get("serviceInfo", {})}
 
-        return [{"ip": host, **server_json}]
+        return {"ip": host, **server_json}
 
     async def load_server_metrics(self, metric_scope: MetricScope, host: str):
         result = self._run_once(host)
 
-        return self._define_response_scope(
+        response_json = self._define_response_scope(
             metric_scope,
             json.loads(result.stdout),
             host,
         )
+
+        return response_json
 
     async def stream_server_metrics(self, metric_scope: MetricScope, host: str):
         process = self._run_stream(host)
 
         try:
             while True:
-
                 line = await asyncio.to_thread(process.stdout.readline)
+
                 if not line:
-                    break
+                    yield {
+                        "type": "error",
+                        "message": "Das-cli returned an empty stream. This possibly means an internal error in the application. Closing web-socket prematurely."
+                    }
+
+                    return
 
                 line = self.ansi_escape.sub("", line).strip()
-                if not line or not line.startswith("{"):
+
+                if not line:
+                    continue
+                
+                if line.startswith("[ValueError]") or line.startswith("[ERROR]"):
+
+                    yield {
+                        "type": "error",
+                        "message": line,
+                    }
+                    return
+                
+                if not line.startswith("{"):
                     continue
 
-                try:
-                    yield self._define_response_scope(metric_scope, json.loads(line), host)
+                yield self._define_response_scope(metric_scope=metric_scope, parsed=json.loads(line), host=host)
 
-                except json.JSONDecodeError:
-                    continue
+        except json.JSONDecodeError:
+            yield {
+                "type": "error",
+                "message": "There was an error trying to read das-cli's JSON response. Closing web socket connection."
+            }
+
         finally:
             process.terminate()
