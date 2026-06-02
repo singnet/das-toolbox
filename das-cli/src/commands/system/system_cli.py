@@ -70,6 +70,100 @@ class SystemStatus(Command):
             "serviceInfo": service_output,
         }
 
+    def _format_info_for_display(
+        self,
+        system_info: dict,
+    ) -> None:
+
+        machines = system_info.get("machineInfo", {})
+        services = system_info.get("serviceInfo", {})
+
+        cpu_info = machines.get("CPUInfo", {})
+        memory_info = machines.get("MemoryInfo", {})
+        disks_info = machines.get("DisksInfo", [])
+
+        self.stdout("MACHINE INFO:\n")
+
+        machine_rows = [
+            {
+                "CPU (%)": cpu_info.get("cpuUsage", 0),
+                "CPU CORES": cpu_info.get("cpuTotalCores", 0),
+                "MEM USED (MB)": memory_info.get("usedMemory", 0),
+                "MEM TOTAL (MB)": memory_info.get("totalMemory", 0),
+            }
+        ]
+
+        print_table(
+            machine_rows,
+            columns=[
+                "CPU (%)",
+                "CPU CORES",
+                "MEM USED (MB)",
+                "MEM TOTAL (MB)",
+            ],
+            stdout=self.stdout,
+        )
+
+        self.stdout("\nDISKS:\n")
+
+        disk_rows = []
+
+        for disk in disks_info:
+
+            disk_rows.append(
+                {
+                    "DEVICE": disk.get("disk_device", "-"),
+                    "MOUNT": disk.get("disk_mntpoint", "-"),
+                    "USED (MB)": disk.get("disk_used_space", 0),
+                    "TOTAL (MB)": disk.get("disk_total_space", 0),
+                }
+            )
+
+        print_table(
+            disk_rows,
+            columns=[
+                "DEVICE",
+                "MOUNT",
+                "USED (MB)",
+                "TOTAL (MB)",
+            ],
+            stdout=self.stdout,
+        )
+
+        self.stdout("\nSERVICES:\n")
+
+        container_rows = []
+
+        for _, info in services.items():
+
+            container_rows.append(
+                {
+                    "CONTAINER NAME": info.get("container_name", "-"),
+                    "CONTAINER INFO": info.get("image", "-"),
+                    "PORT": info.get("port", "-"),
+                    "AGE": info.get("age", "-"),
+                    "CPU (% / Core)": info.get("cpu_percent", 0),
+                    "MEMORY(MB)": info.get("memory_mb", 0),
+                    "CONTAINER STATUS": info.get("status", "-"),
+                    "SERVICE HEALTH": info.get("service_health", "-"),
+                }
+            )
+
+        print_table(
+            container_rows,
+            columns=[
+                "CONTAINER NAME",
+                "CONTAINER INFO",
+                "PORT",
+                "AGE",
+                "CPU (% / Core)",
+                "MEMORY(MB)",
+                "CONTAINER STATUS",
+                "SERVICE HEALTH",
+            ],
+            stdout=self.stdout,
+        )
+
     def _run_stream(self) -> None:
         latest_machine: dict[str, str] = {}
         latest_services: dict[str, str] = {}
@@ -131,104 +225,10 @@ class SystemStatus(Command):
 
                 self.stdout(system_info, stdout_type=StdoutType.MACHINE_READABLE, stream_mode=True)
                 self._format_info_for_display(system_info)
-                time.sleep(1)
+                time.sleep(2)
 
         except KeyboardInterrupt:
             return
-
-    def _format_info_for_display(
-        self,
-        system_info: dict,
-    ) -> None:
-
-        machines = system_info.get("machineInfo", {})
-        services = system_info.get("serviceInfo", {})
-
-        cpu_info = machines.get("CPUInfo", {})
-        memory_info = machines.get("MemoryInfo", {})
-        disks_info = machines.get("DisksInfo", [])
-
-        self.stdout("MACHINE INFO\n")
-
-        machine_rows = [
-            {
-                "CPU (%)": cpu_info.get("cpuUsage", 0),
-                "CPU CORES": cpu_info.get("cpuTotalCores", 0),
-                "MEM USED (MB)": memory_info.get("usedMemory", 0),
-                "MEM TOTAL (MB)": memory_info.get("totalMemory", 0),
-            }
-        ]
-
-        print_table(
-            machine_rows,
-            columns=[
-                "CPU (%)",
-                "CPU CORES",
-                "MEM USED (MB)",
-                "MEM TOTAL (MB)",
-            ],
-            stdout=self.stdout,
-        )
-
-        self.stdout("\nDISKS\n")
-
-        disk_rows = []
-
-        for disk in disks_info:
-
-            disk_rows.append(
-                {
-                    "DEVICE": disk.get("disk_device", "-"),
-                    "MOUNT": disk.get("disk_mntpoint", "-"),
-                    "USED (MB)": disk.get("disk_used_space", 0),
-                    "TOTAL (MB)": disk.get("disk_total_space", 0),
-                }
-            )
-
-        print_table(
-            disk_rows,
-            columns=[
-                "DEVICE",
-                "MOUNT",
-                "USED (MB)",
-                "TOTAL (MB)",
-            ],
-            stdout=self.stdout,
-        )
-
-        self.stdout("\nSERVICES\n")
-
-        container_rows = []
-
-        for _, info in services.items():
-
-            container_rows.append(
-                {
-                    "CONTAINER NAME": info.get("container_name", "-"),
-                    "CONTAINER INFO": info.get("image", "-"),
-                    "PORT": info.get("port", "-"),
-                    "AGE": info.get("age", "-"),
-                    "CPU (% / Core)": info.get("cpu_percent", 0),
-                    "MEMORY(MB)": info.get("memory_mb", 0),
-                    "CONTAINER STATUS": info.get("status", "-"),
-                    "SERVICE HEALTH": info.get("service_health", "-"),
-                }
-            )
-
-        print_table(
-            container_rows,
-            columns=[
-                "CONTAINER NAME",
-                "CONTAINER INFO",
-                "PORT",
-                "AGE",
-                "CPU (% / Core)",
-                "MEMORY(MB)",
-                "CONTAINER STATUS",
-                "SERVICE HEALTH",
-            ],
-            stdout=self.stdout,
-        )
 
     def run(
         self,
