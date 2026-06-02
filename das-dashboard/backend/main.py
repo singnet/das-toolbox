@@ -92,7 +92,6 @@ async def load_metta_file(host: str = Query(...), metta_file_path: str = Query(.
 @dashboard_app.post("/services/orchestration/start")
 async def start_orchestration(host: str = Query(...)):
     result = CONTAINER_SERVICES.orchestrate_architecture(
-        host=host,
         action=ActionTypes.START,
     )
 

@@ -3,156 +3,202 @@ import { normalizeService } from "../utils/NormalizeMetrics";
 import { createMetricsStream } from "../api/MetricsStreamService";
 
 export function useDashboardMetrics(host) {
+
   const [machineStats, setMachineStats] = useState(null);
   const [services, setServices] = useState([]);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
+
   const [isConnected, setIsConnected] = useState(false);
+  const [isSwitchingHost, setIsSwitchingHost] = useState(false);
+
   const [connectionError, setConnectionError] = useState(null);
 
   const metricsHistoryRef = useRef([]);
   const streamRef = useRef(null);
+
   const fatalErrorRef = useRef(false);
+  const intentionalCloseRef = useRef(false);
 
   const pushSnapshot = useCallback((servicesData) => {
-    const timestamp = new Date().toLocaleTimeString("pt-BR", {
-      hour: "2-digit", minute: "2-digit", second: "2-digit"
-    });
 
-    metricsHistoryRef.current.push({ time: timestamp, data: servicesData });
+    metricsHistoryRef.current.push({
+      data: servicesData
+    });
 
     if (metricsHistoryRef.current.length > 20) {
       metricsHistoryRef.current.shift();
     }
+
   }, []);
 
   useEffect(() => {
-  if (!host) {
-    return;
-  }
 
-  console.log("Opening metrics stream for:", host);
+    if (!host) {
+      return;
+    }
 
-  fatalErrorRef.current = false;
+    setIsSwitchingHost(true);
 
-  setIsConnected(false);
-  setConnectionError(null);
+    metricsHistoryRef.current = [];
 
-  if (streamRef.current) {
-    streamRef.current.close();
-    streamRef.current = null;
-  }
+    setServices([]);
+    setMachineStats(null);
 
-  const stream = createMetricsStream({
-    host,
+    fatalErrorRef.current = false;
+    intentionalCloseRef.current = false;
 
-    onData: (incomingData) => {
-      console.log("WS DATA:", incomingData);
+    setConnectionError(null);
 
-      const data = Array.isArray(incomingData)
-        ? incomingData[0]
-        : incomingData;
+    if (streamRef.current) {
 
-      if (!data) return;
+      intentionalCloseRef.current = true;
 
-      if (data.type === "error") {
-        fatalErrorRef.current = true;
+      streamRef.current.close();
+      streamRef.current = null;
+    }
+
+    const stream = createMetricsStream({
+
+      host,
+
+      onData: (incomingData) => {
+
+        const data = Array.isArray(incomingData)
+          ? incomingData[0]
+          : incomingData;
+
+        if (!data) {
+          return;
+        }
+
+        if (data.type === "error") {
+
+          fatalErrorRef.current = true;
+
+          setIsConnected(false);
+
+          setConnectionError({
+            title: "Metrics stream failed",
+            description: data.message
+          });
+
+          stream.close();
+
+          return;
+        }
+
+        if (data.serviceInfo) {
+
+          const parsedServices =
+            Object.values(data.serviceInfo)
+              .map(normalizeService);
+
+          setServices(parsedServices);
+
+          pushSnapshot(parsedServices);
+        }
+
+        if (data.machineInfo) {
+          setMachineStats(data.machineInfo);
+        }
+
+        setLastUpdate(Date.now());
+      },
+
+      onOpen: () => {
+
+        intentionalCloseRef.current = false;
+
+        setIsConnected(true);
+        setIsSwitchingHost(false);
+
+        setConnectionError(null);
+      },
+
+      onClose: () => {
 
         setIsConnected(false);
 
+        if (intentionalCloseRef.current) {
+          return;
+        }
+
+        if (fatalErrorRef.current) {
+          return;
+        }
+
         setConnectionError({
-          title: "Metrics stream failed",
-          description: data.message
+          title: "Connection closed",
+          description: "Metrics stream closed unexpectedly."
         });
+      },
 
-        stream.close();
-        return;
+      onError: () => {
+
+        setIsConnected(false);
+
+        if (intentionalCloseRef.current) {
+          return;
+        }
+
+        if (fatalErrorRef.current) {
+          return;
+        }
+
+        setConnectionError({
+          title: "Server connection error",
+          description: "Unable to connect to metrics stream."
+        });
       }
 
-      if (data.serviceInfo) {
-        const parsedServices =
-          Object.values(data.serviceInfo).map(normalizeService);
+    });
 
-        setServices(parsedServices);
+    streamRef.current = stream;
 
-        pushSnapshot(parsedServices);
-      }
+    return () => {
 
-      if (data.machineInfo) {
-        setMachineStats(data.machineInfo);
-      }
+      intentionalCloseRef.current = true;
 
-      setLastUpdate(Date.now());
-    },
+      stream.close();
+    };
 
-    onOpen: () => {
-      console.log("WS OPEN");
-
-      if (fatalErrorRef.current) return;
-
-      setIsConnected(true);
-      setConnectionError(null);
-    },
-
-    onClose: () => {
-      console.log("WS CLOSED");
-
-      setIsConnected(false);
-
-      if (fatalErrorRef.current) return;
-
-      setConnectionError({
-        title: "Connection closed.",
-        description:
-          "Metrics stream closed unexpectedly."
-      });
-    },
-
-    onError: (err) => {
-      console.error("WS ERROR:", err);
-
-      setIsConnected(false);
-
-      if (fatalErrorRef.current) return;
-
-      setConnectionError({
-        title: "Server connection error.",
-        description:
-          "Unable to connect to metrics stream."
-      });
-    }
-  });
-
-  streamRef.current = stream;
-
-  return () => {
-    console.log("Cleaning WS:", host);
-
-    stream.close();
-  };
-
-}, [host]);
+  }, [host, pushSnapshot]);
 
   const getAggregatedMetrics = useCallback(() => {
+
     const snapshots = metricsHistoryRef.current;
+
     const servicesMap = {};
 
     snapshots.forEach((snapshot) => {
+
       snapshot.data.forEach((service) => {
+
         const name = service.container_name;
 
         if (!servicesMap[name]) {
-          servicesMap[name] = { name, cpu: [], memory: [] };
+
+          servicesMap[name] = {
+            name,
+            cpu: [],
+            memory: []
+          };
         }
 
-        servicesMap[name].cpu.push(service.cpu_percent || 0);
-        servicesMap[name].memory.push(service.memory_mb || 0);
+        servicesMap[name].cpu.push(
+          service.cpu_percent || 0
+        );
+
+        servicesMap[name].memory.push(
+          service.memory_mb || 0
+        );
       });
     });
 
     return {
-      agents: Object.values(servicesMap),
-      timestamps: snapshots.map((snapshot) => snapshot.time)
+      agents: Object.values(servicesMap)
     };
+
   }, [lastUpdate]);
 
   return {
@@ -160,6 +206,7 @@ export function useDashboardMetrics(host) {
     services,
     lastUpdate,
     isConnected,
+    isSwitchingHost,
     connectionError,
     getAggregatedMetrics
   };
