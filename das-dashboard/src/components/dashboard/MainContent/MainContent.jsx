@@ -7,7 +7,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import { CPUViewChart } from "./charts/CPUViewChart";
 import { MemoryViewChart } from "./charts/MemoryViewChart";
 import { AgentTable } from "./servicestable/ServicesTable";
-import { LoadingOverlay, EmptyState } from "./LoadingSkeleton";
+import { LoadingOverlay, EmptyState, ChartPlaceholder } from "./LoadingSkeleton";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 
 const MainBoxGrid = styled(Box)({
@@ -39,19 +39,6 @@ const ChartPlaceholderContainer = styled(Card)({
   gap: "8px"
 });
 
-function ChartPlaceholder({ title }) {
-  return (
-    <ChartPlaceholderContainer>
-      <BarChartIcon sx={{ fontSize: 48, color: "rgba(0, 0, 0, 0.26)" }} />
-      <Typography variant="subtitle1" fontWeight="600" color="text.secondary">
-        {title}
-      </Typography>
-      <Typography variant="body2" color="text.disabled">
-        WAITING FOR METRICS...
-      </Typography>
-    </ChartPlaceholderContainer>
-  );
-}
 
 export function MainContent() {
   const {
@@ -68,12 +55,14 @@ export function MainContent() {
   const aggregatedData = useMemo(() => getAggregatedMetrics(), [getAggregatedMetrics]);
 
   const hasHistory = useMemo(() => {
+    if (isSwitchingHost) return false;
     return aggregatedData?.agents?.some(agent => agent.cpu?.length > 0 || agent.memory?.length > 0) ?? false;
-  }, [aggregatedData]);
+  }, [aggregatedData, isSwitchingHost]);
 
   const hasInitialPayload = useMemo(() => {
+    if (isSwitchingHost) return false;
     return !!(machineStats && Object.keys(machineStats).length > 0);
-  }, [machineStats]);
+  }, [machineStats, isSwitchingHost]);
 
   if (connectionError) {
     return (
@@ -91,41 +80,29 @@ export function MainContent() {
     );
   }
 
-  if (!isConnected && !hasInitialPayload && !isSwitchingHost) {
-    return (
-      <MainBoxGrid>
-        <LoadingOverlay />
-      </MainBoxGrid>
-    );
-  }
-
   return (
     <MainBoxGrid>
-      {isSwitchingHost && <LoadingOverlay text="Switching server..." />}
-
       {hasHistory ? (
-        <CPUViewChart 
-          key={`cpu-${currentMachine?.serverIp}`} 
-          machine={aggregatedData} 
-          currentService={currentService} 
-        />
-      ) : (
-        <ChartPlaceholder title="CPU VIEW" />
-      )}
+        <>
+          <CPUViewChart 
+            key={`cpu-${currentMachine?.serverIp}`} 
+            machine={aggregatedData} 
+            currentService={currentService} 
+          />
 
-      {hasHistory ? (
-        <MemoryViewChart 
-          key={`memory-${currentMachine?.serverIp}`} 
-          machine={aggregatedData} 
-          currentService={currentService} 
-        />
-      ) : (
-        <ChartPlaceholder title="MEMORY VIEW" />
-      )}
+          <MemoryViewChart 
+            key={`memory-${currentMachine?.serverIp}`} 
+            machine={aggregatedData} 
+            currentService={currentService} 
+          />
 
-      <TableBox>
-        <AgentTable machine={currentMachine} />
-      </TableBox>
+          <TableBox>
+            <AgentTable machine={currentMachine} />
+          </TableBox>
+        </>
+        ) : (
+          <LoadingOverlay></LoadingOverlay>
+      )}
     </MainBoxGrid>
   );
 }

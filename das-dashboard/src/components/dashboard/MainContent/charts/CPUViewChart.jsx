@@ -40,12 +40,13 @@ export function CPUViewChart({ machine, currentService }) {
 
   return (
     <LineChart
-      xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" }}]}
+      xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" },}]}
       yAxis={[{ min: 0, max: 100, label: "CPU (%/Core)" }]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 20 }}
       slotProps={{ legend: { hidden: filtered.length > 5 } }}
+      skipAnimation={true}
     />
   );
 }

@@ -64,6 +64,7 @@ export default function DashboardContextProvider({ children }) {
     lastUpdate,
     isConnected,
     connectionError,
+    isSwitchingHost,
     getAggregatedMetrics
   } = useDashboardMetrics(
     currentMachine?.serverIp
@@ -84,6 +85,7 @@ export default function DashboardContextProvider({ children }) {
         services,
         lastUpdate,
         isConnected,
+        isSwitchingHost,
         connectionError,
         setDashboardBaseValues,
         getAggregatedMetrics

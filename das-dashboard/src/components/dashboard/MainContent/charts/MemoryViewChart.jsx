@@ -46,6 +46,7 @@ export function MemoryViewChart({ machine, currentService }) {
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 20 }}
       slotProps={{ legend: { hidden: filtered.length > 5 } }}
+      skipAnimation={true}
     />
   );
 }

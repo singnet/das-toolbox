@@ -29,7 +29,7 @@ export function EmptyState({
   );
 }
 
-export function LoadingOverlay() {
+export function LoadingOverlay({ text = "Loading server metrics..."}) {
   return (
     <Stack
       direction="column"
@@ -46,8 +46,22 @@ export function LoadingOverlay() {
         <Sensors sx={{ position: 'absolute', fontSize: 30, color: "#00e676" }} />
       </Stack>
       <Typography variant="h6" sx={{ color: "#4e4e4e", fontWeight: 300, letterSpacing: '1px' }}>
-        Loading server metrics...
+        {text}
       </Typography>
     </Stack>
+  );
+}
+
+export function ChartPlaceholder({ title }) {
+  return (
+    <ChartPlaceholderContainer>
+      <BarChartIcon sx={{ fontSize: 48, color: "rgba(0, 0, 0, 0.26)" }} />
+      <Typography variant="subtitle1" fontWeight="600" color="text.secondary">
+        {title}
+      </Typography>
+      <Typography variant="body2" color="text.disabled">
+        WAITING FOR METRICS...
+      </Typography>
+    </ChartPlaceholderContainer>
   );
 }
