@@ -40,16 +40,22 @@ class ContainerServices:
 
     def orchestrate_architecture(self, action: ActionTypes):
         commands_to_run = {}
+        has_local_command = False
+
 
         for cmd_name in ("attention-broker", "query-agent"):
             try:
                 service = DASServices.from_command(cmd_name)
                 host = self._resolve_service_host(service)
+                if not self._is_remote(host):
+                    has_local_command = True
+
                 commands_to_run[cmd_name] = self.build_das_cli_command(
                     host=host, service=service, action=action.value
                 )
             except DASServiceInstantiationError:
                 continue
+
 
         for key in self.web_config.config_dictionary:
             if key in ("attention-broker", "query-agent", "db") or key in commands_to_run:
@@ -57,19 +63,45 @@ class ContainerServices:
             try:
                 service = DASServices.from_command(key)
                 service_host = self._resolve_service_host(service)
+                if not self._is_remote(service_host):
+                    has_local_command = True
+
                 commands_to_run[key] = self.build_das_cli_command(
                     host=service_host, service=service, action=action.value
                 )
             except (DASServiceInstantiationError, ValueError):
                 continue
 
+
+        if has_local_command:
+            return self._orchestrate_local(commands_to_run)
+        
+        return self._orchestrate_remote(commands_to_run)
+
+    def _orchestrate_local(self, commands: dict) -> list:
         results = []
         errors = []
 
-        with ThreadPoolExecutor(max_workers=min(len(commands_to_run) or 1, 12)) as executor:
+        for service_name, cmd in commands.items():
+            try:
+                data = self.run_das_cli_command(cmd)
+                results.append(data)
+            except Exception as exc:
+                errors.append(f"Service {service_name} failed: {str(exc)}")
+
+        if errors:
+            raise DasCliCommandException(" | ".join(errors))
+
+        return results
+
+    def _orchestrate_remote(self, commands: dict) -> list:
+        results = []
+        errors = []
+
+        with ThreadPoolExecutor(max_workers=min(len(commands) or 1, 12)) as executor:
             future_to_service = {
                 executor.submit(self.run_das_cli_command, cmd): service_name 
-                for service_name, cmd in commands_to_run.items()
+                for service_name, cmd in commands.items()
             }
 
             for future in as_completed(future_to_service):

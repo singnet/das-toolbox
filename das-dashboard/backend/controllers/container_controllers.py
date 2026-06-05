@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from shared.enums.action_types import ActionTypes
 from services_init import CONTAINER_SERVICES
@@ -6,7 +6,7 @@ from services_init import CONTAINER_SERVICES
 router = APIRouter(prefix="/services", tags=["Orchestration & Services"])
 
 @router.post("/orchestration/start")
-async def start_orchestration():
+def start_orchestration():
     result = CONTAINER_SERVICES.orchestrate_architecture(
         action=ActionTypes.START,
     )
@@ -19,7 +19,7 @@ async def start_orchestration():
     )
 
 @router.post("/orchestration/stop")
-async def stop_orchestration():
+def stop_orchestration():
     result = CONTAINER_SERVICES.orchestrate_architecture(
         action=ActionTypes.STOP,
     )
@@ -32,7 +32,7 @@ async def stop_orchestration():
     )
 
 @router.post("/atomdb/start")
-async def start_databases():
+def start_databases():
     result = CONTAINER_SERVICES.manage_container(
         container_name=None,
         command="db",
@@ -47,7 +47,7 @@ async def start_databases():
     )
 
 @router.post("/atomdb/stop")
-async def stop_databases():
+def stop_databases():
     result = CONTAINER_SERVICES.manage_container(
         container_name=None,
         command="db",
@@ -62,7 +62,7 @@ async def stop_databases():
     )
 
 @router.post("/{container_name}/start")
-async def start_service(container_name: str):
+def start_service(container_name: str):
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.START,
@@ -76,7 +76,7 @@ async def start_service(container_name: str):
     )
 
 @router.post("/{container_name}/stop")
-async def stop_service(container_name: str):
+def stop_service(container_name: str):
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.STOP,
@@ -90,7 +90,7 @@ async def stop_service(container_name: str):
     )
 
 @router.post("/{container_name}/restart")
-async def restart_service(container_name: str):
+def restart_service(container_name: str):
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.RESTART,
