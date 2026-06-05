@@ -30,8 +30,8 @@ export function CPUViewChart({ machine, currentService }) {
     data: a.cpu,
     label: a.name,
     color: stringToColor(a.name),
-    curve: "catmullRom",
-    area: true,
+    curve: undefined,
+    area: false,
     showMark: false,
   }));
 

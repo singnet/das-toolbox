@@ -10,17 +10,18 @@ export function createMetricsStream({
     `ws://localhost:8000/metrics/live-ws?metric_scope=all&host=${host}`
   );
 
+  let dasCliErrorMessage = null;
+
   socket.onopen = () => {
     onOpen?.();
   };
 
   socket.onmessage = (event) => {
-
     try {
-
       const parsed = JSON.parse(event.data);
 
       if (parsed.type === "error") {
+        dasCliErrorMessage = parsed.message;
 
         onError?.({
           type: "application",
@@ -28,6 +29,7 @@ export function createMetricsStream({
           raw: parsed
         });
 
+        onData?.(parsed);
         return;
       }
 
@@ -43,7 +45,7 @@ export function createMetricsStream({
   };
 
   socket.onerror = (event) => {
-
+    if (dasCliErrorMessage) return;
     onError?.({
       type: "transport",
       message: "WebSocket transport error.",
@@ -54,8 +56,9 @@ export function createMetricsStream({
   socket.onclose = (event) => {
     onClose?.({
       code: event.code,
-      reason: event.reason,
-      wasClean: event.wasClean
+      reason: dasCliErrorMessage || event.reason || "Metrics stream closed unexpectedly.",
+      wasClean: event.wasClean,
+      isDasCliError: !!dasCliErrorMessage
     });
   };
 

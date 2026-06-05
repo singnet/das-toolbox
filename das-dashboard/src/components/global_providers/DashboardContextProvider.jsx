@@ -2,10 +2,14 @@ import {
   createContext,
   useContext,
   useState,
-  useCallback
+  useCallback,
+  useEffect,
+  useRef
 } from "react";
 
 import { useDashboardMetrics } from "../../../src/hooks/UseDashboardMetrics";
+import { fetchDashboardDataStatic } from "../../api/MetricsAPI";
+
 const DashboardContext = createContext(null);
 
 export default function DashboardContextProvider({ children }) {
@@ -13,6 +17,30 @@ export default function DashboardContextProvider({ children }) {
   const [currentMachine, setCurrentMachine] = useState(null);
   const [currentService, setCurrentService] = useState(null);
   const [currentContext, setCurrentContext] = useState("servers");
+  
+  const [globalServicesState, setGlobalServicesState] = useState({
+    atomDbOnline: false,
+    architectureOnline: false
+  });
+
+  const isMutatingRef = useRef(false);
+  const mutationTimeoutRef = useRef(null);
+
+  const forceGlobalStateUpdate = useCallback((newState) => {
+    if (mutationTimeoutRef.current) clearTimeout(mutationTimeoutRef.current);
+    
+    // Ativa a trava
+    isMutatingRef.current = true;
+    
+    setGlobalServicesState(prev => ({
+      ...prev,
+      ...newState
+    }));
+
+    mutationTimeoutRef.current = setTimeout(() => {
+      isMutatingRef.current = false;
+    }, 3000);
+  }, []);
 
   const setDashboardBaseValues = useCallback((config) => {
     if (!config) return;
@@ -58,6 +86,52 @@ export default function DashboardContextProvider({ children }) {
 
   }, []);
 
+  useEffect(() => {
+    if (machines.length === 0) return;
+
+    const checkGlobalArchitectureStatus = async () => {
+      let isAtomDbOnlineGlobal = false;
+      let isArchitectureOnlineGlobal = false;
+
+      const promises = machines.map(async (machine) => {
+        try {
+          const response = await fetchDashboardDataStatic("all", machine.serverIp);
+          const rawServiceInfo = response?.content?.serviceInfo || [];
+          
+          const serviceList = Array.isArray(rawServiceInfo) 
+            ? rawServiceInfo 
+            : Object.values(rawServiceInfo);
+
+          const hasAtomDb = serviceList.some(s =>
+            (s.container_name?.includes("mongodb") || s.container_name?.includes("redis") || s.container_name?.includes("morkdb")) &&
+            s.status === "running"
+          );
+
+          const hasArchitecture = serviceList.some(s =>
+            (s.container_name?.includes("agent") || s.container_name?.includes("broker")) &&
+            s.status === "running"
+          );
+
+          if (hasAtomDb) isAtomDbOnlineGlobal = true;
+          if (hasArchitecture) isArchitectureOnlineGlobal = true;
+        } catch (error) {
+          console.error(`Error fetching static metrics for global check on ${machine.serverIp}:`, error);
+        }
+      });
+
+      await Promise.all(promises);
+
+      if (!isMutatingRef.current) {
+        setGlobalServicesState({
+          atomDbOnline: isAtomDbOnlineGlobal,
+          architectureOnline: isArchitectureOnlineGlobal
+        });
+      }
+    };
+
+    checkGlobalArchitectureStatus();
+  }, [machines]);
+
   const {
     machineStats,
     services,
@@ -65,10 +139,35 @@ export default function DashboardContextProvider({ children }) {
     isConnected,
     connectionError,
     isSwitchingHost,
-    getAggregatedMetrics
+    aggregatedMetrics
   } = useDashboardMetrics(
     currentMachine?.serverIp
   );
+
+  useEffect(() => {
+    if (!services || services.length === 0 || isMutatingRef.current) return;
+
+    const hasLocalAtomDb = services.some(s =>
+      (s.container_name?.includes("mongodb") || s.container_name?.includes("redis") || s.container_name?.includes("morkdb")) &&
+      s.status === "running"
+    );
+
+    const hasLocalArchitecture = services.some(s =>
+      (s.container_name?.includes("agent") || s.container_name?.includes("broker")) &&
+      s.status === "running"
+    );
+
+    setGlobalServicesState(prev => ({
+      atomDbOnline: prev.atomDbOnline || hasLocalAtomDb,
+      architectureOnline: prev.architectureOnline || hasLocalArchitecture
+    }));
+  }, [services]);
+
+  useEffect(() => {
+    return () => {
+      if (mutationTimeoutRef.current) clearTimeout(mutationTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <DashboardContext.Provider
@@ -88,7 +187,10 @@ export default function DashboardContextProvider({ children }) {
         isSwitchingHost,
         connectionError,
         setDashboardBaseValues,
-        getAggregatedMetrics
+        aggregatedMetrics,
+        globalServicesState,
+        setGlobalServicesState,
+        forceGlobalStateUpdate,
       }}
     >
       {children}

@@ -1,6 +1,20 @@
-import { CircularProgress, Typography, Stack } from "@mui/material";
-import { CloudUploadOutlined, Sensors } from "@mui/icons-material";
-import ErrorIcon from '@mui/icons-material/Error';
+import styled from "@emotion/styled";
+import { CircularProgress, Typography, Stack, Card } from "@mui/material";
+import { CloudUploadOutlined, Sensors, BarChart as BarChartIcon } from "@mui/icons-material";
+
+const ChartPlaceholderContainer = styled(Card)({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "360px",
+  margin: "25px",
+  backgroundColor: "rgba(0, 0, 0, 0.02)",
+  border: "2px dashed rgba(0, 0, 0, 0.12)",
+  boxShadow: "none",
+  color: "#9e9e9e",
+  gap: "8px"
+});
 
 export function EmptyState({ 
   title = <>No configuration file detected. <br /> Please upload your configuration file using the button by the sidebar.</>, 
@@ -60,7 +74,7 @@ export function ChartPlaceholder({ title }) {
         {title}
       </Typography>
       <Typography variant="body2" color="text.disabled">
-        WAITING FOR METRICS...
+        WAITING FOR DATA TO DISPLAY...
       </Typography>
     </ChartPlaceholderContainer>
   );

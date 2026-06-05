@@ -30,9 +30,10 @@ export function MemoryViewChart({ machine, currentService }) {
     data: a.memory,
     label: a.name,
     color: stringToColor(a.name),
-    curve: "catmullRom",
+    curve: undefined,
     area: true,
-    showMark: false
+    showMark: false,
+    stack: "Memory",
   }));
 
   const maxLength = Math.max(...filtered.map((a) => a.memory.length), 0);

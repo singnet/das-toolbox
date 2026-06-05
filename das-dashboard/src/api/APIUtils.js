@@ -10,6 +10,10 @@ export function extractErrorDetails(err) {
       return data;
     }
 
+    if (data?.exceptionMessage) {
+      return `${data.message} Details: ${data.exceptionMessage}`;
+    }
+
     if (data?.message) {
       return data.message;
     }
@@ -18,15 +22,7 @@ export function extractErrorDetails(err) {
   }
 
   if (err.request) {
-    return `
-    Unable to connect to the server.
-
-    
-    Possible causes:
-    Server's container crashed and is offline;
-    Wrong automatic port/ip assignment by uvicorn;
-    Try checking the server's container logs for more information.
-    `;
+    return `Unable to connect to the server. Server might be offline or container crashed.`;
   }
 
   if (err.message) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { normalizeService } from "../utils/NormalizeMetrics";
 import { createMetricsStream } from "../api/MetricsStreamService";
 
@@ -12,6 +12,7 @@ export function useDashboardMetrics(host) {
 
   const metricsHistoryRef = useRef([]);
   const streamRef = useRef(null);
+  
   const fatalErrorRef = useRef(false);
   const intentionalCloseRef = useRef(false);
 
@@ -30,6 +31,8 @@ export function useDashboardMetrics(host) {
     metricsHistoryRef.current = [];
     setServices([]);
     setMachineStats(null);
+    setLastUpdate(Date.now());
+    
     fatalErrorRef.current = false;
     intentionalCloseRef.current = false;
     setConnectionError(null);
@@ -47,15 +50,20 @@ export function useDashboardMetrics(host) {
         if (!data) return;
 
         if (data.type === "error") {
-          fatalErrorRef.current = true;
+          fatalErrorRef.current = true; 
           setIsConnected(false);
+          setIsSwitchingHost(false);
+
           setConnectionError({
-            title: "Metrics stream failed",
-            description: data.message
+            title: "DAS CLI Error",
+            description: `${data.message}`
           });
+
           stream.close();
           return;
         }
+
+        if (fatalErrorRef.current) return;
 
         if (data.serviceInfo) {
           const parsedServices = Object.values(data.serviceInfo).map(normalizeService);
@@ -67,39 +75,46 @@ export function useDashboardMetrics(host) {
           setMachineStats(data.machineInfo);
         }
 
+        if (data.serviceInfo || data.machineInfo) {
+          setIsSwitchingHost(false);
+        }
+
         setLastUpdate(Date.now());
       },
 
       onOpen: () => {
         intentionalCloseRef.current = false;
         setIsConnected(true);
-        setIsSwitchingHost(false);
         setConnectionError(null);
       },
 
-      onClose: () => {
+      onClose: (event) => {
+        setIsSwitchingHost(false);
+        if (intentionalCloseRef.current || fatalErrorRef.current) {
+          setIsConnected(false);
+          return;
+        }
+
         setIsConnected(false);
         metricsHistoryRef.current = [];
         setServices([]);
         setMachineStats(null);
-        setConnectionError(null);
         setLastUpdate(Date.now());
-
-        if (intentionalCloseRef.current || fatalErrorRef.current) return;
 
         setConnectionError({
           title: "Connection closed",
-          description: "Metrics stream closed unexpectedly."
+          description: event.reason || `Metrics stream closed unexpectedly (Code: ${event.code}). Try refreshing the page and retry the connection.`
         });
       },
 
-      onError: () => {
-        setIsConnected(false);
+      onError: (err) => {
+        setIsSwitchingHost(false);
         if (intentionalCloseRef.current || fatalErrorRef.current) return;
 
+        setIsConnected(false);
         setConnectionError({
           title: "Server connection error",
-          description: "Unable to connect to metrics stream."
+          description: err.message || "Unable to connect to metrics stream."
         });
       }
     });
@@ -112,7 +127,7 @@ export function useDashboardMetrics(host) {
     };
   }, [host, pushSnapshot]);
 
-  const getAggregatedMetrics = useCallback(() => {
+  const aggregatedMetrics = useMemo(() => {
     const snapshots = metricsHistoryRef.current;
     const servicesMap = {};
 
@@ -143,6 +158,6 @@ export function useDashboardMetrics(host) {
     isConnected,
     isSwitchingHost,
     connectionError,
-    getAggregatedMetrics
+    aggregatedMetrics
   };
 }

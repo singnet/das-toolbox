@@ -5,8 +5,11 @@ import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
 import { ServerInfoHeader } from "./ServerInfoHeader";
+import { useToast } from "../../../global_providers/ToastProvider"
 
 export function AgentTable({ machine }) {
+  const { showToast } = useToast();
+  
   const {
     services,
     currentService,
@@ -23,20 +26,50 @@ export function AgentTable({ machine }) {
 
   async function handleAction(actionType, containerName) {
     const host = currentMachine?.serverIp || "localhost";
+    
     try {
       console.log(`Executing ${actionType} on ${containerName} (${host})`);
+      
       switch (actionType.toLowerCase()) {
         case "stop":
+          showToast({
+            message: `Stopping container ${containerName}...`,
+            severity: "warning"
+          });
+          
           await stopService(containerName, host);
+          
+          showToast({
+            message: `Container ${containerName} stopped successfully!`,
+            severity: "success"
+          });
           break;
+          
         case "restart":
+          showToast({
+            message: `Restarting container ${containerName}...`,
+            severity: "info"
+          });
+          
           await restartService(containerName, host);
+          
+          showToast({
+            message: `Container ${containerName} restarted successfully!`,
+            severity: "success"
+          });
           break;
+          
         default:
           console.warn(`Unknown action: ${actionType}`);
       }
     } catch (error) {
       console.error("Error while executing action:", error);
+      
+      showToast({
+        message: `Failed to ${actionType.toLowerCase()} container ${containerName}.`,
+        severity: "error",
+        details: error.message || String(error)
+      });
     }
   }
 

@@ -1,13 +1,32 @@
 import styled from "@emotion/styled";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Skeleton } from "@mui/material";
 import { useDashboardContext } from "../../../../components/global_providers/DashboardContextProvider";
-import { ServerInfoWrapper, ServerInfoBox, Divider, Label, Value } from "./serverinfoheader.styled.js"
+import { ServerInfoWrapper, ServerInfoBox, Divider, Label, Value } from "./serverinfoheader.styled.js";
 
 export function ServerInfoHeader() {
-  const { machineStats } = useDashboardContext();
+  const { machineStats, isSwitchingHost } = useDashboardContext();
 
-  if (!machineStats) {
-    return null;
+  if (!machineStats || isSwitchingHost) {
+    return (
+      <ServerInfoWrapper>
+        <ServerInfoBox>
+          <Label><Skeleton variant="text" width={90} height={16} animation="wave" /></Label>
+          <Value><Skeleton variant="text" width={50} height={28} animation="wave" /></Value>
+        </ServerInfoBox>
+        <Divider />
+        
+        <ServerInfoBox>
+          <Label><Skeleton variant="text" width={95} height={16} animation="wave" /></Label>
+          <Value><Skeleton variant="text" width={110} height={28} animation="wave" /></Value>
+        </ServerInfoBox>
+        <Divider />
+
+        <ServerInfoBox>
+          <Label><Skeleton variant="text" width={100} height={16} animation="wave" /></Label>
+          <Value><Skeleton variant="text" width={110} height={28} animation="wave" /></Value>
+        </ServerInfoBox>
+      </ServerInfoWrapper>
+    );
   }
 
   const cpuUsage = machineStats.CPUInfo?.cpuUsage ?? 0;
@@ -26,9 +45,8 @@ export function ServerInfoHeader() {
         <Label>CPU - {cpuCores} cores</Label>
         <Value>{cpuUsage}%</Value>
       </ServerInfoBox>
-
       <Divider />
-
+      
       <ServerInfoBox>
         <Label>Memory Usage</Label>
         <Value>

@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import styled from "@emotion/styled";
-import { Box, Typography, Card } from "@mui/material";
+import { Box } from "@mui/material";
 import ErrorIcon from "@mui/icons-material/Error";
-import BarChartIcon from "@mui/icons-material/BarChart";
 
 import { CPUViewChart } from "./charts/CPUViewChart";
 import { MemoryViewChart } from "./charts/MemoryViewChart";
@@ -25,44 +24,23 @@ const TableBox = styled(Box)({
   padding: "25px"
 });
 
-const ChartPlaceholderContainer = styled(Card)({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "360px",
-  margin: "25px",
-  backgroundColor: "rgba(0, 0, 0, 0.02)",
-  border: "2px dashed rgba(0, 0, 0, 0.12)",
-  boxShadow: "none",
-  color: "#9e9e9e",
-  gap: "8px"
-});
-
-
 export function MainContent() {
   const {
     machines,
     currentMachine,
     currentService,
-    getAggregatedMetrics,
-    isConnected,
     isSwitchingHost,
     connectionError,
-    machineStats
+    aggregatedMetrics,
+    services,
+    isConnected
   } = useDashboardContext();
 
-  const aggregatedData = useMemo(() => getAggregatedMetrics(), [getAggregatedMetrics]);
-
-  const hasHistory = useMemo(() => {
-    if (isSwitchingHost) return false;
-    return aggregatedData?.agents?.some(agent => agent.cpu?.length > 0 || agent.memory?.length > 0) ?? false;
-  }, [aggregatedData, isSwitchingHost]);
-
-  const hasInitialPayload = useMemo(() => {
-    if (isSwitchingHost) return false;
-    return !!(machineStats && Object.keys(machineStats).length > 0);
-  }, [machineStats, isSwitchingHost]);
+  const hasChartData = useMemo(() => {
+    return aggregatedMetrics?.agents?.some(
+      (agent) => agent.cpu?.length > 0 || agent.memory?.length > 0
+    );
+  }, [aggregatedMetrics]);
 
   if (connectionError) {
     return (
@@ -80,29 +58,40 @@ export function MainContent() {
     );
   }
 
+
+  if (isSwitchingHost) {
+    return (
+      <MainBoxGrid>
+        <LoadingOverlay text="Connecting and establishing stream..." />
+      </MainBoxGrid>
+    );
+  }
+
   return (
     <MainBoxGrid>
-      {hasHistory ? (
-        <>
-          <CPUViewChart 
-            key={`cpu-${currentMachine?.serverIp}`} 
-            machine={aggregatedData} 
-            currentService={currentService} 
-          />
-
-          <MemoryViewChart 
-            key={`memory-${currentMachine?.serverIp}`} 
-            machine={aggregatedData} 
-            currentService={currentService} 
-          />
-
-          <TableBox>
-            <AgentTable machine={currentMachine} />
-          </TableBox>
-        </>
-        ) : (
-          <LoadingOverlay></LoadingOverlay>
+      {hasChartData ? (
+        <CPUViewChart 
+          key={`cpu-${currentMachine?.serverIp}`} 
+          machine={aggregatedMetrics} 
+          currentService={currentService} 
+        />
+      ) : (
+        <ChartPlaceholder title="CPU Usage History" />
       )}
+
+      {hasChartData ? (
+        <MemoryViewChart 
+          key={`memory-${currentMachine?.serverIp}`} 
+          machine={aggregatedMetrics} 
+          currentService={currentService} 
+        />
+      ) : (
+        <ChartPlaceholder title="Memory Usage History" />
+      )}
+
+      <TableBox>
+        <AgentTable machine={currentMachine} />
+      </TableBox>
     </MainBoxGrid>
   );
 }
