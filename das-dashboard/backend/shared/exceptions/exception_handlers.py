@@ -6,9 +6,8 @@ from .custom_exceptions import (
     DasCliNotInstalledException,
     FileSaveException,
     FileAlreadyExistsException,
-    WebSocketError,
-    WebSocketMessageDecodeError,
-    WebSocketStreamEmpty
+    DASServiceInstantiationError,
+    DASCLIResponseDecodeError,
 )
 
 
@@ -36,6 +35,16 @@ class AppExceptionHandlers:
             self.handle_file_already_exists_error
         )
 
+        app.add_exception_handler(
+            Exception,
+            self.handle_general_exception
+        )
+
+        app.add_exception_handler(
+            DASServiceInstantiationError,
+            self.handle_das_cli_service_error,
+        )
+
     async def handle_das_cli_command_error(
         self,
         request: Request,
@@ -45,7 +54,7 @@ class AppExceptionHandlers:
             status_code=500,
             content={
                 "message": "There was an error running this DAS CLI command.",
-                "exceptionMessage": getattr(exc, "message", str(exc))
+                "exceptionMessage": exc.stderror
             }
         )
 
@@ -55,10 +64,21 @@ class AppExceptionHandlers:
         exc: DasCliNotInstalledException
     ):
         return JSONResponse(
+            status_code=404,
+            content={
+                "message": exc.message
+            }
+        )
+    
+    async def handle_das_cli_service_error(
+        self,
+        request: Request,
+        exc: DASServiceInstantiationError
+    ):
+        return JSONResponse(
             status_code=500,
             content={
-                "message": "DAS-CLI is not installed on this machine.",
-                "exceptionMessage": getattr(exc, "message", str(exc))
+                "message": exc.message
             }
         )
 
@@ -85,5 +105,35 @@ class AppExceptionHandlers:
             content={
                 "message": exc.message,
                 "file_path": exc.file_path
+            }
+        )
+    
+    async def handle_general_exception(
+        self,
+        request: Request,
+        exc: Exception
+    ):
+        error_message = getattr(exc, "message", None)
+        
+        if not error_message:
+            error_message = exc.args[0] if exc.args else str(exc) or "An unexpected internal server error occurred."
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "message": error_message
+            }
+        )
+    
+    async def das_cli_decode_error(
+        self,
+        request: Request,
+        exc: DASCLIResponseDecodeError
+    ):
+        
+        return JSONResponse(
+            status_code=500,
+            content={
+                "message": exc.message
             }
         )

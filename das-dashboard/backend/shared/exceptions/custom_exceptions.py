@@ -1,11 +1,11 @@
 class DasCliCommandException(Exception):
 
-    def __init__(self, error_message : str, stderror : str):
+    def __init__(self, stderror : str):
 
-        self.message = error_message
+        self.message = "There was an error while executing this das-cli command."
         self.stderror = stderror
 
-        super().__init__(error_message)
+        super().__init__(self.message, self.stderror)
 
 class DasCliNotInstalledException(Exception):
 
@@ -68,3 +68,13 @@ class WebSocketStreamEmpty(Exception):
     def __init__(self):
 
         self.message = "The server's socket received an empty and unexpected response. Possibly an internal error in das-cli. Try running das-cli commands manually and check for any errors."
+
+class DASServiceInstantiationError(Exception):
+
+    def __init__(self):
+        self.message = "There was an error while trying to resolve this service. Command cannot be executed."
+
+class DASCLIResponseDecodeError(Exception):
+    
+    def __init__(self):
+        self.message = "DAS-CLI Returned a message in a format it could not be read by the server. Try running the command manually to check the results."

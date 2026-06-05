@@ -1,6 +1,5 @@
 import os
 import json
-
 from pathlib import Path
 from fastapi import UploadFile
 
@@ -15,21 +14,17 @@ class ProfileServices:
         self.web_config = web_config
 
     def load_dashboard_profile_safe(self) -> dict | None:
-
         if not os.path.exists(DEFAULT_WEBPROFILE_PATH):
             return None
 
         try:
             with open(DEFAULT_WEBPROFILE_PATH, "r") as f:
                 return json.load(f)
-
-        except:
+        except Exception:
             return None
 
     async def save_dashboard_profile(self, username: str, key_file: UploadFile) -> str:
-
         try:
-
             os.makedirs(CONFIG_DIR, exist_ok=True)
             content = await key_file.read()
 
@@ -43,11 +38,12 @@ class ProfileServices:
             }
 
             with open(DEFAULT_WEBPROFILE_PATH, "w") as f:
-                json.dump(profile_data, f)
+                json.dump(profile_data, f, indent=4)
 
             self.web_config.user_profile = profile_data
+            return "Profile saved successfully."
 
         except Exception as e:
             raise ProfileSaveException(
-                error_message="Failed to save the profile configuration. The server storage may not be properly configured. Try restarting the server and try again."
+                error_message=f"Failed to save the profile configuration. Details: {str(e)}"
             )

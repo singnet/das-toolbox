@@ -1,4 +1,3 @@
-
 import json
 import os
 from pathlib import Path
@@ -27,7 +26,6 @@ class WebConfiguration:
         try:
             with open(PROFILE_PATH, "r") as f:
                 self.user_profile = json.load(f)
-
         except:
             self.user_profile = {}
 
@@ -37,7 +35,6 @@ class WebConfiguration:
             return
 
         try:
-
             with open(CONFIG_PATH, "r") as f:
                 config = json.load(f)
 
@@ -45,22 +42,28 @@ class WebConfiguration:
                 config = config[0]
 
             self.config_dictionary = self.map_services(config)
-
         except:
             self.config_dictionary = {}
 
     def map_services(self, config_file: dict):
-
         services = {}
 
         def register(name: str, endpoint: str):
-
             host, port = endpoint.split(":")
-
             services[name] = {
                 "host": host,
                 "port": int(port),
             }
+
+        atomdb_section = config_file.get("atomdb", None)
+        if atomdb_section and atomdb_section.get("type") in ("redismongodb", "morkdb"):
+            mongodb_section = atomdb_section.get("mongodb", None)
+            redis_section = atomdb_section.get("redis", None)
+            morkdb_section = atomdb_section.get("morkdb", None)
+
+            if (mongodb_section and redis_section) or (mongodb_section and morkdb_section):
+                mongodb_endpoint = mongodb_section.get("endpoint")
+                register("db", mongodb_endpoint)
 
         for key, value in config_file.get("brokers", {}).items():
             register(f"{key.replace('_', '-')}-broker", value["endpoint"])

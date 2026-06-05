@@ -1,13 +1,14 @@
-from fastapi import UploadFile
-from pathlib import Path
-from collections import defaultdict
 import json
 import os
 import subprocess
+from collections import defaultdict
+from pathlib import Path
+from fastapi import UploadFile
 
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import CONFIG_DIR, DEFAULT_WEBCONFIG_PATH
 from shared.exceptions.custom_exceptions import DasCliCommandException
+
 
 class ConfigServices:
 
@@ -15,6 +16,7 @@ class ConfigServices:
         self.web_config = web_config
 
     async def save_config(self, config_file: UploadFile):
+        result = None
         try:
             os.makedirs(CONFIG_DIR, exist_ok=True)
             content = await config_file.read()
@@ -29,17 +31,26 @@ class ConfigServices:
                 check=True
             )
 
-            print(result.stdout)
-
             loaded_json = await self.load_config()
             mapped_services = await self.map_services(loaded_json)
 
             self.web_config.config_dictionary = mapped_services
 
-            return {"message": "Config applied", "stdout": result.stdout}
+            stdout_content = result.stdout
+            try:
+                stdout_content = json.loads(result.stdout)
+            except Exception:
+                stdout_content = result.stdout.replace("\n", "").strip()
 
+            return {"message": "Config applied", "stdout": stdout_content}
+
+        except subprocess.CalledProcessError as e:
+            error_output = (e.stderr or e.stdout or "Unknown Subprocess Error").strip()
+            raise DasCliCommandException(error_output)
+        
         except Exception as e:
-            raise DasCliCommandException("There was an error while trying to set the configuration file in das-cli.", stderror=result.stderr)
+            stderr_msg = result.stderr if (result and result.stderr) else str(e)
+            raise DasCliCommandException(stderr_msg)
 
     async def load_config(self):
         try:
@@ -53,21 +64,38 @@ class ConfigServices:
         except Exception:
             raise Exception("Error while trying to load config file.")
 
-    async def map_services(self, config_file: dict):
+    def register_service(self, name: str, endpoint: str, services : dict):
+        host, port = endpoint.split(":")
+        services[name] = {
+            "host": host,
+            "port": int(port),
+        }
 
+    def map_atomdb(self, atomdb_section: dict, services : dict):
+        mongodb_section : dict = atomdb_section.get("mongodb", None)
+        redis_section = atomdb_section.get("redis", None)
+        morkdb_section = atomdb_section.get("morkdb", None)
+
+        if mongodb_section and redis_section:
+            mongodb_endpoint = mongodb_section.get("endpoint")
+            self.register_service("db", mongodb_endpoint, services)
+
+        if mongodb_section and morkdb_section:
+            mongodb_endpoint = mongodb_section.get("endpoint")
+            self.register_service("db", mongodb_endpoint, services)
+            
+    async def map_services(self, config_file: dict):
         services = {}
 
-        def register(name: str, endpoint: str):
-            host, port = endpoint.split(":")
-            services[name] = {
-                "host": host,
-                "port": int(port),
-            }
+        atomdb_section : dict = config_file.get("atomdb", None)
+
+        if atomdb_section and atomdb_section.get("type") in ("redismongodb", "morkdb"):
+            self.map_atomdb(atomdb_section, services)
 
         for key, value in config_file.get("brokers", {}).items():
-            register(f"{key.replace('_', '-')}-broker", value["endpoint"])
+            self.register_service(f"{key.replace('_', '-')}-broker", value["endpoint"], services)
 
         for key, value in config_file.get("agents", {}).items():
-            register(f"{key.replace('_', '-')}-agent", value["endpoint"])
+            self.register_service(f"{key.replace('_', '-')}-agent", value["endpoint"], services)
 
         return services

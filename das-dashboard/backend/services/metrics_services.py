@@ -1,13 +1,14 @@
 import asyncio
 import json
 import re
-import subprocess
 
 from shared.enums.metric_scope import MetricScope
-from shared.exceptions.custom_exceptions import DasCliNotInstalledException, WebSocketStreamEmpty, WebSocketError, WebSocketMessageDecodeError
 from shared.internal.web_configuration import WebConfiguration
-
-from fastapi import WebSocketException, WebSocketDisconnect
+from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH
+from shared.exceptions.custom_exceptions import (
+    DasCliNotInstalledException,
+    DasCliCommandException
+)
 
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
 
@@ -21,21 +22,21 @@ class MetricsServices:
     def _is_remote(self, host: str) -> bool:
         return host not in LOCAL_HOSTS
 
-    def _build_remote_flags(self, host: str):
+    def _build_remote_flags(self, host: str) -> list:
         if not self._is_remote(host):
             return []
 
         profile = self.web_config.user_profile
+        ssh_key = profile.get("profile_ssh_keypath") or DEFAULT_SSHKEY_CLONE_PATH
 
         return [
             "--remote",
             "--host", host,
             "-u", profile.get("profile_username", "root"),
-            "-k", profile.get("profile_ssh_keypath"),
+            "-k", ssh_key,
         ]
 
-    def _build_command(self, host: str, stream: bool = False):
-
+    def _build_command(self, host: str, stream: bool = False) -> list:
         cmd = ["das-cli", "system", "status"]
         cmd.extend(self._build_remote_flags(host))
 
@@ -43,38 +44,23 @@ class MetricsServices:
             cmd.append("--stream")
 
         cmd.extend(["-o", "json"])
-
         return cmd
 
-    def _run_once(self, host: str):
-
+    async def _run_async_process(self, host: str, stream: bool = False):
         try:
-            return subprocess.run(
-                self._build_command(host),
-                capture_output=True,
-                text=True,
-                check=True,
+            return await asyncio.create_subprocess_exec(
+                *self._build_command(host, stream=stream),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
             )
-
         except FileNotFoundError:
-            raise DasCliNotInstalledException(error_message="das-cli not found.")
+            raise DasCliNotInstalledException("das-cli not found.")
 
-    def _run_stream(self, host: str):
-
-        try:
-            return subprocess.Popen(
-                self._build_command(host, stream=True),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-            )
-
-        except FileNotFoundError:
-            raise DasCliNotInstalledException(error_message="das-cli not found.")
-
-    def _define_response_scope(self, metric_scope: MetricScope, parsed: dict, host: str):
+    def _define_response_scope(self, metric_scope: MetricScope, parsed: dict, host: str) -> dict:
         server_json = parsed[0] if isinstance(parsed, list) and parsed else parsed
+
+        if not isinstance(server_json, dict):
+            return {"ip": host, "type": "error", "message": str(server_json)}
 
         if metric_scope == MetricScope.SERVER:
             return {"ip": host, "machineInfo": server_json.get("machineInfo", {})}
@@ -85,54 +71,63 @@ class MetricsServices:
         return {"ip": host, **server_json}
 
     async def load_server_metrics(self, metric_scope: MetricScope, host: str):
-        result = self._run_once(host)
+        process = await self._run_async_process(host, stream=False)
+        stdout, _ = await process.communicate()
+        stdout_str = stdout.decode().strip()
+        cleaned_stdout = self.ansi_escape.sub("", stdout_str)
 
-        response_json = self._define_response_scope(
-            metric_scope,
-            json.loads(result.stdout),
-            host,
-        )
-
-        return response_json
-
-    async def stream_server_metrics(self, metric_scope: MetricScope, host: str):
-        process = self._run_stream(host)
+        if process.returncode and process.returncode != 0:
+            try:
+                parsed_err = json.loads(cleaned_stdout)
+                if isinstance(parsed_err, list) and parsed_err:
+                    cleaned_stdout = parsed_err[0]
+            except Exception:
+                pass
+            raise DasCliCommandException(cleaned_stdout or "Unknown Remote Connection Error")
 
         try:
-            while True:
-                line = await asyncio.to_thread(process.stdout.readline)
-
-                if not line:
-                    yield {
-                        "type": "error",
-                        "message": "Das-cli returned an empty stream. This possibly means an internal error in the application. Closing web-socket prematurely."
-                    }
-
-                    return
-
-                line = self.ansi_escape.sub("", line).strip()
-
-                if not line:
-                    continue
-                
-                if line.startswith("[ValueError]") or line.startswith("[ERROR]"):
-
-                    yield {
-                        "type": "error",
-                        "message": line,
-                    }
-                    return
-                
-                if not line.startswith("{"):
-                    continue
-
-                yield self._define_response_scope(metric_scope=metric_scope, parsed=json.loads(line), host=host)
-
+            parsed_json = json.loads(cleaned_stdout)
+            if isinstance(parsed_json, list) and parsed_json and isinstance(parsed_json[0], str):
+                raise DasCliCommandException(parsed_json[0])
         except json.JSONDecodeError:
-            yield {
-                "type": "error",
-                "message": "There was an error trying to read das-cli's JSON response. Closing web socket connection."
-            }
+            if "\n" in cleaned_stdout:
+                cleaned_stdout = cleaned_stdout.split("\n")[-1]
+            parsed_json = json.loads(cleaned_stdout)
 
+        return self._define_response_scope(metric_scope, parsed_json, host)
+
+    async def stream_server_metrics(self, metric_scope: MetricScope, host: str):
+        process = await self._run_async_process(host, stream=True)
+
+        try:
+            async for line_bytes in process.stdout:
+                line = line_bytes.decode().strip()
+                cleaned_line = self.ansi_escape.sub("", line)
+
+                if not cleaned_line or "TERM environment variable not set" in cleaned_line:
+                    continue
+
+                try:
+                    parsed_json = json.loads(cleaned_line)
+                    
+                    if isinstance(parsed_json, list) and parsed_json and isinstance(parsed_json[0], str):
+                        yield {"type": "error", "message": parsed_json[0]}
+                        return
+
+                    yield self._define_response_scope(metric_scope, parsed_json, host)
+
+                except json.JSONDecodeError:
+                    if (process.returncode and process.returncode != 0) or "[ERROR]" in cleaned_line:
+                        yield {"type": "error", "message": cleaned_line}
+                        return
+                    continue
+
+        except Exception as e:
+            yield {"type": "error", "message": f"Internal metrics collection error: {str(e)}"}
         finally:
-            process.terminate()
+            if process.returncode is None:
+                try:
+                    process.terminate()
+                    await process.wait()
+                except Exception:
+                    pass
