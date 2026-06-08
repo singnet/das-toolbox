@@ -1,5 +1,3 @@
-from common.command import Command
-from common.prompt_types import PortRangeType
 from common.settings import Settings
 from common.utils import extract_service_hostname, extract_service_port
 
@@ -13,6 +11,7 @@ from .agents_params import (
     setup_query_params,
 )
 from .setup_utils import get_default_value
+from common.utils import extract_service_port, extract_service_hostname
 
 
 def setup_endpoint(settings: Settings, agent_name: str, agent_key: str):
