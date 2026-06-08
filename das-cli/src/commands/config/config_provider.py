@@ -6,11 +6,9 @@ from common.settings import Settings
 
 from .config_sections.agents import agents_config_section
 from .config_sections.atomdb import atomdb_config_section
-from .config_sections.brokers import brokers_config_section
 from .config_sections.jupyter import jupyter_notebook_section
 from .config_sections.loaders import loaders_config_section
 from .config_sections.savefile import savefile_path_section
-from .config_sections.service_params import params_config_section
 
 
 class ConfigProvider(ABC):
@@ -24,7 +22,7 @@ class ConfigProvider(ABC):
 
     def _get_current_or_default_config(self) -> Dict[str, Any]:
         core_defaults = get_core_defaults_dict()
-        new_schema_version = core_defaults.get("schema_version")
+        new_schema_version = core_defaults.get("schema_version", None)
 
         user_settings = self._settings.get_content()
 
@@ -74,9 +72,7 @@ class InteractiveConfigProvider(ConfigProvider):
         config_steps = [
             atomdb_config_section,
             agents_config_section,
-            brokers_config_section,
             jupyter_notebook_section,
-            params_config_section,
             loaders_config_section,
         ]
 
