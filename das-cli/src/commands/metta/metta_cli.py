@@ -41,9 +41,9 @@ class MettaLoad(Command):
             type=AbsolutePath(
                 dir_okay=True,
                 file_okay=True,
-                exists=True,
+                exists=False,
                 writable=False,
-                readable=True,
+                readable=False,
             ),
         )
     ]

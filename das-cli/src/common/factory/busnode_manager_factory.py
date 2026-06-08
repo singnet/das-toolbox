@@ -2,7 +2,7 @@ import os
 
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.utils import extract_service_port
+from common.utils import extract_service_hostname, extract_service_port
 from settings.config import SECRETS_PATH
 
 from ..container_manager.busnode_container_manager import BusNodeContainerManager
@@ -16,6 +16,10 @@ class BusNodeContainerManagerFactory:
         service_port = extract_service_port(self._settings.get(f"{use_settings_from}.endpoint"))
         service_endpoint = f"0.0.0.0:{service_port}"
 
+        attention_broker_hostname = extract_service_hostname(
+            self._settings.get("brokers.attention.endpoint")
+        )
+
         attention_broker_port = extract_service_port(
             self._settings.get("brokers.attention.endpoint")
         )
@@ -28,7 +32,7 @@ class BusNodeContainerManagerFactory:
                 "service": service_name,
                 "service_port": service_port,
                 "service_endpoint": service_endpoint,
-                "attention_broker_hostname": "0.0.0.0",
+                "attention_broker_hostname": attention_broker_hostname,
                 "attention_broker_port": attention_broker_port,
             },
         )

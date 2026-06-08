@@ -133,7 +133,7 @@ def log_exception(e: Exception) -> None:
 
     logger().exception(error_message)
 
-    print(pretty_message)
+    print(pretty_message, file=sys.stderr)
 
 
 def print_table(
@@ -177,6 +177,14 @@ def extract_service_name(container_name: str) -> str | None:
 
     parts = name.rsplit("-", 1)
     return parts[0] if parts else name
+
+
+def extract_service_hostname(endpoint: str) -> str | None:
+    try:
+        hostname = endpoint.split(":")[0]
+        return hostname
+    except Exception:
+        return None
 
 
 def extract_service_port(endpoint: str) -> int | None:

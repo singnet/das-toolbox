@@ -1,7 +1,6 @@
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
-click==8.3.3
 fastapi==0.136.1
 h11==0.16.0
 httptools==0.7.1
@@ -19,3 +18,5 @@ uvloop==0.22.1
 watchfiles==1.1.1
 websockets==16.0
 docker==7.1.0
+paramiko==3.4.0
+scp==0.15.0

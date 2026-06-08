@@ -61,15 +61,3 @@ export function ConfigurationProvider({ children }){
 export function useConfig() {
     return useContext(ConfigContext)
 }
-
-//   const updateSection = (sectionName, data) => {
-//     setConfig(prev => ({
-//       schema_version: prev.schema_version,
-//       atomdb: sectionName === "atomdb" ? data : prev.atomdb,
-//       loaders: prev.loaders,
-//       agents: sectionName === "agents" ? data : prev.agents,
-//       brokers: sectionName === "brokers" ? data : prev.brokers,
-//       params: sectionName === "params" ? data : prev.params,
-//       environment: sectionName === "environment" ? data : prev.environment
-//     }))
-//   } Just a later example to use.

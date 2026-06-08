@@ -1,49 +1,32 @@
 import styled from "@emotion/styled";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Skeleton } from "@mui/material";
 import { useDashboardContext } from "../../../../components/global_providers/DashboardContextProvider";
-
-const ServerInfoWrapper = styled(Box)({
-  marginBottom: 24,
-  paddingInline: 8,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  gap: 32,
-  color: "#334155",
-});
-
-const ServerInfoBox = styled(Box)({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  textAlign: "center",
-  minWidth: 120,
-});
-
-const Divider = styled(Box)({
-  width: 1,
-  height: 32,
-  background: "#334155",
-});
-
-const Label = styled(Typography)({
-  fontSize: 11,
-  color: "#334155",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
-});
-
-const Value = styled(Typography)({
-  fontWeight: 600,
-  color: "#334155",
-});
+import { ServerInfoWrapper, ServerInfoBox, Divider, Label, Value } from "./serverinfoheader.styled.js";
 
 export function ServerInfoHeader() {
-  const { machineStats } = useDashboardContext();
+  const { machineStats, isSwitchingHost } = useDashboardContext();
 
-  if (!machineStats) {
-    return null;
+  if (!machineStats || isSwitchingHost) {
+    return (
+      <ServerInfoWrapper>
+        <ServerInfoBox>
+          <Label><Skeleton variant="text" width={90} height={16} animation="wave" /></Label>
+          <Value><Skeleton variant="text" width={50} height={28} animation="wave" /></Value>
+        </ServerInfoBox>
+        <Divider />
+        
+        <ServerInfoBox>
+          <Label><Skeleton variant="text" width={95} height={16} animation="wave" /></Label>
+          <Value><Skeleton variant="text" width={110} height={28} animation="wave" /></Value>
+        </ServerInfoBox>
+        <Divider />
+
+        <ServerInfoBox>
+          <Label><Skeleton variant="text" width={100} height={16} animation="wave" /></Label>
+          <Value><Skeleton variant="text" width={110} height={28} animation="wave" /></Value>
+        </ServerInfoBox>
+      </ServerInfoWrapper>
+    );
   }
 
   const cpuUsage = machineStats.CPUInfo?.cpuUsage ?? 0;
@@ -62,9 +45,8 @@ export function ServerInfoHeader() {
         <Label>CPU - {cpuCores} cores</Label>
         <Value>{cpuUsage}%</Value>
       </ServerInfoBox>
-
       <Divider />
-
+      
       <ServerInfoBox>
         <Label>Memory Usage</Label>
         <Value>

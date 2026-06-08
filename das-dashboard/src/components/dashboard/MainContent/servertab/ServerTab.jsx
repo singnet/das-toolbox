@@ -19,22 +19,25 @@ export function ServerTab() {
     machines,
     currentMachine,
     setCurrentMachine,
+    connectionError,
   } = useDashboardContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    if (machines.length > 0 && !currentMachine) {
+    if (machines && machines.length > 0 && !currentMachine) {
       setCurrentMachine(machines[0]);
     }
   }, [machines, currentMachine, setCurrentMachine]);
 
   const setStatusColor = (running) => (running ? "green" : "darkgrey");
 
-  const visibleServers = machines.slice(0, MAX_VISIBLE_TABS);
-  const hiddenServers = machines.slice(MAX_VISIBLE_TABS);
+  const visibleServers = machines ? machines.slice(0, MAX_VISIBLE_TABS) : [];
+  const hiddenServers = machines ? machines.slice(MAX_VISIBLE_TABS) : [];
 
   const selectMachine = (serverIp) => {
+    if (connectionError) return;
+
     const selectedMachine = machines.find((m) => m.serverIp === serverIp);
     if (selectedMachine) {
       setCurrentMachine(selectedMachine);
@@ -56,14 +59,15 @@ export function ServerTab() {
     <Container>
       <Header>
         <Title>
-          {currentMachine?.serverIp || "Select server"} - Metrics Overview
+          {connectionError ? "Connection Failed" : `${currentMachine?.serverIp || "Select server"} - Metrics Overview`}
         </Title>
 
         {hiddenServers.length > 0 && (
           <IconButton
             size="small"
+            disabled={!!connectionError}
             onClick={() => setDrawerOpen(true)}
-            sx={{ color: "white" }}
+            sx={{ color: connectionError ? "rgba(255,255,255,0.3)" : "white" }}
           >
             <MenuIcon />
           </IconButton>
@@ -75,11 +79,16 @@ export function ServerTab() {
         onChange={(_, newValue) => selectMachine(newValue)}
         variant="scrollable"
         scrollButtons="auto"
+        sx={{
+          pointerEvents: connectionError ? "none" : "auto",
+          opacity: connectionError ? 0.6 : 1
+        }}
       >
         {visibleServers.map((server) => (
           <StyledTab
             key={server.serverIp}
             value={server.serverIp}
+            disabled={!!connectionError}
             label={
               <Box display="flex" alignItems="center" gap={1}>
                 <StatusIcon

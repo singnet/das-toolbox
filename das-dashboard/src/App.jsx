@@ -11,6 +11,7 @@ import { Dashboard } from '@mui/icons-material'
 import DashboardPage from './pages/dashboard/Dashboard.jsx'
 import DashboardContextProvider from './components/global_providers/DashboardContextProvider.jsx'
 import ProfilePage from './pages/profile/ProfilePage.jsx'
+import { DialogProvider } from './components/global_providers/DialogProvider.jsx'
 
 
 function App() {
@@ -20,23 +21,31 @@ function App() {
       <BrowserRouter>
         <Navbar />
             <Routes>
-                <Route path='/configuration' element={
-                  <ToastProvider>
-                    <ConfigurationProvider>
-                      <SetupDasPage/>
-                    </ConfigurationProvider>
-                  </ToastProvider>
-                }/>
-                <Route path='/profiles' element={
-                  <ToastProvider>
-                    <ProfilePage />
-                  </ToastProvider>
-                }/>
-                <Route path='/dashboard' element={
-                  <DashboardContextProvider>
-                    <DashboardPage />
-                  </DashboardContextProvider>
-                }/>
+                  <Route path='/configuration' element={
+                    <DialogProvider>
+                      <ToastProvider>
+                        <ConfigurationProvider>
+                          <SetupDasPage/>
+                        </ConfigurationProvider>
+                      </ToastProvider>
+                    </DialogProvider>
+                  }/>
+                  <Route path='/profiles' element={
+                    <DialogProvider>
+                      <ToastProvider>
+                        <ProfilePage />
+                      </ToastProvider>
+                    </DialogProvider>
+                  }/>
+                  <Route path='/dashboard' element={
+                    <DialogProvider>
+                      <ToastProvider>
+                        <DashboardContextProvider>
+                          <DashboardPage />
+                        </DashboardContextProvider>
+                      </ToastProvider>
+                    </DialogProvider>
+                  }/>
             </Routes>
       </BrowserRouter>
     </>

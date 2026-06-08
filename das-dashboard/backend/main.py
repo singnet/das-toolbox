@@ -1,22 +1,34 @@
-from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Depends
-from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from shared.enums.action_types import ActionTypes
-from shared.enums.metric_scope import MetricScope
+from shared.exceptions.exception_handlers import AppExceptionHandlers
+from shared.utils.storage_check import validate_persistent_storage
+from services_init import WEB_CONFIG
 
-from services.container_services import ContainerServices
-from services.profile_services import ProfileServices
-from services.metrics_services import MetricsServices
+# Controllers
+from controllers.database_controllers import router as database_router
+from controllers.container_controllers import router as container_router
+from controllers.profile_controllers import router as profile_router
+from controllers.config_controllers import router as config_router
+from controllers.metrics_controllers import router as metrics_router
 
-BASE_ENDPOINT = "/dashboard"
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    validate_persistent_storage()
+    WEB_CONFIG.load_user_profile()
+    WEB_CONFIG.load_config_dictionary()
+    yield
 
 
-CONTAINER_SERVICES = ContainerServices()
-PROFILE_SERVICES = ProfileServices()
-METRICS_SERVICES = MetricsServices()
+dashboard_app = FastAPI(
+    title="DAS Dashboard API",
+    lifespan=lifespan,
+)
 
-dashboard_app = FastAPI(title="DAS Dashboard API")
+# Exception handelrs and middlewares
+AppExceptionHandlers(dashboard_app)
 
 dashboard_app.add_middleware(
     CORSMiddleware,
@@ -26,73 +38,9 @@ dashboard_app.add_middleware(
     allow_headers=["*"],
 )
 
-def get_target_info(ip: str) -> dict:
-    profile = PROFILE_SERVICES.load_dashboard_profile_safe()
-    return {
-        "ip": ip,
-        "username": profile.get("profile_username") if profile else None,
-        "key_file": profile.get("profile_ssh_keypath") if profile else None
-    }
-
-@dashboard_app.post(f"{BASE_ENDPOINT}/service")
-async def execute_server_action(
-    action: ActionTypes, 
-    targetIp: str = Query(...), 
-    targetService: str = Query(...),
-    containerName: str = Query(...),
-):
-    target_info = get_target_info(targetIp)
-    
-    result = CONTAINER_SERVICES.manage_container(
-        service_name=targetService,
-        action=action.value,
-        target_info=target_info,
-        container_name=containerName,
-    )
-
-    return JSONResponse(
-        status_code=200, 
-        content={
-            "message": f"Service {action.value} command executed.",
-            "stdout": result.stdout if hasattr(result, 'stdout') else str(result)
-        }
-    )
-
-
-@dashboard_app.post(f"{BASE_ENDPOINT}/profile")
-async def create_user_profile(
-    sshUsername: str = Form(...),
-    sshKeyFile: UploadFile = File(...)
-):
-    msg = await PROFILE_SERVICES.save_dashboard_profile(sshUsername, sshKeyFile)
-    return JSONResponse(status_code=201, content={"message": msg})
-
-@dashboard_app.post(f"{BASE_ENDPOINT}/config")
-async def save_config(config_file: UploadFile = File(...)):
-    result = await PROFILE_SERVICES.save_config(config_file)
-    return JSONResponse(status_code=201, content=result)
-
-
-@dashboard_app.get(f"{BASE_ENDPOINT}/metrics")
-async def fetch_initial_info(
-    metric_scope: MetricScope = Query(...), 
-    target_ip: str = Query(...)
-):
-    target_info = get_target_info(target_ip)
-    result = await METRICS_SERVICES.load_server_metrics(metric_scope, target_info)
-    return JSONResponse(status_code=200, content=result)
-
-@dashboard_app.websocket(f"{BASE_ENDPOINT}/metrics/stream")
-async def stream_server_metrics(
-    websocket: WebSocket, 
-    metric_scope: MetricScope = Query(...), 
-    target_ip: str = Query(...)
-):
-    await websocket.accept()
-    target_info = get_target_info(target_ip)
-    
-    try:
-        async for metric in METRICS_SERVICES.stream_server_metrics(metric_scope, target_info):
-            await websocket.send_json(metric)
-    except (WebSocketDisconnect, Exception):
-        pass
+# Add any new routers here:
+dashboard_app.include_router(database_router)
+dashboard_app.include_router(container_router)
+dashboard_app.include_router(profile_router)
+dashboard_app.include_router(config_router)
+dashboard_app.include_router(metrics_router)

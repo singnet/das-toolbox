@@ -7,7 +7,10 @@ This is a small proxy server with the purpose of executing low-level tasks for t
 2. Build the server's image by running: 'docker build -t ui_backend .'
 3. Run '
   docker run --rm -it \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /usr/bin/das-cli:/usr/bin/das-cli:ro \
+  -v /opt/web-das:/opt/web-das \
   --network=host \
-  ui_backend:latest
+  ui_backend:latest \
+  uvicorn main:dashboard_app --host 0.0.0.0 --port 8000
 '

@@ -107,14 +107,14 @@ class Command:
             help="Whether to run the command on a remote server",
         ),
         CommandOption(
-            ["--host"],
-            type=ValidUsername(),
+            ["--host", "-h"],
+            type=str,
             help="Remote host to connect to",
             required=False,
         ),
         CommandOption(
             ["--user", "-u"],
-            type=str,
+            type=ValidUsername(),
             help="SSH username for the remote connection",
             required=False,
         ),
@@ -148,14 +148,14 @@ class Command:
     @property
     def command_path(self) -> str:
         ctx = click.get_current_context(silent=True)
-
         if ctx is None:
             return self.name
-
         return ctx.command_path
 
     @property
     def output_format(self):
+        if hasattr(self, "_output_format") and self._output_format is not None:
+            return self._output_format
         ctx = click.get_current_context(silent=True)
         if ctx:
             return ctx.params.get("output_format", "plain")
@@ -173,19 +173,12 @@ class Command:
 
     def _get_remote_execution_context(self):
         execution_context = self.get_execution_context()
-
         if not execution_context.is_remote():
             return None
-
         return execution_context
 
     def _get_remote_kwargs_from_context(self) -> tuple[bool, dict]:
-        """
-        Reads remote execution configuration from Click context.
-        Returns a tuple: (remote_enabled, remote_kwargs)
-        """
         execution_context = self._get_remote_execution_context()
-
         if not execution_context:
             return (False, {})
 
@@ -206,58 +199,44 @@ class Command:
             "connect_kwargs": connect_kwargs,
             "connect_timeout": ssh_params.get("connection_timeout", 10),
         }
-
         return (True, remote_kwargs)
 
     def _dict_to_command_line_args(self, d: dict) -> str:
-        """
-        Convert dict to command line args
+        positional_args = []
+        optional_args = []
 
-        Params:
-            d (dict): the dict to be converted convert
+        positional_names = {p.name for p in self.params if isinstance(p, CommandArgument)}
 
-        """
-        args = []
         for key, value in d.items():
-            arg_key = str(key).replace("_", "-")
+            if value is None:
+                continue
 
+            if key in positional_names:
+                positional_args.append(str(value))
+                continue
+
+            arg_key = str(key).replace("_", "-")
             if isinstance(value, bool):
                 if value:
-                    args.append(f"--{arg_key}")
+                    optional_args.append(f"--{arg_key}")
             else:
-                if value:
-                    arg_value = str(value).lower()
-                    arg = f"--{arg_key} {arg_value}"
-                    args.append(arg)
+                optional_args.append(f"--{arg_key} {str(value)}")
 
-        return " ".join(args)
+        return " ".join(positional_args + optional_args)
 
     def _get_clean_command(self) -> str:
-        args = sys.argv[1:]
-        global_options = [opt.opts[0] for opt in self.default_params + self.remote_params]
-
-        cleaned_args = []
-        skip_next = False
-        for i, arg in enumerate(args):
-            if skip_next:
-                skip_next = False
-                continue
-
-            if any(arg.startswith(opt) for opt in global_options):
-                if i + 1 < len(args) and not args[i + 1].startswith("--"):
-                    skip_next = True
-                continue
-
-            cleaned_args.append(arg)
-
-        return " ".join(cleaned_args)
+        ctx = click.get_current_context(silent=True)
+        if ctx:
+            path = ctx.command_path
+            if path.startswith("das-cli "):
+                path = path[len("das-cli ") :]
+            return path.strip()
+        return self.name
 
     def get_execution_context(self) -> ExecutionContext:
         ctx = click.get_current_context()
-
         if not self._execution_context:
             cli_options = ctx.params if ctx else {}
-
             execution_context = None
             context_str = cli_options.get("context")
             if context_str:
@@ -281,18 +260,14 @@ class Command:
                     command_path=command_path,
                     ssh_params=ssh_params,
                 )
-
             self._execution_context = execution_context
-
         return self._execution_context
 
     def _normalize_config(self, config: dict) -> dict:
         services = config.get("services", {})
-
         for service_name, service_data in services.items():
             if "nodes" in service_data:
                 service_data.pop("nodes")
-
             if "cluster_secret_key" in service_data:
                 service_data.pop("cluster_secret_key")
 
@@ -300,7 +275,6 @@ class Command:
             db = services["database"]
             keep = {"atomdb_backend": db.get("atomdb_backend")}
             services["database"] = keep
-
         return config
 
     def _check_remote_config(self, remote_kwargs):
@@ -308,25 +282,25 @@ class Command:
 
         try:
             env_dict = env_to_dict(SECRETS_PATH)
-            raw_config = open(env_dict.get("configpath", "r")).read()
-
-            local_config = json.loads(raw_config)
-
-        except Exception:
+            config_path = env_dict.get("configpath")
+            with open(config_path, "r") as f:
+                local_config = json.loads(f.read())
+        except Exception as e:
             raise FileNotFoundError(
-                f"The configuration file at: {env_dict.get('configpath')} contains errors or is missing content. Verify your configuration settings and try again."
+                f"The local configuration file contains errors or is missing content. "
+                f"Verify your configuration settings and try again. Details: {e}"
             )
 
         try:
             command = f"grep 'configpath' {REMOTE_SECRETS_PATH} | cut -d'=' -f2 | xargs cat"
             result = Connection(**remote_kwargs).run(command, hide=True)
             remote_config = json.loads(result.stdout)
-
         except UnexpectedExit:
             raise FileNotFoundError(f"Remote configuration file not found at {REMOTE_SECRETS_PATH}")
-
         except Exception as e:
-            print(e)
+            raise InvalidRemoteConfiguration(
+                f"Failed to fetch and parse remote configuration due to a connection/authentication error via SSH. Exception: {e}"
+            )
 
         if local_config == remote_config:
             return
@@ -337,6 +311,15 @@ class Command:
 
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
+
+        output_fmt = getattr(self, "_output_format", "plain")
+        if output_fmt and output_fmt != "plain":
+            kwargs["output_format"] = output_fmt
+
+        stream_val = getattr(self, "_stream", None)
+        if stream_val:
+            kwargs["stream"] = stream_val
+
         extra_args = self._dict_to_command_line_args(kwargs)
         execution_context = self._get_remote_execution_context()
         context_encoded = execution_context.to_str(include_ssh=False)
@@ -346,20 +329,34 @@ class Command:
 
         try:
             self._check_remote_config(remote_kwargs)
-            Connection(**remote_kwargs).run(command)
-        except UnexpectedExit:
+            Connection(**remote_kwargs).run(command, pty=False)
+        except Exception as e:
+
             self.stdout(
-                "[ERROR] das-cli is missing on the remote machine. Verify the installation.",
+                str(e),
+                stdout_type=StdoutType.MACHINE_READABLE,
                 severity=StdoutSeverity.ERROR,
             )
-        except InvalidRemoteConfiguration as e:
-            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
-        except FileNotFoundError as e:
-            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
+
+            if isinstance(e, UnexpectedExit):
+                print(e)
+
+                msg_missing = (
+                    "[ERROR] das-cli is missing on the remote machine. Verify the installation."
+                )
+                self.stdout(msg_missing, severity=StdoutSeverity.ERROR)
+                self.stdout(
+                    msg_missing,
+                    stdout_type=StdoutType.MACHINE_READABLE,
+                    severity=StdoutSeverity.ERROR,
+                )
+            else:
+                self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
+
+            raise e
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
-
         for param in getattr(self, "exclude_params", []):
             setattr(self, f"_{param}", kwargs.pop(param, None))
 
@@ -370,8 +367,11 @@ class Command:
                 self.run(**kwargs)
         except Exception as e:
             log_exception(e)
+            self.flush_stdout()
+            raise click.exceptions.Exit(1)
 
-        self.flush_stdout()
+        if not remote:
+            self.flush_stdout()
 
     @staticmethod
     def select(text: str, options: dict[str, str], default: Optional[str] = None) -> str:
@@ -380,10 +380,8 @@ class Command:
 
         if not sys.stdin.isatty():
             first_value = next(iter(options.values()))
-
             if not first_value and default is not None:
                 return default
-
             return first_value
 
         choices = [InquirerChoice(v, name=k) for k, v in options.items()]
@@ -393,7 +391,6 @@ class Command:
             pointer="> ",
             default=default,
         ).execute()
-
         return choice
 
     @staticmethod
@@ -435,25 +432,20 @@ class Command:
         entry: OutputBufferEntry,
         stream_mode: bool = False,
     ) -> None:
-
         if self.output_format == "plain":
             return
 
         if stream_mode:
-
             if self.output_format == "json":
                 click.echo(json.dumps(entry.message), nl=True)
                 sys.stdout.flush()
-
             elif self.output_format == "yaml":
                 click.echo(
                     yaml.dump(entry.message, sort_keys=False),
                     nl=True,
                 )
                 sys.stdout.flush()
-
             return
-
         self._output_buffer.append(entry)
 
     def stdout(
@@ -470,12 +462,10 @@ class Command:
             severity=severity,
             new_line=new_line,
         )
-
         handlers: Dict[StdoutType, Callable[[OutputBufferEntry, bool], None]] = {
             StdoutType.DEFAULT: self._handle_default_output,
             StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
         }
-
         handler = handlers.get(stdout_type, self._handle_default_output)
         handler(entry, stream_mode)
 
@@ -494,7 +484,6 @@ class Command:
             self._flush_default_output()
         elif self.output_format in {"json", "yaml"}:
             self._flush_machine_readable_output()
-
         self._output_buffer.clear()
 
     def _flush_machine_readable_output(self):
@@ -503,7 +492,6 @@ class Command:
             for entry in self._output_buffer
             if entry.stdout_type == StdoutType.MACHINE_READABLE
         ]
-
         if not results:
             return
 
@@ -554,14 +542,12 @@ class CommandGroup(Command):
                 group_instance.group,
                 name=group_instance.name,
             )
-
             for alias in getattr(group_instance, "aliases", []):
                 self.group.add_command(group_instance.group, name=alias)
 
     def add_commands(self, commands: List[Command]):
         for command in commands:
             self.group.add_command(command.command)
-
             for alias in getattr(command, "aliases", []):
                 self.group.add_command(command.command, name=alias)
 

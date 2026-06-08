@@ -1,16 +1,16 @@
 import { Box, Typography } from "@mui/material";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
-import { CPUViewChart } from "../MainContent/CPUViewChart";
-import { MemoryViewChart } from "../MainContent/MemoryViewChart";
+import { CPUViewChart } from "../MainContent/charts/CPUViewChart";
+import { MemoryViewChart } from "../MainContent/charts/MemoryViewChart";
 
 export function ServiceChart({ selectedService }) {
-  const { getAggregatedMetrics } = useDashboardContext();
+  const { aggregatedMetrics } = useDashboardContext();
   
-  const aggregated = getAggregatedMetrics();
+  const aggregated = aggregatedMetrics || { agents: [], timestamps: [] };
 
   const machine = {
-    timestamps: aggregated.timestamps,
-    agents: aggregated.agents.filter(a => a.name === selectedService.name)
+    timestamps: aggregated.timestamps || [],
+    agents: (aggregated.agents || []).filter(a => a.name === selectedService.name)
   };
 
   if (machine.agents.length === 0) return null;

@@ -1,32 +1,49 @@
-import { CircularProgress, Typography, Stack } from "@mui/material";
-import { CloudUploadOutlined, Sensors } from "@mui/icons-material";
+import styled from "@emotion/styled";
+import { CircularProgress, Typography, Stack, Card } from "@mui/material";
+import { CloudUploadOutlined, Sensors, BarChart as BarChartIcon } from "@mui/icons-material";
 
-export function EmptyState() {
+const ChartPlaceholderContainer = styled(Card)({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "360px",
+  margin: "25px",
+  backgroundColor: "rgba(0, 0, 0, 0.02)",
+  border: "2px dashed rgba(0, 0, 0, 0.12)",
+  boxShadow: "none",
+  color: "#9e9e9e",
+  gap: "8px"
+});
+
+export function EmptyState({ 
+  title = <>No configuration file detected. <br /> Please upload your configuration file using the button by the sidebar.</>, 
+  description = null,
+  icon: IconComponent = CloudUploadOutlined 
+}) {
   return (
     <Stack
       direction="column"
       alignItems="center"
       justifyContent="center"
-      sx={{
-        gridColumn: "span 2",
-        minHeight: "60vh",
-        gap: 2,
-        opacity: 0.5,
-      }}
+      sx={{ gridColumn: "span 2", minHeight: "60vh", gap: 1, opacity: 0.5 }}
     >
-      <CloudUploadOutlined sx={{ fontSize: 80, color: "grey.500" }} />
-      <Typography variant="h5" color="white" sx={{ fontWeight: 300 }}>
-        Dashboard Inativo
+      <IconComponent sx={{ fontSize: 80, color: "grey.500", mb: 1 }} />
+      
+      <Typography variant="h6" color="grey.500" align="center" sx={{ fontWeight: 400 }}>
+        {title}
       </Typography>
-      <Typography color="grey.400" align="center">
-        No configuration file detected. <br />
-        Please upload your configuration file using the button by the sidebar.
-      </Typography>
+
+      {description && (
+        <Typography variant="body2" color="grey.400" align="center">
+          {description}
+        </Typography>
+      )}
     </Stack>
   );
 }
 
-export function LoadingOverlay() {
+export function LoadingOverlay({ text = "Loading server metrics..."}) {
   return (
     <Stack
       direction="column"
@@ -43,8 +60,22 @@ export function LoadingOverlay() {
         <Sensors sx={{ position: 'absolute', fontSize: 30, color: "#00e676" }} />
       </Stack>
       <Typography variant="h6" sx={{ color: "#4e4e4e", fontWeight: 300, letterSpacing: '1px' }}>
-        Loading server metrics...
+        {text}
       </Typography>
     </Stack>
+  );
+}
+
+export function ChartPlaceholder({ title }) {
+  return (
+    <ChartPlaceholderContainer>
+      <BarChartIcon sx={{ fontSize: 48, color: "rgba(0, 0, 0, 0.26)" }} />
+      <Typography variant="subtitle1" fontWeight="600" color="text.secondary">
+        {title}
+      </Typography>
+      <Typography variant="body2" color="text.disabled">
+        WAITING FOR DATA TO DISPLAY...
+      </Typography>
+    </ChartPlaceholderContainer>
   );
 }

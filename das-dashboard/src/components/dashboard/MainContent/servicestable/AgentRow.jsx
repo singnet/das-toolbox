@@ -24,7 +24,7 @@ export function AgentRow({
     <StyledRow
       onClick={() => handleSelect(agent.container_name)}
       sx={{
-        backgroundColor: selected ? "#f8fafc" : "inherit", // Ajustado para um tom mais suave
+        backgroundColor: selected ? "#f8fafc" : "inherit",
         cursor: "pointer",
         transition: "all 0.2s ease",
         "&:hover": { backgroundColor: selected ? "#f1f5f9" : "#f8fafc" },
@@ -58,16 +58,6 @@ export function AgentRow({
 
       <BodyCell align="right">
         <ActionsBox>
-          <Tooltip title="Start">
-            <ActionButton 
-              onClick={(e) => executeAction(e, "START")}
-              disabled={agent.status === "running"}
-              sx={{ color: agent.status === "running" ? "action.disabled" : "success.main" }}
-            >
-              <PlayCircleIcon fontSize="small" />
-            </ActionButton>
-          </Tooltip>
-
           <Tooltip title="Stop">
             <ActionButton 
               onClick={(e) => executeAction(e, "STOP")}

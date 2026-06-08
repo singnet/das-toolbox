@@ -7,7 +7,7 @@ import { StyledTab, StyledTabs } from "../MainContent/servertab/servertab.styled
 import { EXPECTED_SERVICES, SERVICE_LABELS } from "./utils/constants";
 
 export default function ArchitectureView() {
-  const { services, getAggregatedMetrics, lastUpdate } = useDashboardContext();
+  const { services, aggregatedMetrics, lastUpdate } = useDashboardContext();
   const [tab, setTab] = useState(0);
   const [selectedServiceName, setSelectedServiceName] = useState(null);
 
@@ -15,7 +15,7 @@ export default function ArchitectureView() {
 
   const processedServices = useMemo(() => {
     const finalData = [];
-    const aggregated = getAggregatedMetrics();
+    const aggregated = aggregatedMetrics || { agents: [], timestamps: [] };
 
     Object.entries(EXPECTED_SERVICES).forEach(([category, expectedList]) => {
       expectedList.forEach((baseName) => {
@@ -25,7 +25,7 @@ export default function ArchitectureView() {
         );
 
         if (realService) {
-          const history = aggregated.agents.find(a => a.name === realService.container_name) || { cpu: [], memory: [] };
+          const history = (aggregated.agents || []).find(a => a.name === realService.container_name) || { cpu: [], memory: [] };
 
           finalData.push({
             name: realService.container_name,
@@ -44,7 +44,7 @@ export default function ArchitectureView() {
               cpu: history.cpu,
               memory: history.memory
             },
-            timestamps: aggregated.timestamps
+            timestamps: aggregated.timestamps || []
           });
         } else {
           finalData.push({
@@ -60,14 +60,14 @@ export default function ArchitectureView() {
             health: "No status",
             isPlaceholder: true,
             metrics: { cpu: [], memory: [] },
-            timestamps: aggregated.timestamps
+            timestamps: aggregated.timestamps || []
           });
         }
       });
     });
 
     return finalData;
-  }, [services, lastUpdate, getAggregatedMetrics]);
+  }, [services, lastUpdate, aggregatedMetrics]);
 
   const filteredServices = processedServices.filter(
     (service) => service.type === tabNames[tab]
