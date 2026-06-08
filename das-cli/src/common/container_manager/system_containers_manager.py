@@ -1,10 +1,9 @@
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from dateutil.parser import isoparse
 from docker.models.containers import Container
-
-from concurrent.futures import ThreadPoolExecutor
 
 from common.docker.docker_manager import DockerManager
 from common.settings import Settings
@@ -21,9 +20,7 @@ class SystemContainersManager(DockerManager):
         self._settings = settings
 
     def _list_service_containers(self) -> list[Container]:
-        return self.get_docker_client().containers.list(
-            filters={"name": "das"}
-        )
+        return self.get_docker_client().containers.list(filters={"name": "das"})
 
     def get_services_status(self) -> dict:
 
@@ -58,7 +55,7 @@ class SystemContainersManager(DockerManager):
                 "memory_mb": cpu_memory_info.get("memory_mb", 0),
                 "status": status,
                 "service_health": service_health,
-            } 
+            }
 
         except Exception:
             return {
@@ -112,11 +109,7 @@ class SystemContainersManager(DockerManager):
 
         attrs = container.attrs
 
-        health = (
-            attrs.get("State", {})
-            .get("Health", {})
-            .get("Status")
-        )
+        health = attrs.get("State", {}).get("Health", {}).get("Status")
 
         return health or "-"
 
@@ -124,10 +117,7 @@ class SystemContainersManager(DockerManager):
 
         attrs = container.attrs
 
-        started_at = (
-            attrs.get("State", {})
-            .get("StartedAt")
-        )
+        started_at = attrs.get("State", {}).get("StartedAt")
 
         if not started_at:
             return "-"
@@ -154,10 +144,7 @@ class SystemContainersManager(DockerManager):
 
         cpu_percent = self._calculate_cpu_percent(stats)
 
-        memory_usage = (
-            stats.get("memory_stats", {})
-            .get("usage", 0)
-        )
+        memory_usage = stats.get("memory_stats", {}).get("usage", 0)
 
         memory_mb = round(
             memory_usage / (1024 * 1024),
@@ -174,15 +161,9 @@ class SystemContainersManager(DockerManager):
         cpu_stats = stats.get("cpu_stats", {})
         precpu_stats = stats.get("precpu_stats", {})
 
-        cpu_total = (
-            cpu_stats.get("cpu_usage", {})
-            .get("total_usage", 0)
-        )
+        cpu_total = cpu_stats.get("cpu_usage", {}).get("total_usage", 0)
 
-        prev_cpu_total = (
-            precpu_stats.get("cpu_usage", {})
-            .get("total_usage", 0)
-        )
+        prev_cpu_total = precpu_stats.get("cpu_usage", {}).get("total_usage", 0)
 
         system_cpu = cpu_stats.get(
             "system_cpu_usage",
@@ -201,8 +182,8 @@ class SystemContainersManager(DockerManager):
             return (cpu_delta / system_delta) * 100.0
 
         return 0.0
-    
-    def map_services_thread(self, fetch_function, containers : Container):
+
+    def map_services_thread(self, fetch_function, containers: Container):
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             results = executor.map(fetch_function, containers)

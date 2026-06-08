@@ -204,12 +204,8 @@ class Command:
     def _dict_to_command_line_args(self, d: dict) -> str:
         positional_args = []
         optional_args = []
-        
-        positional_names = {
-            p.name
-            for p in self.params
-            if isinstance(p, CommandArgument)
-        }
+
+        positional_names = {p.name for p in self.params if isinstance(p, CommandArgument)}
 
         for key, value in d.items():
             if value is None:
@@ -233,7 +229,7 @@ class Command:
         if ctx:
             path = ctx.command_path
             if path.startswith("das-cli "):
-                path = path[len("das-cli "):]
+                path = path[len("das-cli ") :]
             return path.strip()
         return self.name
 
@@ -283,7 +279,7 @@ class Command:
 
     def _check_remote_config(self, remote_kwargs):
         REMOTE_SECRETS_PATH = "$HOME/.das/.env"
-        
+
         try:
             env_dict = env_to_dict(SECRETS_PATH)
             config_path = env_dict.get("configpath")
@@ -315,11 +311,11 @@ class Command:
 
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
-        
+
         output_fmt = getattr(self, "_output_format", "plain")
         if output_fmt and output_fmt != "plain":
             kwargs["output_format"] = output_fmt
-            
+
         stream_val = getattr(self, "_stream", None)
         if stream_val:
             kwargs["stream"] = stream_val
@@ -341,16 +337,22 @@ class Command:
                 stdout_type=StdoutType.MACHINE_READABLE,
                 severity=StdoutSeverity.ERROR,
             )
-            
-            if isinstance(e, UnexpectedExit):
-                print(e) 
 
-                msg_missing = "[ERROR] das-cli is missing on the remote machine. Verify the installation."
+            if isinstance(e, UnexpectedExit):
+                print(e)
+
+                msg_missing = (
+                    "[ERROR] das-cli is missing on the remote machine. Verify the installation."
+                )
                 self.stdout(msg_missing, severity=StdoutSeverity.ERROR)
-                self.stdout(msg_missing, stdout_type=StdoutType.MACHINE_READABLE, severity=StdoutSeverity.ERROR)
+                self.stdout(
+                    msg_missing,
+                    stdout_type=StdoutType.MACHINE_READABLE,
+                    severity=StdoutSeverity.ERROR,
+                )
             else:
                 self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
-            
+
             raise e
 
     def safe_run(self, **kwargs):
@@ -367,7 +369,7 @@ class Command:
             log_exception(e)
             self.flush_stdout()
             raise click.exceptions.Exit(1)
-        
+
         if not remote:
             self.flush_stdout()
 

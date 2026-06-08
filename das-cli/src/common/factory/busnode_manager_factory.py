@@ -2,7 +2,7 @@ import os
 
 from common import Settings
 from common.config.store import JsonConfigStore
-from common.utils import extract_service_port, extract_service_hostname
+from common.utils import extract_service_hostname, extract_service_port
 from settings.config import SECRETS_PATH
 
 from ..container_manager.busnode_container_manager import BusNodeContainerManager

@@ -186,6 +186,7 @@ def extract_service_hostname(endpoint: str) -> str | None:
     except Exception:
         return None
 
+
 def extract_service_port(endpoint: str) -> int | None:
     try:
         port = endpoint.split(":")[1]

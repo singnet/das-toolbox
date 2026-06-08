@@ -9,7 +9,6 @@ from .command import StdoutSeverity, StdoutType
 from .docker.exceptions import DockerContainerNotFoundError
 from .settings import Settings
 
-
 LOCAL_HOSTS = {
     "localhost",
     "127.0.0.1",
@@ -48,11 +47,7 @@ def ensure_container_running(
 
 
 def _load_settings() -> Settings:
-    settings = Settings(
-        store=JsonConfigStore(
-            os.path.expanduser(SECRETS_PATH)
-        )
-    )
+    settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     settings.validate_configuration_file()
 
@@ -64,11 +59,7 @@ def _get_backends(
     cls_backend_attr: Union[List[str], str],
 ):
     if isinstance(cls_backend_attr, list):
-        return [
-            getattr(self, attr)
-            for attr in cls_backend_attr
-            if hasattr(self, attr)
-        ]
+        return [getattr(self, attr) for attr in cls_backend_attr if hasattr(self, attr)]
 
     return [getattr(self, cls_backend_attr)]
 
@@ -80,9 +71,7 @@ def _normalize_status(status) -> list[dict]:
     if isinstance(status, list):
         return status
 
-    raise TypeError(
-        f"Unexpected container status type: {type(status)}"
-    )
+    raise TypeError(f"Unexpected container status type: {type(status)}")
 
 
 def _check_backends_status(
@@ -94,9 +83,7 @@ def _check_backends_status(
     container_not_running = False
 
     for backend in backends:
-        status_list = _normalize_status(
-            backend.status()
-        )
+        status_list = _normalize_status(backend.status())
 
         for container_status in status_list:
             if not _check_container(
@@ -154,7 +141,7 @@ def _is_remote_configuration(
     settings: Settings,
 ) -> bool:
 
-    config : dict = settings._store.get_content()
+    config: dict = settings._store.get_content()
 
     return _contains_remote_endpoint(config)
 
