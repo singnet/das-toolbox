@@ -65,6 +65,23 @@ class AbsolutePath(ClickPath):
             self.fail("The path must be absolute.", param, ctx)
         return path
 
+class AbsolutePathList(ParamType):
+    name = "absolute_path_list"
+
+    def __init__(self, *args, **kwargs):
+        self._path_validator = AbsolutePath(*args, **kwargs)
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, list):
+            paths = value
+        else:
+            paths = [path.strip() for path in value.split(",")]
+
+        return [
+            self._path_validator.convert(path, param, ctx)
+            for path in paths
+        ]
+
 
 class RegexType(ParamType):
     name = "regex"
@@ -97,6 +114,36 @@ class PortRangeType(ParamType):
 
         return value
 
+
+import re
+
+class EndpointType(ParamType):
+    name = "endpoint"
+
+    ENDPOINT_REGEX = re.compile(
+        r"^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}"
+        r"(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d):"
+        r"([1-9]\d{0,4})$"
+    )
+
+    def convert(self, value, param, ctx):
+        
+        if not value:
+            self.fail("Endpoint cannot be empty.")
+
+        if not self.ENDPOINT_REGEX.match(value):
+            self.fail(
+                "Invalid endpoint format. Expected format: '0.0.0.0:1000'"
+            )
+
+        host, port = value.split(":")
+
+        port = int(port)
+
+        if not (1 <= port <= 65535):
+            self.fail("Port must be between 1 and 65535.")
+
+        return value
 
 class KeyValueType(ParamType):
     name = "key-value"

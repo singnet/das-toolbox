@@ -21,16 +21,11 @@ class ConfigProvider(ABC):
         return get_core_defaults_dict()
 
     def _get_current_or_default_config(self) -> Dict[str, Any]:
+        
         core_defaults = get_core_defaults_dict()
-        new_schema_version = core_defaults.get("schema_version", None)
-
         user_settings = self._settings.get_content()
 
         core_defaults.update(user_settings)
-        core_defaults["schema_version"] = new_schema_version
-        # Always force new schema version, otherwise existing one will override.
-        # Non-interactive will have to verify schema before call to avoid updating schema version without updating the rest of the file.
-        # User on non-interactive will have to set-up the whole file again with the new schema before using the command.
 
         return core_defaults
 

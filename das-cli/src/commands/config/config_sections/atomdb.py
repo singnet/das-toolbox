@@ -1,13 +1,14 @@
 from typing import Any
 
 from common import IntRange
-from common.command import Command, StdoutSeverity
+from common.command import Command
 from common.docker.remote_context_manager import RemoteContextManager, Server
 from common.network import get_public_ip
 from common.prompt_types import ReachableIpAddress, ValidUsername
 from common.settings import Settings
 from common.utils import extract_service_port, get_rand_token, get_server_username
-from common.prompt_types import AbsolutePath
+from common.prompt_types import AbsolutePathList, AbsolutePath
+from settings.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
 
 from .setup_utils import get_default_value
 
@@ -141,6 +142,7 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> dict[str, Any]:
 
     return {
         "mongodb": {
+            "image": MONGODB_IMAGE_NAME + MONGODB_IMAGE_VERSION,
             "endpoint": f"localhost:{mongodb_port}",
             "username": mongodb_username,
             "password": mongodb_password,
@@ -181,6 +183,7 @@ def redis_setup(
 
     return {
         "redis": {
+            "image": REDIS_IMAGE_NAME + REDIS_IMAGE_VERSION,
             "endpoint": f"localhost:{redis_port}",
             "cluster": redis_cluster,
             "nodes": redis_nodes,
@@ -304,27 +307,19 @@ def remotedb_setup(settings: Settings) -> dict[str, Any]:
 # AdapterDB setup
 
 def setup_context_mapping_paths() -> list[str]:
-    context_mapping_paths = []
-    addMorePaths = True
-    
-    while addMorePaths:
 
-        context_path = Command.prompt(
-            "Enter the absolute path to one or more context mapping files (separated by comma)", 
-            type=AbsolutePath(
-                dir_okay=False,
-                file_okay=True,
-                exists=True,
-                writable=True,
-                readable=True,
-            )
+    context_path = Command.prompt(
+        "Enter the absolute path to one or more context mapping files (separated by comma)", 
+        type=AbsolutePathList(
+            dir_okay=False,
+            file_okay=True,
+            exists=True,
+            writable=True,
+            readable=True,
         )
+    )
 
-        addMorePaths = Command.confirm("Add more context paths?", default=False)
-
-        context_mapping_paths.append(context_path)
-
-    return context_mapping_paths
+    return context_path
 
 def setup_output_directory() -> str:
     
