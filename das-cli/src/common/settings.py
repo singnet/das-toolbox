@@ -144,10 +144,32 @@ class Settings:
             atomdb_section.pop("remote_peers", None)
 
         if atomdb_type != "morkdb":
+            atomdb_section.pop("mongodb", None)
             atomdb_section.pop("morkdb", None)
 
         if atomdb_type != "redismongodb":
+            atomdb_section.pop("mongodb", None)
             atomdb_section.pop("redis", None)
+
+        adapterdb = atomdb_section.get("adapterdb")
+
+        if adapterdb:
+            backend = adapterdb.get("atomdb_backend")
+
+            if backend:
+                backend_type = (
+                    config.get("atomdb", {}).get("adapterdb", {}).get("atomdb_backend", {}).get("type")
+                )
+
+            if backend_type != "redismongodb":
+                backend.pop("redis", None)
+                backend.pop("mongodb", None)
+
+            if backend_type != "morkdb":
+                backend.pop("morkdb", None)
+
+            if backend_type != "inmemorydb":
+                backend.pop("inmemorydb", None)
 
         return expected
 

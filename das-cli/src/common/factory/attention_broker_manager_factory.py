@@ -15,7 +15,7 @@ class AttentionBrokerManagerFactory:
 
     def build(self):
         attention_broker_port = extract_service_port(
-            self._settings.get("brokers.attention.endpoint")
+            self._settings.get("agents.attention.endpoint")
         )
         container_name = f"das-attention-broker-{attention_broker_port}"
 
