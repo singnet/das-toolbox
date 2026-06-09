@@ -12,6 +12,7 @@ class AtomdbBackendEnum(Enum):
     MORK_MONGODB = "morkdb"
     INMEMORYDB = "inmemorydb"
     REMOTEDB = "remotedb"
+    ADAPTERDB = "adapterdb"
 
     @classmethod
     def from_value(
@@ -147,7 +148,6 @@ class RemoteDBBackend(BackendProvider):
 
     def status(self) -> list[dict]:
         return []
-
 
 class AtomdbBackend:
     def __init__(self, name: AtomdbBackendEnum, providers: List[BackendProvider]) -> None:

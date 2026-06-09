@@ -9,15 +9,32 @@ from settings.config import SECRETS_PATH
 
 
 class MorkDbContainerManagerFactory:
+
     def __init__(self):
-        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
+        self._settings = Settings(
+            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
+        )
         self._default = get_core_defaults_dict()
 
+    def _get_backend_path(self) -> str:
+        if self._settings.get("atomdb.type") == "adapterdb":
+            return "atomdb.adapterdb.atomdb_backend.morkdb"
+
+        return "atomdb.morkdb"
+
     def build(self):
-        morkdb_port = extract_service_port(self._settings.get("atomdb.morkdb.endpoint"))
+        backend_path = self._get_backend_path()
+
+        morkdb_endpoint = self._settings.get(f"{backend_path}.endpoint")
+        morkdb_port = extract_service_port(morkdb_endpoint)
 
         container_name = f"das-cli-morkdb-{morkdb_port}"
+
         return MorkdbContainerManager(
             container_name,
-            options={"morkdb_port": morkdb_port, "morkdb_hostname": "0.0.0.0"},
+            options={
+                "morkdb_endpoint": morkdb_endpoint,
+                "morkdb_port": morkdb_port,
+                "morkdb_hostname": "0.0.0.0",
+            },
         )
