@@ -215,6 +215,24 @@ def setup_atomdb_broker(settings: Settings):
         "ports_range": ports_range,
     }
 
+def setup_command_router(settings: Settings):
+    
+    endpoint = setup_endpoint(
+        settings,
+        "command router",
+        "command_router",
+    )
+
+    ports_range = setup_ports_range(
+        settings,
+        "command router",
+        "command_router",
+    )
+
+    return {
+        "endpoint": endpoint,
+        "ports_range": ports_range,
+    }
 
 def agents_config_section(settings: Settings):
     return {
@@ -228,5 +246,6 @@ def agents_config_section(settings: Settings):
             "evolution": setup_evolution_agent(settings),
             "context": setup_context_broker(settings),
             "atomdb": setup_atomdb_broker(settings),
+            "command_router": setup_command_router(settings),
         }
     }

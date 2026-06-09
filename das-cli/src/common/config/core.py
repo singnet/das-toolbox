@@ -201,7 +201,11 @@ def get_core_defaults_dict() -> Dict[str, Any]:
             "atomdb": {
                 "endpoint": "localhost:40007",
                 "ports_range": "47000:47999"
-            }
+            },
+            "command_router": {
+                "endpoint": "localhost:40008",
+                "ports_range": "48000:48999"
+            },
         },
         "environment": {
             "jupyter": {
