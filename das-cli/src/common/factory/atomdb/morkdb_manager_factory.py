@@ -4,7 +4,7 @@ from common import Settings
 from common.config.core import get_core_defaults_dict
 from common.config.store import JsonConfigStore
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
-from common.utils import extract_service_port
+from common.utils import extract_service_port, extract_service_hostname
 from settings.config import SECRETS_PATH
 
 
@@ -27,6 +27,7 @@ class MorkDbContainerManagerFactory:
 
         morkdb_endpoint = self._settings.get(f"{backend_path}.endpoint")
         morkdb_port = extract_service_port(morkdb_endpoint)
+        morkdb_hostname = extract_service_hostname(morkdb_endpoint)
 
         container_name = f"das-cli-morkdb-{morkdb_port}"
 
@@ -35,6 +36,6 @@ class MorkDbContainerManagerFactory:
             options={
                 "morkdb_endpoint": morkdb_endpoint,
                 "morkdb_port": morkdb_port,
-                "morkdb_hostname": "0.0.0.0",
+                "morkdb_hostname": morkdb_hostname,
             },
         )

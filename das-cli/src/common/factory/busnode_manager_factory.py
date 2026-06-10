@@ -14,6 +14,7 @@ class BusNodeContainerManagerFactory:
 
     def build(self, use_settings_from: str, service_name: str) -> BusNodeContainerManager:
         service_port = extract_service_port(self._settings.get(f"{use_settings_from}.endpoint"))
+        
         service_endpoint = f"0.0.0.0:{service_port}"
 
         attention_broker_hostname = extract_service_hostname(self._settings.get("agents.attention.endpoint"))

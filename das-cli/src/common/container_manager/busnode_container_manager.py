@@ -37,7 +37,6 @@ class BusNodeContainerManager(ContainerManager):
         self.raise_on_port_in_use([self._options.get("service_port")])
 
         user_config_volume = CURRENT_CONFIGFILE_PATH
-        metta_output_dir = self._options.get("metta_mapping_output_dir")
 
         try:
             service = self._options.get("service")
@@ -58,10 +57,7 @@ class BusNodeContainerManager(ContainerManager):
                         "mode": "ro",
                     },
                     **self._build_adapterdb_mapping_volumes(),
-                    metta_output_dir: {
-                        "bind": metta_output_dir,
-                        "mode": "ro",
-                    }
+                    **self._build_metta_output_dir(),
                 },
                 command=bus_node_command,
             )
@@ -74,12 +70,21 @@ class BusNodeContainerManager(ContainerManager):
             raise ValueError("The service provided couldn't be found")
         
     def _build_adapterdb_mapping_volumes(self):
-        volumes = {}
+        adapterdb_context_maps = self._options.get("adapterdb_context_maps") or []
+        return {
+            path: {"bind": path, "mode": "ro"}
+            for path in adapterdb_context_maps
+        }
 
-        for path in self._options.get("adapterdb_context_maps", []):
-            volumes[path] = {
-                "bind": path,
+
+    def _build_metta_output_dir(self):
+        metta_output_dir = self._options.get("metta_mapping_output_dir")
+        if not metta_output_dir:
+            return {}
+
+        return {
+            metta_output_dir: {
+                "bind": metta_output_dir,
                 "mode": "ro",
             }
-
-        return volumes
+        }

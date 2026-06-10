@@ -179,7 +179,7 @@ def extract_service_name(container_name: str) -> str | None:
     return parts[0] if parts else name
 
 
-def extract_service_hostname(endpoint: str) -> str | None:
+def extract_service_hostname(endpoint: str | None) -> str | None:
     try:
         hostname = endpoint.split(":")[0]
         return hostname
@@ -187,7 +187,7 @@ def extract_service_hostname(endpoint: str) -> str | None:
         return None
 
 
-def extract_service_port(endpoint: str) -> int | None:
+def extract_service_port(endpoint: str | None) -> int | None:
     try:
         port = endpoint.split(":")[1]
         return int(port)
