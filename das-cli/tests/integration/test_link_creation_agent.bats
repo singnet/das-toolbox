@@ -6,29 +6,33 @@ load 'libs/utils'
 load 'libs/docker'
 load 'libs/errors'
 
+safe_stop() {
+    das-cli "$1" stop >/dev/null 2>&1 || true
+}
+
 setup() {
     use_config "simple"
+
+    das-cli db start || true
+    das-cli attention-broker start || true
 
     peer_port=$(extract_port "$(get_config ".agents.query.ports_range")")
     link_creation_agent_port=$(extract_port "$(get_config ".agents.link_creation.endpoint")")
 
     service_name="das-link-creation-agent-40003"
 
-    # 🔥 Garante ambiente limpo
     stop_listen_port "$link_creation_agent_port" 2>/dev/null || true
 
-    das-cli attention-broker start
-    das-cli db start
-    das-cli query-agent start --port-range 12000:12100
-    das-cli link-creation-agent stop
+    das-cli query-agent start --port-range 12000:12100 || true
+    das-cli link-creation-agent stop || true
 }
 
 teardown() {
-    das-cli link-creation-agent stop
-    stop_listen_port "$link_creation_agent_port" 2>/dev/null || true
+    safe_stop link-creation-agent
+    safe_stop query-agent
+    safe_stop attention-broker
 
-    das-cli attention-broker stop
-    das-cli query-agent stop
+    stop_listen_port "$link_creation_agent_port" 2>/dev/null || true
 }
 
 @test "Fails to start the Link Creation Agent when configuration file is not set" {
@@ -62,7 +66,7 @@ teardown() {
 }
 
 @test "Start Link Creation Agent when Query Agent is not up" {
-    das-cli query-agent stop
+    das-cli query-agent stop || true
 
     run das-cli link-creation-agent start \
         --peer-hostname localhost \

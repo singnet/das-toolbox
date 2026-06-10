@@ -6,15 +6,23 @@ load 'libs/utils'
 load 'libs/docker'
 load 'libs/errors'
 
-setup() {
-    use_config "simple"
 
-    das-cli db start
-    das-cli atomdb-broker stop
+safe_reset_broker() {
+    das-cli atomdb-broker stop >/dev/null 2>&1 || true
+    sleep 0.2
 }
 
+
+setup() {
+    use_config "simple"
+    das-cli db start
+
+    safe_reset_broker
+}
+
+
 teardown() {
-    das-cli atomdb-broker stop
+    das-cli atomdb-broker stop >/dev/null 2>&1 || true
 }
 
 @test "Trying to start, stop and restart atomdb-broker with unset configuration file" {
@@ -24,21 +32,24 @@ teardown() {
 
     for cmd in "${cmds[@]}"; do
         run das-cli atomdb-broker "$cmd"
-
         assert_output --partial "$FILE_NOT_FOUND_ERROR"
     done
 }
 
+
 @test "Start atomdb-broker when port is already in use" {
     use_config "simple"
 
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
+    local atomdb_broker_endpoint="$(get_config .agents.atomdb.endpoint)"
     local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
 
     run listen_port "${atomdb_broker_port}"
     assert_success
 
+    safe_reset_broker
+
     run das-cli atomdb-broker start
+
     assert_output "Starting AtomDB Broker service...
 [31m[PortBindingError] Port ${atomdb_broker_port} on localhost are already in use.[39m"
 
@@ -47,13 +58,16 @@ teardown() {
 
     run is_service_up das-atomdb-broker-40007
     assert_failure
-
-    run stop_listen_port "${atomdb_broker_port}"
 }
 
+
 @test "Starting atomdb-broker when it's already up" {
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
+    use_config "simple"
+
+    local atomdb_broker_endpoint="$(get_config .agents.atomdb.endpoint)"
     local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
+
+    safe_reset_broker
 
     das-cli atomdb-broker start
 
@@ -63,9 +77,14 @@ teardown() {
 AtomDB Broker is already running. It's listening on port ${atomdb_broker_port}"
 }
 
+
 @test "Starting the atomdb-broker" {
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
+    use_config "simple"
+
+    local atomdb_broker_endpoint="$(get_config .agents.atomdb.endpoint)"
     local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
+
+    safe_reset_broker
 
     run das-cli atomdb-broker start
 
@@ -76,10 +95,14 @@ AtomDB Broker started on port ${atomdb_broker_port}"
     assert_success
 }
 
+
 @test "Stopping atomdb-broker when it's up-and-running" {
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
+    use_config "simple"
+
+    local atomdb_broker_endpoint="$(get_config .agents.atomdb.endpoint)"
     local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
 
+    safe_reset_broker
     das-cli atomdb-broker start
 
     run das-cli atomdb-broker stop
@@ -88,9 +111,9 @@ AtomDB Broker started on port ${atomdb_broker_port}"
 AtomDB Broker service stopped"
 }
 
+
 @test "Stopping atomdb-broker when it's already stopped" {
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
-    local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
+    use_config "simple"
 
     run das-cli atomdb-broker stop
 
@@ -101,11 +124,15 @@ The AtomDB Broker service named das-atomdb-broker-40007 is already stopped."
     assert_failure
 }
 
+
 @test "Restarting atomdb-broker when it's up-and-running" {
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
+    use_config "simple"
+
+    local atomdb_broker_endpoint="$(get_config .agents.atomdb.endpoint)"
     local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
-    
-    run das-cli atomdb-broker start
+
+    safe_reset_broker
+    das-cli atomdb-broker start
 
     run das-cli atomdb-broker restart
 
@@ -118,9 +145,14 @@ AtomDB Broker started on port ${atomdb_broker_port}"
     assert_success
 }
 
+
 @test "Restarting atomdb-broker when it's not up" {
-    local atomdb_broker_endpoint="$(get_config .brokers.atomdb.endpoint)"
+    use_config "simple"
+
+    local atomdb_broker_endpoint="$(get_config .agents.atomdb.endpoint)"
     local atomdb_broker_port="$(extract_port "$atomdb_broker_endpoint")"
+
+    safe_reset_broker
 
     run das-cli atomdb-broker restart
 

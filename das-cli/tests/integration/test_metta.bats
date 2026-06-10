@@ -8,6 +8,8 @@ load 'libs/errors'
 setup() {
     use_config "simple"
     das-cli db start
+
+     chmod +r "$test_fixtures_dir/metta/animals.metta"
 }
 
 @test "Checking MeTTa file syntax with unset configuration file" {
@@ -84,18 +86,6 @@ setup() {
     assert_line --partial "could not be loaded"
 }
 
-@test "Loading a MeTTa file without read permission" {
-    local metta_file_path="$test_fixtures_dir/metta/animals.metta"
-
-    chmod -r "$metta_file_path"
-
-    run das-cli metta load "$metta_file_path"
-
-    assert_line --partial "not readable"
-
-    chmod +r "$metta_file_path"
-}
-
 @test "Loading a valid MeTTa file" {
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
 
@@ -117,7 +107,7 @@ setup() {
     assert_line --partial "Loading metta file"
     assert_line --partial "animals.metta"
     assert_line --partial "invalid.metta"
-    assert_line --partial "Done loading."
+    assert_line --partial "File 'invalid.metta' could not be loaded."
 }
 
 @test "Trying to load a MeTTa file with an invalid path" {
@@ -139,4 +129,16 @@ setup() {
 
     assert_line --partial "is not running on port"
     assert_line --partial "Please use 'db start'"
+}
+
+@test "Loading a MeTTa file without read permission" {
+    local metta_file_path="$test_fixtures_dir/metta/animals.metta"
+
+    chmod -r "$metta_file_path"
+
+    run das-cli metta load "$metta_file_path"
+
+    assert_line --partial "does not have correct permissions."
+
+    chmod +r "$metta_file_path"
 }

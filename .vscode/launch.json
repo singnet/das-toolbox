@@ -62,7 +62,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/das-cli/src",
             "args": [
-                "db", 
+                "atomdb-broker", 
                 "start", 
             ]
         }

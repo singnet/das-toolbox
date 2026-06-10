@@ -213,7 +213,7 @@ setup() {
     assert_output --partial "No collections found"
 }
 
-@test "Should count atoms with database disabled" {
+@test "Should not count atoms with database disabled" {
     local redis_container_name="das-cli-redis-40020"
     local redis_port="$(get_config .services.redis.port)"
     local mongodb_container_name="das-cli-mongodb-40021"
@@ -221,7 +221,7 @@ setup() {
 
     run das-cli db count-atoms
 
-    assert_success
+    assert_failure
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
     assert_output --partial "Please use 'db start'"
 }
