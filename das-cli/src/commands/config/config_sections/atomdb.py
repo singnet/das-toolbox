@@ -8,7 +8,7 @@ from common.prompt_types import ReachableIpAddress, ValidUsername
 from common.settings import Settings
 from common.utils import extract_service_port, get_rand_token, get_server_username
 from common.prompt_types import AbsolutePathList, AbsolutePath
-from settings.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION
+from settings.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION, DAS_MORK_SERVER_IMAGE_NAME, DAS_MORK_SERVER_IMAGE_VERSION
 
 from .setup_utils import get_default_value
 
@@ -202,6 +202,7 @@ def mork_setup(settings: Settings) -> dict[str, Any]:
 
     return {
         "morkdb": {
+            "image": DAS_MORK_SERVER_IMAGE_NAME + DAS_MORK_SERVER_IMAGE_VERSION,
             "endpoint": f"localhost:{morkdb_port}",
         }
     }
