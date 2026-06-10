@@ -68,14 +68,10 @@ class BusNodeContainerManager(ContainerManager):
 
         except ValueError:
             raise ValueError("The service provided couldn't be found")
-        
+
     def _build_adapterdb_mapping_volumes(self):
         adapterdb_context_maps = self._options.get("adapterdb_context_maps") or []
-        return {
-            path: {"bind": path, "mode": "ro"}
-            for path in adapterdb_context_maps
-        }
-
+        return {path: {"bind": path, "mode": "ro"} for path in adapterdb_context_maps}
 
     def _build_metta_output_dir(self):
         metta_output_dir = self._options.get("metta_mapping_output_dir")

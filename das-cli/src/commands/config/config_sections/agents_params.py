@@ -1,7 +1,6 @@
 from common.command import Command
 from common.settings import Settings
 
-
 BASE_QUERY_DEFAULTS = {
     "unique_assignment_flag": False,
     "attention_update": 0,

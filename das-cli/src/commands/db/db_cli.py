@@ -15,7 +15,6 @@ from common.factory.atomdb.atomdb_backend import (
     MongoDBRedisBackend,
     MorkMongoDBBackend,
 )
-from common.utils import extract_service_port
 
 from .db_docs import (
     HELP_DB_CLI,
@@ -262,7 +261,7 @@ class DbStop(Command):
                 )
 
             elif isinstance(provider, MorkMongoDBBackend):
-                mongodb_options = self._mongodb_container_manager.options
+                mongodb_options = self._mongodb_container_manager._options
 
                 self._stop_service(
                     self._mongodb_container_manager,

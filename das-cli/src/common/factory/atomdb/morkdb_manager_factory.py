@@ -4,16 +4,14 @@ from common import Settings
 from common.config.core import get_core_defaults_dict
 from common.config.store import JsonConfigStore
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
-from common.utils import extract_service_port, extract_service_hostname
+from common.utils import extract_service_hostname, extract_service_port
 from settings.config import SECRETS_PATH
 
 
 class MorkDbContainerManagerFactory:
 
     def __init__(self):
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._default = get_core_defaults_dict()
 
     def _get_backend_path(self) -> str:

@@ -1,15 +1,23 @@
-from common.settings import Settings
 from common.command import Command
-from common.prompt_types import PortRangeType, EndpointType
-from .agents_params import (setup_base_query_params, setup_context_params, setup_evolution_params, setup_inference_params, setup_link_creation_params, setup_query_params, _setup_custom_params)
+from common.prompt_types import PortRangeType
+from common.settings import Settings
+from common.utils import extract_service_hostname, extract_service_port
+
+from .agents_params import (
+    _setup_custom_params,
+    setup_base_query_params,
+    setup_context_params,
+    setup_evolution_params,
+    setup_inference_params,
+    setup_link_creation_params,
+    setup_query_params,
+)
 from .setup_utils import get_default_value
-from common.utils import extract_service_port, extract_service_hostname
 
 
-def setup_endpoint(settings: Settings, agent_name: str, agent_key : str):
+def setup_endpoint(settings: Settings, agent_name: str, agent_key: str):
 
-    default_endpoint = str(
-        get_default_value(settings, f"agents.{agent_key}.endpoint"))
+    default_endpoint = str(get_default_value(settings, f"agents.{agent_key}.endpoint"))
 
     hostname = Command.prompt(
         f"Enter {agent_name.title()}'s hostname",
@@ -25,7 +33,7 @@ def setup_endpoint(settings: Settings, agent_name: str, agent_key : str):
     return f"{hostname}:{port}"
 
 
-def setup_ports_range(settings: Settings, agent_name: str, agent_key : str):
+def setup_ports_range(settings: Settings, agent_name: str, agent_key: str):
     return Command.prompt(
         f"Enter {agent_name.title()}'s ports range",
         default=get_default_value(settings, f"agents.{agent_key}.ports_range"),
@@ -34,16 +42,15 @@ def setup_ports_range(settings: Settings, agent_name: str, agent_key : str):
 
 
 def setup_agents_base_params(settings: Settings):
-    confirmParameterConfig = Command.confirm("Would you like to set base query parameters for the query agent?", default=False)
+    confirmParameterConfig = Command.confirm(
+        "Would you like to set base query parameters for the query agent?", default=False
+    )
 
     if confirmParameterConfig:
-        return {
-            "params": setup_base_query_params(settings)
-        }
+        return {"params": setup_base_query_params(settings)}
 
-    return {
-        "params": get_default_value(settings, "agents.base_query.params")
-    }
+    return {"params": get_default_value(settings, "agents.base_query.params")}
+
 
 def setup_attention_broker(settings: Settings):
     endpoint = setup_endpoint(
@@ -215,8 +222,9 @@ def setup_atomdb_broker(settings: Settings):
         "ports_range": ports_range,
     }
 
+
 def setup_command_router(settings: Settings):
-    
+
     endpoint = setup_endpoint(
         settings,
         "command router",
@@ -233,6 +241,7 @@ def setup_command_router(settings: Settings):
         "endpoint": endpoint,
         "ports_range": ports_range,
     }
+
 
 def agents_config_section(settings: Settings):
     return {

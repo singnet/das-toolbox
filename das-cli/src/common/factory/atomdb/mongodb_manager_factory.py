@@ -13,11 +13,7 @@ from settings.config import SECRETS_PATH
 class MongoDbContainerManagerFactory:
 
     def __init__(self):
-        self._settings = Settings(
-            store=JsonConfigStore(
-                os.path.expanduser(SECRETS_PATH)
-            )
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._default = get_core_defaults_dict()
 
     def _get_backend_path(self) -> str:

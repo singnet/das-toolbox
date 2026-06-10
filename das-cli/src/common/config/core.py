@@ -9,13 +9,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 "image": "redis:7.2.3-alpine",
                 "endpoint": "localhost:40020",
                 "cluster": True,
-                "nodes": [
-                    {
-                        "context": "default",
-                        "ip": "localhost",
-                        "username": "arturgontijo"
-                    }
-                ]
+                "nodes": [{"context": "default", "ip": "localhost", "username": "arturgontijo"}],
             },
             "mongodb": {
                 "image": "mongodb/mongodb-community-server:8.2-ubuntu2204",
@@ -24,35 +18,21 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 "password": "admin",
                 "cluster": False,
                 "cluster_secret_key": "8UDJSgpUCaVOTQG",
-                "nodes": [
-                    {
-                        "context": "default",
-                        "ip": "localhost",
-                        "username": "arturgontijo"
-                    }
-                ]
+                "nodes": [{"context": "default", "ip": "localhost", "username": "arturgontijo"}],
             },
             "adapterdb": {
                 "endpoint": "localhost:40023",
                 "type": "postgres",
-                "database_credentials":{
+                "database_credentials": {
                     "host": "chado.flybase.org",
                     "port": 5432,
                     "username": "flybase",
                     "password": "",
-                    "database": "flybase"
+                    "database": "flybase",
                 },
-                "context_mapping_paths": [
-                    "./simple_test.sql",
-                    "./tables.json"
-                ],
-                "export_metta_on_mapping": {
-                    "enabled": True,
-                    "output_dir": "./mapped_metta/"
-                },
-                "persistence": {
-                    "reuse_mongodb": True
-                },
+                "context_mapping_paths": ["./simple_test.sql", "./tables.json"],
+                "export_metta_on_mapping": {"enabled": True, "output_dir": "./mapped_metta/"},
+                "persistence": {"reuse_mongodb": True},
                 "atomdb_backend": {
                     "type": "morkdb",
                     "mongodb": {
@@ -62,22 +42,13 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                         "cluster": False,
                         "cluster_secret_key": "None",
                         "nodes": [
-                            {
-                            "context": "default",
-                            "ip": "localhost",
-                            "username": "username"
-                            }
-                        ]
+                            {"context": "default", "ip": "localhost", "username": "username"}
+                        ],
                     },
-                    "morkdb": {
-                        "endpoint": "localhost:40022"
-                    }
-                }
+                    "morkdb": {"endpoint": "localhost:40022"},
+                },
             },
-            "morkdb": {
-                "image": "trueagi/das:mork-server-1.0.4",
-                "endpoint": "localhost:40022"
-            },
+            "morkdb": {"image": "trueagi/das:mork-server-1.0.4", "endpoint": "localhost:40022"},
             "remote_peers": [
                 {
                     "uid": "peer1",
@@ -86,24 +57,19 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "mongodb": {
                         "endpoint": "localhost:40021",
                         "username": "admin",
-                        "password": "admin"
+                        "password": "admin",
                     },
-                    "redis": {
-                        "endpoint": "localhost:40020",
-                        "cluster": False
-                    },
+                    "redis": {"endpoint": "localhost:40020", "cluster": False},
                     "local_persistence": {
                         "type": "morkdb",
                         "context": "remotedb_test_peer1_local_",
                         "mongodb": {
                             "endpoint": "localhost:40021",
                             "username": "admin",
-                            "password": "admin"
+                            "password": "admin",
                         },
-                        "morkdb": {
-                            "endpoint": "localhost:40022"
-                        }
-                    }
+                        "morkdb": {"endpoint": "localhost:40022"},
+                    },
                 },
                 {
                     "uid": "peer2",
@@ -111,24 +77,18 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "context": "remotedb_test_peer2_",
                     "local_persistence": {
                         "type": "inmemorydb",
-                        "context": "remotedb_test_peer2_local_"
-                    }
-                }
-            ]
+                        "context": "remotedb_test_peer2_local_",
+                    },
+                },
+            ],
         },
         "loaders": {
-            "metta": {
-                "image": "trueagi/das:1.0.0-metta-parser"
-            },
-            "morkdb": {
-                "image": "rueagi/das:mork-loader-1.0.4"
-            }
+            "metta": {"image": "trueagi/das:1.0.0-metta-parser"},
+            "morkdb": {"image": "rueagi/das:mork-loader-1.0.4"},
         },
         "agents": {
             "schema_version": "1.0",
-            "attention": {
-                "endpoint": "localhost:40001"
-            },
+            "attention": {"endpoint": "localhost:40001"},
             "base_query": {
                 "params": {
                     "unique_assignment_flag": False,
@@ -139,7 +99,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "use_link_template_cache": False,
                     "populate_metta_mapping": False,
                     "use_metta_as_query_tokens": False,
-                    "allow_incomplete_chain_path": False
+                    "allow_incomplete_chain_path": False,
                 }
             },
             "query": {
@@ -149,8 +109,8 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "positive_importance_flag": False,
                     "disregard_importance_flag": False,
                     "unique_value_flag": False,
-                    "count_flag": False
-                }
+                    "count_flag": False,
+                },
             },
             "link_creation": {
                 "endpoint": "localhost:40003",
@@ -164,8 +124,8 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "positive_importance_flag": True,
                     "query_interval": 0,
                     "query_timeout": 0,
-                    "use_metta_as_query_tokens": False
-                }
+                    "use_metta_as_query_tokens": False,
+                },
             },
             "inference": {
                 "endpoint": "localhost:40004",
@@ -173,8 +133,8 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 "params": {
                     "inference_request_timeout": 86400,
                     "repeat_count": 5,
-                    "max_answers": 150
-                }
+                    "max_answers": 150,
+                },
             },
             "evolution": {
                 "endpoint": "localhost:40005",
@@ -183,8 +143,8 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "population_size": 1000,
                     "max_generations": 100,
                     "elitism_rate": 0.01,
-                    "selection_rate": 0.1
-                }
+                    "selection_rate": 0.1,
+                },
             },
             "context": {
                 "endpoint": "localhost:40006",
@@ -195,23 +155,13 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "enforce_cache_recreation": False,
                     "initial_rent_rate": 0.75,
                     "initial_spreading_rate_lowerbound": 0.1,
-                    "initial_spreading_rate_upperbound": 0.1
-                }
+                    "initial_spreading_rate_upperbound": 0.1,
+                },
             },
-            "atomdb": {
-                "endpoint": "localhost:40007",
-                "ports_range": "47000:47999"
-            },
-            "command_router": {
-                "endpoint": "localhost:40008",
-                "ports_range": "48000:48999"
-            },
+            "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
+            "command_router": {"endpoint": "localhost:40008", "ports_range": "48000:48999"},
         },
-        "environment": {
-            "jupyter": {
-                "endpoint": "localhost:40019"
-            }
-        }
+        "environment": {"jupyter": {"endpoint": "localhost:40019"}},
     }
 
     return core_defaults

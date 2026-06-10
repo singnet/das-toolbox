@@ -21,7 +21,7 @@ class ConfigProvider(ABC):
         return get_core_defaults_dict()
 
     def _get_current_or_default_config(self) -> Dict[str, Any]:
-        
+
         core_defaults = get_core_defaults_dict()
         user_settings = self._settings.get_content()
 

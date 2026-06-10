@@ -4,14 +4,19 @@ from common import IntRange
 from common.command import Command
 from common.docker.remote_context_manager import RemoteContextManager, Server
 from common.network import get_public_ip
-from common.prompt_types import ReachableIpAddress, ValidUsername
+from common.prompt_types import AbsolutePath, AbsolutePathList, ReachableIpAddress, ValidUsername
 from common.settings import Settings
 from common.utils import extract_service_port, get_rand_token, get_server_username
-from common.prompt_types import AbsolutePathList, AbsolutePath
-from settings.config import MONGODB_IMAGE_NAME, MONGODB_IMAGE_VERSION, REDIS_IMAGE_NAME, REDIS_IMAGE_VERSION, DAS_MORK_SERVER_IMAGE_NAME, DAS_MORK_SERVER_IMAGE_VERSION
+from settings.config import (
+    DAS_MORK_SERVER_IMAGE_NAME,
+    DAS_MORK_SERVER_IMAGE_VERSION,
+    MONGODB_IMAGE_NAME,
+    MONGODB_IMAGE_VERSION,
+    REDIS_IMAGE_NAME,
+    REDIS_IMAGE_VERSION,
+)
 
 from .setup_utils import get_default_value
-
 
 BACKEND_OPTIONS = {
     "MongoDB + Redis": "redismongodb",
@@ -27,6 +32,7 @@ ATOMDB_OPTIONS = {
 
 
 # Nodes setup
+
 
 def build_localhost_node() -> dict[str, Any]:
     return {
@@ -99,13 +105,12 @@ def setup_nodes(port: int) -> list[dict[str, Any]]:
 
 # MORK/MONGO/REDIS setup
 
+
 def mongo_setup(settings: Settings, skip_cluster: bool) -> dict[str, Any]:
 
     mongodb_port = Command.prompt(
         "Enter the port for MongoDB:",
-        default=extract_service_port(
-            str(get_default_value(settings, "atomdb.mongodb.endpoint"))
-        ),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.mongodb.endpoint"))),
         type=int,
     )
 
@@ -128,17 +133,9 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> dict[str, Any]:
         )
     )
 
-    mongodb_nodes = (
-        setup_nodes(mongodb_port)
-        if mongodb_cluster
-        else [build_localhost_node()]
-    )
+    mongodb_nodes = setup_nodes(mongodb_port) if mongodb_cluster else [build_localhost_node()]
 
-    cluster_secret_key = (
-        get_rand_token(num_bytes=15)
-        if mongodb_cluster
-        else "None"
-    )
+    cluster_secret_key = get_rand_token(num_bytes=15) if mongodb_cluster else "None"
 
     return {
         "mongodb": {
@@ -160,9 +157,7 @@ def redis_setup(
 
     redis_port = Command.prompt(
         "Enter the port for Redis:",
-        default=extract_service_port(
-            str(get_default_value(settings, "atomdb.redis.endpoint"))
-        ),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.redis.endpoint"))),
         type=int,
     )
 
@@ -175,11 +170,7 @@ def redis_setup(
         )
     )
 
-    redis_nodes = (
-        setup_nodes(redis_port)
-        if redis_cluster
-        else [build_localhost_node()]
-    )
+    redis_nodes = setup_nodes(redis_port) if redis_cluster else [build_localhost_node()]
 
     return {
         "redis": {
@@ -195,9 +186,7 @@ def mork_setup(settings: Settings) -> dict[str, Any]:
 
     morkdb_port = Command.prompt(
         "Enter the port for MorkDB:",
-        default=extract_service_port(
-            str(get_default_value(settings, "atomdb.morkdb.endpoint"))
-        ),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.morkdb.endpoint"))),
     )
 
     return {
@@ -209,6 +198,7 @@ def mork_setup(settings: Settings) -> dict[str, Any]:
 
 
 # RemoteDB setup
+
 
 def build_backend_config(
     backend_type: str,
@@ -256,6 +246,7 @@ def build_local_persistence(
         ),
     }
 
+
 def setup_peer(
     settings: Settings,
     peer_index: int,
@@ -297,52 +288,56 @@ def remotedb_setup(settings: Settings) -> dict[str, Any]:
         default=1,
     )
 
-    return {
-        "remote_peers": [
-            setup_peer(settings, i)
-            for i in range(peer_count)
-        ]
-    }
+    return {"remote_peers": [setup_peer(settings, i) for i in range(peer_count)]}
 
 
 # AdapterDB setup
 
+
 def setup_context_mapping_paths() -> list[str]:
 
     context_path = Command.prompt(
-        "Enter the absolute path to one or more context mapping files (separated by comma)", 
+        "Enter the absolute path to one or more context mapping files (separated by comma)",
         type=AbsolutePathList(
             dir_okay=False,
             file_okay=True,
             exists=True,
             writable=True,
             readable=True,
-        )
+        ),
     )
 
     return context_path
 
+
 def setup_output_directory() -> str:
-    
+
     context_path = Command.prompt(
-        "Enter the absolute path to where the metta files will be outputted", 
+        "Enter the absolute path to where the metta files will be outputted",
         type=AbsolutePath(
             dir_okay=True,
             file_okay=False,
             exists=True,
             writable=True,
             readable=True,
-        )
+        ),
     )
 
     return context_path
 
+
 def adapterdb_setup(settings: Settings) -> dict[str, Any]:
 
     adapter_port = Command.prompt("Enter the AdapterDB port:", default=40023, type=int)
-    database_type = Command.select("Select source database type", options={"PostgreSQL": "postgres", }, default="postgres")
+    database_type = Command.select(
+        "Select source database type",
+        options={
+            "PostgreSQL": "postgres",
+        },
+        default="postgres",
+    )
     host = Command.prompt("Database host", default="remote.database.org")
-    port = Command.prompt("Database port",default=5432,type=int)
+    port = Command.prompt("Database port", default=5432, type=int)
     username = Command.prompt("Database username", default="admin")
     password = Command.prompt("Database password", default="admin")
     database = Command.prompt("Database name", default="database")
@@ -395,6 +390,7 @@ def adapterdb_setup(settings: Settings) -> dict[str, Any]:
 
 
 # AtomDB section
+
 
 def atomdb_config_section(settings: Settings) -> dict[str, Any]:
     atomdb_type = Command.select(

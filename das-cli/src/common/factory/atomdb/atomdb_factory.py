@@ -21,9 +21,7 @@ from .redis_manager_factory import RedisContainerManagerFactory
 
 class AtomDbContainerManagerFactory:
     def __init__(self):
-        self._settings = Settings(
-            store=JsonConfigStore(os.path.expanduser(SECRETS_PATH))
-        )
+        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
         backend_type = AtomdbBackendEnum.from_value(self._settings.get("atomdb.type"))
@@ -44,7 +42,9 @@ class AtomDbContainerManagerFactory:
                 return [self._mork_mongodb_backend()]
 
             case AtomdbBackendEnum.ADAPTERDB:
-                adapter_backend_type = AtomdbBackendEnum.from_value(self._settings.get("atomdb.adapterdb.atomdb_backend.type"))
+                adapter_backend_type = AtomdbBackendEnum.from_value(
+                    self._settings.get("atomdb.adapterdb.atomdb_backend.type")
+                )
 
                 return self._build_providers(adapter_backend_type)
 
@@ -55,9 +55,7 @@ class AtomDbContainerManagerFactory:
                 return [RemoteDBBackend()]
 
             case _:
-                raise ValueError(
-                    f"Unsupported AtomDB backend type: {backend_type}"
-                )
+                raise ValueError(f"Unsupported AtomDB backend type: {backend_type}")
 
     def _redis_mongodb_backend(self) -> MongoDBRedisBackend:
         return MongoDBRedisBackend(

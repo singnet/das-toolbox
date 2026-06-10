@@ -85,7 +85,7 @@ class Settings:
             raise FileNotFoundError(
                 "Configuration file not found. You can run the command 'config set' to create a configuration file or point to an existing file."
             )
-        
+
     def raise_on_version_mismatch(self):
         config = self._store.get_content()
 
@@ -117,8 +117,7 @@ class Settings:
             if isinstance(expected_value, dict):
                 if not isinstance(current_value, dict):
                     raise ValueError(
-                        f"Invalid configuration entry '{current_path}'. "
-                        "Expected an object."
+                        f"Invalid configuration entry '{current_path}'. " "Expected an object."
                     )
 
                 self._validate_structure(
@@ -130,10 +129,7 @@ class Settings:
     def _build_expected_schema(self, config: dict) -> dict:
         expected = get_core_defaults_dict().copy()
 
-        atomdb_type = (
-            config.get("atomdb", {})
-            .get("type")
-        )
+        atomdb_type = config.get("atomdb", {}).get("type")
 
         atomdb_section = expected["atomdb"]
 
@@ -158,7 +154,10 @@ class Settings:
 
             if backend:
                 backend_type = (
-                    config.get("atomdb", {}).get("adapterdb", {}).get("atomdb_backend", {}).get("type")
+                    config.get("atomdb", {})
+                    .get("adapterdb", {})
+                    .get("atomdb_backend", {})
+                    .get("type")
                 )
 
             if backend_type != "redismongodb":

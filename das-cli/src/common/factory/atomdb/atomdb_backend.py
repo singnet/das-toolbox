@@ -149,6 +149,7 @@ class RemoteDBBackend(BackendProvider):
     def status(self) -> list[dict]:
         return []
 
+
 class AtomdbBackend:
     def __init__(self, name: AtomdbBackendEnum, providers: List[BackendProvider]) -> None:
         self.name = name
