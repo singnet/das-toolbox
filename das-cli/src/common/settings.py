@@ -76,13 +76,9 @@ class Settings:
         except Exception:
             return value
 
-    def raise_on_version_mismatch(self):
-        base_dict_version = get_core_defaults_dict()["schema_version"]
-
-        if self._store.get("schema_version") != base_dict_version:
-            mismatch_message = "Your configuration file doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
-
-            raise ValueError(mismatch_message)
+    def validate_configuration_file(self):
+        self.raise_on_missing_file()
+        self.raise_on_version_mismatch()
 
     def raise_on_missing_file(self):
         if not self.exists():
@@ -90,9 +86,91 @@ class Settings:
                 "Configuration file not found. You can run the command 'config set' to create a configuration file or point to an existing file."
             )
 
-    def validate_configuration_file(self):
-        self.raise_on_missing_file()
-        self.raise_on_version_mismatch()
+    def raise_on_version_mismatch(self):
+        config = self._store.get_content()
+
+        self._validate_structure(
+            config,
+            self._build_expected_schema(config),
+        )
+
+    def _validate_structure(
+        self,
+        current: dict,
+        expected: dict,
+        path: str = "",
+    ) -> None:
+        for key, expected_value in expected.items():
+            current_path = f"{path}.{key}" if path else key
+
+            if key not in current:
+                raise ValueError(
+                    "Your configuration file doesn't have all the entries "
+                    "this version of das-cli requires. "
+                    f"Missing entry: '{current_path}'. "
+                    "Run 'das-cli config set' and press ENTER on the prompts "
+                    "to reuse your current values and populate new fields."
+                )
+
+            current_value = current[key]
+
+            if isinstance(expected_value, dict):
+                if not isinstance(current_value, dict):
+                    raise ValueError(
+                        f"Invalid configuration entry '{current_path}'. " "Expected an object."
+                    )
+
+                self._validate_structure(
+                    current_value,
+                    expected_value,
+                    current_path,
+                )
+
+    def _build_expected_schema(self, config: dict) -> dict:
+        expected = get_core_defaults_dict().copy()
+
+        atomdb_type = config.get("atomdb", {}).get("type")
+
+        atomdb_section = expected["atomdb"]
+
+        if atomdb_type != "adapterdb":
+            atomdb_section.pop("adapterdb", None)
+
+        if atomdb_type != "remotedb":
+            atomdb_section.pop("remote_peers", None)
+
+        if atomdb_type != "morkdb":
+            atomdb_section.pop("mongodb", None)
+            atomdb_section.pop("morkdb", None)
+
+        if atomdb_type != "redismongodb":
+            atomdb_section.pop("mongodb", None)
+            atomdb_section.pop("redis", None)
+
+        adapterdb = atomdb_section.get("adapterdb")
+
+        if adapterdb:
+            backend = adapterdb.get("atomdb_backend")
+
+            if backend:
+                backend_type = (
+                    config.get("atomdb", {})
+                    .get("adapterdb", {})
+                    .get("atomdb_backend", {})
+                    .get("type")
+                )
+
+            if backend_type != "redismongodb":
+                backend.pop("redis", None)
+                backend.pop("mongodb", None)
+
+            if backend_type != "morkdb":
+                backend.pop("morkdb", None)
+
+            if backend_type != "inmemorydb":
+                backend.pop("inmemorydb", None)
+
+        return expected
 
     def pretty(self) -> str:
         table_lines = []

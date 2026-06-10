@@ -37,7 +37,6 @@ teardown() {
         "das-query-engine-40002"
     )
 
-    # garante que estão rodando
     for service in db attention-broker query-agent; do
         das-cli "$service" start
     done
@@ -47,7 +46,6 @@ teardown() {
         assert_success
     done
 
-    # verifica status com serviços rodando
     run das-cli system status
 
     count_services_up=$(echo "$output" | grep -c "running" || true)
@@ -66,7 +64,6 @@ teardown() {
         assert_line --partial "$header"
     done
 
-    # para tudo
     for service in db attention-broker query-agent; do
         das-cli "$service" stop
     done
@@ -78,7 +75,6 @@ teardown() {
         assert_failure
     done
 
-    # verifica status com tudo parado
     run das-cli system status
 
     count_services_up=$(echo "$output" | grep -c "running" || true)

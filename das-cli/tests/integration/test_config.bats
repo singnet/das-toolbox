@@ -9,9 +9,32 @@ setup() {
     use_config "simple"
 }
 
-function ensure_env() {
+ensure_env() {
     mkdir -p "${das_config_dir}"
     echo "configpath=${das_config_file}" > "${das_env_file}"
+}
+
+assert_config_core_endpoints() {
+    run get_config ".atomdb.redis.endpoint"
+    assert_output "localhost:40020"
+
+    run get_config ".atomdb.mongodb.endpoint"
+    assert_output "localhost:40021"
+
+    run get_config ".agents.query.endpoint"
+    assert_output "localhost:40002"
+
+    run get_config ".environment.jupyter.endpoint"
+    assert_output "localhost:40019"
+
+    run get_config ".agents.context.endpoint"
+    assert_output "localhost:40006"
+
+    run get_config ".agents.atomdb.endpoint"
+    assert_output "localhost:40007"
+
+    run get_config ".agents.command_router.endpoint"
+    assert_output "localhost:40008"
 }
 
 @test "listing config with unset configuration file" {
@@ -28,10 +51,7 @@ function ensure_env() {
 
     run das-cli config list
 
-    assert_output --partial "localhost:40020"
-    assert_output --partial "localhost:40021"
-    assert_output --partial "localhost:40002"
-    assert_output --partial "localhost:40019"
+    assert_config_core_endpoints
 }
 
 @test "get_config reads values from file correctly" {
@@ -40,8 +60,8 @@ function ensure_env() {
     run get_config ".atomdb.redis.endpoint"
     assert_output "localhost:40020"
 
-    run get_config ".environment.jupyter.endpoint"
-    assert_output "localhost:40019"
+    run get_config ".atomdb.mongodb.endpoint"
+    assert_output "localhost:40021"
 }
 
 @test "config file can be modified programmatically" {
@@ -62,17 +82,6 @@ function ensure_env() {
     run das-cli config list
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
-}
-
-@test "raises error when schema version is invalid" {
-    use_config "simple"
-    ensure_env
-
-    update_json_key "$das_config_file" schema_version "2.0"
-
-    run das-cli config list
-
-    assert_output --partial "$VALUE_ERROR_MSG"
 }
 
 @test "use_config correctly sets env and file" {

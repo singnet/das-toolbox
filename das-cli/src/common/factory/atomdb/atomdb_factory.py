@@ -24,30 +24,47 @@ class AtomDbContainerManagerFactory:
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def build(self):
-        backend_config = self._settings.get("atomdb.type")
-        backend_config = AtomdbBackendEnum.from_value(backend_config)
+        backend_type = AtomdbBackendEnum.from_value(self._settings.get("atomdb.type"))
+        providers = self._build_providers(backend_type)
 
-        providers: List[BackendProvider] = []
+        return AtomdbBackend(backend_type, providers)
 
-        if backend_config == AtomdbBackendEnum.REDIS_MONGODB:
-            providers = [
-                MongoDBRedisBackend(
-                    MongoDbContainerManagerFactory().build(), RedisContainerManagerFactory().build()
+    def _build_providers(
+        self,
+        backend_type: AtomdbBackendEnum,
+    ) -> List[BackendProvider]:
+
+        match backend_type:
+            case AtomdbBackendEnum.REDIS_MONGODB:
+                return [self._redis_mongodb_backend()]
+
+            case AtomdbBackendEnum.MORK_MONGODB:
+                return [self._mork_mongodb_backend()]
+
+            case AtomdbBackendEnum.ADAPTERDB:
+                adapter_backend_type = AtomdbBackendEnum.from_value(
+                    self._settings.get("atomdb.adapterdb.atomdb_backend.type")
                 )
-            ]
 
-        elif backend_config == AtomdbBackendEnum.MORK_MONGODB:
-            providers = [
-                MorkMongoDBBackend(
-                    MongoDbContainerManagerFactory().build(),
-                    MorkDbContainerManagerFactory().build(),
-                )
-            ]
+                return self._build_providers(adapter_backend_type)
 
-        elif backend_config == AtomdbBackendEnum.INMEMORYDB:
-            providers = [InMemoryBackend()]
+            case AtomdbBackendEnum.INMEMORYDB:
+                return [InMemoryBackend()]
 
-        elif backend_config == AtomdbBackendEnum.REMOTEDB:
-            providers = [RemoteDBBackend()]
+            case AtomdbBackendEnum.REMOTEDB:
+                return [RemoteDBBackend()]
 
-        return AtomdbBackend(backend_config, providers)
+            case _:
+                raise ValueError(f"Unsupported AtomDB backend type: {backend_type}")
+
+    def _redis_mongodb_backend(self) -> MongoDBRedisBackend:
+        return MongoDBRedisBackend(
+            MongoDbContainerManagerFactory().build(),
+            RedisContainerManagerFactory().build(),
+        )
+
+    def _mork_mongodb_backend(self) -> MorkMongoDBBackend:
+        return MorkMongoDBBackend(
+            MongoDbContainerManagerFactory().build(),
+            MorkDbContainerManagerFactory().build(),
+        )

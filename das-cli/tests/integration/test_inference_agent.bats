@@ -12,13 +12,12 @@ setup() {
     das-cli attention-broker start
     das-cli db start
 
-    # limpa estado anterior
     das-cli inference-agent stop &>/dev/null || true
 
     inference_agent_port="$(extract_port "$(get_config .agents.inference.endpoint)")"
     query_agent_port="$(extract_port "$(get_config .agents.query.endpoint)")"
 
-    # garante porta livre (CRÍTICO)
+
     stop_listen_port "$inference_agent_port" &>/dev/null || true
 
     service_name="das-inference-agent-40004"
@@ -86,7 +85,6 @@ teardown() {
         --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
-    # ⚠️ NÃO use variável genérica aqui
     assert_output --partial "[PortBindingError]"
     assert_output --partial "already in use"
 

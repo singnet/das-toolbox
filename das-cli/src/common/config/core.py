@@ -3,19 +3,52 @@ from typing import Any, Dict
 
 def get_core_defaults_dict() -> Dict[str, Any]:
     core_defaults: Dict[str, Any] = {
-        "schema_version": "1.0",
         "atomdb": {
             "type": "redismongodb",
-            "redis": {"endpoint": "localhost:40020", "cluster": False, "nodes": []},
+            "redis": {
+                "image": "redis:7.2.3-alpine",
+                "endpoint": "localhost:40020",
+                "cluster": True,
+                "nodes": [{"context": "default", "ip": "localhost", "username": "arturgontijo"}],
+            },
             "mongodb": {
+                "image": "mongodb/mongodb-community-server:8.2-ubuntu2204",
                 "endpoint": "localhost:40021",
                 "username": "admin",
                 "password": "admin",
                 "cluster": False,
                 "cluster_secret_key": "8UDJSgpUCaVOTQG",
-                "nodes": [],
+                "nodes": [{"context": "default", "ip": "localhost", "username": "arturgontijo"}],
             },
-            "morkdb": {"endpoint": "localhost:40022"},
+            "adapterdb": {
+                "endpoint": "localhost:40023",
+                "type": "postgres",
+                "database_credentials": {
+                    "host": "chado.flybase.org",
+                    "port": 5432,
+                    "username": "flybase",
+                    "password": "",
+                    "database": "flybase",
+                },
+                "context_mapping_paths": ["./simple_test.sql", "./tables.json"],
+                "export_metta_on_mapping": {"enabled": True, "output_dir": "./mapped_metta/"},
+                "persistence": {"reuse_mongodb": True},
+                "atomdb_backend": {
+                    "type": "morkdb",
+                    "mongodb": {
+                        "endpoint": "localhost:40021",
+                        "username": "admin",
+                        "password": "admin",
+                        "cluster": False,
+                        "cluster_secret_key": "None",
+                        "nodes": [
+                            {"context": "default", "ip": "localhost", "username": "username"}
+                        ],
+                    },
+                    "morkdb": {"endpoint": "localhost:40022"},
+                },
+            },
+            "morkdb": {"image": "trueagi/das:mork-server-1.0.4", "endpoint": "localhost:40022"},
             "remote_peers": [
                 {
                     "uid": "peer1",
@@ -50,47 +83,83 @@ def get_core_defaults_dict() -> Dict[str, Any]:
             ],
         },
         "loaders": {
-            "metta": {"image": "Trueagi/das:1.0.0-metta-parser"},
-            "morkdb": {"image": "Trueagi/das:mork-loader-1.0.4"},
+            "metta": {"image": "trueagi/das:1.0.0-metta-parser"},
+            "morkdb": {"image": "rueagi/das:mork-loader-1.0.4"},
         },
         "agents": {
-            "query": {"endpoint": "localhost:40002", "ports_range": "42000:42999"},
-            "link_creation": {"endpoint": "localhost:40003", "ports_range": "43000:43999"},
-            "inference": {"endpoint": "localhost:40004", "ports_range": "44000:44999"},
-            "evolution": {"endpoint": "localhost:40005", "ports_range": "45000:45999"},
-        },
-        "brokers": {
+            "schema_version": "1.0",
             "attention": {"endpoint": "localhost:40001"},
-            "context": {"endpoint": "localhost:40006", "ports_range": "46000:46999"},
-            "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
-        },
-        "params": {
-            "query": {
-                "max_answers": 100,
-                "max_bundle_size": 1000,
-                "count_flag": True,
-                "attention_update_flag": False,
-                "unique_assignment_flag": True,
-                "positive_importance_flag": False,
-                "populate_metta_mapping": True,
-                "use_metta_as_query_tokens": True,
+            "base_query": {
+                "params": {
+                    "unique_assignment_flag": False,
+                    "attention_update": 0,
+                    "attention_correlation": 0,
+                    "max_bundle_size": 1000,
+                    "max_answers": 0,
+                    "use_link_template_cache": False,
+                    "populate_metta_mapping": False,
+                    "use_metta_as_query_tokens": False,
+                    "allow_incomplete_chain_path": False,
+                }
             },
-            "link_creation": {"repeat_count": 1, "query_interval": 0, "query_timeout": 0},
+            "query": {
+                "endpoint": "localhost:40002",
+                "ports_range": "42000:42999",
+                "params": {
+                    "positive_importance_flag": False,
+                    "disregard_importance_flag": False,
+                    "unique_value_flag": False,
+                    "count_flag": False,
+                },
+            },
+            "link_creation": {
+                "endpoint": "localhost:40003",
+                "ports_range": "43000:43999",
+                "params": {
+                    "max_answers": 10,
+                    "repeat_count": 1,
+                    "context": "context",
+                    "attention_update": 0,
+                    "attention_correlation": 0,
+                    "positive_importance_flag": True,
+                    "query_interval": 0,
+                    "query_timeout": 0,
+                    "use_metta_as_query_tokens": False,
+                },
+            },
+            "inference": {
+                "endpoint": "localhost:40004",
+                "ports_range": "44000:44999",
+                "params": {
+                    "inference_request_timeout": 86400,
+                    "repeat_count": 5,
+                    "max_answers": 150,
+                },
+            },
             "evolution": {
-                "elitism_rate": 0.08,
-                "max_generations": 10,
-                "population_size": 50,
-                "selection_rate": 0.1,
-                "total_attention_tokens": 100000,
+                "endpoint": "localhost:40005",
+                "ports_range": "45000:45999",
+                "params": {
+                    "population_size": 1000,
+                    "max_generations": 100,
+                    "elitism_rate": 0.01,
+                    "selection_rate": 0.1,
+                },
             },
             "context": {
-                "context": "context",
-                "use_cache": True,
-                "enforce_cache_recreation": False,
-                "initial_rent_rate": 0.25,
-                "initial_spreading_rate_lowerbound": 0.5,
-                "initial_spreading_rate_upperbound": 0.7,
+                "endpoint": "localhost:40006",
+                "ports_range": "46000:46999",
+                "params": {
+                    "context": "context",
+                    "use_cache": True,
+                    "enforce_cache_recreation": False,
+                    "initial_rent_rate": 0.75,
+                    "initial_spreading_rate_lowerbound": 0.1,
+                    "initial_spreading_rate_upperbound": 0.1,
+                },
             },
+            "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
+            "command_router": {"endpoint": "localhost:40008", "ports_range": "48000:48999"},
         },
         "environment": {"jupyter": {"endpoint": "localhost:40019"}},
     }

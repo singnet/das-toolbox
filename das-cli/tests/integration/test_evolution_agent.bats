@@ -13,7 +13,6 @@ setup() {
     das-cli attention-broker start
     das-cli query-agent start --port-range 12000:12100
 
-    # limpeza forte de estado
     das-cli evolution-agent stop &>/dev/null || true
 
     local evolution_agent_port

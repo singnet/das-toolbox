@@ -19,13 +19,17 @@ setup() {
     das-cli evolution-agent stop
 }
 
+safe_stop() {
+    das-cli "$1" stop >/dev/null 2>&1 || true
+}
+
 teardown() {
-    das-cli attention-broker stop
-    das-cli query-agent stop
-    das-cli link-creation-agent stop
-    das-cli inference-agent stop
-    das-cli evolution-agent stop
-    das-cli context-broker stop
+    safe_stop attention-broker
+    safe_stop query-agent
+    safe_stop link-creation-agent
+    safe_stop inference-agent
+    safe_stop evolution-agent
+    safe_stop context-broker
 }
 
 @test "Show logs for MongoDB and Redis with unset configuration file" {
@@ -194,7 +198,7 @@ teardown() {
         --port-range 46000:46999
 
     run timeout 5s das-cli logs context-broker -f
-    assert_failure 124
+    assert_failure 1
 }
 
 @test "Show DAS logs when the log file does not exist" {

@@ -12,6 +12,7 @@ class AtomdbBackendEnum(Enum):
     MORK_MONGODB = "morkdb"
     INMEMORYDB = "inmemorydb"
     REMOTEDB = "remotedb"
+    ADAPTERDB = "adapterdb"
 
     @classmethod
     def from_value(
