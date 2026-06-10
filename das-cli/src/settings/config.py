@@ -5,7 +5,7 @@ from pathlib import Path
 from common.config.loader import EnvFileLoader
 from settings.__version__ import VERSION
 
-VERSION = VERSION
+VERSION = '1.1.0'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "host"
@@ -47,10 +47,10 @@ DBMS_PEER_IMAGE_NAME = "trueagi/das"
 DBMS_PEER_IMAGE_VERSION = "latest-database-adapter-client"
 
 DAS_MORK_SERVER_IMAGE_NAME = "trueagi/das"
-DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-1.0.5"
+DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-1.1.0"
 
 DAS_MORK_LOADER_IMAGE_NAME = "trueagi/das"
-DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-1.0.5"
+DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-1.1.0"
 
-DAS_IMAGE_VERSION = "1.0.5-rc"
+DAS_IMAGE_VERSION = "1.1.0-rc"
 DAS_IMAGE_NAME = "trueagi/das"
