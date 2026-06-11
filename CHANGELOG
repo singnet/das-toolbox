@@ -1,15 +1,1 @@
-Changelog:
-New DAS version released
-
-Highlights:
-
-* DAS Dashboard introduced with a complete web-based management interface. 
-Configuration and setup workflows available directly from the Dashboard UI
-* Agent and structure visualization dashboard for inspecting DAS services.
-* Enhanced CLI system status reporting and operational diagnostics
-* Updated DAS-CLI configuration schema to match the new DAS services schema
-
-Bug fixes:
-* Fixed wrong morkdb flag on configuration file.
-* Fixed Metta-Mork Loader not working properly.
 
