@@ -112,7 +112,6 @@ class ConfigSet(Command):
         key, value = config_key_value
 
         self._non_interactive_config_provider.raise_property_invalid(key)
-        self._settings.validate_configuration_file()
 
         config_mappings = self._non_interactive_config_provider.setup_settings()
         self._non_interactive_config_provider.apply_values_to_settings(config_mappings)
