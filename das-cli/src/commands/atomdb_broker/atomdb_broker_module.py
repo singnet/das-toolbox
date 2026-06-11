@@ -36,5 +36,3 @@ class AtomDbBrokerModule(Module):
                 self._settings,
             ),
         ]
-
-        self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
