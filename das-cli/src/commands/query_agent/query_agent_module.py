@@ -28,10 +28,7 @@ class QueryAgentModule(Module):
         self._bus_node_factory = BusNodeContainerManagerFactory()
 
         self._dependency_list = [
-            (
-                RedisContainerManager,
-                AtomDbContainerManagerFactory().build()
-            ),
+            (RedisContainerManager, AtomDbContainerManagerFactory().build()),
             (
                 MongodbContainerManager,
                 MongoDbContainerManagerFactory().build(),

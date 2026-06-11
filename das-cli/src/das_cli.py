@@ -4,12 +4,12 @@ from injector import Injector
 
 from commands.atomdb_broker.atomdb_broker_module import AtomDbBrokerModule
 from commands.attention_broker import AttentionBrokerModule
+from commands.command_router import CommandRouterModule
 from commands.config import ConfigModule
 from commands.context_broker import ContextBrokerModule
 from commands.das import DasModule
-from commands.db import DbModule
-
 from commands.database_adapter import DatabaseAdapterModule
+from commands.db import DbModule
 from commands.evolution_agent import EvolutionAgentModule
 from commands.example import ExampleModule
 from commands.inference_agent import InferenceAgentModule
@@ -21,7 +21,6 @@ from commands.python_library import PythonLibraryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
 from commands.system import SystemModule
-from commands.command_router import CommandRouterModule
 from common.utils import log_exception
 
 MODULES = [

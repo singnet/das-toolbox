@@ -32,6 +32,7 @@ from .command_router_docs import (
 )
 from .command_router_service_response import CommandRouterServiceResponse
 
+
 class CommandRouterStart(Command):
     name = "start"
 
@@ -69,9 +70,7 @@ class CommandRouterStart(Command):
         self.stdout("Starting Command Router service...")
 
         try:
-            self._command_router_container_manager.start_container(
-                ports_range=port_range
-            )
+            self._command_router_container_manager.start_container(ports_range=port_range)
 
             message = f"Command Router started on port {port}"
 
@@ -90,10 +89,7 @@ class CommandRouterStart(Command):
             )
 
         except DockerContainerDuplicateError:
-            message = (
-                f"Command Router is already running. "
-                f"It's listening on port {port}"
-            )
+            message = f"Command Router is already running. " f"It's listening on port {port}"
 
             self.stdout(message, severity=StdoutSeverity.WARNING)
 
@@ -118,8 +114,7 @@ class CommandRouterStart(Command):
 
     @ensure_container_running(
         ["_atomdb_backend"],
-        exception_text=
-        "\nPlease start the required services before running "
+        exception_text="\nPlease start the required services before running "
         "'command-router start'.\n"
         "Run 'db start' to start the databases",
         verbose=False,
@@ -127,6 +122,7 @@ class CommandRouterStart(Command):
     def run(self, port_range):
         self._settings.validate_configuration_file()
         self._start_container(port_range)
+
 
 class CommandRouterStop(Command):
     name = "stop"
@@ -141,9 +137,7 @@ class CommandRouterStop(Command):
         settings: Settings,
     ):
         self._settings = settings
-        self._command_router_container_manager = (
-            command_router_container_manager
-        )
+        self._command_router_container_manager = command_router_container_manager
         super().__init__()
 
     def _get_container(self):
@@ -179,10 +173,7 @@ class CommandRouterStop(Command):
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
 
-            message = (
-                f"The Command Router service named "
-                f"{container_name} is already stopped."
-            )
+            message = f"The Command Router service named " f"{container_name} is already stopped."
 
             self.stdout(
                 message,
@@ -205,9 +196,11 @@ class CommandRouterStop(Command):
         self._settings.validate_configuration_file()
         self._stop_container()
 
+
 class CommandRouterRestart(Command):
     name = "restart"
     short_help = SHORT_HELP_RESTART
+    help = HELP_RESTART
 
     params = [
         CommandOption(
@@ -219,7 +212,9 @@ class CommandRouterRestart(Command):
     ]
 
     @inject
-    def __init__(self, command_router_start : CommandRouterStart, command_router_stop : CommandRouterStop):
+    def __init__(
+        self, command_router_start: CommandRouterStart, command_router_stop: CommandRouterStop
+    ):
         self.command_router_start = command_router_start
         self.command_router_stop = command_router_stop
         super().__init__()
@@ -227,6 +222,7 @@ class CommandRouterRestart(Command):
     def run(self, port_range):
         self.command_router_stop.run()
         self.command_router_start.run(port_range=port_range)
+
 
 class CommandRouterCli(CommandGroup):
     name = "command-router"

@@ -6,22 +6,20 @@ from common import (
     Settings,
     StdoutSeverity,
 )
-
-from common.docker.exceptions import DockerContainerNotFoundError
-
-from common.decorators import ensure_container_running
-from common.factory.atomdb.atomdb_backend import AtomdbBackend
-
 from common.container_manager.dbms.database_adapter_container_manager import (
     DatabaseAdapterContainerManager,
 )
+from common.decorators import ensure_container_running
+from common.docker.exceptions import DockerContainerNotFoundError
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 
 from .database_adapter_docs import (
-    SHORT_HELP_DATABASE_ADAPTER,
     HELP_DATABASE_ADAPTER,
+    HELP_RUN,
+    SHORT_HELP_DATABASE_ADAPTER,
     SHORT_HELP_RUN,
-    HELP_RUN
 )
+
 
 class DatabaseAdapterRun(Command):
     name = "run"
@@ -36,9 +34,7 @@ class DatabaseAdapterRun(Command):
         atomdb_backend: AtomdbBackend,
         settings: Settings,
     ):
-        self._database_adapter_container_manager = (
-            database_adapter_container_manager
-        )
+        self._database_adapter_container_manager = database_adapter_container_manager
         self._atomdb_backend = atomdb_backend
         self._settings = settings
 
@@ -46,8 +42,7 @@ class DatabaseAdapterRun(Command):
 
     @ensure_container_running(
         ["_atomdb_backend"],
-        exception_text=
-        "\nPlease start the required services before running "
+        exception_text="\nPlease start the required services before running "
         "'dbms-adapter run'.\n"
         "Run 'db start' to start the databases",
         verbose=False,
@@ -66,11 +61,9 @@ class DatabaseAdapterRun(Command):
             )
 
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to start Database Adapter.\n"
-                f"Original error: {e}"
-            )
-        
+            raise RuntimeError(f"Failed to start Database Adapter.\n" f"Original error: {e}")
+
+
 class DatabaseAdapterStop(Command):
     name = "stop"
 
@@ -83,9 +76,7 @@ class DatabaseAdapterStop(Command):
         database_adapter_container_manager: DatabaseAdapterContainerManager,
         settings: Settings,
     ):
-        self._database_adapter_container_manager = (
-            database_adapter_container_manager
-        )
+        self._database_adapter_container_manager = database_adapter_container_manager
         self._settings = settings
 
         super().__init__()
@@ -111,6 +102,7 @@ class DatabaseAdapterStop(Command):
                 severity=StdoutSeverity.WARNING,
             )
 
+
 class DatabaseAdapterCli(CommandGroup):
     name = "database-adapter"
 
@@ -121,15 +113,8 @@ class DatabaseAdapterCli(CommandGroup):
 
     @inject
     def __init__(
-        self,
-        database_adapter_run: DatabaseAdapterRun,
-        database_adapter_stop: DatabaseAdapterStop
+        self, database_adapter_run: DatabaseAdapterRun, database_adapter_stop: DatabaseAdapterStop
     ) -> None:
         super().__init__()
 
-        self.add_commands(
-            [
-                database_adapter_run,
-                database_adapter_stop
-            ]
-        )
+        self.add_commands([database_adapter_run, database_adapter_stop])

@@ -3,6 +3,7 @@ from typing import Optional
 from common.docker.container_manager import Container
 from common.service_response import ServiceResponse
 
+
 class DatabaseAdapterServiceResponse(ServiceResponse):
     def __init__(
         self,

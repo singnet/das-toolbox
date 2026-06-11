@@ -1,12 +1,13 @@
-from common.docker import ContainerManager, Container
-from common.docker.container_manager import ContainerImageMetadata, ContainerMetadata
-from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION, CURRENT_CONFIGFILE_PATH
-
 from typing import Dict, Union
+
+from common.docker import Container, ContainerManager
+from common.docker.container_manager import ContainerImageMetadata, ContainerMetadata
+from settings.config import CURRENT_CONFIGFILE_PATH, DAS_IMAGE_NAME, DAS_IMAGE_VERSION
+
 
 class DatabaseAdapterContainerManager(ContainerManager):
 
-    def __init__(self, container_name, options : Dict, exec_context: Union[str, None] = None):
+    def __init__(self, container_name, options: Dict, exec_context: Union[str, None] = None):
         self._options = options
 
         container = Container(
@@ -34,12 +35,12 @@ class DatabaseAdapterContainerManager(ContainerManager):
                 **self._build_adapterdb_mapping_volumes(),
                 **self._build_metta_output_dir(),
             },
-            command=command
+            command=command,
         )
-    
+
     def _build_adapter_command(self):
         return f"database_adapter {CURRENT_CONFIGFILE_PATH}"
-    
+
     def _build_adapterdb_mapping_volumes(self):
         adapterdb_context_maps = self._options.get("context_mapping_paths") or []
 
