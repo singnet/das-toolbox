@@ -1,7 +1,7 @@
 from typing import Any
 
 from common import IntRange
-from common.command import Command, StdoutSeverity
+from common.command import Command
 from common.docker.remote_context_manager import RemoteContextManager, Server
 from common.network import get_public_ip
 from common.prompt_types import AbsolutePath, AbsolutePathList, ReachableIpAddress, ValidUsername
@@ -105,13 +105,12 @@ def setup_nodes(port: int) -> list[dict[str, Any]]:
 
 # MORK/MONGO/REDIS setup
 
+
 def mongo_setup(settings: Settings, skip_cluster: bool) -> dict[str, Any]:
 
     mongodb_port = Command.prompt(
         "Enter the port for MongoDB:",
-        default=extract_service_port(
-            str(get_default_value(settings, "atomdb.mongodb.endpoint"))
-        ),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.mongodb.endpoint"))),
         type=int,
     )
 
@@ -158,9 +157,7 @@ def redis_setup(
 
     redis_port = Command.prompt(
         "Enter the port for Redis:",
-        default=extract_service_port(
-            str(get_default_value(settings, "atomdb.redis.endpoint"))
-        ),
+        default=extract_service_port(str(get_default_value(settings, "atomdb.redis.endpoint"))),
         type=int,
     )
 
@@ -201,6 +198,7 @@ def mork_setup(settings: Settings) -> dict[str, Any]:
 
 
 # RemoteDB setup
+
 
 def build_backend_config(
     backend_type: str,
@@ -247,6 +245,7 @@ def build_local_persistence(
             skip_cluster=True,
         ),
     }
+
 
 def setup_peer(
     settings: Settings,
@@ -391,6 +390,7 @@ def adapterdb_setup(settings: Settings) -> dict[str, Any]:
 
 
 # AtomDB section
+
 
 def atomdb_config_section(settings: Settings) -> dict[str, Any]:
     atomdb_type = Command.select(

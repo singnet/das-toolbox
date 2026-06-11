@@ -57,24 +57,19 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "mongodb": {
                         "endpoint": "localhost:40021",
                         "username": "admin",
-                        "password": "admin"
+                        "password": "admin",
                     },
-                    "redis": {
-                        "endpoint": "localhost:40020",
-                        "cluster": False
-                    },
+                    "redis": {"endpoint": "localhost:40020", "cluster": False},
                     "local_persistence": {
                         "type": "morkdb",
                         "context": "remotedb_test_peer1_local_",
                         "mongodb": {
                             "endpoint": "localhost:40021",
                             "username": "admin",
-                            "password": "admin"
+                            "password": "admin",
                         },
-                        "morkdb": {
-                            "endpoint": "localhost:40022"
-                        }
-                    }
+                        "morkdb": {"endpoint": "localhost:40022"},
+                    },
                 },
                 {
                     "uid": "peer2",
@@ -82,10 +77,10 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "context": "remotedb_test_peer2_",
                     "local_persistence": {
                         "type": "inmemorydb",
-                        "context": "remotedb_test_peer2_local_"
-                    }
-                }
-            ]
+                        "context": "remotedb_test_peer2_local_",
+                    },
+                },
+            ],
         },
         "loaders": {
             "metta": {"image": "trueagi/das:1.0.0-metta-parser"},
@@ -166,11 +161,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
             "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
             "command_router": {"endpoint": "localhost:40008", "ports_range": "48000:48999"},
         },
-        "environment": {
-            "jupyter": {
-                "endpoint": "localhost:40019"
-            }
-        }
+        "environment": {"jupyter": {"endpoint": "localhost:40019"}},
     }
 
     return core_defaults
