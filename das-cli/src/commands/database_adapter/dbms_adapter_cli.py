@@ -7,6 +7,8 @@ from common import (
     StdoutSeverity,
 )
 
+from common.docker.exceptions import DockerContainerNotFoundError
+
 from common.decorators import ensure_container_running
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 
@@ -101,10 +103,12 @@ class DatabaseAdapterStop(Command):
                 severity=StdoutSeverity.SUCCESS,
             )
 
-        except Exception as e:
-            raise RuntimeError(
-                f"Failed to stop Database Adapter.\n"
-                f"Original error: {e}"
+        except DockerContainerNotFoundError:
+            container_name = self._database_adapter_container_manager.get_container().name
+
+            self.stdout(
+                f"The Database Adapter service named {container_name} is already stopped.",
+                severity=StdoutSeverity.WARNING,
             )
 
 class DatabaseAdapterCli(CommandGroup):
