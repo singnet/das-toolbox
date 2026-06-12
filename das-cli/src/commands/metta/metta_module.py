@@ -3,7 +3,7 @@ import os
 from common import Module
 from common.config.store import JsonConfigStore
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
-from common.container_manager.metta.metta_loader_container_manager import (
+from common.container_manager.metta.database_loader_container_manager import (
     DatabaseLoaderContainerManager,
 )
 

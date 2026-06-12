@@ -28,12 +28,15 @@ class DatabaseLoaderContainerManager(ContainerManager):
         self._options = options
 
     def start_container(self, path):
+
         try:
             self.stop()
         except (DockerContainerNotFoundError, DockerError):
             pass
 
         try:
+
+            print(path)
 
             user_config_path = CURRENT_CONFIGFILE_PATH
             exec_command = self._gen_metta_loader_command(user_config_path=user_config_path, filepath=path)
@@ -68,6 +71,8 @@ class DatabaseLoaderContainerManager(ContainerManager):
             raise DockerError(e.explanation)
 
     def _gen_metta_loader_command(self, user_config_path: str, filepath: str) -> str:
-        exec_command = f"db_loader --config={user_config_path} --filepath={filepath}".strip()
+        exec_command = f"db_loader --config={user_config_path} --file={filepath}".strip()
+
+        print(exec_command)
 
         return exec_command

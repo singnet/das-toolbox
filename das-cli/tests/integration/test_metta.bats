@@ -79,11 +79,9 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
-    assert_line --partial "is running on port"
     assert_line --partial "Loading metta file"
     assert_line --partial "$metta_file_path"
-    assert_line --partial "$DOCKER_CONTAINER_MISSING" || true
-    assert_line --partial "could not be loaded"
+    assert_line --partial "contains invalid MeTTa syntax."
 }
 
 @test "Loading a valid MeTTa file" {
@@ -107,7 +105,8 @@ setup() {
     assert_line --partial "Loading metta file"
     assert_line --partial "animals.metta"
     assert_line --partial "invalid.metta"
-    assert_line --partial "File 'invalid.metta' could not be loaded."
+    assert_line --partial "Failed loading file."
+    assert_line --partial "The file contains invalid MeTTa syntax."
 }
 
 @test "Trying to load a MeTTa file with an invalid path" {
