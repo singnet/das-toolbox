@@ -4,18 +4,15 @@ from common import Module
 from common.config.store import JsonConfigStore
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
 from common.container_manager.metta.metta_loader_container_manager import (
-    MettaLoaderContainerManager,
+    DatabaseLoaderContainerManager,
 )
-from common.container_manager.metta.metta_mork_loader_container_manager import (
-    MettaMorkLoaderContainerManager,
-)
+
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.factory.atomdb.atomdb_factory import (
     AtomDbContainerManagerFactory,
     MorkDbContainerManagerFactory,
 )
-from common.factory.metta.metta_loader_manager_factory import MettaLoaderManagerFactory
-from common.factory.metta.metta_mork_loader_manager_factory import MettaMorkLoaderManagerFactory
+from common.factory.metta.database_loader_manager_factory import DatabaseLoaderContainerManagerFactory
 from settings.config import SECRETS_PATH
 
 from .metta_cli import MettaCli, Settings
@@ -31,11 +28,10 @@ class MettaModule(Module):
 
         self._dependency_list = [
             (AtomdbBackend, AtomDbContainerManagerFactory().build()),
-            (MettaLoaderContainerManager, MettaLoaderManagerFactory().build()),
+            (DatabaseLoaderContainerManager, DatabaseLoaderContainerManagerFactory().build()),
             (MorkdbContainerManager, MorkDbContainerManagerFactory().build()),
             (
                 Settings,
                 self._settings,
             ),
-            (MettaMorkLoaderContainerManager, MettaMorkLoaderManagerFactory().build()),
         ]
