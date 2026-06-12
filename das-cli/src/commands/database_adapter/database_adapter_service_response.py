@@ -4,7 +4,7 @@ from common.docker.container_manager import Container
 from common.service_response import ServiceResponse
 
 
-class DbmsPeerContainerServiceResponse(ServiceResponse):
+class DatabaseAdapterServiceResponse(ServiceResponse):
     def __init__(
         self,
         action: str,
@@ -15,7 +15,7 @@ class DbmsPeerContainerServiceResponse(ServiceResponse):
         error: Optional[dict] = None,
     ):
         super().__init__(
-            service="dbms_peer",
+            service="command_router",
             action=action,
             status=status,
             message=message,

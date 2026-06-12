@@ -462,10 +462,12 @@ class Command:
             severity=severity,
             new_line=new_line,
         )
+
         handlers: Dict[StdoutType, Callable[[OutputBufferEntry, bool], None]] = {
             StdoutType.DEFAULT: self._handle_default_output,
             StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
         }
+
         handler = handlers.get(stdout_type, self._handle_default_output)
         handler(entry, stream_mode)
 

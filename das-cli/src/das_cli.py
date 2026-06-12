@@ -4,12 +4,12 @@ from injector import Injector
 
 from commands.atomdb_broker.atomdb_broker_module import AtomDbBrokerModule
 from commands.attention_broker import AttentionBrokerModule
+from commands.command_router import CommandRouterModule
 from commands.config import ConfigModule
 from commands.context_broker import ContextBrokerModule
 from commands.das import DasModule
+from commands.database_adapter import DatabaseAdapterModule
 from commands.db import DbModule
-
-# from commands.dbms_adapter import DbmsAdapterModule
 from commands.evolution_agent import EvolutionAgentModule
 from commands.example import ExampleModule
 from commands.inference_agent import InferenceAgentModule
@@ -32,7 +32,7 @@ MODULES = [
     MettaModule,
     PythonLibraryModule,
     ReleaseNotesModule,
-    # DbmsAdapterModule,
+    DatabaseAdapterModule,
     AttentionBrokerModule,
     QueryAgentModule,
     LinkCreationAgentModule,
@@ -41,6 +41,7 @@ MODULES = [
     ContextBrokerModule,
     SystemModule,
     AtomDbBrokerModule,
+    CommandRouterModule,
 ]
 
 

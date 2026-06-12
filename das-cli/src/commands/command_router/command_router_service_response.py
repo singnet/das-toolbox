@@ -4,7 +4,7 @@ from common.docker.container_manager import Container
 from common.service_response import ServiceResponse
 
 
-class DasPeerContainerServiceResponse(ServiceResponse):
+class CommandRouterServiceResponse(ServiceResponse):
     def __init__(
         self,
         action: str,
@@ -15,7 +15,7 @@ class DasPeerContainerServiceResponse(ServiceResponse):
         error: Optional[dict] = None,
     ):
         super().__init__(
-            service="das_peer",
+            service="command_router",
             action=action,
             status=status,
             message=message,

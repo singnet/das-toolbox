@@ -15,6 +15,7 @@ class BusNodeCommandRegistry:
             "link-creation-agent": self._cmd_link_creation_agent,
             "inference-agent": self._cmd_inference_agent,
             "context-broker": self._cmd_context_broker,
+            "command-router": self._cmd_command_router,
         }
 
         self._atomdb_flags: Dict[str, str] = {
@@ -101,3 +102,6 @@ class BusNodeCommandRegistry:
         busnode_endpoint = f"{args['peer_hostname']}:{args['peer_port']}"
 
         return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
+
+    def _cmd_command_router(self, service, endpoint, ports_range, options, **args):
+        return f"busnode --service=command-router --config={CURRENT_CONFIGFILE_PATH}".strip()
