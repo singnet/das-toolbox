@@ -34,6 +34,6 @@ class MorkDbContainerManagerFactory:
             options={
                 "morkdb_endpoint": morkdb_endpoint,
                 "morkdb_port": morkdb_port,
-                "morkdb_hostname": morkdb_hostname,
+                "morkdb_hostname": "0.0.0.0" if morkdb_hostname == "localhost" else morkdb_hostname,
             },
         )
