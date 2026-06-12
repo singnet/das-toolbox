@@ -6,7 +6,6 @@ from common.container_manager.metta.database_loader_container_manager import (
     DatabaseLoaderContainerManager,
 )
 from common.settings import get_core_defaults_dict
-from common.utils import extract_service_port
 from settings.config import SECRETS_PATH
 
 

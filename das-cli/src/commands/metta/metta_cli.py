@@ -63,8 +63,7 @@ class MettaLoad(Command):
     @ensure_container_running(
         "_atomdb_backend",
         exception_text=(
-            "\nPlease use 'db start' to start required services "
-            "before running 'metta load'."
+            "\nPlease use 'db start' to start required services " "before running 'metta load'."
         ),
         verbose=True,
     )
@@ -88,23 +87,17 @@ class MettaLoad(Command):
 
     def _check_path_exists(self, file_path: str):
         if not os.path.exists(file_path):
-            raise FileNotFoundError(
-                f"The specified file path '{file_path}' does not exist."
-            )
+            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
 
     def _check_if_file_or_directory(self, file_path: str):
         return os.path.isdir(file_path)
 
     def _check_file_and_permissions(self, file_path: str):
         if not file_path.endswith(".metta"):
-            raise TypeError(
-                f"Error: File '{file_path}' is not a .metta file."
-            )
+            raise TypeError(f"Error: File '{file_path}' is not a .metta file.")
 
         if not os.access(file_path, os.R_OK):
-            raise PermissionError(
-                f"The file {file_path} does not have correct permissions."
-            )
+            raise PermissionError(f"The file {file_path} does not have correct permissions.")
 
     def _check_if_directory_has_permissions(self, dir_path: str):
         read = os.access(dir_path, os.R_OK)
@@ -199,13 +192,9 @@ class MettaCheck(Command):
         try:
             self.check_syntax(file_path)
         except IsADirectoryError:
-            raise IsADirectoryError(
-                f"The specified path '{file_path}' is a directory."
-            )
+            raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"The specified file path '{file_path}' does not exist."
-            )
+            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
         except DockerError:
             self.stdout(
                 "Checking syntax... FAILED",

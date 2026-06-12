@@ -6,13 +6,14 @@ from common.container_manager.atomdb.morkdb_container_manager import MorkdbConta
 from common.container_manager.metta.database_loader_container_manager import (
     DatabaseLoaderContainerManager,
 )
-
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.factory.atomdb.atomdb_factory import (
     AtomDbContainerManagerFactory,
     MorkDbContainerManagerFactory,
 )
-from common.factory.metta.database_loader_manager_factory import DatabaseLoaderContainerManagerFactory
+from common.factory.metta.database_loader_manager_factory import (
+    DatabaseLoaderContainerManagerFactory,
+)
 from settings.config import SECRETS_PATH
 
 from .metta_cli import MettaCli, Settings

@@ -5,7 +5,8 @@ import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import DAS_IMAGE_NAME, DAS_IMAGE_VERSION, CURRENT_CONFIGFILE_PATH
+from settings.config import CURRENT_CONFIGFILE_PATH, DAS_IMAGE_NAME, DAS_IMAGE_VERSION
+
 
 class DatabaseLoaderContainerManager(ContainerManager):
     def __init__(
@@ -36,7 +37,9 @@ class DatabaseLoaderContainerManager(ContainerManager):
 
         try:
             user_config_path = CURRENT_CONFIGFILE_PATH
-            exec_command = self._gen_metta_loader_command(user_config_path=user_config_path, filepath=path)
+            exec_command = self._gen_metta_loader_command(
+                user_config_path=user_config_path, filepath=path
+            )
 
             container = self._start_container(
                 command=exec_command,
@@ -45,10 +48,7 @@ class DatabaseLoaderContainerManager(ContainerManager):
                         "bind": path,
                         "mode": "rw",
                     },
-                    user_config_path: {
-                        "bind": user_config_path,
-                        "mode": "ro"
-                    }
+                    user_config_path: {"bind": user_config_path, "mode": "ro"},
                 },
                 stdin_open=True,
                 tty=False,
