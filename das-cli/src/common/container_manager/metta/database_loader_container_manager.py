@@ -5,10 +5,10 @@ import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
+from settings.config import CURRENT_CONFIGFILE_PATH, DAS_IMAGE_NAME, DAS_IMAGE_VERSION
 
 
-class MettaLoaderContainerManager(ContainerManager):
+class DatabaseLoaderContainerManager(ContainerManager):
     def __init__(
         self,
         loader_container_name: str,
@@ -19,8 +19,8 @@ class MettaLoaderContainerManager(ContainerManager):
             metadata={
                 "port": None,
                 "image": {
-                    "name": METTA_PARSER_IMAGE_NAME,
-                    "version": METTA_PARSER_IMAGE_VERSION,
+                    "name": DAS_IMAGE_NAME,
+                    "version": DAS_IMAGE_VERSION,
                 },
             },
         )
@@ -28,36 +28,27 @@ class MettaLoaderContainerManager(ContainerManager):
         super().__init__(container)
         self._options = options
 
-    def _gen_metta_loader_command(self, filename: str) -> str:
-        skip_redis = "--skip-redis" if self._options.get('atomdb_backend') == 'morkdb' else ""
-        exec_command = f"db_loader {filename} {skip_redis}".strip()
-
-        return exec_command
-
     def start_container(self, path):
+
         try:
             self.stop()
         except (DockerContainerNotFoundError, DockerError):
             pass
 
         try:
-            filename = os.path.basename(path)
-            exec_command = self._gen_metta_loader_command(filename)
+            user_config_path = CURRENT_CONFIGFILE_PATH
+            exec_command = self._gen_metta_loader_command(
+                user_config_path=user_config_path, filepath=path
+            )
+
             container = self._start_container(
-                environment={
-                    "DAS_REDIS_HOSTNAME": self._options.get('redis_hostname'),
-                    "DAS_REDIS_PORT": self._options.get('redis_port'),
-                    "DAS_MONGODB_HOSTNAME": self._options.get('mongodb_hostname'),
-                    "DAS_MONGODB_PORT": self._options.get('mongodb_port'),
-                    "DAS_MONGODB_USERNAME": self._options.get('mongodb_username'),
-                    "DAS_MONGODB_PASSWORD": self._options.get('mongodb_password'),
-                },
                 command=exec_command,
                 volumes={
                     path: {
-                        "bind": f"/tmp/{filename}",
+                        "bind": path,
                         "mode": "rw",
                     },
+                    user_config_path: {"bind": user_config_path, "mode": "ro"},
                 },
                 stdin_open=True,
                 tty=False,
@@ -75,3 +66,8 @@ class MettaLoaderContainerManager(ContainerManager):
             return None
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
+
+    def _gen_metta_loader_command(self, user_config_path: str, filepath: str) -> str:
+        exec_command = f"db_loader --config={user_config_path} --file={filepath}".strip()
+
+        return exec_command
