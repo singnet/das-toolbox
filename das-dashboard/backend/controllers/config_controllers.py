@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File
 from fastapi.responses import JSONResponse
 from services_init import CONFIG_SERVICES, WEB_CONFIG
+from shared.internal.configuration_constants import CONSTANTS
 
 router = APIRouter(prefix="/config", tags=["Configuration"])
 
@@ -22,5 +23,14 @@ async def get_config():
         status_code=200,
         content={
             "content": WEB_CONFIG.config_dictionary
+        }
+    )
+
+@router.get("/defaults")
+async def get_config_defaults():
+    return JSONResponse(
+        status_code=200,
+        content={
+            "content": CONSTANTS
         }
     )
