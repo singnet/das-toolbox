@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 
 import './App.css'
 
+import { Box } from "@mui/material"
 import Navbar from "./components/top_nav_bar/NavBar.jsx"
 import SetupDasPage from './pages/setup_das/SetupDas.jsx'
 import { Dashboard } from '@mui/icons-material'
@@ -19,7 +20,9 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <Navbar />
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+          <Navbar />
+          <Box component="main" sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
             <Routes>
                   <Route path='/configuration' element={
                     <DialogProvider>
@@ -47,6 +50,8 @@ function App() {
                     </DialogProvider>
                   }/>
             </Routes>
+          </Box>
+        </Box>
       </BrowserRouter>
     </>
   )
