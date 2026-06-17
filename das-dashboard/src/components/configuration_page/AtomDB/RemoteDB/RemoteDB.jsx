@@ -4,14 +4,20 @@ import {
   TextField,
   Typography,
   MenuItem,
-  Paper,
   Divider
 } from "@mui/material"
 import { useState, useRef } from "react"
 import { RedisMongoSubForm } from "./RedisMongoSubForm"
 import { MorkMongoSubForm } from "./MorkMongoSubForm"
-import { useConfig } from "../../../global_providers/ConfigurationProvider"
-import { useToast } from "../../../global_providers/ToastProvider"
+import { useConfig } from "../../../global_providers/ConfigurationProvider";
+import { useToast } from "../../../global_providers/ToastProvider";
+import { 
+  GridSpan6, 
+  GridSpan12, 
+  PeerCard, 
+  PeerHeaderContainer, 
+  ActionButtonContainer 
+} from "../AtomDBStyled"
 
 export function RemoteDBOptions() {
 
@@ -91,10 +97,8 @@ export function RemoteDBOptions() {
     const cleanedPeers = Object.values(peersRefs.current)
       .filter(peer => {
         if (!peer.type) return false
-
         if (peer.type === "redismongodb" && (!peer.redis || !peer.mongodb)) return false
         if (peer.type === "morkdb" && (!peer.mongodb || !peer.morkdb)) return false
-
         return true
       })
       .map(peer => {
@@ -133,19 +137,22 @@ export function RemoteDBOptions() {
   }
 
   return (
-    <Box sx={{ mt: 1 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-        Remote Peers List
-      </Typography>
+    <>
+      <GridSpan12>
+        <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+          Remote Peers List
+        </Typography>
+      </GridSpan12>
 
       {peers.map(peer => (
-        <Paper key={peer.id} variant="outlined" sx={{ p: 2, mb: 3 }}>
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <PeerCard key={peer.id} variant="outlined">
+          <PeerHeaderContainer>
             <TextField
               label="Peer UID"
               size="small"
               value={peer.uid}
               disabled
+              sx={{ width: "200px" }}
             />
 
             <TextField
@@ -153,22 +160,19 @@ export function RemoteDBOptions() {
               label="Main Connection"
               size="small"
               value={peer.type}
+              sx={{ width: "250px" }}
               onChange={e => {
                 const val = e.target.value
-
                 peersRefs.current[peer.id].type = val
-
                 setPeers(prev =>
-                  prev.map(p =>
-                    p.id === peer.id ? { ...p, type: val } : p
-                  )
+                  prev.map(p => p.id === peer.id ? { ...p, type: val } : p)
                 )
               }}
             >
               <MenuItem value="redismongodb">Redis + Mongo</MenuItem>
               <MenuItem value="morkdb">Mork + Mongo</MenuItem>
             </TextField>
-          </Box>
+          </PeerHeaderContainer>
 
           {peer.type === "redismongodb" ? (
             <RedisMongoSubForm
@@ -182,40 +186,39 @@ export function RemoteDBOptions() {
             />
           )}
 
-          <Divider sx={{ my: 2 }} />
+          <GridSpan12>
+            <Divider sx={{ my: 1 }} />
+          </GridSpan12>
 
-          <Typography variant="caption">
-            Local Persistence Type
-          </Typography>
+          <GridSpan12>
+            <Typography variant="caption" sx={{ fontWeight: 600, display: "block", mb: 1 }}>
+              Local Persistence Type
+            </Typography>
+          </GridSpan12>
 
-          <TextField
-            select
-            fullWidth
-            size="small"
-            value={peer.localType}
-            sx={{ mt: 1 }}
-            onChange={e => {
-              const val = e.target.value
-
-              setPeers(prev =>
-                prev.map(p =>
-                  p.id === peer.id ? { ...p, localType: val } : p
+          <GridSpan12>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={peer.localType}
+              onChange={e => {
+                const val = e.target.value
+                setPeers(prev =>
+                  prev.map(p => p.id === peer.id ? { ...p, localType: val } : p)
                 )
-              )
-
-              if (val === "inmemorydb") {
-                peersRefs.current[peer.id].local_persistence = {
-                  type: "inmemorydb"
+                if (val === "inmemorydb") {
+                  peersRefs.current[peer.id].local_persistence = { type: "inmemorydb" }
+                } else {
+                  peersRefs.current[peer.id].local_persistence = {}
                 }
-              } else {
-                peersRefs.current[peer.id].local_persistence = {}
-              }
-            }}
-          >
-            <MenuItem value="inmemorydb">In Memory</MenuItem>
-            <MenuItem value="redismongodb">Redis + MongoDB</MenuItem>
-            <MenuItem value="morkdb">MorkDB + MongoDB</MenuItem>
-          </TextField>
+              }}
+            >
+              <MenuItem value="inmemorydb">In Memory</MenuItem>
+              <MenuItem value="redismongodb">Redis + MongoDB</MenuItem>
+              <MenuItem value="morkdb">MorkDB + MongoDB</MenuItem>
+            </TextField>
+          </GridSpan12>
 
           {peer.localType === "redismongodb" && (
             <RedisMongoSubForm
@@ -230,20 +233,27 @@ export function RemoteDBOptions() {
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
             />
           )}
-        </Paper>
+        </PeerCard>
       ))}
 
-      <Button onClick={addPeer} fullWidth>
-        + Add Peer
-      </Button>
+      <GridSpan12>
+        <Button variant="outlined" onClick={addPeer} fullWidth>
+          + Add Peer
+        </Button>
+      </GridSpan12>
 
-      <Button onClick={() => {
-        handleSave()
-        showToast("AtomDB saved successfully!")
-      }
-      } fullWidth color="success">
-        Save
-      </Button>
-    </Box>
+      <ActionButtonContainer>
+        <Button 
+          variant="contained"
+          color="success" 
+          onClick={() => {
+            handleSave()
+            showToast("AtomDB saved successfully!")
+          }} 
+        >
+          Save
+        </Button>
+      </ActionButtonContainer>
+    </>
   )
 }

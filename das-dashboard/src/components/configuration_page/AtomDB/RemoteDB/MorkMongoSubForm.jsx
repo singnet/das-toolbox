@@ -1,6 +1,7 @@
-import { TextField, Box } from "@mui/material"
+import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { GridSpan3, GridSpan6 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
 
@@ -27,51 +28,61 @@ export function MorkMongoSubForm({ onChange, category }) {
   }, [])
 
   return (
-    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5, mt: 1 }}>
+    <>
+      <GridSpan3>
+        <TextField
+          fullWidth
+          label="MorkDB Port"
+          size="small"
+          type="number"
+          defaultValue={section.current.morkdb.endpoint.split(":")[1]}
+          onChange={e => {
+            section.current.morkdb.endpoint = `localhost:${e.target.value}`
+            onChange(structuredClone(section.current), category)
+          }}
+        />
+      </GridSpan3>
 
-      <TextField
-        label="MorkDB Port"
-        size="small"
-        type="number"
-        defaultValue={section.current.morkdb.endpoint.split(":")[1]}
-        onChange={e => {
-          section.current.morkdb.endpoint = `localhost:${e.target.value}`
-          onChange(structuredClone(section.current), category)
-        }}
-      />
+      <GridSpan3>
+        <TextField
+          fullWidth
+          label="Mongo Port"
+          size="small"
+          type="number"
+          defaultValue={section.current.mongodb.endpoint.split(":")[1]}
+          onChange={e => {
+            section.current.mongodb.endpoint = `localhost:${e.target.value}`
+            onChange(structuredClone(section.current), category)
+          }}
+        />
+      </GridSpan3>
 
-      <TextField
-        label="Mongo Port"
-        size="small"
-        type="number"
-        defaultValue={section.current.mongodb.endpoint.split(":")[1]}
-        onChange={e => {
-          section.current.mongodb.endpoint = `localhost:${e.target.value}`
-          onChange(structuredClone(section.current), category)
-        }}
-      />
+      <GridSpan3>
+        <TextField
+          fullWidth
+          label="Mongo User"
+          size="small"
+          defaultValue={section.current.mongodb.username}
+          onChange={e => {
+            section.current.mongodb.username = e.target.value
+            onChange(structuredClone(section.current), category)
+          }}
+        />
+      </GridSpan3>
 
-      <TextField
-        label="Mongo User"
-        size="small"
-        defaultValue={section.current.mongodb.username}
-        onChange={e => {
-          section.current.mongodb.username = e.target.value
-          onChange(structuredClone(section.current), category)
-        }}
-      />
-
-      <TextField
-        label="Mongo Pass"
-        size="small"
-        type="password"
-        defaultValue={section.current.mongodb.password}
-        onChange={e => {
-          section.current.mongodb.password = e.target.value
-          onChange(structuredClone(section.current), category)
-        }}
-      />
-
-    </Box>
+      <GridSpan3>
+        <TextField
+          fullWidth
+          label="Mongo Pass"
+          size="small"
+          type="password"
+          defaultValue={section.current.mongodb.password}
+          onChange={e => {
+            section.current.mongodb.password = e.target.value
+            onChange(structuredClone(section.current), category)
+          }}
+        />
+      </GridSpan3>
+    </>
   )
 }

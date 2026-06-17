@@ -6,7 +6,7 @@ export const SidebarContainer = styled(Box)({
   backgroundColor: "#f5f5f5",
   borderRight: "1px solid #ddd",
   padding: "16px 0",
-  height: "100vh",
+  height: "100%",
   display: "flex",
   flexDirection: "column",
 });

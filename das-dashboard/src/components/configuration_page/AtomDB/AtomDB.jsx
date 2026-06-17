@@ -1,25 +1,22 @@
-import { Box, Typography, TextField, MenuItem } from "@mui/material"
-import { RedisMongoOptions } from "./RedisMongo"
-import { MorkMongoOptions } from "./MorkMongo"
+import { Box, TextField, MenuItem, Menu } from "@mui/material"
+import { RedisMongoOptions } from "./RedisMongo/RedisMongo"
+import { MorkMongoOptions } from "./MorkMongo/MorkMongo"
 import { useState } from "react"
-import { InMemoryOptions } from "./InMemory"
+import { InMemoryOptions } from "./InMemory/InMemory"
 import { RemoteDBOptions } from "./RemoteDB/RemoteDB"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
+import { AtomDBConnectionForm, AtomDBFormBox } from "./AtomDBStyled"
+import { AdapterDBOptions } from "./AdapterDB/AdapterDB"
 
 export default function AtomDBForm({ onSectionSave }) {
 
   const { getDefault } = useConfig()
-  const atomDB = getDefault().atomdb || "redismongodb"
-
+  const atomDB = "redismongodb"
   const [type, setType] = useState(atomDB.type)
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      
-      <Typography variant="h6">
-        AtomDB Configuration
-      </Typography>
-
+    <AtomDBFormBox>
+    
       <TextField
         select
         fullWidth
@@ -31,36 +28,41 @@ export default function AtomDBForm({ onSectionSave }) {
         <MenuItem value="morkdb">Mork + MongoDB</MenuItem>
         <MenuItem value="inmemorydb">In Memory</MenuItem>
         <MenuItem value="remotedb">Remote DB (Multi-Peer)</MenuItem>
+        <MenuItem value="adapterdb">AdapterDB</MenuItem>
       </TextField>
 
-      {type === "redismongodb" && (
-        <RedisMongoOptions/>
-      )}
 
-      {type === "morkdb" && (
-        <MorkMongoOptions
-          onSave={(data) =>
-            onSectionSave("atomdb", { type, ...data })
-          }
-        />
-      )}
+        {type === "redismongodb" && (
+          <AtomDBConnectionForm>
+            <RedisMongoOptions/>
+          </AtomDBConnectionForm>
+        )}
 
-      {type === "inmemorydb" && (
-        <InMemoryOptions
-          onSave={(data) =>
-            onSectionSave("atomdb", { type, ...data })
-          }
-        />
-      )}
+        {type === "morkdb" && (
+          <AtomDBConnectionForm>
+            <MorkMongoOptions/>
+          </AtomDBConnectionForm>
+        )}
 
-      {type === "remotedb" && (
-        <RemoteDBOptions
-          onSave={(data) =>
-            onSectionSave("atomdb", { type, ...data })
-          }
-        />
-      )}
+        {type === "inmemorydb" && (
+          <AtomDBConnectionForm>
+            <InMemoryOptions/>
+          </AtomDBConnectionForm>
+        )}
 
-    </Box>
+        {type === "remotedb" && (
+          <AtomDBConnectionForm>
+            <RemoteDBOptions/>
+          </AtomDBConnectionForm>
+        )}
+
+        {type === "adapterdb" && (
+          <AtomDBConnectionForm>
+            <AdapterDBOptions/>
+          </AtomDBConnectionForm>
+        )}
+
+
+    </AtomDBFormBox>
   )
 }

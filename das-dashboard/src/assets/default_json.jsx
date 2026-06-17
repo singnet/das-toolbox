@@ -99,6 +99,10 @@ export const DEFAULT_JSON = {
         "evolution": {
             "endpoint": "localhost:40005",
             "ports_range": "45000:45999"
+        },
+        "command_router": {
+            "endpoint": "localhost:40008",
+            "ports_range": "48000:48999"
         }
     },
     "brokers": {
@@ -208,6 +212,10 @@ export const DEFAULT_REDISMONGO_SCHEMA = {
         "evolution": {
             "endpoint": "localhost:40005",
             "ports_range": "45000:45999"
+        },
+        "command_router": {
+            "endpoint": "localhost:40008",
+            "ports_range": "48000:48999"
         }
     },
     "brokers": {

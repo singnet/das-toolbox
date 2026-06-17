@@ -23,12 +23,12 @@ export function EnvironmentForm({ onSectionSave }) {
         label="Jupyter Notebook Port"
         type="number"
         defaultValue={ defaults.environment.jupyter.endpoint.split(":")[1] || "40019"}
-        onChange={(e) => (form.current.jupyterPort = e.target.value)}
+        onChange={(e) => (section.current.jupyter.endpoint = `localhost:${e.target.value}`)}
       />
 
       <Button variant="contained" color="success" onClick={() => {
         updateSection("environment", structuredClone(section.current))
-        showToast("Environment saved successfully!")
+        showToast({ message: "Environment saved successfully!", severity: "success" })
       }}>
         Save environment section
       </Button>

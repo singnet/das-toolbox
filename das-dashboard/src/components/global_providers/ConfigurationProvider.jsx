@@ -1,63 +1,63 @@
-import { useContext, useState, createContext } from "react";
-import { DEFAULT_JSON, DEFAULT_REDISMONGO_SCHEMA } from "../../assets/default_json";
+import { useContext, useState, createContext } from "react"
+import { DEFAULT_JSON, DEFAULT_REDISMONGO_SCHEMA } from "../../assets/default_json"
 
 const ConfigContext = createContext(null)
-const DEFAULT_VALUES = structuredClone(DEFAULT_JSON)
 
-export function ConfigurationProvider({ children }){
+export function ConfigurationProvider({ children }) {
+  const [config, setConfig] = useState(() => structuredClone(DEFAULT_REDISMONGO_SCHEMA))
 
-    const [config, setConfig] = useState(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
+  const updateField = (fieldName, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      [fieldName]: value
+    }))
 
-    const getDefault = () => {
-        return new Proxy(DEFAULT_VALUES, {
-            get(target, prop) {
-            try {
-                const saved = sessionStorage.getItem(`config_${prop}`)
-                if (saved) return JSON.parse(saved)
-            } catch (e) {}
-
-            return target[prop]
-            }
-        })
-    }
-
-    const updateSection = (sectionName, sectionData) => {
-        setConfig(prev => ({
-            ...prev,
-            [sectionName]: sectionData
-        }))
-
-        sessionStorage.setItem(
-            `config_${sectionName}`,
-            JSON.stringify(sectionData)
-        )
-    }
-
-    const loadExternalConfiguration = ({ parsed }) => {
-        const newConfig = parsed
-        setConfig(newConfig)
-
-        Object.entries(parsed).forEach(([key, value]) => {
-            sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
-        })
-
-        location.reload()
-    }
-
-    const resetConfiguration = () => {
-        setConfig(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
-        sessionStorage.clear()
-        location.reload()
-    }
-
-    return(
-        <ConfigContext.Provider value={{config, updateSection, getDefault, loadExternalConfiguration, resetConfiguration}}>
-            { children }
-        </ConfigContext.Provider>
+    sessionStorage.setItem(
+      `config_${fieldName}`,
+      JSON.stringify(value)
     )
+  }
 
+  const updateSection = (sectionName, value) => {
+    setConfig((prev) => {
+      const next = { ...prev, [sectionName]: value }
+      sessionStorage.setItem(`config_${sectionName}`, JSON.stringify(value))
+      return next
+    })
+  }
+
+  const getDefault = () => DEFAULT_JSON
+
+  const loadExternalConfiguration = ({ parsed }) => {
+    setConfig(parsed)
+
+    Object.entries(parsed).forEach(([key, value]) => {
+      sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
+    })
+
+    location.reload()
+  }
+
+  const resetConfiguration = () => {
+    setConfig(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
+    sessionStorage.clear()
+    location.reload()
+  }
+
+  return (
+    <ConfigContext.Provider value={{
+      config,
+      updateField,
+      updateSection,
+      getDefault,
+      loadExternalConfiguration,
+      resetConfiguration
+    }}>
+      {children}
+    </ConfigContext.Provider>
+  )
 }
 
 export function useConfig() {
-    return useContext(ConfigContext)
+  return useContext(ConfigContext)
 }

@@ -5,7 +5,8 @@ import { Box } from "@mui/material";
 export const PageContainer = styled(Box)({
   backgroundColor: "#f5f5f5",
   width: "100%",
-  minHeight: "calc(100vh - 64px)",
+  height: "100%",
+  overflow: "auto",
 
   display: "flex",
   justifyContent: "center",
