@@ -1,114 +1,225 @@
-import { Box, Button, TextField, Typography } from "@mui/material"
-import { useRef } from "react"
+import { useRef, useState } from "react"
+import {
+  TextField,
+  Switch,
+  FormControlLabel
+} from "@mui/material"
+
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
 
-export function AgentsForm() {
+import { AGENT_GROUPS, getAgentByKey } from "./agentRegistry"
+import {
+  AgentsLayout,
+  AgentNav,
+  AgentNavGroupLabel,
+  AgentNavItem,
+  AgentContent,
+  AgentContentHeader,
+  AgentTitle,
+  AgentDescription,
+  ConfigSection,
+  ConfigSectionTitle,
+  FieldGrid,
+  SwitchGrid,
+  SaveButton
+} from "./Agents.styled"
 
+import QueryParams from "./AgentsParams/QueryParams"
+import EvolutionParams from "./AgentsParams/EvolutionParams"
+import ContextParams from "./AgentsParams/ContextParams"
+import LinkCreationParams from "./AgentsParams/LinkCreationParams"
+
+function getEndpoint(endpoint = "0.0.0.0:40000") {
+  return endpoint.split(":")[0] || ""
+}
+
+function getPort(endpoint = "0.0.0.0:40000") {
+  return endpoint.split(":")[1] || ""
+}
+
+function getRangeStart(range = "42000:42999") {
+  return range.split(":")[0] || ""
+}
+
+function getRangeEnd(range = "42000:42999") {
+  return range.split(":")[1] || ""
+}
+
+function ConnectionFields({ data, hasPortRange, onPortChange, onRangeStartChange, onRangeEndChange }) {
+  return (
+    <>
+      <TextField
+        label="IP Address"
+        fullWidth
+        type="text"
+        defaultValue={getEndpoint(data.endpoint)}
+        onChange={(e) => onPortChange(e.target.value)}
+        sx={{ mb: hasPortRange ? 2 : 2 }}
+      />
+
+      <TextField
+        label="Port"
+        fullWidth
+        type="number"
+        defaultValue={getPort(data.endpoint)}
+        onChange={(e) => onPortChange(e.target.value)}
+        sx={{ mb: hasPortRange ? 2 : 2 }}
+      />
+
+      {hasPortRange && (
+        <FieldGrid>
+          <TextField
+            label="Port range start"
+            fullWidth
+            type="number"
+            defaultValue={getRangeStart(data.ports_range)}
+            onChange={(e) => onRangeStartChange(e.target.value)}
+          />
+          <TextField
+            label="Port range end"
+            fullWidth
+            type="number"
+            defaultValue={getRangeEnd(data.ports_range)}
+            onChange={(e) => onRangeEndChange(e.target.value)}
+          />
+        </FieldGrid>
+      )}
+    </>
+  )
+}
+
+function ParamsPanel({ paramsKey, paramsRef }) {
+  if (!paramsKey) return null
+
+  const params = paramsRef.current
+
+  const onChange = (field, value) => {
+    params[field] = value
+  }
+
+  return (
+    <ConfigSection>
+      <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+
+      {paramsKey === "query" && <QueryParams params={params} onChange={onChange} />}
+      {paramsKey === "link_creation" && <LinkCreationParams params={params} onChange={onChange} />}
+      {paramsKey === "evolution" && <EvolutionParams params={params} onChange={onChange} />}
+      {paramsKey === "context" && <ContextParams params={params} onChange={onChange} />}
+    </ConfigSection>
+  )
+}
+
+function AgentPanel({ agentKey }) {
   const { updateSection, getDefault } = useConfig()
   const { showToast } = useToast()
 
-  const defaults = getDefault().agents || {}
+  const agent = getAgentByKey(agentKey)
+  const defaults = getDefault()
 
-  const section = useRef({
-    query: {
-      endpoint: defaults?.query?.endpoint || "localhost:40002",
-      ports_range: defaults?.query?.ports_range || "42000:42999"
-    },
-    link_creation: {
-      endpoint: defaults?.link_creation?.endpoint || "localhost:40003",
-      ports_range: defaults?.link_creation?.ports_range || "43000:43999"
-    },
-    inference: {
-      endpoint: defaults?.inference?.endpoint || "localhost:40004",
-      ports_range: defaults?.inference?.ports_range || "44000:44999"
-    },
-    evolution: {
-      endpoint: defaults?.evolution?.endpoint || "localhost:40005",
-      ports_range: defaults?.evolution?.ports_range || "45000:45999"
+  const sectionDefaults = defaults[agent.configSection]?.[agent.key] || {}
+  const paramsDefaults = agent.paramsKey
+    ? defaults.params?.[agent.paramsKey] || {}
+    : null
+
+  const connectionRef = useRef(structuredClone(sectionDefaults))
+  const paramsRef = useRef(paramsDefaults ? structuredClone(paramsDefaults) : null)
+
+  const updateEndpoint = (value) => {
+    connectionRef.current.endpoint = `${value}:port`
+  }
+
+  const updatePort = (value) => {
+    connectionRef.current.endpoint = `localhost:${value}`
+  }
+
+  const updateRangeStart = (value) => {
+    const [, end] = (connectionRef.current.ports_range || ":").split(":")
+    connectionRef.current.ports_range = `${value}:${end || ""}`
+  }
+
+  const updateRangeEnd = (value) => {
+    const [start] = (connectionRef.current.ports_range || ":").split(":")
+    connectionRef.current.ports_range = `${start || ""}:${value}`
+  }
+
+  const handleSave = () => {
+    const fullSection = structuredClone(defaults[agent.configSection] || {})
+    fullSection[agent.key] = structuredClone(connectionRef.current)
+    updateSection(agent.configSection, fullSection)
+
+    if (agent.paramsKey && paramsRef.current) {
+      const fullParams = structuredClone(defaults.params || {})
+      fullParams[agent.paramsKey] = structuredClone(paramsRef.current)
+      updateSection("params", fullParams)
     }
-  })
 
-  const updateEndpoint = (key, value) => {
-    section.current[key].endpoint = `localhost:${value}`
+    showToast({ message: `${agent.label} saved successfully!`, severity: "success" })
   }
-
-  const updateRangeStart = (key, value) => {
-    const [, end] = section.current[key].ports_range.split(":")
-    section.current[key].ports_range = `${value}:${end}`
-  }
-
-  const updateRangeEnd = (key, value) => {
-    const [start] = section.current[key].ports_range.split(":")
-    section.current[key].ports_range = `${start}:${value}`
-  }
-
-  const getPort = (endpoint) => endpoint.split(":")[1]
-  const getStart = (range) => range.split(":")[0]
-  const getEnd = (range) => range.split(":")[1]
-
-  const SectionBlock = ({ title, name }) => (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-      
-      <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 1 }}>
-        {title}
-      </Typography>
-
-      <TextField
-        label={`${title} Port`}
-        fullWidth
-        type="number"
-        defaultValue={getPort(section.current[name].endpoint)}
-        onChange={e => updateEndpoint(name, e.target.value)}
-      />
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 1
-        }}
-      >
-        <TextField
-          label="Port range start"
-          fullWidth
-          type="number"
-          defaultValue={getStart(section.current[name].ports_range)}
-          onChange={e => updateRangeStart(name, e.target.value)}
-        />
-
-        <TextField
-          label="Port range end"
-          fullWidth
-          type="number"
-          defaultValue={getEnd(section.current[name].ports_range)}
-          onChange={e => updateRangeEnd(name, e.target.value)}
-        />
-      </Box>
-
-    </Box>
-  )
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      
-      <Typography variant="h6">Agents Configuration</Typography>
+    <AgentContent key={agentKey}>
 
-      <SectionBlock title="Query" name="query" />
-      <SectionBlock title="Link Creation" name="link_creation" />
-      <SectionBlock title="Inference" name="inference" />
-      <SectionBlock title="Evolution" name="evolution" />
+      <AgentContentHeader>
+        <AgentTitle>{agent.label}</AgentTitle>
+      </AgentContentHeader>
 
-      <Button
-        variant="contained"
-        color="success"
-        onClick={() => {
-          updateSection("agents", structuredClone(section.current))
-          showToast("Agents saved successfully!")
-        }}
-      >
-        Save agents section
-      </Button>
-    </Box>
+      <ConfigSection>
+        <ConfigSectionTitle>Connection</ConfigSectionTitle>
+        <ConnectionFields
+          data={connectionRef.current}
+          hasPortRange={agent.hasPortRange}
+          onPortChange={updatePort}
+          onRangeStartChange={updateRangeStart}
+          onRangeEndChange={updateRangeEnd}
+        />
+      </ConfigSection>
+
+      {agent.paramsKey && paramsRef.current && (
+        <ParamsPanel paramsKey={agent.paramsKey} paramsRef={paramsRef} />
+      )}
+
+      <SaveButton onClick={handleSave}>
+        Apply {agent.label} settings
+      </SaveButton>
+
+    </AgentContent>
+  )
+}
+
+export function AgentsForm({ activeAgent, onAgentChange }) {
+  const selectedAgent = activeAgent || "query"
+
+  return (
+    <AgentsLayout>
+
+      <AgentNav>
+
+        {AGENT_GROUPS.map((group) => (
+          <div key={group.label}>
+
+            <AgentNavGroupLabel>{group.label}</AgentNavGroupLabel>
+
+            {group.items.map((item) => {
+
+              return (
+                <AgentNavItem
+                  key={item.key}
+                  active={selectedAgent === item.key}
+                  onClick={() => onAgentChange(item.key)}
+                >
+                  {item.label}
+                </AgentNavItem>
+              )
+            })}
+
+          </div>
+        ))}
+
+      </AgentNav>
+
+      <AgentPanel key={selectedAgent} agentKey={selectedAgent} />
+
+    </AgentsLayout>
   )
 }
