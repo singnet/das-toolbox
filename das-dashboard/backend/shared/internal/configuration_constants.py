@@ -2,7 +2,7 @@ CONSTANTS = {
   "atomdb.type": "redismongodb",
   "atomdb.redis.image": "redis:7.2.3-alpine",
   "atomdb.redis.endpoint": "localhost:40020",
-  "atomdb.redis.cluster": True,
+  "atomdb.redis.cluster": False,
   "atomdb.redis.nodes": [
     {
       "context": "default",

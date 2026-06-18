@@ -1,27 +1,5 @@
-import {
-  AgentsLayout,
-  AgentNav,
-  AgentNavGroupLabel,
-  AgentNavItem,
-  AgentContent,
-  AgentContentHeader,
-  AgentTitle,
-  AgentDescription,
-  ConfigSection,
-  ConfigSectionTitle,
-  FieldGrid,
-  SwitchGrid,
-  SaveButton
-} from "../Agents.styled"
-
-import { useRef, useState } from "react"
-import {
-  TextField,
-  Switch,
-  FormControlLabel
-} from "@mui/material"
-
-import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { TextField } from "@mui/material"
+import { FieldGrid } from "../Agents.styled"
 
 const numberProps = {
   slotProps: {
@@ -29,43 +7,48 @@ const numberProps = {
   }
 }
 
-export default function EvolutionParams({ params, onChange }) {
+export default function EvolutionParams({ formRef }) {
   return (
     <FieldGrid>
       <TextField
-        label="Elitism Rate"
+        label="Population Size"
         type="number"
-        defaultValue={params.elitism_rate}
+        size="small"
+        defaultValue={formRef.current.population_size}
         {...numberProps}
-        onChange={(e) => onChange("elitism_rate", Number(e.target.value))}
+        onChange={(e) => {
+          formRef.current.population_size = Number(e.target.value)
+        }}
       />
       <TextField
         label="Max Generations"
         type="number"
-        defaultValue={params.max_generations}
+        size="small"
+        defaultValue={formRef.current.max_generations}
         {...numberProps}
-        onChange={(e) => onChange("max_generations", Number(e.target.value))}
+        onChange={(e) => {
+          formRef.current.max_generations = Number(e.target.value)
+        }}
       />
       <TextField
-        label="Population Size"
+        label="Elitism Rate"
         type="number"
-        defaultValue={params.population_size}
+        size="small"
+        defaultValue={formRef.current.elitism_rate}
         {...numberProps}
-        onChange={(e) => onChange("population_size", Number(e.target.value))}
+        onChange={(e) => {
+          formRef.current.elitism_rate = Number(e.target.value)
+        }}
       />
       <TextField
         label="Selection Rate"
         type="number"
-        defaultValue={params.selection_rate}
+        size="small"
+        defaultValue={formRef.current.selection_rate}
         {...numberProps}
-        onChange={(e) => onChange("selection_rate", Number(e.target.value))}
-      />
-      <TextField
-        label="Total Attention Tokens"
-        type="number"
-        defaultValue={params.total_attention_tokens}
-        {...numberProps}
-        onChange={(e) => onChange("total_attention_tokens", Number(e.target.value))}
+        onChange={(e) => {
+          formRef.current.selection_rate = Number(e.target.value)
+        }}
       />
     </FieldGrid>
   )
