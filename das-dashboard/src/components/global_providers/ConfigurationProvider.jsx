@@ -1,10 +1,27 @@
-import { useContext, useState, createContext } from "react"
-import { DEFAULT_JSON, DEFAULT_REDISMONGO_SCHEMA } from "../../assets/default_json"
+import { useContext, useState, createContext, useEffect } from "react"
+import { getConfigDefaults } from "../../api/ConfigAPI"
 
 const ConfigContext = createContext(null)
 
 export function ConfigurationProvider({ children }) {
-  const [config, setConfig] = useState(() => structuredClone(DEFAULT_REDISMONGO_SCHEMA))
+  const [config, setConfig] = useState({})
+  let configDefaults = {}
+
+  useEffect(() => {
+
+      const fetchDefaults = async () => {
+        try{
+          const response = await getConfigDefaults()
+          configDefaults = response.content
+        }
+        catch (error) {
+            console.error(error)
+        }
+      }
+
+      fetchDefaults()
+  }, [])
+
 
   const updateField = (fieldName, value) => {
     setConfig((prev) => ({
@@ -26,7 +43,14 @@ export function ConfigurationProvider({ children }) {
     })
   }
 
-  const getDefault = () => DEFAULT_JSON
+  const getDefault = ( dictionaryKey ) => { 
+    try{
+      return configDefaults[dictionaryKey]
+    }
+    catch (error){
+      return { }
+    }
+  }
 
   const loadExternalConfiguration = ({ parsed }) => {
     setConfig(parsed)

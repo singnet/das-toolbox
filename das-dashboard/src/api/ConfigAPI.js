@@ -19,3 +19,9 @@ export async function getConfig() {
 
   return response.data;
 }
+
+export async function getConfigDefaults() {
+  const response = await api.get("/config/defaults");
+
+  return response.data
+}
