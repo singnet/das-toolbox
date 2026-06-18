@@ -2,18 +2,25 @@ import { Box, Button, TextField, Typography } from "@mui/material"
 import { useRef } from "react"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
+import { SaveButton } from "../Agents/Agents.styled"
 
-export function EnvironmentForm({ onSectionSave }) {
+export function EnvironmentForm() {
 
-  const { updateSection, getDefault } = useConfig()
+  const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
-  const defaults = getDefault()
 
-  const section = useRef({
-    jupyter: {
-      endpoint: `localhost:40019`
-    }
+  const currentEndpoint = getDefault("environment.jupyter.endpoint") || "localhost:40019"
+
+  const form = useRef({
+    jupyter_port: Number(currentEndpoint.split(":")[1]) || 40019
   })
+
+  const handleSave = () => {
+    updateField("environment", {
+      jupyter_endpoint: `localhost:${form.current.jupyter_port}`
+    })
+    showToast({ message: "Environment saved successfully!", severity: "success" })
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -22,16 +29,16 @@ export function EnvironmentForm({ onSectionSave }) {
       <TextField
         label="Jupyter Notebook Port"
         type="number"
-        defaultValue={ defaults.environment.jupyter.endpoint.split(":")[1] || "40019"}
-        onChange={(e) => (section.current.jupyter.endpoint = `localhost:${e.target.value}`)}
+        size="small"
+        defaultValue={form.current.jupyter_port}
+        onChange={(e) => {
+          form.current.jupyter_port = Number(e.target.value)
+        }}
       />
 
-      <Button variant="contained" color="success" onClick={() => {
-        updateSection("environment", structuredClone(section.current))
-        showToast({ message: "Environment saved successfully!", severity: "success" })
-      }}>
+      <SaveButton variant="contained" color="success" onClick={handleSave}>
         Save environment section
-      </Button>
+      </SaveButton>
     </Box>
   )
 }
