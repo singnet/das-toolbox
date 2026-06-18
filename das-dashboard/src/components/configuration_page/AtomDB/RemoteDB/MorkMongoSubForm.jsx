@@ -1,26 +1,18 @@
 import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
-import { GridSpan3, GridSpan6 } from "../AtomDBStyled"
+import { GridSpan3 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
 
   const { getDefault } = useConfig()
-  const defaults = getDefault().atomdb || {}
 
   const section = useRef({
     type: "morkdb",
-    mongodb: {
-      endpoint: defaults?.mongodb?.endpoint || "localhost:40021",
-      username: defaults?.mongodb?.username || "admin",
-      password: defaults?.mongodb?.password || "admin",
-      cluster: defaults?.mongodb?.cluster || false,
-      cluster_secret_key: defaults?.mongodb?.cluster_secret_key || "None",
-      nodes: defaults?.mongodb?.nodes || [{ context: "default", ip: "localhost", username: "root" }]
-    },
-    morkdb: {
-      endpoint: defaults?.morkdb?.endpoint || "localhost:40022"
-    }
+    mork_port: Number(getDefault("atomdb.morkdb.endpoint")?.split(":")[1]) || 40022,
+    mongo_port: Number(getDefault("atomdb.mongodb.endpoint")?.split(":")[1]) || 40021,
+    mongo_username: getDefault("atomdb.mongodb.username") || "admin",
+    mongo_password: getDefault("atomdb.mongodb.password") || "admin"
   })
 
   useEffect(() => {
@@ -35,9 +27,9 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MorkDB Port"
           size="small"
           type="number"
-          defaultValue={section.current.morkdb.endpoint.split(":")[1]}
+          defaultValue={section.current.mork_port}
           onChange={e => {
-            section.current.morkdb.endpoint = `localhost:${e.target.value}`
+            section.current.mork_port = Number(e.target.value)
             onChange(structuredClone(section.current), category)
           }}
         />
@@ -49,9 +41,9 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="Mongo Port"
           size="small"
           type="number"
-          defaultValue={section.current.mongodb.endpoint.split(":")[1]}
+          defaultValue={section.current.mongo_port}
           onChange={e => {
-            section.current.mongodb.endpoint = `localhost:${e.target.value}`
+            section.current.mongo_port = Number(e.target.value)
             onChange(structuredClone(section.current), category)
           }}
         />
@@ -62,9 +54,9 @@ export function MorkMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo User"
           size="small"
-          defaultValue={section.current.mongodb.username}
+          defaultValue={section.current.mongo_username}
           onChange={e => {
-            section.current.mongodb.username = e.target.value
+            section.current.mongo_username = e.target.value
             onChange(structuredClone(section.current), category)
           }}
         />
@@ -76,9 +68,9 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="Mongo Pass"
           size="small"
           type="password"
-          defaultValue={section.current.mongodb.password}
+          defaultValue={section.current.mongo_password}
           onChange={e => {
-            section.current.mongodb.password = e.target.value
+            section.current.mongo_password = e.target.value
             onChange(structuredClone(section.current), category)
           }}
         />

@@ -15,47 +15,47 @@ import {
   ActionButtonContainer, 
   GridSpan5
 } from "../AtomDBStyled"
+import { SaveButton } from "../../Agents/Agents.styled";
 
 export function AdapterDBOptions() {
 
-  const { updateSection, getDefault } = useConfig()
+  const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
 
-  const defaults = getDefault().adapterdb || {}
-
   const form = useRef({
-    endpoint: defaults?.endpoint || "localhost:40023",
-    type: defaults?.type || "postgres",
-    database_credentials: {
-      host: defaults?.database_credentials?.host || "remote.database.org",
-      port: defaults?.database_credentials?.port || 5432,
-      username: defaults?.database_credentials?.username || "admin",
-      password: defaults?.database_credentials?.password || "admin",
-      database: defaults?.database_credentials?.database || "database"
-    },
-    context_mapping_paths: defaults?.context_mapping_paths || ["/home/levi/Downloads/context.sql"],
-    export_metta_on_mapping: {
-      enabled: defaults?.export_metta_on_mapping?.enabled ?? true,
-      output_dir: defaults?.export_metta_on_mapping?.output_dir || "/home/levi/Downloads"
-    },
-    persistence: {
-      reuse_mongodb: defaults?.persistence?.reuse_mongodb ?? true
-    },
-    atomdb_backend: defaults?.atomdb_backend || {
-      type: "redismongodb"
-    }
+    atomdb_type: "adapterdb",
+
+    adapter_type: getDefault("atomdb.adapterdb.type") || "postgres",
+    adapter_endpoint: getDefault("atomdb.adapterdb.endpoint")?.split(":")[0] || "localhost",
+    adapter_port: getDefault("atomdb.adapterdb.endpoint")?.split(":")[1] || "40023",
+
+    db_host: getDefault("atomdb.adapterdb.database_credentials.host") || "remote.database.org",
+    db_port: getDefault("atomdb.adapterdb.database_credentials.port") || 5432,
+    db_name: getDefault("atomdb.adapterdb.database_credentials.database") || "database",
+    db_username: getDefault("atomdb.adapterdb.database_credentials.username") || "admin",
+    db_password: getDefault("atomdb.adapterdb.database_credentials.password") || "admin",
+
+    context_mapping_path: getDefault("atomdb.adapterdb.context_mapping_paths")?.[0] || "/home/levi/Downloads/context.sql",
+    export_metta_enabled: getDefault("atomdb.adapterdb.export_metta_on_mapping.enabled") ?? true,
+    export_metta_output_dir: getDefault("atomdb.adapterdb.export_metta_on_mapping.output_dir") || "/home/levi/Downloads",
+    persistence_reuse_mongodb: getDefault("atomdb.adapterdb.persistence.reuse_mongodb") ?? true,
+
+    backend_type: getDefault("atomdb.adapterdb.atomdb_backend.type") || "redismongodb",
+
+    backend_nodes: []
   })
 
-  const [backendType, setBackendType] = useState(form.current.atomdb_backend.type || "redismongodb")
+  const [adapterType, setAdapterType] = useState(form.current.adapter_type)
+  const [backendType, setBackendType] = useState(form.current.backend_type)
 
   const handleBackendChange = (subFormData) => {
-    form.current.atomdb_backend = {
-      ...form.current.atomdb_backend,
-      type: subFormData.type,
-      ...(subFormData.redis && { redis: subFormData.redis }),
-      ...(subFormData.mongodb && { mongodb: subFormData.mongodb }),
-      ...(subFormData.morkdb && { morkdb: subFormData.morkdb })
-    }
+    form.current.backend_type = subFormData.type
+    form.current.backend_nodes = subFormData.redis_nodes || subFormData.mongo_nodes || []
+  }
+
+  const handleSave = () => {
+    updateField("atomdb", structuredClone(form.current))
+    showToast({ message: "AdapterDB settings applied", severity: "success" })
   }
 
   return (
@@ -70,8 +70,11 @@ export function AdapterDBOptions() {
             fullWidth
             label="Adapter Type"
             size="small"
-            value={form.current.type}
-            onChange={() => {}}
+            value={adapterType}
+            onChange={(e) => {
+              setAdapterType(e.target.value)
+              form.current.adapter_type = e.target.value
+            }}
         >
             <MenuItem value="postgres">PostgreSQL</MenuItem>
         </TextField>
@@ -82,8 +85,10 @@ export function AdapterDBOptions() {
           fullWidth
           label="Adapter Endpoint"
           size="small"
-          defaultValue={form.current.endpoint.split(":")[0]}
-          onChange={() => {}}
+          defaultValue={form.current.adapter_endpoint}
+          onChange={(e) => {
+            form.current.adapter_endpoint = e.target.value
+          }}
         />
       </GridSpan5>
 
@@ -93,8 +98,10 @@ export function AdapterDBOptions() {
           label="Adapter Port"
           type="number"
           size="small"
-          defaultValue={form.current.endpoint.split(":")[1]}
-          onChange={() => {}}
+          defaultValue={form.current.adapter_port}
+          onChange={(e) => {
+            form.current.adapter_port = Number(e.target.value)
+          }}
         />
       </GridSpan3>
 
@@ -107,8 +114,10 @@ export function AdapterDBOptions() {
           fullWidth
           label="Database Host"
           size="small"
-          defaultValue={form.current.database_credentials.host}
-          onChange={() => {}}
+          defaultValue={form.current.db_host}
+          onChange={(e) => {
+            form.current.db_host = e.target.value
+          }}
         />
       </GridSpan9>
 
@@ -118,8 +127,10 @@ export function AdapterDBOptions() {
           label="Database Port"
           type="number"
           size="small"
-          defaultValue={form.current.database_credentials.port}
-          onChange={() => {}}
+          defaultValue={form.current.db_port}
+          onChange={(e) => {
+            form.current.db_port = Number(e.target.value)
+          }}
         />
       </GridSpan3>
 
@@ -128,8 +139,10 @@ export function AdapterDBOptions() {
           fullWidth
           label="Database Name"
           size="small"
-          defaultValue={form.current.database_credentials.database}
-          onChange={() => {}}
+          defaultValue={form.current.db_name}
+          onChange={(e) => {
+            form.current.db_name = e.target.value
+          }}
         />
       </GridSpan4>
 
@@ -138,8 +151,10 @@ export function AdapterDBOptions() {
           fullWidth
           label="Username"
           size="small"
-          defaultValue={form.current.database_credentials.username}
-          onChange={() => {}}
+          defaultValue={form.current.db_username}
+          onChange={(e) => {
+            form.current.db_username = e.target.value
+          }}
         />
       </GridSpan4>
 
@@ -149,8 +164,10 @@ export function AdapterDBOptions() {
           label="Password"
           type="password"
           size="small"
-          defaultValue={form.current.database_credentials.password}
-          onChange={() => {}}
+          defaultValue={form.current.db_password}
+          onChange={(e) => {
+            form.current.db_password = e.target.value
+          }}
         />
       </GridSpan4>
 
@@ -163,8 +180,10 @@ export function AdapterDBOptions() {
           fullWidth
           label="Context Mapping Path"
           size="small"
-          defaultValue={form.current.context_mapping_paths[0]}
-          onChange={() => {}}
+          defaultValue={form.current.context_mapping_path}
+          onChange={(e) => {
+            form.current.context_mapping_path = e.target.value
+          }}
         />
       </GridSpan12>
 
@@ -173,8 +192,10 @@ export function AdapterDBOptions() {
           fullWidth
           label="MeTTa Output Directory"
           size="small"
-          defaultValue={form.current.export_metta_on_mapping.output_dir}
-          onChange={() => {}}
+          defaultValue={form.current.export_metta_output_dir}
+          onChange={(e) => {
+            form.current.export_metta_output_dir = e.target.value
+          }}
         />
       </GridSpan12>
 
@@ -184,8 +205,10 @@ export function AdapterDBOptions() {
           control={
             <Checkbox
               size="small"
-              defaultChecked={form.current.export_metta_on_mapping.enabled}
-              onChange={() => {}}
+              defaultChecked={form.current.export_metta_enabled}
+              onChange={(e) => {
+                form.current.export_metta_enabled = e.target.checked
+              }}
             />
           }
         />
@@ -194,8 +217,10 @@ export function AdapterDBOptions() {
           control={
             <Checkbox
               size="small"
-              defaultChecked={form.current.persistence.reuse_mongodb}
-              onChange={() => {}}
+              defaultChecked={form.current.persistence_reuse_mongodb}
+              onChange={(e) => {
+                form.current.persistence_reuse_mongodb = e.target.checked
+              }}
             />
           }
         />
@@ -218,7 +243,7 @@ export function AdapterDBOptions() {
           onChange={e => {
             const val = e.target.value
             setBackendType(val)
-            form.current.atomdb_backend.type = val
+            form.current.backend_type = val
           }}
         >
           <MenuItem value="inmemorydb">In Memory</MenuItem>
@@ -242,13 +267,13 @@ export function AdapterDBOptions() {
       )}
 
       <ActionButtonContainer>
-        <Button
+        <SaveButton
           variant="contained"
           color="success"
-          onClick={() => {}}
+          onClick={handleSave}
         >
           Save AtomDB Section
-        </Button>
+        </SaveButton>
       </ActionButtonContainer>
     </>
   )

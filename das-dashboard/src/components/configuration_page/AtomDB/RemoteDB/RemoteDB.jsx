@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   TextField,
   Typography,
@@ -18,10 +17,11 @@ import {
   PeerHeaderContainer, 
   ActionButtonContainer 
 } from "../AtomDBStyled"
+import { SaveButton } from "../../Agents/Agents.styled";
 
 export function RemoteDBOptions() {
 
-  const { updateSection } = useConfig()
+  const { updateField } = useConfig()
   const { showToast } = useToast()
 
   const [peers, setPeers] = useState([])
@@ -46,6 +46,7 @@ export function RemoteDBOptions() {
 
   const updatePeer = (id, subFormData, category) => {
     const base = peersRefs.current[id]
+    if (!base) return
 
     if (category === "main") {
       const cleaned = {
@@ -58,16 +59,20 @@ export function RemoteDBOptions() {
       if (subFormData.type === "redismongodb") {
         peersRefs.current[id] = {
           ...cleaned,
-          redis: subFormData.redis,
-          mongodb: subFormData.mongodb
+          redis_port: subFormData.redis_port,
+          mongo_port: subFormData.mongo_port,
+          mongo_username: subFormData.mongo_username,
+          mongo_password: subFormData.mongo_password
         }
       }
 
       if (subFormData.type === "morkdb") {
         peersRefs.current[id] = {
           ...cleaned,
-          mongodb: subFormData.mongodb,
-          morkdb: subFormData.morkdb
+          mork_port: subFormData.mork_port,
+          mongo_port: subFormData.mongo_port,
+          mongo_username: subFormData.mongo_username,
+          mongo_password: subFormData.mongo_password
         }
       }
     }
@@ -77,8 +82,10 @@ export function RemoteDBOptions() {
         peersRefs.current[id].local_persistence = {
           type: "redismongodb",
           context: `${base.context}local_`,
-          redis: subFormData.redis,
-          mongodb: subFormData.mongodb
+          redis_port: subFormData.redis_port,
+          mongo_port: subFormData.mongo_port,
+          mongo_username: subFormData.mongo_username,
+          mongo_password: subFormData.mongo_password
         }
       }
 
@@ -86,8 +93,10 @@ export function RemoteDBOptions() {
         peersRefs.current[id].local_persistence = {
           type: "morkdb",
           context: `${base.context}local_`,
-          mongodb: subFormData.mongodb,
-          morkdb: subFormData.morkdb
+          mork_port: subFormData.mork_port,
+          mongo_port: subFormData.mongo_port,
+          mongo_username: subFormData.mongo_username,
+          mongo_password: subFormData.mongo_password
         }
       }
     }
@@ -97,43 +106,19 @@ export function RemoteDBOptions() {
     const cleanedPeers = Object.values(peersRefs.current)
       .filter(peer => {
         if (!peer.type) return false
-        if (peer.type === "redismongodb" && (!peer.redis || !peer.mongodb)) return false
-        if (peer.type === "morkdb" && (!peer.mongodb || !peer.morkdb)) return false
+        if (peer.type === "redismongodb" && (!peer.redis_port || !peer.mongo_port)) return false
+        if (peer.type === "morkdb" && (!peer.mork_port || !peer.mongo_port)) return false
         return true
       })
-      .map(peer => {
-        const base = {
-          uid: peer.uid,
-          type: peer.type,
-          context: peer.context
-        }
+      .map(peer => structuredClone(peer))
 
-        if (peer.type === "redismongodb") {
-          base.redis = peer.redis
-          base.mongodb = peer.mongodb
-        }
-
-        if (peer.type === "morkdb") {
-          base.mongodb = peer.mongodb
-          base.morkdb = peer.morkdb
-        }
-
-        const lp = peer.local_persistence || { type: "inmemorydb" }
-
-        base.local_persistence = {
-          type: lp.type,
-          context: `${peer.context}local_`,
-          ...(lp.redis && { redis: lp.redis }),
-          ...(lp.mongodb && { mongodb: lp.mongodb }),
-          ...(lp.morkdb && { morkdb: lp.morkdb })
-        }
-
-        return base
-      })
-
-    updateSection("atomdb", {
+    // Salva o payload de peers no formato plano esperado pela feature de atomdb
+    updateField("atomdb", {
+      atomdb_type: "remotedb",
       remote_peers: cleanedPeers
     })
+    
+    showToast({ message: "AtomDB saved successfully!", severity: "success" })
   }
 
   return (
@@ -243,16 +228,13 @@ export function RemoteDBOptions() {
       </GridSpan12>
 
       <ActionButtonContainer>
-        <Button 
+        <SaveButton 
           variant="contained"
           color="success" 
-          onClick={() => {
-            handleSave()
-            showToast("AtomDB saved successfully!")
-          }} 
+          onClick={handleSave} 
         >
           Save
-        </Button>
+        </SaveButton>
       </ActionButtonContainer>
     </>
   )

@@ -11,7 +11,7 @@ import { AdapterDBOptions } from "./AdapterDB/AdapterDB"
 export default function AtomDBForm({ onSectionSave }) {
 
   const { getDefault } = useConfig()
-  const atomDB = "redismongodb"
+  const atomDB = getDefault["atomdb.type"] || "redismongodb"
   const [type, setType] = useState(atomDB.type)
 
   return (

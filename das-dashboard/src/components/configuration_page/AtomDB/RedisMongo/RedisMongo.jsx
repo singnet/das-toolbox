@@ -11,32 +11,33 @@ import {
   ClusterGridContainer, 
   ActionButtonContainer 
 } from "../AtomDBStyled"
+import { SaveButton } from "../../Agents/Agents.styled";
 
 export function RedisMongoOptions() {
 
-  const { updateField } = useConfig()
+  const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
 
   const form = useRef({
     atomdb_type : "redismongodb",
 
-    redis_endpoint: "localhost",
-    redis_port: 40020,
+    redis_endpoint: getDefault("atomdb.redis.endpoint")?.split(":")[0],
+    redis_port: getDefault("atomdb.redis.endpoint")?.split(":")[1],
 
-    mongo_endpoint: "localhost",
-    mongo_port: 40021,
-    mongo_username: "admin",
-    mongo_password: "admin",
+    mongo_endpoint: getDefault("atomdb.mongodb.endpoint")?.split(":")[0],
+    mongo_port: getDefault("atomdb.mongodb.endpoint")?.split(":")[1],
+    mongo_username: getDefault("atomdb.mongodb.username"),
+    mongo_password: getDefault("atomdb.mongodb.password"),
 
-    redis_cluster: false,
-    mongo_cluster: false,
+    redis_cluster: getDefault("atomdb.redis.cluster"),
+    mongo_cluster: getDefault("atomdb.mongodb.cluster"),
 
     redis_nodes: [],
     mongo_nodes: []
   })
 
-  const [showRedis, setShowRedis] = useState(false)
-  const [showMongo, setShowMongo] = useState(false)
+  const [showRedis, setShowRedis] = useState(form.current.redis_cluster)
+  const [showMongo, setShowMongo] = useState(form.current.mongo_cluster)
 
   const handleSave = () => {
     updateField(
@@ -174,13 +175,13 @@ export function RedisMongoOptions() {
       </ClusterGridContainer>
 
       <ActionButtonContainer>
-        <Button
+        <SaveButton
           variant="contained"
           color="success"
           onClick={handleSave}
         >
           Apply AtomDB Sections
-        </Button>
+        </SaveButton>
       </ActionButtonContainer>
     </>
   )

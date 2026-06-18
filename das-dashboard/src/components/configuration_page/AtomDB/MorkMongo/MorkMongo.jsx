@@ -11,30 +11,37 @@ import {
   ClusterGridContainer, 
   ActionButtonContainer 
 } from "../AtomDBStyled"
+import { SaveButton } from "../../Agents/Agents.styled";
 
 export function MorkMongoOptions() {
 
-  const { updateSection, getDefault } = useConfig()
+  const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
 
-  const defaults = getDefault().atomdb || {}
-
   const section = useRef({
-    type: "morkdb",
-    morkdb: {
-      endpoint: defaults?.morkdb?.endpoint || "localhost:40022"
-    },
-    mongodb: {
-      endpoint: defaults?.mongodb?.endpoint || "localhost:40021",
-      username: defaults?.mongodb?.username || "admin",
-      password: defaults?.mongodb?.password || "admin",
-      cluster: defaults?.mongodb?.cluster || false,
-      cluster_secret_key: defaults?.mongodb?.cluster_secret_key || "",
-      nodes: defaults?.mongodb?.nodes || []
-    }
+    atomdb_type: "morkdb",
+
+    mork_endpoint: getDefault("atomdb.morkdb.endpoint")?.split(":")[0] || "localhost",
+    mork_port: getDefault("atomdb.morkdb.endpoint")?.split(":")[1] || "40022",
+
+    mongo_endpoint: getDefault("atomdb.mongodb.endpoint")?.split(":")[0] || "localhost",
+    mongo_port: getDefault("atomdb.mongodb.endpoint")?.split(":")[1] || "40021",
+    mongo_username: getDefault("atomdb.mongodb.username") || "admin",
+    mongo_password: getDefault("atomdb.mongodb.password") || "admin",
+
+    mongo_cluster: getDefault("atomdb.mongodb.cluster") || false,
+    mongo_nodes: []
   })
 
-  const [showMongo, setShowMongo] = useState(section.current.mongodb.cluster)
+  const [showMongo, setShowMongo] = useState(section.current.mongo_cluster)
+
+  const handleSave = () => {
+    updateField(
+      "atomdb",
+      structuredClone(section.current)
+    )
+    showToast({ message: "AtomDB settings applied", severity: "success" })
+  }
 
   return (
     <>
@@ -43,9 +50,10 @@ export function MorkMongoOptions() {
           fullWidth
           label="MorkDB Endpoint"
           size="small"
-          disabled
-          defaultValue="localhost"
-          onChange={() => {}}
+          defaultValue={section.current.mork_endpoint}
+          onChange={(e) => {
+            section.current.mork_endpoint = e.target.value
+          }}
         />
       </GridSpan9>
 
@@ -55,8 +63,10 @@ export function MorkMongoOptions() {
           label="MorkDB Port"
           type="number"
           size="small"
-          defaultValue={section.current.morkdb.endpoint.split(":")[1]}
-          onChange={() => {}}
+          defaultValue={section.current.mork_port}
+          onChange={(e) => {
+            section.current.mork_port = Number(e.target.value)
+          }}
         />
       </GridSpan3>
 
@@ -65,9 +75,10 @@ export function MorkMongoOptions() {
           fullWidth
           label="MongoDB Endpoint"
           size="small"
-          disabled
-          defaultValue="localhost"
-          onChange={() => {}}
+          defaultValue={section.current.mongo_endpoint}
+          onChange={(e) => {
+            section.current.mongo_endpoint = e.target.value
+          }}
         />
       </GridSpan9>
 
@@ -77,8 +88,10 @@ export function MorkMongoOptions() {
           label="MongoDB Port"
           type="number"
           size="small"
-          defaultValue={section.current.mongodb.endpoint.split(":")[1]}
-          onChange={() => {}}
+          defaultValue={section.current.mongo_port}
+          onChange={(e) => {
+            section.current.mongo_port = Number(e.target.value)
+          }}
         />
       </GridSpan3>
 
@@ -87,8 +100,10 @@ export function MorkMongoOptions() {
           fullWidth
           label="MongoDB Username"
           size="small"
-          defaultValue={section.current.mongodb.username}
-          onChange={() => {}}
+          defaultValue={section.current.mongo_username}
+          onChange={(e) => {
+            section.current.mongo_username = e.target.value
+          }}
         />
       </GridSpan6>
 
@@ -98,8 +113,10 @@ export function MorkMongoOptions() {
           label="MongoDB Password"
           type="password"
           size="small"
-          defaultValue={section.current.mongodb.password}
-          onChange={() => {}}
+          defaultValue={section.current.mongo_password}
+          onChange={(e) => {
+            section.current.mongo_password = e.target.value
+          }}
         />
       </GridSpan6>
 
@@ -109,8 +126,11 @@ export function MorkMongoOptions() {
           control={
             <Checkbox
               size="small"
-              defaultChecked={section.current.mongodb.cluster}
-              onChange={(e) => setShowMongo(e.target.checked)}
+              checked={showMongo}
+              onChange={(e) => {
+                setShowMongo(e.target.checked)
+                section.current.mongo_cluster = e.target.checked
+              }}
             />
           }
         />
@@ -120,19 +140,21 @@ export function MorkMongoOptions() {
         {showMongo && (
           <ClusterForm
             type="mongo"
-            onChange={() => {}}
+            onChange={(nodes) => {
+              section.current.mongo_nodes = nodes
+            }}
           />
         )}
       </ClusterGridContainer>
 
       <ActionButtonContainer>
-        <Button
+        <SaveButton
           variant="contained"
           color="success"
-          onClick={() => {}}
+          onClick={handleSave}
         >
           Save AtomDB Section
-        </Button>
+        </SaveButton>
       </ActionButtonContainer>
     </>
   )
