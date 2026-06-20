@@ -2,8 +2,8 @@ import { useRef } from "react"
 import { TextField } from "@mui/material"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
-import { buildAgentPayload, initAgentConnection } from "../configFormUtils"
-import { getAgentByKey } from "./agentRegistry"
+import { buildAgentPayload, getAgentParam, initAgentConnection } from "../configFormUtils"
+import { AGENT_COMPONENTS, getAgentByKey } from "./agentRegistry"
 import {
   AgentContent,
   AgentContentHeader,
@@ -19,12 +19,19 @@ export default function InferenceAgentPanel() {
   const { showToast } = useToast()
   const agent = getAgentByKey("inference")
 
-  const form = useRef(initAgentConnection(getDefault, "inference"))
+  const form = useRef({
+    ...initAgentConnection(getDefault, "inference"),
+    inference_request_timeout: getAgentParam(getDefault, "inference", "inference_request_timeout", 86400),
+    repeat_count: getAgentParam(getDefault, "inference", "repeat_count", 5),
+    max_answers: getAgentParam(getDefault, "inference", "max_answers", 150),
+  })
 
   const handleSave = () => {
     updateField("agents.inference", buildAgentPayload(form.current))
     showToast({ message: `${agent.label} settings applied`, severity: "success" })
   }
+
+  const ParamsComponent = AGENT_COMPONENTS[agent.paramsKey]
 
   return (
     <AgentContent>
@@ -71,6 +78,13 @@ export default function InferenceAgentPanel() {
           />
         </FieldGrid>
       </ConfigSection>
+
+      {ParamsComponent && (
+        <ConfigSection>
+          <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+          <ParamsComponent formRef={form} />
+        </ConfigSection>
+      )}
 
       <SaveButton variant="contained" color="success" onClick={handleSave}>
         Apply {agent.label} settings
