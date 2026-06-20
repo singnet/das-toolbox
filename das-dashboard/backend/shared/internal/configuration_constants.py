@@ -7,7 +7,7 @@ CONSTANTS = {
     {
       "context": "default",
       "ip": "localhost",
-      "username": "arturgontijo"
+      "username": "username"
     }
   ],
   "atomdb.mongodb.image": "mongodb/mongodb-community-server:8.2-ubuntu2204",
@@ -20,7 +20,7 @@ CONSTANTS = {
     {
       "context": "default",
       "ip": "localhost",
-      "username": "arturgontijo"
+      "username": "username"
     }
   ],
   "atomdb.adapterdb.endpoint": "localhost:40023",
@@ -91,7 +91,7 @@ CONSTANTS = {
     }
   ],
   "loaders.metta.image": "trueagi/das:1.0.0-metta-parser",
-  "loaders.morkdb.image": "rueagi/das:mork-loader-1.0.4",
+  "loaders.morkdb.image": "trueagi/das:mork-loader-1.1.0",
   "agents.schema_version": "1.1",
   "agents.attention.endpoint": "localhost:40001",
   "agents.base_query.params.unique_assignment_flag": False,
