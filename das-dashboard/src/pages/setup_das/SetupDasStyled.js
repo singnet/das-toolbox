@@ -222,24 +222,6 @@ export const ContentBody = styled(Box, {
   boxSizing: "border-box"
 }))
 
-export const JsonPreviewContainer = styled(Box)({
-  maxHeight: "70vh",
-  overflow: "auto",
-  backgroundColor: palette.surfaceMuted,
-  border: `1px solid ${palette.border}`,
-  borderRadius: 10,
-  padding: 16,
-  fontSize: 13,
-  color: palette.textSecondary,
-
-  "& pre": {
-    margin: 0,
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-    fontSize: 12,
-    lineHeight: 1.6
-  }
-})
-
 export const DialogButton = styled(Button, {
   shouldForwardProp: (prop) => prop !== "variant"
 })(({ variant = "primary" }) => ({

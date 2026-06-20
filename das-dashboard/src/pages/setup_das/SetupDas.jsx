@@ -18,7 +18,7 @@ import PublicIcon from "@mui/icons-material/Public"
 import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import UploadFileIcon from "@mui/icons-material/UploadFile"
 import DownloadIcon from "@mui/icons-material/Download"
-import CodeIcon from "@mui/icons-material/Code"
+import PreviewIcon from "@mui/icons-material/Preview"
 
 import { useState } from "react"
 
@@ -28,6 +28,7 @@ import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
 import { AgentsForm } from "../../components/configuration_page/Agents/Agents"
 import { EnvironmentForm } from "../../components/configuration_page/Environment/Environment"
 import { getAgentByKey } from "../../components/configuration_page/Agents/agentRegistry"
+import ConfigurationPreview from "../../components/configuration_page/ConfigurationPreview"
 
 import { useConfig } from "../../components/global_providers/ConfigurationProvider"
 import { handleLoadConfig } from "../../utils/FileLoader"
@@ -47,7 +48,6 @@ import {
   ContentBody,
   CompactActionButton,
   CompactActionButtonPrimary,
-  JsonPreviewContainer,
   DialogButton,
   DialogPaper
 } from "./SetupDasStyled"
@@ -67,7 +67,7 @@ export default function SetupDasPage() {
 
   const [section, setSection] = useState("atomdb")
   const [activeAgent, setActiveAgent] = useState("query")
-  const [openJson, setOpenJson] = useState(false)
+  const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
 
   const activeSection = sections.find((item) => item.key === section)
@@ -150,9 +150,9 @@ export default function SetupDasPage() {
             </CompactActionButton>
 
             <CompactActionButtonPrimary
-              onClick={() => setOpenJson(true)}
+              onClick={() => setOpenPreview(true)}
             >
-              <CodeIcon />
+              <PreviewIcon />
               Preview
             </CompactActionButtonPrimary>
 
@@ -195,42 +195,37 @@ export default function SetupDasPage() {
       </PageContainer>
 
       <Dialog
-        open={openJson}
-        onClose={() => setOpenJson(false)}
+        open={openPreview}
+        onClose={() => setOpenPreview(false)}
         maxWidth="lg"
         fullWidth
         PaperProps={{ sx: DialogPaper }}
       >
         <DialogContent>
-
           <Typography
             variant="h6"
             sx={{ fontSize: 16, fontWeight: 600, color: "#111827" }}
           >
-            DAS Configuration Preview
+            Configuration Preview
+          </Typography>
+
+          <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 0.5, mb: 0 }}>
+            Applied settings from each section
           </Typography>
 
           <Divider sx={{ mt: 2, mb: 2, borderColor: "#f0f1f3" }} />
 
-          <JsonPreviewContainer>
-            <pre>
-              {JSON.stringify(config, null, 2)}
-            </pre>
-          </JsonPreviewContainer>
-
+          <ConfigurationPreview config={config} />
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-
           <DialogButton
             variant="primary"
-            onClick={() => setOpenJson(false)}
+            onClick={() => setOpenPreview(false)}
           >
             Close
           </DialogButton>
-
         </DialogActions>
-
       </Dialog>
 
       <Dialog
