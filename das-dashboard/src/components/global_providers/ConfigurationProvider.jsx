@@ -1,87 +1,77 @@
-import { useContext, useState, createContext, useEffect } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState
+} from "react"
 import { getConfigDefaults } from "../../api/ConfigAPI"
 
 const ConfigContext = createContext(null)
 
 export function ConfigurationProvider({ children }) {
   const [config, setConfig] = useState({})
-  let configDefaults = {}
+  const configDefaultsRef = useRef({})
 
   useEffect(() => {
-
-      const fetchDefaults = async () => {
-        try{
-          const response = await getConfigDefaults()
-          configDefaults = response.content
-        }
-        catch (error) {
-            console.error(error)
-        }
+    async function fetchDefaults() {
+      try {
+        const response = await getConfigDefaults()
+        configDefaultsRef.current = response.content || {}
+      } catch (error) {
+        console.error(error)
       }
+    }
 
-      fetchDefaults()
+    fetchDefaults()
   }, [])
 
+  const getDefault = useCallback((dictionaryKey) => {
+    return configDefaultsRef.current[dictionaryKey]
+  }, [])
 
-  const updateField = (fieldName, value) => {
+  const updateField = useCallback((fieldName, value) => {
     setConfig((prev) => ({
       ...prev,
       [fieldName]: value
     }))
 
-    sessionStorage.setItem(
-      `config_${fieldName}`,
-      JSON.stringify(value)
-    )
-  }
+    sessionStorage.setItem(`config_${fieldName}`, JSON.stringify(value))
+  }, [])
 
-  const updateSection = (sectionName, value) => {
-    setConfig((prev) => {
-      const next = { ...prev, [sectionName]: value }
-      sessionStorage.setItem(`config_${sectionName}`, JSON.stringify(value))
-      return next
-    })
-  }
-
-  const getDefault = ( dictionaryKey ) => { 
-    try{
-      return configDefaults[dictionaryKey]
-    }
-    catch (error){
-      return { }
-    }
-  }
-
-  const loadExternalConfiguration = ({ parsed }) => {
+  const loadExternalConfiguration = useCallback(({ parsed }) => {
     setConfig(parsed)
 
     Object.entries(parsed).forEach(([key, value]) => {
       sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
     })
+  }, [])
 
-    location.reload()
-  }
-
-  const resetConfiguration = () => {
-    setConfig(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
+  const resetConfiguration = useCallback(() => {
+    setConfig({})
     sessionStorage.clear()
-    location.reload()
-  }
+  }, [])
 
   return (
-    <ConfigContext.Provider value={{
-      config,
-      updateField,
-      updateSection,
-      getDefault,
-      loadExternalConfiguration,
-      resetConfiguration
-    }}>
+    <ConfigContext.Provider
+      value={{
+        config,
+        updateField,
+        getDefault,
+        loadExternalConfiguration,
+        resetConfiguration
+      }}
+    >
       {children}
     </ConfigContext.Provider>
   )
 }
 
 export function useConfig() {
-  return useContext(ConfigContext)
+  const context = useContext(ConfigContext)
+  if (!context) {
+    throw new Error("useConfig must be used within ConfigurationProvider")
+  }
+  return context
 }

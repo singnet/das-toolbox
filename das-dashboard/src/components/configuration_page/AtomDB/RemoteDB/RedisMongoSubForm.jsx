@@ -1,50 +1,77 @@
 import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
-import { GridSpan3 } from "../AtomDBStyled"
+import { initRedisMongoConnection } from "../../configFormUtils"
+import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function RedisMongoSubForm({ onChange, category }) {
-
   const { getDefault } = useConfig()
 
-  const section = useRef({
+  const form = useRef({
     type: "redismongodb",
-    redis_port: Number(getDefault("atomdb.redis.endpoint")?.split(":")[1]) || 40020,
-    mongo_port: Number(getDefault("atomdb.mongodb.endpoint")?.split(":")[1]) || 40021,
-    mongo_username: getDefault("atomdb.mongodb.username") || "admin",
-    mongo_password: getDefault("atomdb.mongodb.password") || "admin"
+    ...initRedisMongoConnection(getDefault)
   })
 
+  const notifyChange = () => {
+    onChange(structuredClone(form.current), category)
+  }
+
   useEffect(() => {
-    onChange(structuredClone(section.current), category)
+    notifyChange()
   }, [])
 
   return (
     <>
+      <GridSpan9>
+        <TextField
+          fullWidth
+          label="Redis Endpoint"
+          size="small"
+          defaultValue={form.current.redis_endpoint}
+          onChange={(e) => {
+            form.current.redis_endpoint = e.target.value
+            notifyChange()
+          }}
+        />
+      </GridSpan9>
+
       <GridSpan3>
         <TextField
           fullWidth
           label="Redis Port"
           size="small"
           type="number"
-          defaultValue={section.current.redis_port}
-          onChange={e => {
-            section.current.redis_port = Number(e.target.value)
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.redis_port}
+          onChange={(e) => {
+            form.current.redis_port = Number(e.target.value)
+            notifyChange()
           }}
         />
       </GridSpan3>
 
+      <GridSpan9>
+        <TextField
+          fullWidth
+          label="MongoDB Endpoint"
+          size="small"
+          defaultValue={form.current.mongo_endpoint}
+          onChange={(e) => {
+            form.current.mongo_endpoint = e.target.value
+            notifyChange()
+          }}
+        />
+      </GridSpan9>
+
       <GridSpan3>
         <TextField
           fullWidth
-          label="Mongo Port"
+          label="MongoDB Port"
           size="small"
           type="number"
-          defaultValue={section.current.mongo_port}
-          onChange={e => {
-            section.current.mongo_port = Number(e.target.value)
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mongo_port}
+          onChange={(e) => {
+            form.current.mongo_port = Number(e.target.value)
+            notifyChange()
           }}
         />
       </GridSpan3>
@@ -54,10 +81,10 @@ export function RedisMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo User"
           size="small"
-          defaultValue={section.current.mongo_username}
-          onChange={e => {
-            section.current.mongo_username = e.target.value
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mongo_username}
+          onChange={(e) => {
+            form.current.mongo_username = e.target.value
+            notifyChange()
           }}
         />
       </GridSpan3>
@@ -68,10 +95,10 @@ export function RedisMongoSubForm({ onChange, category }) {
           label="Mongo Pass"
           size="small"
           type="password"
-          defaultValue={section.current.mongo_password}
-          onChange={e => {
-            section.current.mongo_password = e.target.value
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mongo_password}
+          onChange={(e) => {
+            form.current.mongo_password = e.target.value
+            notifyChange()
           }}
         />
       </GridSpan3>

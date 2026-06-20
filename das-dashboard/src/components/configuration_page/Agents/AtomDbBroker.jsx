@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { TextField } from "@mui/material"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
+import { buildAgentPayload, initAgentConnection } from "../configFormUtils"
 import { getAgentByKey } from "./agentRegistry"
 import {
   AgentContent,
@@ -18,29 +19,12 @@ export default function AtomDbBrokerPanel() {
   const { showToast } = useToast()
   const agent = getAgentByKey("atomdb")
 
-  const form = useRef((() => {
-    const fullEndpoint = getDefault("agents.atomdb.endpoint") || "0.0.0.0:40000"
-    const fullRange = getDefault("agents.atomdb.ports_range") || "42000:42999"
+  const form = useRef(initAgentConnection(getDefault, "atomdb"))
 
-    return {
-      endpoint_ip: fullEndpoint.split(":")[0] || "0.0.0.0",
-      endpoint_port: Number(fullEndpoint.split(":")[1]) || 40000,
-      ports_range_start: Number(fullRange.split(":")[0]) || 42000,
-      ports_range_end: Number(fullRange.split(":")[1]) || 42999
-    }
-  })())
-
-    const handleSave = () => {
-    updateField("agents.atomdb", {
-            endpoint: `${form.current.endpoint_ip}:${form.current.endpoint_port}`,
-            ports_range: `${form.current.ports_range_start}:${form.current.ports_range_end}`
-        })
-
-        showToast({
-            message: `${agent.label} settings applied`,
-            severity: "success"
-        })
-    }
+  const handleSave = () => {
+    updateField("agents.atomdb", buildAgentPayload(form.current))
+    showToast({ message: `${agent.label} settings applied`, severity: "success" })
+  }
 
   return (
     <AgentContent>

@@ -1,61 +1,61 @@
-import { Button, Checkbox, FormControlLabel, TextField, Typography, Divider, MenuItem } from "@mui/material"
+import { Checkbox, FormControlLabel, TextField, Typography, Divider, MenuItem } from "@mui/material"
 import { useRef, useState } from "react"
-import { useConfig } from "../../../global_providers/ConfigurationProvider";
-import { useToast } from "../../../global_providers/ToastProvider";
-import { RedisMongoSubForm } from "../RemoteDB/RedisMongoSubForm"
-import { MorkMongoSubForm } from "../RemoteDB/MorkMongoSubForm"
-import { 
-  GridSpan9, 
-  GridSpan3, 
-  GridSpan6, 
+import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { useToast } from "../../../global_providers/ToastProvider"
+import { initAdapterBackend, splitEndpoint } from "../../configFormUtils"
+import { AdapterBackendOptions } from "./AdapterBackendOptions"
+import {
+  GridSpan9,
+  GridSpan3,
+  GridSpan6,
   GridSpan4,
   GridSpan12,
-  CheckboxContainer, 
+  CheckboxContainer,
   SectionTitle,
-  ActionButtonContainer, 
+  ActionButtonContainer,
   GridSpan5
 } from "../AtomDBStyled"
-import { SaveButton } from "../../Agents/Agents.styled";
+import { SaveButton } from "../../Agents/Agents.styled"
 
 export function AdapterDBOptions() {
-
   const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
 
+  const adapter = splitEndpoint(getDefault("atomdb.adapterdb.endpoint"), "localhost", 40023)
+  const defaultBackendType = getDefault("atomdb.adapterdb.atomdb_backend.type") || "morkdb"
+
   const form = useRef({
     atomdb_type: "adapterdb",
-
     adapter_type: getDefault("atomdb.adapterdb.type") || "postgres",
-    adapter_endpoint: getDefault("atomdb.adapterdb.endpoint")?.split(":")[0] || "localhost",
-    adapter_port: getDefault("atomdb.adapterdb.endpoint")?.split(":")[1] || "40023",
-
-    db_host: getDefault("atomdb.adapterdb.database_credentials.host") || "remote.database.org",
+    adapter_endpoint: adapter.host,
+    adapter_port: adapter.port,
+    db_host: getDefault("atomdb.adapterdb.database_credentials.host") || "",
     db_port: getDefault("atomdb.adapterdb.database_credentials.port") || 5432,
-    db_name: getDefault("atomdb.adapterdb.database_credentials.database") || "database",
-    db_username: getDefault("atomdb.adapterdb.database_credentials.username") || "admin",
-    db_password: getDefault("atomdb.adapterdb.database_credentials.password") || "admin",
-
-    context_mapping_path: getDefault("atomdb.adapterdb.context_mapping_paths")?.[0] || "/home/levi/Downloads/context.sql",
+    db_name: getDefault("atomdb.adapterdb.database_credentials.database") || "",
+    db_username: getDefault("atomdb.adapterdb.database_credentials.username") || "",
+    db_password: getDefault("atomdb.adapterdb.database_credentials.password") || "",
+    context_mapping_path: getDefault("atomdb.adapterdb.context_mapping_paths")?.[0] || "",
     export_metta_enabled: getDefault("atomdb.adapterdb.export_metta_on_mapping.enabled") ?? true,
-    export_metta_output_dir: getDefault("atomdb.adapterdb.export_metta_on_mapping.output_dir") || "/home/levi/Downloads",
-    persistence_reuse_mongodb: getDefault("atomdb.adapterdb.persistence.reuse_mongodb") ?? true,
-
-    backend_type: getDefault("atomdb.adapterdb.atomdb_backend.type") || "redismongodb",
-
-    backend_nodes: []
+    export_metta_output_dir:
+      getDefault("atomdb.adapterdb.export_metta_on_mapping.output_dir") || "./mapped_metta/",
+    persistence_reuse_mongodb: getDefault("atomdb.adapterdb.persistence.reuse_mongodb") ?? true
   })
 
   const [adapterType, setAdapterType] = useState(form.current.adapter_type)
-  const [backendType, setBackendType] = useState(form.current.backend_type)
+  const [backendType, setBackendType] = useState(defaultBackendType)
+  const backendRef = useRef(initAdapterBackend(getDefault, defaultBackendType))
 
-  const handleBackendChange = (subFormData) => {
-    form.current.backend_type = subFormData.type
-    form.current.backend_nodes = subFormData.redis_nodes || subFormData.mongo_nodes || []
+  const handleBackendTypeChange = (nextType) => {
+    setBackendType(nextType)
+    backendRef.current = initAdapterBackend(getDefault, nextType)
   }
 
   const handleSave = () => {
-    updateField("atomdb", structuredClone(form.current))
-    showToast({ message: "AdapterDB settings applied", severity: "success" })
+    updateField("atomdb", {
+      ...structuredClone(form.current),
+      atomdb_backend: structuredClone(backendRef.current)
+    })
+    showToast({ message: "AtomDB settings applied", severity: "success" })
   }
 
   return (
@@ -66,17 +66,17 @@ export function AdapterDBOptions() {
 
       <GridSpan4>
         <TextField
-            select
-            fullWidth
-            label="Adapter Type"
-            size="small"
-            value={adapterType}
-            onChange={(e) => {
-              setAdapterType(e.target.value)
-              form.current.adapter_type = e.target.value
-            }}
+          select
+          fullWidth
+          label="Adapter Type"
+          size="small"
+          value={adapterType}
+          onChange={(e) => {
+            setAdapterType(e.target.value)
+            form.current.adapter_type = e.target.value
+          }}
         >
-            <MenuItem value="postgres">PostgreSQL</MenuItem>
+          <MenuItem value="postgres">PostgreSQL</MenuItem>
         </TextField>
       </GridSpan4>
 
@@ -231,7 +231,7 @@ export function AdapterDBOptions() {
       </GridSpan12>
 
       <SectionTitle>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>AtomDB Backend Type</Typography>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>AtomDB Backend</Typography>
       </SectionTitle>
 
       <GridSpan12>
@@ -239,12 +239,9 @@ export function AdapterDBOptions() {
           select
           fullWidth
           size="small"
+          label="Backend Type"
           value={backendType}
-          onChange={e => {
-            const val = e.target.value
-            setBackendType(val)
-            form.current.backend_type = val
-          }}
+          onChange={(e) => handleBackendTypeChange(e.target.value)}
         >
           <MenuItem value="inmemorydb">In Memory</MenuItem>
           <MenuItem value="redismongodb">Redis + MongoDB</MenuItem>
@@ -252,27 +249,15 @@ export function AdapterDBOptions() {
         </TextField>
       </GridSpan12>
 
-      {backendType === "redismongodb" && (
-        <RedisMongoSubForm
-          category="backend"
-          onChange={(data) => handleBackendChange(data)}
-        />
-      )}
-
-      {backendType === "morkdb" && (
-        <MorkMongoSubForm
-          category="backend"
-          onChange={(data) => handleBackendChange(data)}
-        />
-      )}
+      <AdapterBackendOptions
+        key={backendType}
+        backendType={backendType}
+        backendRef={backendRef}
+      />
 
       <ActionButtonContainer>
-        <SaveButton
-          variant="contained"
-          color="success"
-          onClick={handleSave}
-        >
-          Save AtomDB Section
+        <SaveButton variant="contained" color="success" onClick={handleSave}>
+          Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
     </>

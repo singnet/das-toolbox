@@ -1,12 +1,3 @@
-import SearchIcon from "@mui/icons-material/Search"
-import LinkIcon from "@mui/icons-material/Link"
-import PsychologyIcon from "@mui/icons-material/Psychology"
-import LayersIcon from "@mui/icons-material/Layers"
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
-import StorageIcon from "@mui/icons-material/Storage"
-import HubIcon from "@mui/icons-material/Hub"
-import TerminalIcon from "@mui/icons-material/Terminal"
-
 import QueryParams from "./AgentsParams/QueryParams"
 import LinkCreationParams from "./AgentsParams/LinkCreationParams"
 import EvolutionParams from "./AgentsParams/EvolutionParams"
@@ -17,84 +8,30 @@ export const AGENT_GROUPS = [
   {
     label: "Agents",
     items: [
-      {
-        key: "query",
-        label: "Query Agent",
-        configSection: "agents",
-        paramsKey: "query",
-        hasPortRange: true
-      },
-      {
-        key: "link_creation",
-        label: "Link Creation Agent",
-        configSection: "agents",
-        paramsKey: "link_creation",
-        hasPortRange: true
-      },
-      {
-        key: "inference",
-        label: "Inference Agent",
-        configSection: "agents",
-        paramsKey: 'inference',
-        hasPortRange: true
-      },
-      {
-        key: "evolution",
-        label: "Evolution Agent",
-        configSection: "agents",
-        paramsKey: "evolution",
-        hasPortRange: true
-      },
-      {
-        key: "command_router",
-        label: "Command Router",
-        configSection: "agents",
-        paramsKey: null,
-        hasPortRange: true
-      }
+      { key: "query", label: "Query Agent", paramsKey: "query" },
+      { key: "link_creation", label: "Link Creation Agent", paramsKey: "link_creation" },
+      { key: "inference", label: "Inference Agent", paramsKey: null },
+      { key: "evolution", label: "Evolution Agent", paramsKey: "evolution" },
+      { key: "command_router", label: "Command Router", paramsKey: null }
     ]
   },
   {
     label: "Brokers",
     items: [
-      {
-        key: "attention",
-        label: "Attention Broker",
-        configSection: "agents",
-        paramsKey: null,
-        hasPortRange: false
-      },
-      {
-        key: "context",
-        label: "Context Broker",
-        configSection: "agents",
-        paramsKey: "context",
-        hasPortRange: true
-      },
-      {
-        key: "atomdb",
-        label: "AtomDB Broker",
-        configSection: "agents",
-        paramsKey: null,
-        hasPortRange: true
-      }
+      { key: "attention", label: "Attention Broker", paramsKey: null },
+      { key: "context", label: "Context Broker", paramsKey: "context" },
+      { key: "atomdb", label: "AtomDB Broker", paramsKey: null }
     ]
   },
   {
     label: "Agent Params",
     items: [
-      {
-        key: "base_query",
-        label: "Base Parameters",
-        configSection: "agents",
-        paramsKey: "base_query",
-        hasPortRange: false
-      }
+      { key: "base_query", label: "Base Parameters", paramsKey: "base_query" }
     ]
   }
 ]
 
-export const ALL_AGENTS = AGENT_GROUPS.flatMap((group) => group.items)
+const ALL_AGENTS = AGENT_GROUPS.flatMap((group) => group.items)
 
 export function getAgentByKey(key) {
   return ALL_AGENTS.find((item) => item.key === key)

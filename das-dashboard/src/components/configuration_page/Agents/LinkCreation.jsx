@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { TextField } from "@mui/material"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
+import { buildAgentPayload, getAgentParam, initAgentConnection } from "../configFormUtils"
 import { getAgentByKey, AGENT_COMPONENTS } from "./agentRegistry"
 import {
   AgentContent,
@@ -18,50 +19,25 @@ export default function LinkCreationAgentPanel() {
   const { showToast } = useToast()
   const agent = getAgentByKey("link_creation")
 
-  const form = useRef((() => {
-    const prefix = "agents.link_creation.params."
-    const fullEndpoint = getDefault("agents.link_creation.endpoint") || "0.0.0.0:40000"
-    const fullRange = getDefault("agents.link_creation.ports_range") || "42000:42999"
+  const form = useRef({
+    ...initAgentConnection(getDefault, "link_creation"),
+    max_answers: getAgentParam(getDefault, "link_creation", "max_answers", 10),
+    repeat_count: getAgentParam(getDefault, "link_creation", "repeat_count", 1),
+    context: getAgentParam(getDefault, "link_creation", "context", "context") || "context",
+    attention_update: getAgentParam(getDefault, "link_creation", "attention_update", 0),
+    attention_correlation: getAgentParam(getDefault, "link_creation", "attention_correlation", 0),
+    query_interval: getAgentParam(getDefault, "link_creation", "query_interval", 0),
+    query_timeout: getAgentParam(getDefault, "link_creation", "query_timeout", 0),
+    positive_importance_flag: getAgentParam(getDefault, "link_creation", "positive_importance_flag", true),
+    use_metta_as_query_tokens: getAgentParam(getDefault, "link_creation", "use_metta_as_query_tokens", false)
+  })
 
-    return {
-      endpoint_ip: fullEndpoint.split(":")[0] || "0.0.0.0",
-      endpoint_port: Number(fullEndpoint.split(":")[1]) || 40000,
-      ports_range_start: Number(fullRange.split(":")[0]) || 42000,
-      ports_range_end: Number(fullRange.split(":")[1]) || 42999,
-      max_answers: getDefault(`${prefix}max_answers`) ?? 10,
-      repeat_count: getDefault(`${prefix}repeat_count`) ?? 1,
-      context: getDefault(`${prefix}context`) || "context",
-      attention_update: getDefault(`${prefix}attention_update`) ?? 0,
-      attention_correlation: getDefault(`${prefix}attention_correlation`) ?? 0,
-      query_interval: getDefault(`${prefix}query_interval`) ?? 0,
-      query_timeout: getDefault(`${prefix}query_timeout`) ?? 0,
-      positive_importance_flag: getDefault(`${prefix}positive_importance_flag`) ?? true,
-      use_metta_as_query_tokens: getDefault(`${prefix}use_metta_as_query_tokens`) ?? false
-    }
-  })())
+  const handleSave = () => {
+    updateField("agents.link_creation", buildAgentPayload(form.current))
+    showToast({ message: `${agent.label} settings applied`, severity: "success" })
+  }
 
-    const handleSave = () => {
-    updateField("agents.link_creation", {
-        endpoint: `${form.current.endpoint_ip}:${form.current.endpoint_port}`,
-        ports_range: `${form.current.ports_range_start}:${form.current.ports_range_end}`,
-        max_answers: form.current.max_answers,
-        repeat_count: form.current.repeat_count,
-        context: form.current.context,
-        attention_update: form.current.attention_update,
-        attention_correlation: form.current.attention_correlation,
-        query_interval: form.current.query_interval,
-        query_timeout: form.current.query_timeout,
-        positive_importance_flag: form.current.positive_importance_flag,
-        use_metta_as_query_tokens: form.current.use_metta_as_query_tokens
-    })
-
-    showToast({
-        message: `${agent.label} settings applied`,
-        severity: "success"
-    })
-    }
-
-  const SpecificParamComponent = AGENT_COMPONENTS[agent.paramsKey]
+  const ParamsComponent = AGENT_COMPONENTS[agent.paramsKey]
 
   return (
     <AgentContent>
@@ -109,10 +85,10 @@ export default function LinkCreationAgentPanel() {
         </FieldGrid>
       </ConfigSection>
 
-      {SpecificParamComponent && (
+      {ParamsComponent && (
         <ConfigSection>
           <ConfigSectionTitle>Parameters</ConfigSectionTitle>
-          <SpecificParamComponent formRef={form} />
+          <ParamsComponent formRef={form} />
         </ConfigSection>
       )}
 

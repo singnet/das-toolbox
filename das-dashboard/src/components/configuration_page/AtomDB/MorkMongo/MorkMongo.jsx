@@ -1,45 +1,32 @@
-import { Button, Checkbox, FormControlLabel, TextField } from "@mui/material"
+import { Checkbox, FormControlLabel, TextField } from "@mui/material"
 import { useRef, useState } from "react"
 import { ClusterForm } from "../ClusterForm"
-import { useConfig } from "../../../global_providers/ConfigurationProvider";
-import { useToast } from "../../../global_providers/ToastProvider";
-import { 
-  GridSpan9, 
-  GridSpan3, 
-  GridSpan6, 
-  CheckboxContainer, 
-  ClusterGridContainer, 
-  ActionButtonContainer 
+import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { useToast } from "../../../global_providers/ToastProvider"
+import { initMorkMongoConnection } from "../../configFormUtils"
+import {
+  GridSpan9,
+  GridSpan3,
+  GridSpan6,
+  CheckboxContainer,
+  ClusterGridContainer,
+  ActionButtonContainer
 } from "../AtomDBStyled"
-import { SaveButton } from "../../Agents/Agents.styled";
+import { SaveButton } from "../../Agents/Agents.styled"
 
 export function MorkMongoOptions() {
-
   const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
 
-  const section = useRef({
+  const form = useRef({
     atomdb_type: "morkdb",
-
-    mork_endpoint: getDefault("atomdb.morkdb.endpoint")?.split(":")[0] || "localhost",
-    mork_port: getDefault("atomdb.morkdb.endpoint")?.split(":")[1] || "40022",
-
-    mongo_endpoint: getDefault("atomdb.mongodb.endpoint")?.split(":")[0] || "localhost",
-    mongo_port: getDefault("atomdb.mongodb.endpoint")?.split(":")[1] || "40021",
-    mongo_username: getDefault("atomdb.mongodb.username") || "admin",
-    mongo_password: getDefault("atomdb.mongodb.password") || "admin",
-
-    mongo_cluster: getDefault("atomdb.mongodb.cluster") || false,
-    mongo_nodes: []
+    ...initMorkMongoConnection(getDefault, "atomdb.", { withCluster: true })
   })
 
-  const [showMongo, setShowMongo] = useState(section.current.mongo_cluster)
+  const [showMongo, setShowMongo] = useState(form.current.mongo_cluster)
 
   const handleSave = () => {
-    updateField(
-      "atomdb",
-      structuredClone(section.current)
-    )
+    updateField("atomdb", structuredClone(form.current))
     showToast({ message: "AtomDB settings applied", severity: "success" })
   }
 
@@ -50,9 +37,9 @@ export function MorkMongoOptions() {
           fullWidth
           label="MorkDB Endpoint"
           size="small"
-          defaultValue={section.current.mork_endpoint}
+          defaultValue={form.current.mork_endpoint}
           onChange={(e) => {
-            section.current.mork_endpoint = e.target.value
+            form.current.mork_endpoint = e.target.value
           }}
         />
       </GridSpan9>
@@ -63,9 +50,9 @@ export function MorkMongoOptions() {
           label="MorkDB Port"
           type="number"
           size="small"
-          defaultValue={section.current.mork_port}
+          defaultValue={form.current.mork_port}
           onChange={(e) => {
-            section.current.mork_port = Number(e.target.value)
+            form.current.mork_port = Number(e.target.value)
           }}
         />
       </GridSpan3>
@@ -75,9 +62,9 @@ export function MorkMongoOptions() {
           fullWidth
           label="MongoDB Endpoint"
           size="small"
-          defaultValue={section.current.mongo_endpoint}
+          defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
-            section.current.mongo_endpoint = e.target.value
+            form.current.mongo_endpoint = e.target.value
           }}
         />
       </GridSpan9>
@@ -88,9 +75,9 @@ export function MorkMongoOptions() {
           label="MongoDB Port"
           type="number"
           size="small"
-          defaultValue={section.current.mongo_port}
+          defaultValue={form.current.mongo_port}
           onChange={(e) => {
-            section.current.mongo_port = Number(e.target.value)
+            form.current.mongo_port = Number(e.target.value)
           }}
         />
       </GridSpan3>
@@ -100,9 +87,9 @@ export function MorkMongoOptions() {
           fullWidth
           label="MongoDB Username"
           size="small"
-          defaultValue={section.current.mongo_username}
+          defaultValue={form.current.mongo_username}
           onChange={(e) => {
-            section.current.mongo_username = e.target.value
+            form.current.mongo_username = e.target.value
           }}
         />
       </GridSpan6>
@@ -113,9 +100,9 @@ export function MorkMongoOptions() {
           label="MongoDB Password"
           type="password"
           size="small"
-          defaultValue={section.current.mongo_password}
+          defaultValue={form.current.mongo_password}
           onChange={(e) => {
-            section.current.mongo_password = e.target.value
+            form.current.mongo_password = e.target.value
           }}
         />
       </GridSpan6>
@@ -129,7 +116,7 @@ export function MorkMongoOptions() {
               checked={showMongo}
               onChange={(e) => {
                 setShowMongo(e.target.checked)
-                section.current.mongo_cluster = e.target.checked
+                form.current.mongo_cluster = e.target.checked
               }}
             />
           }
@@ -141,19 +128,15 @@ export function MorkMongoOptions() {
           <ClusterForm
             type="mongo"
             onChange={(nodes) => {
-              section.current.mongo_nodes = nodes
+              form.current.mongo_nodes = nodes
             }}
           />
         )}
       </ClusterGridContainer>
 
       <ActionButtonContainer>
-        <SaveButton
-          variant="contained"
-          color="success"
-          onClick={handleSave}
-        >
-          Save AtomDB Section
+        <SaveButton variant="contained" color="success" onClick={handleSave}>
+          Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
     </>

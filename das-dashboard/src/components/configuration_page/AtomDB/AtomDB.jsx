@@ -1,22 +1,19 @@
-import { Box, TextField, MenuItem, Menu } from "@mui/material"
+import { TextField, MenuItem } from "@mui/material"
+import { useState } from "react"
 import { RedisMongoOptions } from "./RedisMongo/RedisMongo"
 import { MorkMongoOptions } from "./MorkMongo/MorkMongo"
-import { useState } from "react"
 import { InMemoryOptions } from "./InMemory/InMemory"
 import { RemoteDBOptions } from "./RemoteDB/RemoteDB"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { AtomDBConnectionForm, AtomDBFormBox } from "./AtomDBStyled"
 import { AdapterDBOptions } from "./AdapterDB/AdapterDB"
 
-export default function AtomDBForm({ onSectionSave }) {
-
+export default function AtomDBForm() {
   const { getDefault } = useConfig()
-  const atomDB = getDefault["atomdb.type"] || "redismongodb"
-  const [type, setType] = useState(atomDB.type)
+  const [type, setType] = useState(getDefault("atomdb.type") || "redismongodb")
 
   return (
     <AtomDBFormBox>
-    
       <TextField
         select
         fullWidth
@@ -31,38 +28,35 @@ export default function AtomDBForm({ onSectionSave }) {
         <MenuItem value="adapterdb">AdapterDB</MenuItem>
       </TextField>
 
+      {type === "redismongodb" && (
+        <AtomDBConnectionForm>
+          <RedisMongoOptions />
+        </AtomDBConnectionForm>
+      )}
 
-        {type === "redismongodb" && (
-          <AtomDBConnectionForm>
-            <RedisMongoOptions/>
-          </AtomDBConnectionForm>
-        )}
+      {type === "morkdb" && (
+        <AtomDBConnectionForm>
+          <MorkMongoOptions />
+        </AtomDBConnectionForm>
+      )}
 
-        {type === "morkdb" && (
-          <AtomDBConnectionForm>
-            <MorkMongoOptions/>
-          </AtomDBConnectionForm>
-        )}
+      {type === "inmemorydb" && (
+        <AtomDBConnectionForm>
+          <InMemoryOptions />
+        </AtomDBConnectionForm>
+      )}
 
-        {type === "inmemorydb" && (
-          <AtomDBConnectionForm>
-            <InMemoryOptions/>
-          </AtomDBConnectionForm>
-        )}
+      {type === "remotedb" && (
+        <AtomDBConnectionForm>
+          <RemoteDBOptions />
+        </AtomDBConnectionForm>
+      )}
 
-        {type === "remotedb" && (
-          <AtomDBConnectionForm>
-            <RemoteDBOptions/>
-          </AtomDBConnectionForm>
-        )}
-
-        {type === "adapterdb" && (
-          <AtomDBConnectionForm>
-            <AdapterDBOptions/>
-          </AtomDBConnectionForm>
-        )}
-
-
+      {type === "adapterdb" && (
+        <AtomDBConnectionForm>
+          <AdapterDBOptions />
+        </AtomDBConnectionForm>
+      )}
     </AtomDBFormBox>
   )
 }

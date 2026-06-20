@@ -81,12 +81,6 @@ export const AgentTitle = styled(Typography)({
   letterSpacing: "-0.02em"
 })
 
-export const AgentDescription = styled(Typography)({
-  fontSize: 13,
-  color: palette.textSecondary,
-  marginTop: 4
-})
-
 export const ConfigSection = styled(Box)({
   border: `1px solid ${palette.borderSubtle}`,
   borderRadius: 10,

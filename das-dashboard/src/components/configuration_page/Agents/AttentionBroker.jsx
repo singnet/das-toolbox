@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { TextField } from "@mui/material"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
+import { buildAgentPayload, splitEndpoint } from "../configFormUtils"
 import { getAgentByKey } from "./agentRegistry"
 import {
   AgentContent,
@@ -18,25 +19,17 @@ export default function AttentionBrokerPanel() {
   const { showToast } = useToast()
   const agent = getAgentByKey("attention")
 
-  const form = useRef((() => {
-    const fullEndpoint = getDefault("agents.attention.endpoint") || "0.0.0.0:40000"
+  const endpoint = splitEndpoint(getDefault("agents.attention.endpoint"), "0.0.0.0", 40001)
 
-    return {
-      endpoint_ip: fullEndpoint.split(":")[0] || "0.0.0.0",
-      endpoint_port: Number(fullEndpoint.split(":")[1]) || 40000
-    }
-  })())
+  const form = useRef({
+    endpoint_ip: endpoint.host,
+    endpoint_port: endpoint.port
+  })
 
-    const handleSave = () => {
-    updateField("agents.attention", {
-        endpoint: `${form.current.endpoint_ip}:${form.current.endpoint_port}`
-    })
-
-    showToast({
-        message: `${agent.label} settings applied`,
-        severity: "success"
-    })
-    }
+  const handleSave = () => {
+    updateField("agents.attention", buildAgentPayload(form.current, { withPortRange: false }))
+    showToast({ message: `${agent.label} settings applied`, severity: "success" })
+  }
 
   return (
     <AgentContent>

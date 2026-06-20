@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { TextField } from "@mui/material"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
+import { buildAgentPayload, getAgentParam, initAgentConnection } from "../configFormUtils"
 import { getAgentByKey, AGENT_COMPONENTS } from "./agentRegistry"
 import {
   AgentContent,
@@ -18,49 +19,20 @@ export default function QueryAgentPanel() {
   const { showToast } = useToast()
   const agent = getAgentByKey("query")
 
-  const form = useRef((() => {
-    const prefix = "agents.query.params."
-    const fullEndpoint = getDefault("agents.query.endpoint") || "0.0.0.0:40000"
-    const fullRange = getDefault("agents.query.ports_range") || "42000:42999"
+  const form = useRef({
+    ...initAgentConnection(getDefault, "query"),
+    positive_importance_flag: getAgentParam(getDefault, "query", "positive_importance_flag", false),
+    disregard_importance_flag: getAgentParam(getDefault, "query", "disregard_importance_flag", false),
+    unique_value_flag: getAgentParam(getDefault, "query", "unique_value_flag", false),
+    count_flag: getAgentParam(getDefault, "query", "count_flag", false)
+  })
 
-    return {
-      endpoint_ip: fullEndpoint.split(":")[0] || "0.0.0.0",
-      endpoint_port: Number(fullEndpoint.split(":")[1]) || 40000,
-      ports_range_start: Number(fullRange.split(":")[0]) || 42000,
-      ports_range_end: Number(fullRange.split(":")[1]) || 42999,
-      positive_importance_flag: getDefault(`${prefix}positive_importance_flag`) ?? false,
-      disregard_importance_flag: getDefault(`${prefix}disregard_importance_flag`) ?? false,
-      unique_value_flag: getDefault(`${prefix}unique_value_flag`) ?? false,
-      count_flag: getDefault(`${prefix}count_flag`) ?? false
-    }
-  })())
+  const handleSave = () => {
+    updateField("agents.query", buildAgentPayload(form.current))
+    showToast({ message: `${agent.label} settings applied`, severity: "success" })
+  }
 
-    const handleSave = () => {
-
-        updateField("agents.query", {
-            endpoint: `${form.current.endpoint_ip}:${form.current.endpoint_port}`,
-            ports_range: `${form.current.ports_range_start}:${form.current.ports_range_end}`,
-            positive_importance_flag: form.current.positive_importance_flag,
-            disregard_importance_flag: form.current.disregard_importance_flag,
-            unique_value_flag: form.current.unique_value_flag,
-            count_flag: form.current.count_flag
-        })
-    }
-
-    showToast({
-        message: `${agent.label} settings applied`,
-        severity: "success"
-    })
-    }
-
-    updateField("agents.query", payload)
-
-    showToast({
-        message: `${agent.label} settings applied`,
-        severity: "success"
-    })
-
-  const SpecificParamComponent = AGENT_COMPONENTS[agent.paramsKey]
+  const ParamsComponent = AGENT_COMPONENTS[agent.paramsKey]
 
   return (
     <AgentContent>
@@ -108,10 +80,10 @@ export default function QueryAgentPanel() {
         </FieldGrid>
       </ConfigSection>
 
-      {SpecificParamComponent && (
+      {ParamsComponent && (
         <ConfigSection>
           <ConfigSectionTitle>Parameters</ConfigSectionTitle>
-          <SpecificParamComponent formRef={form} />
+          <ParamsComponent formRef={form} />
         </ConfigSection>
       )}
 
@@ -120,3 +92,4 @@ export default function QueryAgentPanel() {
       </SaveButton>
     </AgentContent>
   )
+}

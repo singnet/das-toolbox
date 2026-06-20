@@ -1,51 +1,34 @@
-import { TextField, FormControlLabel, Checkbox, Button } from "@mui/material"
+import { TextField, FormControlLabel, Checkbox } from "@mui/material"
 import { useState, useRef } from "react"
 import { ClusterForm } from "../ClusterForm"
-import { useConfig } from "../../../global_providers/ConfigurationProvider";
-import { useToast } from "../../../global_providers/ToastProvider";
-import { 
-  GridSpan9, 
-  GridSpan3, 
-  GridSpan6, 
-  CheckboxContainer, 
-  ClusterGridContainer, 
-  ActionButtonContainer 
+import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { useToast } from "../../../global_providers/ToastProvider"
+import { initRedisMongoConnection } from "../../configFormUtils"
+import {
+  GridSpan9,
+  GridSpan3,
+  GridSpan6,
+  CheckboxContainer,
+  ClusterGridContainer,
+  ActionButtonContainer
 } from "../AtomDBStyled"
-import { SaveButton } from "../../Agents/Agents.styled";
+import { SaveButton } from "../../Agents/Agents.styled"
 
 export function RedisMongoOptions() {
-
   const { updateField, getDefault } = useConfig()
   const { showToast } = useToast()
 
   const form = useRef({
-    atomdb_type : "redismongodb",
-
-    redis_endpoint: getDefault("atomdb.redis.endpoint")?.split(":")[0],
-    redis_port: getDefault("atomdb.redis.endpoint")?.split(":")[1],
-
-    mongo_endpoint: getDefault("atomdb.mongodb.endpoint")?.split(":")[0],
-    mongo_port: getDefault("atomdb.mongodb.endpoint")?.split(":")[1],
-    mongo_username: getDefault("atomdb.mongodb.username"),
-    mongo_password: getDefault("atomdb.mongodb.password"),
-
-    redis_cluster: getDefault("atomdb.redis.cluster"),
-    mongo_cluster: getDefault("atomdb.mongodb.cluster"),
-
-    redis_nodes: [],
-    mongo_nodes: []
+    atomdb_type: "redismongodb",
+    ...initRedisMongoConnection(getDefault, "atomdb.", { withCluster: true })
   })
 
   const [showRedis, setShowRedis] = useState(form.current.redis_cluster)
   const [showMongo, setShowMongo] = useState(form.current.mongo_cluster)
 
   const handleSave = () => {
-    updateField(
-      "atomdb",
-      structuredClone(form.current)
-    )
-    console.log(form.current)
-    showToast({message: "AtomDB settings applied", severity: "success"})
+    updateField("atomdb", structuredClone(form.current))
+    showToast({ message: "AtomDB settings applied", severity: "success" })
   }
 
   return (
@@ -175,12 +158,8 @@ export function RedisMongoOptions() {
       </ClusterGridContainer>
 
       <ActionButtonContainer>
-        <SaveButton
-          variant="contained"
-          color="success"
-          onClick={handleSave}
-        >
-          Apply AtomDB Sections
+        <SaveButton variant="contained" color="success" onClick={handleSave}>
+          Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
     </>

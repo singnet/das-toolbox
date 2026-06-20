@@ -2,7 +2,8 @@ import { useRef } from "react"
 import { TextField } from "@mui/material"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
-import { getAgentByKey, AGENT_COMPONENTS } from "./agentRegistry"
+import { buildAgentPayload, initAgentConnection } from "../configFormUtils"
+import { getAgentByKey } from "./agentRegistry"
 import {
   AgentContent,
   AgentContentHeader,
@@ -14,92 +15,66 @@ import {
 } from "./Agents.styled"
 
 export default function InferenceAgentPanel() {
-const { updateField, getDefault } = useConfig()
-const { showToast } = useToast()
-const agent = getAgentByKey("inference")
+  const { updateField, getDefault } = useConfig()
+  const { showToast } = useToast()
+  const agent = getAgentByKey("inference")
 
-    const form = useRef((() => {
-        const fullEndpoint = getDefault("agents.inference.endpoint") || "0.0.0.0:40000"
-        const fullRange = getDefault("agents.inference.ports_range") || "42000:42999"
+  const form = useRef(initAgentConnection(getDefault, "inference"))
 
-        return {
-        endpoint_ip: fullEndpoint.split(":")[0] || "0.0.0.0",
-        endpoint_port: Number(fullEndpoint.split(":")[1]) || 40000,
-        ports_range_start: Number(fullRange.split(":")[0]) || 42000,
-        ports_range_end: Number(fullRange.split(":")[1]) || 42999
-        }
-    })())
+  const handleSave = () => {
+    updateField("agents.inference", buildAgentPayload(form.current))
+    showToast({ message: `${agent.label} settings applied`, severity: "success" })
+  }
 
-    const handleSave = () => {
-    updateField("agents.inference", {
-        endpoint: `${form.current.endpoint_ip}:${form.current.endpoint_port}`,
-        ports_range: `${form.current.ports_range_start}:${form.current.ports_range_end}`
-    })
-
-    showToast({
-        message: `${agent.label} settings applied`,
-        severity: "success"
-    })
-    }
-
-const SpecificParamComponent = AGENT_COMPONENTS[agent.paramsKey]
-
-return (
+  return (
     <AgentContent>
-    <AgentContentHeader>
+      <AgentContentHeader>
         <AgentTitle>{agent.label}</AgentTitle>
-    </AgentContentHeader>
+      </AgentContentHeader>
 
-    <ConfigSection>
+      <ConfigSection>
         <ConfigSectionTitle>Connection</ConfigSectionTitle>
         <FieldGrid>
-        <TextField
+          <TextField
             label="IP Address"
             fullWidth
             size="small"
             defaultValue={form.current.endpoint_ip}
             onChange={(e) => { form.current.endpoint_ip = e.target.value }}
-        />
-        <TextField
+          />
+          <TextField
             label="Port"
             fullWidth
             type="number"
             size="small"
             defaultValue={form.current.endpoint_port}
             onChange={(e) => { form.current.endpoint_port = Number(e.target.value) }}
-        />
+          />
         </FieldGrid>
 
         <FieldGrid sx={{ mt: 2 }}>
-        <TextField
+          <TextField
             label="Port range start"
             fullWidth
             type="number"
             size="small"
             defaultValue={form.current.ports_range_start}
             onChange={(e) => { form.current.ports_range_start = Number(e.target.value) }}
-        />
-        <TextField
+          />
+          <TextField
             label="Port range end"
             fullWidth
             type="number"
             size="small"
             defaultValue={form.current.ports_range_end}
             onChange={(e) => { form.current.ports_range_end = Number(e.target.value) }}
-        />
+          />
         </FieldGrid>
-    </ConfigSection>
+      </ConfigSection>
 
-    {SpecificParamComponent && (
-        <ConfigSection>
-        <ConfigSectionTitle>Parameters</ConfigSectionTitle>
-        <SpecificParamComponent formRef={form} />
-        </ConfigSection>
-    )}
-
-    <SaveButton variant="contained" color="success" onClick={handleSave}>
+      <SaveButton variant="contained" color="success" onClick={handleSave}>
         Apply {agent.label} settings
-    </SaveButton>
+      </SaveButton>
     </AgentContent>
-)
+  )
 }

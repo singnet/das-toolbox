@@ -3,21 +3,22 @@ import {
   TextField,
   Typography,
   MenuItem,
-  Divider
+  Divider,
+  IconButton
 } from "@mui/material"
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import { useState, useRef } from "react"
 import { RedisMongoSubForm } from "./RedisMongoSubForm"
 import { MorkMongoSubForm } from "./MorkMongoSubForm"
-import { useConfig } from "../../../global_providers/ConfigurationProvider";
-import { useToast } from "../../../global_providers/ToastProvider";
-import { 
-  GridSpan6, 
-  GridSpan12, 
-  PeerCard, 
-  PeerHeaderContainer, 
-  ActionButtonContainer 
+import { useConfig } from "../../../global_providers/ConfigurationProvider"
+import { useToast } from "../../../global_providers/ToastProvider"
+import {
+  GridSpan12,
+  PeerCard,
+  PeerHeaderContainer,
+  ActionButtonContainer
 } from "../AtomDBStyled"
-import { SaveButton } from "../../Agents/Agents.styled";
+import { SaveButton } from "../../Agents/Agents.styled"
 
 export function RemoteDBOptions() {
 
@@ -44,60 +45,33 @@ export function RemoteDBOptions() {
     ])
   }
 
+  const removePeer = (id) => {
+    delete peersRefs.current[id]
+    setPeers(prev => prev.filter(p => p.id !== id))
+  }
+
   const updatePeer = (id, subFormData, category) => {
     const base = peersRefs.current[id]
     if (!base) return
 
+    const { type, ...connection } = subFormData
+
     if (category === "main") {
-      const cleaned = {
+      peersRefs.current[id] = {
         uid: base.uid,
         context: base.context,
-        type: subFormData.type,
-        local_persistence: base.local_persistence || { type: "inmemorydb" }
+        type,
+        local_persistence: base.local_persistence || { type: "inmemorydb" },
+        ...connection
       }
-
-      if (subFormData.type === "redismongodb") {
-        peersRefs.current[id] = {
-          ...cleaned,
-          redis_port: subFormData.redis_port,
-          mongo_port: subFormData.mongo_port,
-          mongo_username: subFormData.mongo_username,
-          mongo_password: subFormData.mongo_password
-        }
-      }
-
-      if (subFormData.type === "morkdb") {
-        peersRefs.current[id] = {
-          ...cleaned,
-          mork_port: subFormData.mork_port,
-          mongo_port: subFormData.mongo_port,
-          mongo_username: subFormData.mongo_username,
-          mongo_password: subFormData.mongo_password
-        }
-      }
+      return
     }
 
     if (category === "local") {
-      if (subFormData.type === "redismongodb") {
-        peersRefs.current[id].local_persistence = {
-          type: "redismongodb",
-          context: `${base.context}local_`,
-          redis_port: subFormData.redis_port,
-          mongo_port: subFormData.mongo_port,
-          mongo_username: subFormData.mongo_username,
-          mongo_password: subFormData.mongo_password
-        }
-      }
-
-      if (subFormData.type === "morkdb") {
-        peersRefs.current[id].local_persistence = {
-          type: "morkdb",
-          context: `${base.context}local_`,
-          mork_port: subFormData.mork_port,
-          mongo_port: subFormData.mongo_port,
-          mongo_username: subFormData.mongo_username,
-          mongo_password: subFormData.mongo_password
-        }
+      peersRefs.current[id].local_persistence = {
+        type,
+        context: `${base.context}local_`,
+        ...connection
       }
     }
   }
@@ -112,13 +86,12 @@ export function RemoteDBOptions() {
       })
       .map(peer => structuredClone(peer))
 
-    // Salva o payload de peers no formato plano esperado pela feature de atomdb
     updateField("atomdb", {
       atomdb_type: "remotedb",
       remote_peers: cleanedPeers
     })
-    
-    showToast({ message: "AtomDB saved successfully!", severity: "success" })
+
+    showToast({ message: "AtomDB settings applied", severity: "success" })
   }
 
   return (
@@ -157,6 +130,15 @@ export function RemoteDBOptions() {
               <MenuItem value="redismongodb">Redis + Mongo</MenuItem>
               <MenuItem value="morkdb">Mork + Mongo</MenuItem>
             </TextField>
+
+            <IconButton
+              size="small"
+              color="error"
+              aria-label="Remove peer"
+              onClick={() => removePeer(peer.id)}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
           </PeerHeaderContainer>
 
           {peer.type === "redismongodb" ? (
@@ -228,12 +210,12 @@ export function RemoteDBOptions() {
       </GridSpan12>
 
       <ActionButtonContainer>
-        <SaveButton 
+        <SaveButton
           variant="contained"
-          color="success" 
-          onClick={handleSave} 
+          color="success"
+          onClick={handleSave}
         >
-          Save
+          Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
     </>

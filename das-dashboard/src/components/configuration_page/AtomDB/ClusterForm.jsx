@@ -1,9 +1,14 @@
-import { Box, Button, TextField, Typography } from "@mui/material"
+import { Box, Button, TextField, Typography, IconButton } from "@mui/material"
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import { useState, useRef } from "react"
 
 export function ClusterForm({ type, onChange }) {
   const nodes = useRef([])
-  const [count, setCount] = useState(3)
+  const [count, setCount] = useState(1)
+
+  const syncNodes = () => {
+    onChange(structuredClone(nodes.current))
+  }
 
   const updateNode = (index, field, value) => {
     const current = nodes.current[index] || {
@@ -16,11 +21,17 @@ export function ClusterForm({ type, onChange }) {
       [field]: value
     }
 
-    onChange(structuredClone(nodes.current))
+    syncNodes()
   }
 
   const addServer = () => {
-    setCount(prev => prev + 1)
+    setCount((prev) => prev + 1)
+  }
+
+  const removeServer = (index) => {
+    nodes.current.splice(index, 1)
+    setCount((prev) => Math.max(0, prev - 1))
+    syncNodes()
   }
 
   return (
@@ -34,12 +45,10 @@ export function ClusterForm({ type, onChange }) {
       }}
     >
       <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-        {type === "mongo"
-          ? "MongoDB Cluster Nodes"
-          : "Redis Cluster Nodes"}
+        {type === "mongo" ? "MongoDB Cluster Nodes" : "Redis Cluster Nodes"}
       </Typography>
 
-      <Box sx={{ maxDeep: "280px", overflowY: "auto", pr: 0.5 }}>
+      <Box sx={{ maxHeight: "280px", overflowY: "auto", pr: 0.5 }}>
         {Array.from({ length: count }).map((_, i) => (
           <Box
             key={i}
@@ -50,7 +59,7 @@ export function ClusterForm({ type, onChange }) {
               borderRadius: 1,
               bgcolor: "#ffffff",
               display: "grid",
-              gridTemplateColumns: "40px 1fr 1fr",
+              gridTemplateColumns: "40px 1fr 1fr auto",
               gap: 1.5,
               alignItems: "center"
             }}
@@ -80,6 +89,15 @@ export function ClusterForm({ type, onChange }) {
                 updateNode(i, "ip", e.target.value)
               }}
             />
+
+            <IconButton
+              size="small"
+              color="error"
+              aria-label="Remove node"
+              onClick={() => removeServer(i)}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
           </Box>
         ))}
       </Box>

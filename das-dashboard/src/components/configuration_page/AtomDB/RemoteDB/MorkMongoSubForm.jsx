@@ -1,50 +1,77 @@
 import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
-import { GridSpan3 } from "../AtomDBStyled"
+import { initMorkMongoConnection } from "../../configFormUtils"
+import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
-
   const { getDefault } = useConfig()
 
-  const section = useRef({
+  const form = useRef({
     type: "morkdb",
-    mork_port: Number(getDefault("atomdb.morkdb.endpoint")?.split(":")[1]) || 40022,
-    mongo_port: Number(getDefault("atomdb.mongodb.endpoint")?.split(":")[1]) || 40021,
-    mongo_username: getDefault("atomdb.mongodb.username") || "admin",
-    mongo_password: getDefault("atomdb.mongodb.password") || "admin"
+    ...initMorkMongoConnection(getDefault)
   })
 
+  const notifyChange = () => {
+    onChange(structuredClone(form.current), category)
+  }
+
   useEffect(() => {
-    onChange(structuredClone(section.current), category)
+    notifyChange()
   }, [])
 
   return (
     <>
+      <GridSpan9>
+        <TextField
+          fullWidth
+          label="MorkDB Endpoint"
+          size="small"
+          defaultValue={form.current.mork_endpoint}
+          onChange={(e) => {
+            form.current.mork_endpoint = e.target.value
+            notifyChange()
+          }}
+        />
+      </GridSpan9>
+
       <GridSpan3>
         <TextField
           fullWidth
           label="MorkDB Port"
           size="small"
           type="number"
-          defaultValue={section.current.mork_port}
-          onChange={e => {
-            section.current.mork_port = Number(e.target.value)
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mork_port}
+          onChange={(e) => {
+            form.current.mork_port = Number(e.target.value)
+            notifyChange()
           }}
         />
       </GridSpan3>
 
+      <GridSpan9>
+        <TextField
+          fullWidth
+          label="MongoDB Endpoint"
+          size="small"
+          defaultValue={form.current.mongo_endpoint}
+          onChange={(e) => {
+            form.current.mongo_endpoint = e.target.value
+            notifyChange()
+          }}
+        />
+      </GridSpan9>
+
       <GridSpan3>
         <TextField
           fullWidth
-          label="Mongo Port"
+          label="MongoDB Port"
           size="small"
           type="number"
-          defaultValue={section.current.mongo_port}
-          onChange={e => {
-            section.current.mongo_port = Number(e.target.value)
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mongo_port}
+          onChange={(e) => {
+            form.current.mongo_port = Number(e.target.value)
+            notifyChange()
           }}
         />
       </GridSpan3>
@@ -54,10 +81,10 @@ export function MorkMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo User"
           size="small"
-          defaultValue={section.current.mongo_username}
-          onChange={e => {
-            section.current.mongo_username = e.target.value
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mongo_username}
+          onChange={(e) => {
+            form.current.mongo_username = e.target.value
+            notifyChange()
           }}
         />
       </GridSpan3>
@@ -68,10 +95,10 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="Mongo Pass"
           size="small"
           type="password"
-          defaultValue={section.current.mongo_password}
-          onChange={e => {
-            section.current.mongo_password = e.target.value
-            onChange(structuredClone(section.current), category)
+          defaultValue={form.current.mongo_password}
+          onChange={(e) => {
+            form.current.mongo_password = e.target.value
+            notifyChange()
           }}
         />
       </GridSpan3>
