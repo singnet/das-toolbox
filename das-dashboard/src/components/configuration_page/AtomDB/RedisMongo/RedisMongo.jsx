@@ -15,12 +15,12 @@ import {
 import { SaveButton } from "../../Agents/Agents.styled"
 
 export function RedisMongoOptions() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getAtomdbTemplate } = useConfig()
   const { showToast } = useToast()
 
   const form = useRef({
     atomdb_type: "redismongodb",
-    ...initRedisMongoConnection(getDefault, "atomdb.", { withCluster: true })
+    ...initRedisMongoConnection(getAtomdbTemplate("redismongodb"), { withCluster: true })
   })
 
   const [showRedis, setShowRedis] = useState(form.current.redis_cluster)

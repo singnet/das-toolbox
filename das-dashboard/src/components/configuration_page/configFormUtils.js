@@ -49,9 +49,10 @@ export function buildAgentPayload(form, { withPortRange = true } = {}) {
   return payload
 }
 
-export function initAgentConnection(getDefault, agentKey) {
-  const endpoint = splitEndpoint(getDefault(`agents.${agentKey}.endpoint`), "0.0.0.0", 40000)
-  const range = parsePortsRange(getDefault(`agents.${agentKey}.ports_range`))
+export function initAgentConnection(sectionDefaults, agentKey) {
+  const defaults = sectionDefaults?.[`agents.${agentKey}`] || {}
+  const endpoint = splitEndpoint(defaults.endpoint, "0.0.0.0", 40000)
+  const range = parsePortsRange(defaults.ports_range)
 
   return {
     endpoint_ip: endpoint.host,
@@ -61,21 +62,19 @@ export function initAgentConnection(getDefault, agentKey) {
   }
 }
 
-export function getAgentParam(getDefault, agentKey, param, fallback) {
-  return getDefault(`agents.${agentKey}.params.${param}`) ?? fallback
+export function getAgentParam(sectionDefaults, agentKey, param, fallback) {
+  const section = sectionDefaults?.[`agents.${agentKey}`]
+  return section?.[param] ?? fallback
 }
 
-export function initRedisMongoConnection(getDefault, prefix = "atomdb.", { withCluster = false } = {}) {
-  const redis = splitEndpoint(getDefault(`${prefix}redis.endpoint`), "localhost", 40020)
-  const mongo = splitEndpoint(getDefault(`${prefix}mongodb.endpoint`), "localhost", 40021)
-
+export function initRedisMongoConnection(atomdbDefaults, { withCluster = false } = {}) {
   const connection = {
-    redis_endpoint: redis.host,
-    redis_port: redis.port,
-    mongo_endpoint: mongo.host,
-    mongo_port: mongo.port,
-    mongo_username: getDefault(`${prefix}mongodb.username`) || "admin",
-    mongo_password: getDefault(`${prefix}mongodb.password`) || "admin"
+    redis_endpoint: atomdbDefaults?.redis_endpoint || "localhost",
+    redis_port: atomdbDefaults?.redis_port ?? 40020,
+    mongo_endpoint: atomdbDefaults?.mongo_endpoint || "localhost",
+    mongo_port: atomdbDefaults?.mongo_port ?? 40021,
+    mongo_username: atomdbDefaults?.mongo_username || "admin",
+    mongo_password: atomdbDefaults?.mongo_password || "admin"
   }
 
   if (!withCluster) {
@@ -84,24 +83,21 @@ export function initRedisMongoConnection(getDefault, prefix = "atomdb.", { withC
 
   return {
     ...connection,
-    redis_cluster: getDefault(`${prefix}redis.cluster`) ?? false,
-    mongo_cluster: getDefault(`${prefix}mongodb.cluster`) ?? false,
-    redis_nodes: getDefault(`${prefix}redis.nodes`) || [],
-    mongo_nodes: getDefault(`${prefix}mongodb.nodes`) || []
+    redis_cluster: atomdbDefaults?.redis_cluster ?? false,
+    mongo_cluster: atomdbDefaults?.mongo_cluster ?? false,
+    redis_nodes: atomdbDefaults?.redis_nodes || [],
+    mongo_nodes: atomdbDefaults?.mongo_nodes || []
   }
 }
 
-export function initMorkMongoConnection(getDefault, prefix = "atomdb.", { withCluster = false } = {}) {
-  const mork = splitEndpoint(getDefault(`${prefix}morkdb.endpoint`), "localhost", 40022)
-  const mongo = splitEndpoint(getDefault(`${prefix}mongodb.endpoint`), "localhost", 40021)
-
+export function initMorkMongoConnection(atomdbDefaults, { withCluster = false } = {}) {
   const connection = {
-    mork_endpoint: mork.host,
-    mork_port: mork.port,
-    mongo_endpoint: mongo.host,
-    mongo_port: mongo.port,
-    mongo_username: getDefault(`${prefix}mongodb.username`) || "admin",
-    mongo_password: getDefault(`${prefix}mongodb.password`) || "admin"
+    mork_endpoint: atomdbDefaults?.mork_endpoint || "localhost",
+    mork_port: atomdbDefaults?.mork_port ?? 40022,
+    mongo_endpoint: atomdbDefaults?.mongo_endpoint || "localhost",
+    mongo_port: atomdbDefaults?.mongo_port ?? 40021,
+    mongo_username: atomdbDefaults?.mongo_username || "admin",
+    mongo_password: atomdbDefaults?.mongo_password || "admin"
   }
 
   if (!withCluster) {
@@ -110,13 +106,13 @@ export function initMorkMongoConnection(getDefault, prefix = "atomdb.", { withCl
 
   return {
     ...connection,
-    mongo_cluster: getDefault(`${prefix}mongodb.cluster`) ?? false,
-    mongo_nodes: getDefault(`${prefix}mongodb.nodes`) || []
+    mongo_cluster: atomdbDefaults?.mongo_cluster ?? false,
+    mongo_nodes: atomdbDefaults?.mongo_nodes || []
   }
 }
 
-export function initAdapterBackend(getDefault, backendType) {
-  const prefix = "atomdb.adapterdb.atomdb_backend."
+export function initAdapterBackend(atomdbDefaults, backendType) {
+  const backendDefaults = atomdbDefaults?.atomdb_backend || {}
 
   if (backendType === "inmemorydb") {
     return { type: "inmemorydb" }
@@ -125,14 +121,14 @@ export function initAdapterBackend(getDefault, backendType) {
   if (backendType === "redismongodb") {
     return {
       type: "redismongodb",
-      ...initRedisMongoConnection(getDefault, prefix, { withCluster: true })
+      ...initRedisMongoConnection(backendDefaults, { withCluster: true })
     }
   }
 
   if (backendType === "morkdb") {
     return {
       type: "morkdb",
-      ...initMorkMongoConnection(getDefault, prefix, { withCluster: true })
+      ...initMorkMongoConnection(backendDefaults, { withCluster: true })
     }
   }
 

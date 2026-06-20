@@ -15,12 +15,12 @@ import {
 import { SaveButton } from "../../Agents/Agents.styled"
 
 export function MorkMongoOptions() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getAtomdbTemplate } = useConfig()
   const { showToast } = useToast()
 
   const form = useRef({
     atomdb_type: "morkdb",
-    ...initMorkMongoConnection(getDefault, "atomdb.", { withCluster: true })
+    ...initMorkMongoConnection(getAtomdbTemplate("morkdb"), { withCluster: true })
   })
 
   const [showMongo, setShowMongo] = useState(form.current.mongo_cluster)

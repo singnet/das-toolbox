@@ -15,21 +15,21 @@ import {
 } from "./Agents.styled"
 
 export default function LinkCreationAgentPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("link_creation")
 
   const form = useRef({
-    ...initAgentConnection(getDefault, "link_creation"),
-    max_answers: getAgentParam(getDefault, "link_creation", "max_answers", 10),
-    repeat_count: getAgentParam(getDefault, "link_creation", "repeat_count", 1),
-    context: getAgentParam(getDefault, "link_creation", "context", "context") || "context",
-    attention_update: getAgentParam(getDefault, "link_creation", "attention_update", 0),
-    attention_correlation: getAgentParam(getDefault, "link_creation", "attention_correlation", 0),
-    query_interval: getAgentParam(getDefault, "link_creation", "query_interval", 0),
-    query_timeout: getAgentParam(getDefault, "link_creation", "query_timeout", 0),
-    positive_importance_flag: getAgentParam(getDefault, "link_creation", "positive_importance_flag", true),
-    use_metta_as_query_tokens: getAgentParam(getDefault, "link_creation", "use_metta_as_query_tokens", false)
+    ...initAgentConnection(getDefaults(), "link_creation"),
+    max_answers: getAgentParam(getDefaults(), "link_creation", "max_answers", 10),
+    repeat_count: getAgentParam(getDefaults(), "link_creation", "repeat_count", 1),
+    context: getAgentParam(getDefaults(), "link_creation", "context", "context") || "context",
+    attention_update: getAgentParam(getDefaults(), "link_creation", "attention_update", 0),
+    attention_correlation: getAgentParam(getDefaults(), "link_creation", "attention_correlation", 0),
+    query_interval: getAgentParam(getDefaults(), "link_creation", "query_interval", 0),
+    query_timeout: getAgentParam(getDefaults(), "link_creation", "query_timeout", 0),
+    positive_importance_flag: getAgentParam(getDefaults(), "link_creation", "positive_importance_flag", true),
+    use_metta_as_query_tokens: getAgentParam(getDefaults(), "link_creation", "use_metta_as_query_tokens", false)
   })
 
   const handleSave = () => {

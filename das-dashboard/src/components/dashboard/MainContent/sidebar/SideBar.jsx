@@ -57,12 +57,12 @@ export function SideBar() {
     }
   };
 
-  const onLoadConfig = async ({ parsed, file }) => {
+  const onLoadConfig = async ({ parsed }) => {
     await executeAsyncAction("load-config", async () => {
-      await saveConfig(file);
-      setDashboardBaseValues(parsed);
-    }, "Configuration loaded successfully.", "Failed to load configuration.");
-  };
+      await saveConfig(parsed)
+      setDashboardBaseValues(parsed)
+    }, "Configuration loaded successfully.", "Failed to load configuration.")
+  }
 
   const handleMettaUpload = async (event) => {
     const file = event.target.files?.[0];

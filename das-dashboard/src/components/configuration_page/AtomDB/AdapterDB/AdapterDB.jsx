@@ -1,8 +1,9 @@
-import { Checkbox, FormControlLabel, TextField, Typography, Divider, MenuItem } from "@mui/material"
-import { useRef, useState } from "react"
+import { Checkbox, FormControlLabel, TextField, Typography, Divider, MenuItem, Button } from "@mui/material"
+import { useEffect, useRef, useState } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
-import { initAdapterBackend, splitEndpoint } from "../../configFormUtils"
+import { getWorkspacePaths, uploadContextMappingFile } from "../../../../api/ConfigAPI"
+import { initAdapterBackend } from "../../configFormUtils"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
 import {
   GridSpan9,
@@ -18,36 +19,53 @@ import {
 import { SaveButton } from "../../Agents/Agents.styled"
 
 export function AdapterDBOptions() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getAtomdbTemplate } = useConfig()
   const { showToast } = useToast()
 
-  const adapter = splitEndpoint(getDefault("atomdb.adapterdb.endpoint"), "localhost", 40023)
-  const defaultBackendType = getDefault("atomdb.adapterdb.atomdb_backend.type") || "morkdb"
+  const template = getAtomdbTemplate("adapterdb") || {}
+  const defaultBackendType = template.atomdb_backend?.type || "morkdb"
 
   const form = useRef({
     atomdb_type: "adapterdb",
-    adapter_type: getDefault("atomdb.adapterdb.type") || "postgres",
-    adapter_endpoint: adapter.host,
-    adapter_port: adapter.port,
-    db_host: getDefault("atomdb.adapterdb.database_credentials.host") || "",
-    db_port: getDefault("atomdb.adapterdb.database_credentials.port") || 5432,
-    db_name: getDefault("atomdb.adapterdb.database_credentials.database") || "",
-    db_username: getDefault("atomdb.adapterdb.database_credentials.username") || "",
-    db_password: getDefault("atomdb.adapterdb.database_credentials.password") || "",
-    context_mapping_path: getDefault("atomdb.adapterdb.context_mapping_paths")?.[0] || "",
-    export_metta_enabled: getDefault("atomdb.adapterdb.export_metta_on_mapping.enabled") ?? true,
-    export_metta_output_dir:
-      getDefault("atomdb.adapterdb.export_metta_on_mapping.output_dir") || "./mapped_metta/",
-    persistence_reuse_mongodb: getDefault("atomdb.adapterdb.persistence.reuse_mongodb") ?? true
+    adapter_type: template.adapter_type || "postgres",
+    adapter_endpoint: template.adapter_endpoint || "localhost",
+    adapter_port: template.adapter_port ?? 40023,
+    db_host: template.db_host || "",
+    db_port: template.db_port ?? 5432,
+    db_name: template.db_name || "",
+    db_username: template.db_username || "",
+    db_password: template.db_password || "",
+    context_mapping_path: template.context_mapping_path || "",
+    export_metta_enabled: template.export_metta_enabled ?? true,
+    export_metta_output_dir: template.export_metta_output_dir || "",
+    persistence_reuse_mongodb: template.persistence_reuse_mongodb ?? true
   })
 
   const [adapterType, setAdapterType] = useState(form.current.adapter_type)
   const [backendType, setBackendType] = useState(defaultBackendType)
-  const backendRef = useRef(initAdapterBackend(getDefault, defaultBackendType))
+  const [contextMappingPath, setContextMappingPath] = useState(form.current.context_mapping_path)
+  const backendRef = useRef(initAdapterBackend(template, defaultBackendType))
+
+  useEffect(() => {
+    async function loadWorkspacePaths() {
+      try {
+        const response = await getWorkspacePaths()
+        const paths = response.content || {}
+
+        if (!form.current.export_metta_output_dir && paths.metta_output) {
+          form.current.export_metta_output_dir = paths.metta_output
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    loadWorkspacePaths()
+  }, [])
 
   const handleBackendTypeChange = (nextType) => {
     setBackendType(nextType)
-    backendRef.current = initAdapterBackend(getDefault, nextType)
+    backendRef.current = initAdapterBackend(getAtomdbTemplate("adapterdb") || {}, nextType)
   }
 
   const handleSave = () => {
@@ -176,14 +194,40 @@ export function AdapterDBOptions() {
       </SectionTitle>
 
       <GridSpan12>
+        <Button variant="outlined" component="label" size="small">
+          Upload Context Mapping File
+          <input
+            hidden
+            type="file"
+            accept=".sql,.json,.csv,.txt"
+            onChange={async (event) => {
+              const file = event.target.files?.[0]
+              if (!file) return
+
+              try {
+                const response = await uploadContextMappingFile(file)
+                form.current.context_mapping_path = response.saved_path
+                setContextMappingPath(response.saved_path)
+                showToast({ message: "Context mapping file uploaded", severity: "success" })
+              } catch (error) {
+                console.error(error)
+                showToast({ message: "Failed to upload context mapping file", severity: "error" })
+              } finally {
+                event.target.value = ""
+              }
+            }}
+          />
+        </Button>
+      </GridSpan12>
+
+      <GridSpan12>
         <TextField
           fullWidth
           label="Context Mapping Path"
           size="small"
-          defaultValue={form.current.context_mapping_path}
-          onChange={(e) => {
-            form.current.context_mapping_path = e.target.value
-          }}
+          value={contextMappingPath}
+          InputProps={{ readOnly: true }}
+          helperText="Stored under /opt/web-das/.das/workspace — same path on host and container."
         />
       </GridSpan12>
 
@@ -193,6 +237,7 @@ export function AdapterDBOptions() {
           label="MeTTa Output Directory"
           size="small"
           defaultValue={form.current.export_metta_output_dir}
+          helperText="Default: /opt/web-das/.das/workspace/mapped_metta (shared mount)."
           onChange={(e) => {
             form.current.export_metta_output_dir = e.target.value
           }}

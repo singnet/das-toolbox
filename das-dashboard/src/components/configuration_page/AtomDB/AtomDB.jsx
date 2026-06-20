@@ -9,8 +9,10 @@ import { AtomDBConnectionForm, AtomDBFormBox } from "./AtomDBStyled"
 import { AdapterDBOptions } from "./AdapterDB/AdapterDB"
 
 export default function AtomDBForm() {
-  const { getDefault } = useConfig()
-  const [type, setType] = useState(getDefault("atomdb.type") || "redismongodb")
+  const { getDefaultSection } = useConfig()
+  const [type, setType] = useState(
+    () => getDefaultSection("atomdb")?.atomdb_type || "redismongodb"
+  )
 
   return (
     <AtomDBFormBox>

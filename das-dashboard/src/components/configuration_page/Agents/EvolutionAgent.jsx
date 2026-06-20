@@ -15,16 +15,16 @@ import {
 } from "./Agents.styled"
 
 export default function EvolutionAgentPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("evolution")
 
   const form = useRef({
-    ...initAgentConnection(getDefault, "evolution"),
-    population_size: getAgentParam(getDefault, "evolution", "population_size", 1000),
-    max_generations: getAgentParam(getDefault, "evolution", "max_generations", 100),
-    elitism_rate: getAgentParam(getDefault, "evolution", "elitism_rate", 0.01),
-    selection_rate: getAgentParam(getDefault, "evolution", "selection_rate", 0.1)
+    ...initAgentConnection(getDefaults(), "evolution"),
+    population_size: getAgentParam(getDefaults(), "evolution", "population_size", 1000),
+    max_generations: getAgentParam(getDefaults(), "evolution", "max_generations", 100),
+    elitism_rate: getAgentParam(getDefaults(), "evolution", "elitism_rate", 0.01),
+    selection_rate: getAgentParam(getDefaults(), "evolution", "selection_rate", 0.1)
   })
 
   const handleSave = () => {

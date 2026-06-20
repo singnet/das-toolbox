@@ -15,11 +15,11 @@ import {
 } from "./Agents.styled"
 
 export default function AttentionBrokerPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaultSection } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("attention")
 
-  const endpoint = splitEndpoint(getDefault("agents.attention.endpoint"), "0.0.0.0", 40001)
+  const endpoint = splitEndpoint(getDefaultSection("agents.attention")?.endpoint, "0.0.0.0", 40001)
 
   const form = useRef({
     endpoint_ip: endpoint.host,

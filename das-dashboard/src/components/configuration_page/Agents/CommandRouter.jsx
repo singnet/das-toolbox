@@ -15,11 +15,11 @@ import {
 } from "./Agents.styled"
 
 export default function CommandRouterPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("command_router")
 
-  const form = useRef(initAgentConnection(getDefault, "command_router"))
+  const form = useRef(initAgentConnection(getDefaults(), "command_router"))
 
   const handleSave = () => {
     updateField("agents.command_router", buildAgentPayload(form.current))

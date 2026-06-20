@@ -19,10 +19,13 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import UploadFileIcon from "@mui/icons-material/UploadFile"
 import DownloadIcon from "@mui/icons-material/Download"
 import PreviewIcon from "@mui/icons-material/Preview"
+import SaveIcon from "@mui/icons-material/Save"
 
 import { useState } from "react"
 
 import saveFile from "../../utils/FileSaver"
+import { exportConfig, saveConfig } from "../../api/ConfigAPI"
+import { useToast } from "../../components/global_providers/ToastProvider"
 
 import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
 import { AgentsForm } from "../../components/configuration_page/Agents/Agents"
@@ -65,11 +68,32 @@ export default function SetupDasPage() {
     resetConfiguration
   } = useConfig()
 
+  const { showToast } = useToast()
+
   const [section, setSection] = useState("atomdb")
   const [activeAgent, setActiveAgent] = useState("query")
   const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
 
+  const handleExport = async () => {
+    try {
+      const response = await exportConfig(config)
+      saveFile(response.content)
+    } catch (error) {
+      console.error(error)
+      showToast({ message: "Failed to export configuration", severity: "error" })
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      await saveConfig(config)
+      showToast({ message: "Configuration saved successfully", severity: "success" })
+    } catch (error) {
+      console.error(error)
+      showToast({ message: "Failed to save configuration", severity: "error" })
+    }
+  }
   const activeSection = sections.find((item) => item.key === section)
   const activeAgentMeta = section === "agents" ? getAgentByKey(activeAgent) : null
 
@@ -142,11 +166,14 @@ export default function SetupDasPage() {
               />
             </CompactActionButton>
 
-            <CompactActionButton
-              onClick={() => saveFile(config)}
-            >
+            <CompactActionButton onClick={handleExport}>
               <DownloadIcon />
               Export
+            </CompactActionButton>
+
+            <CompactActionButton onClick={handleSave}>
+              <SaveIcon />
+              Save
             </CompactActionButton>
 
             <CompactActionButtonPrimary

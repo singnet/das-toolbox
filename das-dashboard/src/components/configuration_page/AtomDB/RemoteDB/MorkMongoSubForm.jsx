@@ -5,11 +5,11 @@ import { initMorkMongoConnection } from "../../configFormUtils"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
-  const { getDefault } = useConfig()
+  const { getAtomdbTemplate } = useConfig()
 
   const form = useRef({
     type: "morkdb",
-    ...initMorkMongoConnection(getDefault)
+    ...initMorkMongoConnection(getAtomdbTemplate("morkdb"))
   })
 
   const notifyChange = () => {

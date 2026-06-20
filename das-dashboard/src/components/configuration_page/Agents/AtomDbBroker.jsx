@@ -15,11 +15,11 @@ import {
 } from "./Agents.styled"
 
 export default function AtomDbBrokerPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("atomdb")
 
-  const form = useRef(initAgentConnection(getDefault, "atomdb"))
+  const form = useRef(initAgentConnection(getDefaults(), "atomdb"))
 
   const handleSave = () => {
     updateField("agents.atomdb", buildAgentPayload(form.current))

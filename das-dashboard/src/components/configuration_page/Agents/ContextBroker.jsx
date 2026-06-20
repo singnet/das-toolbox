@@ -15,18 +15,18 @@ import {
 } from "./Agents.styled"
 
 export default function ContextBrokerPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("context")
 
   const form = useRef({
-    ...initAgentConnection(getDefault, "context"),
-    context: getAgentParam(getDefault, "context", "context", "context") || "context",
-    initial_rent_rate: getAgentParam(getDefault, "context", "initial_rent_rate", 0.75),
-    initial_spreading_rate_lowerbound: getAgentParam(getDefault, "context", "initial_spreading_rate_lowerbound", 0.1),
-    initial_spreading_rate_upperbound: getAgentParam(getDefault, "context", "initial_spreading_rate_upperbound", 0.1),
-    use_cache: getAgentParam(getDefault, "context", "use_cache", true),
-    enforce_cache_recreation: getAgentParam(getDefault, "context", "enforce_cache_recreation", false)
+    ...initAgentConnection(getDefaults(), "context"),
+    context: getAgentParam(getDefaults(), "context", "context", "context") || "context",
+    initial_rent_rate: getAgentParam(getDefaults(), "context", "initial_rent_rate", 0.75),
+    initial_spreading_rate_lowerbound: getAgentParam(getDefaults(), "context", "initial_spreading_rate_lowerbound", 0.1),
+    initial_spreading_rate_upperbound: getAgentParam(getDefaults(), "context", "initial_spreading_rate_upperbound", 0.1),
+    use_cache: getAgentParam(getDefaults(), "context", "use_cache", true),
+    enforce_cache_recreation: getAgentParam(getDefaults(), "context", "enforce_cache_recreation", false)
   })
 
   const handleSave = () => {

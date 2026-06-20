@@ -5,11 +5,11 @@ import { initRedisMongoConnection } from "../../configFormUtils"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function RedisMongoSubForm({ onChange, category }) {
-  const { getDefault } = useConfig()
+  const { getAtomdbTemplate } = useConfig()
 
   const form = useRef({
     type: "redismongodb",
-    ...initRedisMongoConnection(getDefault)
+    ...initRedisMongoConnection(getAtomdbTemplate("redismongodb"))
   })
 
   const notifyChange = () => {

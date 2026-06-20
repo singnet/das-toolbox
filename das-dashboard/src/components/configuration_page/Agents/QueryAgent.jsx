@@ -15,16 +15,16 @@ import {
 } from "./Agents.styled"
 
 export default function QueryAgentPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("query")
 
   const form = useRef({
-    ...initAgentConnection(getDefault, "query"),
-    positive_importance_flag: getAgentParam(getDefault, "query", "positive_importance_flag", false),
-    disregard_importance_flag: getAgentParam(getDefault, "query", "disregard_importance_flag", false),
-    unique_value_flag: getAgentParam(getDefault, "query", "unique_value_flag", false),
-    count_flag: getAgentParam(getDefault, "query", "count_flag", false)
+    ...initAgentConnection(getDefaults(), "query"),
+    positive_importance_flag: getAgentParam(getDefaults(), "query", "positive_importance_flag", false),
+    disregard_importance_flag: getAgentParam(getDefaults(), "query", "disregard_importance_flag", false),
+    unique_value_flag: getAgentParam(getDefaults(), "query", "unique_value_flag", false),
+    count_flag: getAgentParam(getDefaults(), "query", "count_flag", false)
   })
 
   const handleSave = () => {

@@ -6,10 +6,11 @@ import { splitEndpoint } from "../configFormUtils"
 import { SaveButton } from "../Agents/Agents.styled"
 
 export function EnvironmentForm() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaultSection } = useConfig()
   const { showToast } = useToast()
 
-  const jupyter = splitEndpoint(getDefault("environment.jupyter.endpoint"), "localhost", 40019)
+  const envDefaults = getDefaultSection("environment") || {}
+  const jupyter = splitEndpoint(envDefaults.jupyter_endpoint, "localhost", 40019)
 
   const form = useRef({
     jupyter_port: jupyter.port

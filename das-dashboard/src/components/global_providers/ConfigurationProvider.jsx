@@ -12,13 +12,15 @@ const ConfigContext = createContext(null)
 
 export function ConfigurationProvider({ children }) {
   const [config, setConfig] = useState({})
-  const configDefaultsRef = useRef({})
+  const defaultsRef = useRef({})
+  const atomdbTemplatesRef = useRef({})
 
   useEffect(() => {
     async function fetchDefaults() {
       try {
         const response = await getConfigDefaults()
-        configDefaultsRef.current = response.content || {}
+        defaultsRef.current = response.content || {}
+        atomdbTemplatesRef.current = response.atomdb_templates || {}
       } catch (error) {
         console.error(error)
       }
@@ -27,8 +29,14 @@ export function ConfigurationProvider({ children }) {
     fetchDefaults()
   }, [])
 
-  const getDefault = useCallback((dictionaryKey) => {
-    return configDefaultsRef.current[dictionaryKey]
+  const getDefaults = useCallback(() => defaultsRef.current, [])
+
+  const getDefaultSection = useCallback((sectionKey) => {
+    return defaultsRef.current[sectionKey]
+  }, [])
+
+  const getAtomdbTemplate = useCallback((atomdbType) => {
+    return atomdbTemplatesRef.current[atomdbType]
   }, [])
 
   const updateField = useCallback((fieldName, value) => {
@@ -58,7 +66,9 @@ export function ConfigurationProvider({ children }) {
       value={{
         config,
         updateField,
-        getDefault,
+        getDefaults,
+        getDefaultSection,
+        getAtomdbTemplate,
         loadExternalConfiguration,
         resetConfiguration
       }}

@@ -15,15 +15,15 @@ import {
 } from "./Agents.styled"
 
 export default function InferenceAgentPanel() {
-  const { updateField, getDefault } = useConfig()
+  const { updateField, getDefaults } = useConfig()
   const { showToast } = useToast()
   const agent = getAgentByKey("inference")
 
   const form = useRef({
-    ...initAgentConnection(getDefault, "inference"),
-    inference_request_timeout: getAgentParam(getDefault, "inference", "inference_request_timeout", 86400),
-    repeat_count: getAgentParam(getDefault, "inference", "repeat_count", 5),
-    max_answers: getAgentParam(getDefault, "inference", "max_answers", 150),
+    ...initAgentConnection(getDefaults(), "inference"),
+    inference_request_timeout: getAgentParam(getDefaults(), "inference", "inference_request_timeout", 86400),
+    repeat_count: getAgentParam(getDefaults(), "inference", "repeat_count", 5),
+    max_answers: getAgentParam(getDefaults(), "inference", "max_answers", 150),
   })
 
   const handleSave = () => {
