@@ -1,5 +1,3 @@
-from shared.internal.constants import WORKSPACE_METTA_OUTPUT
-
 # Flat export contract — same shape the frontend sends and receives.
 FLAT_SECTION_ORDER = (
     "atomdb",
@@ -104,9 +102,8 @@ ATOMDB_TEMPLATES = {
         "db_name": "flybase",
         "db_username": "flybase",
         "db_password": "",
-        "context_mapping_path": "",
         "export_metta_enabled": True,
-        "export_metta_output_dir": WORKSPACE_METTA_OUTPUT,
+        "export_metta_output_dir": "",
         "persistence_reuse_mongodb": True,
         "atomdb_backend": {
             "type": "morkdb",

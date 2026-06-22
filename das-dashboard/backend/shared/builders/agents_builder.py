@@ -1,5 +1,5 @@
 from shared.builders.builder_helpers import _get, _require
-from shared.internal.configuration_constants import CONSTANTS
+from shared.internal.configuration_constants import AGENTS_SCHEMA_VERSION
 
 
 class AgentsBuilder:
@@ -83,7 +83,7 @@ class AgentsBuilder:
 
     def build(self, dto: dict) -> dict:
         agents = {
-            "schema_version": CONSTANTS["agents.schema_version"],
+            "schema_version": AGENTS_SCHEMA_VERSION,
         }
 
         for agent_key in self.AGENT_KEYS:

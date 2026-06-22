@@ -1,4 +1,7 @@
+import os
+
 from shared.builders.builder_helpers import _get, _is_missing, _require
+from shared.utils.adapter_context_mapping import resolve_context_mapping_path
 
 class AtomDbBuilder:
 
@@ -37,7 +40,6 @@ class AtomDbBuilder:
         "db_name",
         "db_username",
         "db_password",
-        "context_mapping_path",
         "export_metta_enabled",
         "export_metta_output_dir",
         "persistence_reuse_mongodb",
@@ -311,6 +313,13 @@ class AtomDbBuilder:
     def _build_adapter_db(self, atomdb) -> dict:
         _require(atomdb, *self._ADAPTER_FIELDS, label="atomdb")
 
+        context_mapping_path = resolve_context_mapping_path()
+        if not os.path.exists(context_mapping_path):
+            raise ValueError(
+                "Context mapping file not found. Save the context mapping first."
+            )
+        export_metta_output_dir = _get(atomdb, "export_metta_output_dir", "")
+
         return {
             "type": "adapterdb",
             "adapterdb": {
@@ -326,12 +335,10 @@ class AtomDbBuilder:
                     "password": _get(atomdb, "db_password"),
                     "database": _get(atomdb, "db_name"),
                 },
-                "context_mapping_paths": [
-                    _get(atomdb, "context_mapping_path")
-                ],
+                "context_mapping_paths": [context_mapping_path],
                 "export_metta_on_mapping": {
                     "enabled": _get(atomdb, "export_metta_enabled"),
-                    "output_dir": _get(atomdb, "export_metta_output_dir"),
+                    "output_dir": export_metta_output_dir,
                 },
                 "persistence": {
                     "reuse_mongodb": _get(atomdb, "persistence_reuse_mongodb")

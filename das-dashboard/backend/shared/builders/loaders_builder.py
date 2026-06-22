@@ -1,14 +1,10 @@
-from shared.internal.configuration_constants import CONSTANTS
+from shared.internal.configuration_constants import LOADERS
 
 
 class LoadersBuilder:
 
     def build(self) -> dict:
         return {
-            "metta": {
-                "image": CONSTANTS["loaders.metta.image"],
-            },
-            "morkdb": {
-                "image": CONSTANTS["loaders.morkdb.image"],
-            },
+            "metta": {"image": LOADERS["metta"]["image"]},
+            "morkdb": {"image": LOADERS["morkdb"]["image"]},
         }

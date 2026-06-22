@@ -4,13 +4,11 @@ import re
 
 from shared.enums.metric_scope import MetricScope
 from shared.internal.web_configuration import WebConfiguration
-from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH
+from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.exceptions.custom_exceptions import (
     DasCliNotInstalledException,
     DasCliCommandException
 )
-
-LOCAL_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
 
 
 class MetricsServices:
