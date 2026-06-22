@@ -10,6 +10,10 @@ export function extractErrorDetails(err) {
       return data;
     }
 
+    if (data?.detail) {
+      return typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
+    }
+
     if (data?.exceptionMessage) {
       return `${data.message} Details: ${data.exceptionMessage}`;
     }

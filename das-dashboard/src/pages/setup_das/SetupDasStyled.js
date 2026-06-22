@@ -257,7 +257,7 @@ export const DialogButton = styled(Button, {
 }))
 
 export const DialogPaper = {
-  borderRadius: 12,
+  borderRadius: 3,
   boxShadow: "0 8px 32px rgba(15, 23, 42, 0.12)",
   border: `1px solid ${palette.borderSubtle}`
 }

@@ -1,14 +1,25 @@
-import { Checkbox, FormControlLabel, TextField, Typography, Divider, MenuItem, Button } from "@mui/material"
-import { useEffect, useRef, useState } from "react"
+import {
+  Box,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+  Typography,
+  Divider,
+  MenuItem,
+  Button
+} from "@mui/material"
+import { useRef, useState } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
-import { getWorkspacePaths, uploadContextMappingFile } from "../../../../api/ConfigAPI"
+import { saveContextMapping } from "../../../../api/ConfigAPI"
 import { initAdapterBackend } from "../../configFormUtils"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
 import {
   GridSpan9,
   GridSpan3,
-  GridSpan6,
   GridSpan4,
   GridSpan12,
   CheckboxContainer,
@@ -35,7 +46,6 @@ export function AdapterDBOptions() {
     db_name: template.db_name || "",
     db_username: template.db_username || "",
     db_password: template.db_password || "",
-    context_mapping_path: template.context_mapping_path || "",
     export_metta_enabled: template.export_metta_enabled ?? true,
     export_metta_output_dir: template.export_metta_output_dir || "",
     persistence_reuse_mongodb: template.persistence_reuse_mongodb ?? true
@@ -43,29 +53,49 @@ export function AdapterDBOptions() {
 
   const [adapterType, setAdapterType] = useState(form.current.adapter_type)
   const [backendType, setBackendType] = useState(defaultBackendType)
-  const [contextMappingPath, setContextMappingPath] = useState(form.current.context_mapping_path)
+  const [contextMappingMode, setContextMappingMode] = useState("content")
+  const [contextMappingContent, setContextMappingContent] = useState("")
+  const [contextMappingPath, setContextMappingPath] = useState("")
+  const fileInputRef = useRef(null)
   const backendRef = useRef(initAdapterBackend(template, defaultBackendType))
-
-  useEffect(() => {
-    async function loadWorkspacePaths() {
-      try {
-        const response = await getWorkspacePaths()
-        const paths = response.content || {}
-
-        if (!form.current.export_metta_output_dir && paths.metta_output) {
-          form.current.export_metta_output_dir = paths.metta_output
-        }
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
-    loadWorkspacePaths()
-  }, [])
 
   const handleBackendTypeChange = (nextType) => {
     setBackendType(nextType)
     backendRef.current = initAdapterBackend(getAtomdbTemplate("adapterdb") || {}, nextType)
+  }
+
+  const handleLoadContextFile = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    try {
+      const text = await file.text()
+      setContextMappingContent(text)
+      setContextMappingMode("content")
+      showToast({ message: "File loaded into editor. Click Save to upload.", severity: "info" })
+    } catch (error) {
+      console.error(error)
+      showToast({ message: "Failed to read file", severity: "error" })
+    } finally {
+      event.target.value = ""
+    }
+  }
+
+  const handleSaveContextMapping = async () => {
+    try {
+      if (contextMappingMode === "path") {
+        await saveContextMapping({ path: contextMappingPath })
+      } else {
+        await saveContextMapping({ content: contextMappingContent })
+      }
+
+      showToast({ message: "Context mapping saved", severity: "success" })
+    } catch (error) {
+      console.error(error)
+      showToast({ message: "Failed to save context mapping", severity: "error" })
+    }
   }
 
   const handleSave = () => {
@@ -189,55 +219,73 @@ export function AdapterDBOptions() {
         />
       </GridSpan4>
 
-      <SectionTitle>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Context & Mapping</Typography>
-      </SectionTitle>
-
       <GridSpan12>
-        <Button variant="outlined" component="label" size="small">
-          Upload Context Mapping File
-          <input
-            hidden
-            type="file"
-            accept=".sql,.json,.csv,.txt"
-            onChange={async (event) => {
-              const file = event.target.files?.[0]
-              if (!file) return
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            Context Mapping
+          </Typography>
+          <Button variant="contained" size="small" onClick={handleSaveContextMapping}>
+            Save
+          </Button>
+        </Box>
 
-              try {
-                const response = await uploadContextMappingFile(file)
-                form.current.context_mapping_path = response.saved_path
-                setContextMappingPath(response.saved_path)
-                showToast({ message: "Context mapping file uploaded", severity: "success" })
-              } catch (error) {
-                console.error(error)
-                showToast({ message: "Failed to upload context mapping file", severity: "error" })
-              } finally {
-                event.target.value = ""
-              }
-            }}
+        <FormControl sx={{ mb: 1 }}>
+          <RadioGroup
+            row
+            value={contextMappingMode}
+            onChange={(e) => setContextMappingMode(e.target.value)}
+          >
+            <FormControlLabel value="content" control={<Radio size="small" />} label="Paste content" />
+            <FormControlLabel value="path" control={<Radio size="small" />} label="Use file path" />
+          </RadioGroup>
+          <Typography variant="subtitle2" sx={{ fontWeight: 100 }}>
+            File path mode is recommended if you are going to use the configuration outside of the web environment, otherwise use 'content' mode and the server will handle pats automatically.
+          </Typography>
+        </FormControl>
+
+        {contextMappingMode === "content" ? (
+          <>
+            <Box sx={{ display: "flex", justifyContent: "flex-start", mb: 1 }}>
+              <Button variant="outlined" size="small" onClick={() => fileInputRef.current?.click()}>
+                Load from file
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".sql"
+                hidden
+                onChange={handleLoadContextFile}
+              />
+            </Box>
+            <TextField
+              fullWidth
+              multiline
+              minRows={8}
+              placeholder="Paste or type the context mapping content here"
+              size="small"
+              value={contextMappingContent}
+              onChange={(e) => setContextMappingContent(e.target.value)}
+            />
+          </>
+        ) : (
+          <TextField
+            fullWidth
+            label="Context Mapping File Path"
+            size="small"
+            placeholder=""
+            value={contextMappingPath}
+            onChange={(e) => setContextMappingPath(e.target.value)}
           />
-        </Button>
+        )}
       </GridSpan12>
 
       <GridSpan12>
         <TextField
           fullWidth
-          label="Context Mapping Path"
+          label="MeTTa Output Path"
           size="small"
-          value={contextMappingPath}
-          InputProps={{ readOnly: true }}
-          helperText="Stored under /opt/web-das/.das/workspace — same path on host and container."
-        />
-      </GridSpan12>
-
-      <GridSpan12>
-        <TextField
-          fullWidth
-          label="MeTTa Output Directory"
-          size="small"
+          placeholder="/opt/web-das/.das/mapped_metta"
           defaultValue={form.current.export_metta_output_dir}
-          helperText="Default: /opt/web-das/.das/workspace/mapped_metta (shared mount)."
           onChange={(e) => {
             form.current.export_metta_output_dir = e.target.value
           }}

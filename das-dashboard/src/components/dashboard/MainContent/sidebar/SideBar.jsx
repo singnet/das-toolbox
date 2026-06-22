@@ -8,7 +8,7 @@ import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 
 import { handleLoadConfig } from "../../../../utils/FileLoader";
-import { saveConfig } from "../../../../api/ConfigAPI";
+import { loadConfig } from "../../../../api/ConfigAPI";
 import { startArchitecture, stopArchitecture, startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
 import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
 import { extractErrorDetails } from "../../../../api/APIUtils";
@@ -59,8 +59,8 @@ export function SideBar() {
 
   const onLoadConfig = async ({ parsed }) => {
     await executeAsyncAction("load-config", async () => {
-      await saveConfig(parsed)
-      setDashboardBaseValues(parsed)
+      const response = await loadConfig(parsed)
+      setDashboardBaseValues(response.content)
     }, "Configuration loaded successfully.", "Failed to load configuration.")
   }
 

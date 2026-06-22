@@ -10,6 +10,17 @@ import { getConfigDefaults } from "../../api/ConfigAPI"
 
 const ConfigContext = createContext(null)
 
+function syncAtomdbTemplate(templates, atomdbSection) {
+  if (!atomdbSection?.atomdb_type) {
+    return templates
+  }
+
+  return {
+    ...templates,
+    [atomdbSection.atomdb_type]: atomdbSection
+  }
+}
+
 export function ConfigurationProvider({ children }) {
   const [config, setConfig] = useState({})
   const defaultsRef = useRef({})
@@ -48,10 +59,12 @@ export function ConfigurationProvider({ children }) {
     sessionStorage.setItem(`config_${fieldName}`, JSON.stringify(value))
   }, [])
 
-  const loadExternalConfiguration = useCallback(({ parsed }) => {
-    setConfig(parsed)
+  const applyLoadedConfiguration = useCallback((flat) => {
+    defaultsRef.current = flat
+    atomdbTemplatesRef.current = syncAtomdbTemplate(atomdbTemplatesRef.current, flat.atomdb)
+    setConfig(flat)
 
-    Object.entries(parsed).forEach(([key, value]) => {
+    Object.entries(flat).forEach(([key, value]) => {
       sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
     })
   }, [])
@@ -69,7 +82,7 @@ export function ConfigurationProvider({ children }) {
         getDefaults,
         getDefaultSection,
         getAtomdbTemplate,
-        loadExternalConfiguration,
+        applyLoadedConfiguration,
         resetConfiguration
       }}
     >

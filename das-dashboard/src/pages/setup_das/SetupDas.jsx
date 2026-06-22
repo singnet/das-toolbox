@@ -21,10 +21,10 @@ import DownloadIcon from "@mui/icons-material/Download"
 import PreviewIcon from "@mui/icons-material/Preview"
 import SaveIcon from "@mui/icons-material/Save"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
-import saveFile from "../../utils/FileSaver"
-import { exportConfig, saveConfig } from "../../api/ConfigAPI"
+import ExportConfigDialog from "../../components/configuration_page/ExportConfigDialog"
+import { getConfigSaved, loadConfig, saveConfig } from "../../api/ConfigAPI"
 import { useToast } from "../../components/global_providers/ToastProvider"
 
 import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
@@ -64,7 +64,7 @@ const sections = [
 export default function SetupDasPage() {
   const {
     config,
-    loadExternalConfiguration,
+    applyLoadedConfiguration,
     resetConfiguration
   } = useConfig()
 
@@ -74,26 +74,60 @@ export default function SetupDasPage() {
   const [activeAgent, setActiveAgent] = useState("query")
   const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
+  const [openExportDialog, setOpenExportDialog] = useState(false)
+  const [canExport, setCanExport] = useState(false)
 
-  const handleExport = async () => {
-    try {
-      const response = await exportConfig(config)
-      saveFile(response.content)
-    } catch (error) {
-      console.error(error)
-      showToast({ message: "Failed to export configuration", severity: "error" })
+  useEffect(() => {
+    async function checkSavedConfig() {
+      try {
+        const response = await getConfigSaved()
+        setCanExport(Boolean(response.saved))
+      } catch (error) {
+        console.error(error)
+        setCanExport(false)
+      }
     }
+
+    checkSavedConfig()
+  }, [])
+
+  const handleExportClick = () => {
+    if (!canExport) {
+      showToast({
+        message: "Save the configuration before exporting",
+        severity: "warning"
+      })
+      return
+    }
+
+    setOpenExportDialog(true)
   }
 
   const handleSave = async () => {
     try {
       await saveConfig(config)
+      setCanExport(true)
       showToast({ message: "Configuration saved successfully", severity: "success" })
     } catch (error) {
       console.error(error)
       showToast({ message: "Failed to save configuration", severity: "error" })
     }
   }
+
+  const handleLoad = async (event) => {
+    handleLoadConfig(event, async ({ parsed }) => {
+      try {
+        const response = await loadConfig(parsed)
+        applyLoadedConfiguration(response.content)
+        setCanExport(true)
+        showToast({ message: "Configuration loaded successfully", severity: "success" })
+      } catch (error) {
+        console.error(error)
+        showToast({ message: "Failed to load configuration", severity: "error" })
+      }
+    })
+  }
+
   const activeSection = sections.find((item) => item.key === section)
   const activeAgentMeta = section === "agents" ? getAgentByKey(activeAgent) : null
 
@@ -157,16 +191,11 @@ export default function SetupDasPage() {
                 hidden
                 type="file"
                 accept=".json"
-                onChange={(e) =>
-                  handleLoadConfig(
-                    e,
-                    loadExternalConfiguration
-                  )
-                }
+                onChange={handleLoad}
               />
             </CompactActionButton>
 
-            <CompactActionButton onClick={handleExport}>
+            <CompactActionButton onClick={handleExportClick} disabled={!canExport}>
               <DownloadIcon />
               Export
             </CompactActionButton>
@@ -290,6 +319,11 @@ export default function SetupDasPage() {
         </DialogActions>
 
       </Dialog>
+
+      <ExportConfigDialog
+        open={openExportDialog}
+        onClose={() => setOpenExportDialog(false)}
+      />
     </>
   )
 }

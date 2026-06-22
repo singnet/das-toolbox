@@ -35,7 +35,6 @@ const FIELD_LABELS = {
   db_name: "Database Name",
   db_username: "Database Username",
   db_password: "Database Password",
-  context_mapping_path: "Context Mapping Path",
   export_metta_enabled: "Export MeTTa on Mapping",
   export_metta_output_dir: "MeTTa Output Directory",
   persistence_reuse_mongodb: "Reuse MongoDB Persistence",
