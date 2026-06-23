@@ -56,7 +56,9 @@ export function AdapterDBOptions() {
   const [backendType, setBackendType] = useState(defaultBackendType)
   const [contextMappingMode, setContextMappingMode] = useState("content")
   const [contextMappingContent, setContextMappingContent] = useState("")
+
   const [contextMappingPath, setContextMappingPath] = useState("")
+
   const fileInputRef = useRef(null)
   const backendRef = useRef(initAdapterBackend(template, defaultBackendType, getAtomdbTemplate))
 
@@ -283,6 +285,7 @@ export function AdapterDBOptions() {
             label="Context Mapping File Path"
             size="small"
             placeholder=""
+            defaultValue={form.current.export_metta}
             value={contextMappingPath}
             onChange={(e) => setContextMappingPath(e.target.value)}
           />
@@ -296,7 +299,7 @@ export function AdapterDBOptions() {
             label="MeTTa Output Path"
             size="small"
             placeholder=""
-            defaultValue={form.current.export_metta_output_dir}
+            defaultValue={""}
             onChange={(e) => {
               form.current.export_metta_output_dir = e.target.value
             }}
