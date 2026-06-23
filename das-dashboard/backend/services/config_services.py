@@ -8,6 +8,7 @@ from shared.internal.web_configuration import WebConfiguration
 from shared.mappers.das_config_mapper import ConfigMapper
 from shared.mappers.nested_config_mapper import NestedConfigMapper
 from shared.utils.adapter_context_mapping import save_context_mapping_content
+from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
 from shared.utils.remote_scp import RemoteScpService
 
@@ -27,6 +28,7 @@ class ConfigServices:
 
         self._persist_config(nested_config)
         self.web_config.load_config_dictionary()
+        set_das_cli_config(CONFIG_PATH, web_config=self.web_config)
 
         return {"message": "Configuration saved successfully."}
 
@@ -82,6 +84,8 @@ class ConfigServices:
             remote_dir=remote_dir,
         )
 
+        set_das_cli_config(remote_path, web_config=self.web_config, host=ip)
+
         return {
             "message": f"Configuration exported to {ip}.",
             "remote_path": remote_path,
@@ -97,6 +101,7 @@ class ConfigServices:
         self._persist_config(nested_config)
         flat = merge_flat_config(NestedConfigMapper.to_flat(nested_config), CONSTANTS)
         self.web_config.load_config_dictionary()
+        set_das_cli_config(CONFIG_PATH, web_config=self.web_config)
 
         return flat
 
