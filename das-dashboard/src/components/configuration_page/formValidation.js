@@ -31,7 +31,6 @@ export function field(rules) {
 
 export const ipv4Field = field(ipv4Input)
 export const portField = field(portInput)
-export const nonNegativeField = field(nonNegativeInput)
 export const pathField = field(pathInput)
 export const idField = field(idInput)
 
