@@ -15,6 +15,7 @@ import { useRef, useState } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
 import { saveContextMapping } from "../../../../api/ConfigAPI"
+import { MANAGED_CONTEXT_MAPPING_PATH } from "./adapterConstants"
 import { initAdapterBackend } from "../../configFormUtils"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
 import {
@@ -57,11 +58,15 @@ export function AdapterDBOptions() {
   const [contextMappingContent, setContextMappingContent] = useState("")
   const [contextMappingPath, setContextMappingPath] = useState("")
   const fileInputRef = useRef(null)
-  const backendRef = useRef(initAdapterBackend(template, defaultBackendType))
+  const backendRef = useRef(initAdapterBackend(template, defaultBackendType, getAtomdbTemplate))
 
   const handleBackendTypeChange = (nextType) => {
     setBackendType(nextType)
-    backendRef.current = initAdapterBackend(getAtomdbTemplate("adapterdb") || {}, nextType)
+    backendRef.current = initAdapterBackend(
+      getAtomdbTemplate("adapterdb") || {},
+      nextType,
+      getAtomdbTemplate
+    )
   }
 
   const handleLoadContextFile = async (event) => {
@@ -99,9 +104,14 @@ export function AdapterDBOptions() {
   }
 
   const handleSave = () => {
+    const contextPath = contextMappingMode === "path"
+      ? contextMappingPath.trim()
+      : MANAGED_CONTEXT_MAPPING_PATH
+
     updateField("atomdb", {
       ...structuredClone(form.current),
-      atomdb_backend: structuredClone(backendRef.current)
+      atomdb_backend: structuredClone(backendRef.current),
+      context_mapping_path: contextPath,
     })
     showToast({ message: "AtomDB settings applied", severity: "success" })
   }
@@ -239,7 +249,7 @@ export function AdapterDBOptions() {
             <FormControlLabel value="path" control={<Radio size="small" />} label="Use file path" />
           </RadioGroup>
           <Typography variant="subtitle2" sx={{ fontWeight: 100 }}>
-            File path mode is recommended if you are going to use the configuration outside of the web environment, otherwise use 'content' mode and the server will handle pats automatically.
+            File path mode is recommended if you are going to use the configuration outside the web environment, otherwise use 'content' mode and the server will handle paths automatically.
           </Typography>
         </FormControl>
 
@@ -279,18 +289,20 @@ export function AdapterDBOptions() {
         )}
       </GridSpan12>
 
-      <GridSpan12>
-        <TextField
-          fullWidth
-          label="MeTTa Output Path"
-          size="small"
-          placeholder="/opt/web-das/.das/mapped_metta"
-          defaultValue={form.current.export_metta_output_dir}
-          onChange={(e) => {
-            form.current.export_metta_output_dir = e.target.value
-          }}
-        />
-      </GridSpan12>
+      {contextMappingMode === "path" && (
+        <GridSpan12>
+          <TextField
+            fullWidth
+            label="MeTTa Output Path"
+            size="small"
+            placeholder=""
+            defaultValue={form.current.export_metta_output_dir}
+            onChange={(e) => {
+              form.current.export_metta_output_dir = e.target.value
+            }}
+          />
+        </GridSpan12>
+      )}
 
       <CheckboxContainer>
         <FormControlLabel

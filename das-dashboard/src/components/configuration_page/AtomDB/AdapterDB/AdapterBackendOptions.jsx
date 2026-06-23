@@ -129,7 +129,9 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
         <ClusterGridContainer>
           {showRedis && (
             <ClusterForm
+              key="adapter-redis-cluster"
               type="redis"
+              initialNodes={form.current.redis_nodes}
               onChange={(nodes) => {
                 form.current.redis_nodes = nodes
               }}
@@ -138,7 +140,9 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
 
           {showMongo && (
             <ClusterForm
+              key="adapter-mongo-cluster"
               type="mongo"
+              initialNodes={form.current.mongo_nodes}
               onChange={(nodes) => {
                 form.current.mongo_nodes = nodes
               }}
@@ -246,7 +250,9 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
         <ClusterGridContainer>
           {showMongo && (
             <ClusterForm
+              key="adapter-mork-mongo-cluster"
               type="mongo"
+              initialNodes={form.current.mongo_nodes}
               onChange={(nodes) => {
                 form.current.mongo_nodes = nodes
               }}

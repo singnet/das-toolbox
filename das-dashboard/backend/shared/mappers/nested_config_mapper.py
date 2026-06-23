@@ -172,6 +172,7 @@ class NestedConfigMapper:
         adapterdb = atomdb.get("adapterdb", {})
         credentials = adapterdb.get("database_credentials", {})
         metta = adapterdb.get("export_metta_on_mapping", {})
+        mapping_paths = adapterdb.get("context_mapping_paths") or []
 
         adapter_host, adapter_port = split_endpoint(adapterdb.get("endpoint"), "localhost", 40023)
 
@@ -185,6 +186,7 @@ class NestedConfigMapper:
             "db_name": credentials.get("database", ""),
             "db_username": credentials.get("username", ""),
             "db_password": credentials.get("password", ""),
+            "context_mapping_path": mapping_paths[0] if mapping_paths else "",
             "export_metta_enabled": metta.get("enabled", True),
             "export_metta_output_dir": metta.get("output_dir", ""),
             "persistence_reuse_mongodb": adapterdb.get("persistence", {}).get("reuse_mongodb", True),

@@ -140,7 +140,9 @@ export function RedisMongoOptions() {
       <ClusterGridContainer>
         {showRedis && (
           <ClusterForm
+            key="redis-cluster"
             type="redis"
+            initialNodes={form.current.redis_nodes}
             onChange={(nodes) => {
               form.current.redis_nodes = nodes
             }}
@@ -149,7 +151,9 @@ export function RedisMongoOptions() {
 
         {showMongo && (
           <ClusterForm
+            key="mongo-cluster"
             type="mongo"
+            initialNodes={form.current.mongo_nodes}
             onChange={(nodes) => {
               form.current.mongo_nodes = nodes
             }}

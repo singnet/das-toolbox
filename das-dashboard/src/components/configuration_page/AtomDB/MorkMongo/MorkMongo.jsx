@@ -126,7 +126,9 @@ export function MorkMongoOptions() {
       <ClusterGridContainer>
         {showMongo && (
           <ClusterForm
+            key="mork-mongo-cluster"
             type="mongo"
+            initialNodes={form.current.mongo_nodes}
             onChange={(nodes) => {
               form.current.mongo_nodes = nodes
             }}

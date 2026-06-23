@@ -21,10 +21,10 @@ import DownloadIcon from "@mui/icons-material/Download"
 import PreviewIcon from "@mui/icons-material/Preview"
 import SaveIcon from "@mui/icons-material/Save"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import ExportConfigDialog from "../../components/configuration_page/ExportConfigDialog"
-import { getConfigSaved, loadConfig, saveConfig } from "../../api/ConfigAPI"
+import { loadConfig, saveConfig } from "../../api/ConfigAPI"
 import { useToast } from "../../components/global_providers/ToastProvider"
 
 import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
@@ -75,38 +75,10 @@ export default function SetupDasPage() {
   const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
   const [openExportDialog, setOpenExportDialog] = useState(false)
-  const [canExport, setCanExport] = useState(false)
-
-  useEffect(() => {
-    async function checkSavedConfig() {
-      try {
-        const response = await getConfigSaved()
-        setCanExport(Boolean(response.saved))
-      } catch (error) {
-        console.error(error)
-        setCanExport(false)
-      }
-    }
-
-    checkSavedConfig()
-  }, [])
-
-  const handleExportClick = () => {
-    if (!canExport) {
-      showToast({
-        message: "Save the configuration before exporting",
-        severity: "warning"
-      })
-      return
-    }
-
-    setOpenExportDialog(true)
-  }
 
   const handleSave = async () => {
     try {
       await saveConfig(config)
-      setCanExport(true)
       showToast({ message: "Configuration saved successfully", severity: "success" })
     } catch (error) {
       console.error(error)
@@ -119,7 +91,6 @@ export default function SetupDasPage() {
       try {
         const response = await loadConfig(parsed)
         applyLoadedConfiguration(response.content)
-        setCanExport(true)
         showToast({ message: "Configuration loaded successfully", severity: "success" })
       } catch (error) {
         console.error(error)
@@ -195,7 +166,7 @@ export default function SetupDasPage() {
               />
             </CompactActionButton>
 
-            <CompactActionButton onClick={handleExportClick} disabled={!canExport}>
+            <CompactActionButton onClick={() => setOpenExportDialog(true)}>
               <DownloadIcon />
               Export
             </CompactActionButton>
@@ -323,6 +294,7 @@ export default function SetupDasPage() {
       <ExportConfigDialog
         open={openExportDialog}
         onClose={() => setOpenExportDialog(false)}
+        flatConfig={config}
       />
     </>
   )

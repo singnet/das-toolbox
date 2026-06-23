@@ -1,20 +1,33 @@
 import { Box, Button, TextField, Typography, IconButton } from "@mui/material"
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
-export function ClusterForm({ type, onChange }) {
-  const nodes = useRef([])
-  const [count, setCount] = useState(1)
+function createEmptyNode() {
+  return { context: "default", username: "", ip: "" }
+}
+
+function seedNodes(initialNodes) {
+  if (Array.isArray(initialNodes) && initialNodes.length > 0) {
+    return structuredClone(initialNodes)
+  }
+
+  return [createEmptyNode()]
+}
+
+export function ClusterForm({ type, initialNodes = [], onChange }) {
+  const nodes = useRef(seedNodes(initialNodes))
+  const [count, setCount] = useState(nodes.current.length)
 
   const syncNodes = () => {
     onChange(structuredClone(nodes.current))
   }
 
+  useEffect(() => {
+    syncNodes()
+  }, [])
+
   const updateNode = (index, field, value) => {
-    const current = nodes.current[index] || {
-      username: "",
-      ip: ""
-    }
+    const current = nodes.current[index] || createEmptyNode()
 
     nodes.current[index] = {
       ...current,
@@ -25,12 +38,14 @@ export function ClusterForm({ type, onChange }) {
   }
 
   const addServer = () => {
-    setCount((prev) => prev + 1)
+    nodes.current.push(createEmptyNode())
+    setCount(nodes.current.length)
+    syncNodes()
   }
 
   const removeServer = (index) => {
     nodes.current.splice(index, 1)
-    setCount((prev) => Math.max(0, prev - 1))
+    setCount(Math.max(nodes.current.length, 0))
     syncNodes()
   }
 
@@ -73,7 +88,7 @@ export function ClusterForm({ type, onChange }) {
               label="Username"
               size="small"
               margin="none"
-              defaultValue=""
+              defaultValue={nodes.current[i]?.username ?? ""}
               onChange={(e) => {
                 updateNode(i, "username", e.target.value)
               }}
@@ -84,7 +99,7 @@ export function ClusterForm({ type, onChange }) {
               label="IP Address"
               size="small"
               margin="none"
-              defaultValue=""
+              defaultValue={nodes.current[i]?.ip ?? ""}
               onChange={(e) => {
                 updateNode(i, "ip", e.target.value)
               }}
