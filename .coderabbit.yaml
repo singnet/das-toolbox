@@ -8,7 +8,7 @@ tone_instructions: >-
   nits already enforced by CI (black, isort, flake8, mypy on das-cli).
 
 reviews:
-  profile: chill
+  profile: assertive
   commit_status: true
   request_changes_workflow: true
   high_level_summary: true
@@ -64,7 +64,6 @@ reviews:
     - "!**/node_modules/**"
     - "!**/dist/**"
     - "!**/htmlcov/**"
-    - "!**/*.lock"
     - "!das-dashboard/package-lock.json"
   path_instructions:
     - path: "das-cli/src/**/*.py"
