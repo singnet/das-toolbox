@@ -1,0 +1,165 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+focus: balanced
+
+tone_instructions: >-
+  Prioritize correctness, Docker/shell safety, and integration test coverage.
+  Flag bugs in CLI behavior, container lifecycle, and config handling. Skip style
+  nits already enforced by CI (black, isort, flake8, mypy on das-cli).
+
+reviews:
+  profile: chill
+  commit_status: true
+  request_changes_workflow: true
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  high_level_summary_instructions: |
+    Summarize the PR in 3–5 bullets. Call out: (1) correctness risks (CLI behavior,
+    Docker/container lifecycle, config/secrets handling), (2) impact on packaging or
+    deployment (Debian/Docker/self-hosted runners), and (3) whether behavior changes
+    have matching tests in das-cli/tests/ or component-specific test suites.
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  tools:
+    eslint:
+      enabled: true
+    flake8:
+      enabled: true
+    ruff:
+      enabled: true
+    shellcheck:
+      enabled: true
+    github-checks:
+      enabled: true
+      # Self-hosted CI (lint, build, bats integration tests) can exceed the 90s default.
+      timeout_ms: 900000
+  pre_merge_checks:
+    docstrings:
+      mode: off
+    custom_checks:
+      - name: Tests for behavior changes
+        mode: error
+        instructions: |
+          PASS when any of the following is true:
+          - The PR only touches docs, CI, config, or formatting (no production logic).
+          - Production code changes behavior and the PR adds or updates tests (bats under
+            das-cli/tests/integration/, pytest under das-cli/tests/agents_integration/,
+            or component-specific tests where they exist).
+          - The PR description explains why tests are intentionally omitted.
+          FAIL when production logic changes (bug fixes, new CLI commands, API endpoints,
+          container orchestration) without corresponding test updates and without
+          justification in the description.
+  finishing_touches:
+    unit_tests:
+      enabled: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - master
+  path_filters:
+    - "!**/__pycache__/**"
+    - "!**/.pytest_cache/**"
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/htmlcov/**"
+    - "!**/*.lock"
+    - "!das-dashboard/package-lock.json"
+  path_instructions:
+    - path: "das-cli/src/**/*.py"
+      instructions: |
+        DAS CLI (Python 3.11, injector DI). Follow existing module layout:
+        commands/<group>/{*_module.py, *_cli.py, *_docs.py} and common/ utilities.
+        Formatting: Black line-length 100, skip-string-normalization (src/.black.cfg).
+        isort profile black, line_length 100 (src/.isort.cfg). flake8 max-line-length 100;
+        E203/E501 ignored (src/.flake8.cfg). mypy with check_untyped_defs (src/mypy.ini).
+        Modules extend common.Module, bind dependencies in configure(), expose CLI via *_cli.py.
+        Use the project logger patterns in common/logger.py — not ad-hoc print/logging.
+        Docker interactions go through common/docker/ and common/container_manager/ — match
+        existing lifecycle patterns (start/stop/status) and error handling.
+        Config uses JsonConfigStore and Settings — preserve key names and JSON structure.
+        Prefer minimal, focused diffs. Do not flag pre-existing style in untouched code.
+        CI runs `make lint` in das-cli (isort, black, flake8, mypy) — do not nitpick style CI checks.
+        TEST COVERAGE: CLI behavior changes should have bats integration tests under
+        das-cli/tests/integration/ or pytest under das-cli/tests/agents_integration/;
+        suggest concrete test cases (error paths, missing config, container failures).
+    - path: "das-cli/tests/**/*.bats"
+      instructions: |
+        Bats integration tests for das-cli. CI runs via `make tests-local` on self-hosted runners.
+        Tests use fixtures under tests/integration/fixtures/ and libs under tests/integration/libs/.
+        Prioritize real end-to-end CLI behavior: config errors, container start/stop, service status.
+        Mirror patterns from sibling *.bats files (setup/teardown, load libs, assert_output).
+        Flag tests that are too shallow or miss assertions on changed CLI output/exit codes.
+    - path: "das-cli/tests/agents_integration/**/*.py"
+      instructions: |
+        Pytest agent integration tests. Run via `make tests-integration`. Focus on agent/CLI
+        contract tests and error handling; suggest cases when agent-facing APIs change without updates.
+    - path: "das-dashboard/src/**/*.{js,jsx}"
+      instructions: |
+        DAS Dashboard frontend (React 19, Vite, MUI, Emotion). ESLint flat config (eslint.config.js).
+        Match existing component structure: pages/, components/, hooks/, api/. Use functional
+        components and existing provider patterns (DashboardContextProvider, ConfigurationProvider).
+        API calls go through src/api/* — do not bypass with raw fetch scattered in components.
+        Prefer minimal diffs; do not suggest drive-by refactors or unrelated UI changes.
+    - path: "das-dashboard/backend/**/*.py"
+      instructions: |
+        DAS Dashboard mini-backend (FastAPI, uvicorn). Controllers in controllers/, business logic
+        in services/, DTOs in shared/dtos/, enums in shared/enums/. Routers registered in main.py.
+        This backend executes shell/das-cli tasks and manages local config — flag unsafe shell
+        invocation, missing input validation, and path traversal risks. Match existing exception
+        handling via shared/exceptions/. Preserve WEB_CONFIG and storage paths in shared/internal/.
+    - path: "gatekeeper/**/*.py"
+      instructions: |
+        Gatekeeper API (FastAPI + SQLite) and CLI (gkctl). API under api/src/, CLI under cli/src/.
+        Mirror existing router/service/schema patterns. Port and instance management must stay
+        consistent between API and CLI. Flag SQL injection risks, missing auth checks, and race
+        conditions in port allocation.
+    - path: "das-runner-manager/**/*.py"
+      instructions: |
+        GitHub Actions self-hosted runner manager. CLI commands in src/cli/commands/, Docker
+        daemon in src/api_server/daemon/, agent service in src/agent_service/. Scripts in scripts/
+        handle runner lifecycle. Flag Docker socket exposure, token handling, and container cleanup
+        gaps. Match existing command patterns in src/cli/main.py.
+    - path: "das-runner-manager/scripts/**"
+      instructions: |
+        Shell scripts for runner setup and monitoring. Must be safe for self-hosted CI environments.
+        Flag unquoted variables, missing error handling (set -euo pipefail), and destructive
+        operations without guards.
+    - path: ".github/**"
+      instructions: |
+        GitHub Actions and CI. This repo uses self-hosted runners and reusable workflow_call patterns.
+        Primary PR workflow: run-das-cli-tests.yml (lint, build .deb, bats integration tests).
+        Preserve existing workflow_call inputs and artifact naming conventions.
+    - path: "scripts/**"
+      instructions: |
+        Root packaging scripts (Debian changelog, Docker build). Changes affect `make build` and
+        release artifacts — flag breaking changes to PACKAGE_VERSION handling or dist/ output paths.
+    - path: "**/*"
+      instructions: |
+        DAS Toolbox (singnet/das-toolbox) — CLI, web dashboard, runner manager, and gatekeeper for
+        the Distributed Atomspace (DAS) ecosystem. PRs target master. Primary language is Python;
+        frontend is React/Vite under das-dashboard/.
+        Review focus (in order): correctness of CLI/Docker behavior, safe shell/API usage, test
+        coverage for behavior changes. Favor consistency with neighboring code over generic refactors.
+        Avoid drive-by changes, unnecessary abstractions, and comments that restate obvious code.
+        See component READMEs: das-cli/README.md, das-dashboard/README.md, das-runner-manager/README.md,
+        gatekeeper/README.md.
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - README.md
+      - das-cli/README.md
+      - das-dashboard/README.md
+      - das-dashboard/backend/README.md
+      - das-runner-manager/README.md
+      - gatekeeper/README.md
+  learnings:
+    scope: local
+  issues:
+    scope: local
+
+chat:
+  auto_reply: true
