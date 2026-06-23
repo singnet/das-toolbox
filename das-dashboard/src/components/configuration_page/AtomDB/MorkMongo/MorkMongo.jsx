@@ -4,6 +4,8 @@ import { ClusterForm } from "../ClusterForm"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
 import { initMorkMongoConnection } from "../../configFormUtils"
+import { ConfigForm } from "../../ConfigForm"
+import { portField } from "../../formValidation"
 import {
   GridSpan9,
   GridSpan3,
@@ -31,12 +33,13 @@ export function MorkMongoOptions() {
   }
 
   return (
-    <>
+    <ConfigForm onSubmit={handleSave}>
       <GridSpan9>
         <TextField
           fullWidth
           label="MorkDB Endpoint"
           size="small"
+          required
           defaultValue={form.current.mork_endpoint}
           onChange={(e) => {
             form.current.mork_endpoint = e.target.value
@@ -50,10 +53,12 @@ export function MorkMongoOptions() {
           label="MorkDB Port"
           type="number"
           size="small"
+          required
           defaultValue={form.current.mork_port}
           onChange={(e) => {
             form.current.mork_port = Number(e.target.value)
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -62,6 +67,7 @@ export function MorkMongoOptions() {
           fullWidth
           label="MongoDB Endpoint"
           size="small"
+          required
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
@@ -75,10 +81,12 @@ export function MorkMongoOptions() {
           label="MongoDB Port"
           type="number"
           size="small"
+          required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
             form.current.mongo_port = Number(e.target.value)
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -87,6 +95,7 @@ export function MorkMongoOptions() {
           fullWidth
           label="MongoDB Username"
           size="small"
+          required
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -100,6 +109,7 @@ export function MorkMongoOptions() {
           label="MongoDB Password"
           type="password"
           size="small"
+          required
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value
@@ -137,10 +147,10 @@ export function MorkMongoOptions() {
       </ClusterGridContainer>
 
       <ActionButtonContainer>
-        <SaveButton variant="contained" color="success" onClick={handleSave}>
+        <SaveButton variant="contained" color="success" type="submit">
           Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
-    </>
+    </ConfigForm>
   )
 }

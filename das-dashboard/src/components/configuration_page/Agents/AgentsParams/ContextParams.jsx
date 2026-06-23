@@ -1,11 +1,6 @@
 import { TextField, Switch, FormControlLabel } from "@mui/material"
 import { FieldGrid, SwitchGrid } from "../Agents.styled"
-
-const numberProps = {
-  slotProps: {
-    htmlInput: { onWheel: (e) => e.target.blur() }
-  }
-}
+import { idField, numberField } from "../../formValidation"
 
 export default function ContextParams({ formRef }) {
   return (
@@ -14,17 +9,20 @@ export default function ContextParams({ formRef }) {
         <TextField
           label="Context Name"
           size="small"
+          required
           defaultValue={formRef.current.context}
           onChange={(e) => {
             formRef.current.context = e.target.value
           }}
+          {...idField}
         />
         <TextField
           label="Initial Rent Rate"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.initial_rent_rate}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.initial_rent_rate = Number(e.target.value)
           }}
@@ -33,8 +31,9 @@ export default function ContextParams({ formRef }) {
           label="Spread Lowerbound"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.initial_spreading_rate_lowerbound}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.initial_spreading_rate_lowerbound = Number(e.target.value)
           }}
@@ -43,8 +42,9 @@ export default function ContextParams({ formRef }) {
           label="Spread Upperbound"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.initial_spreading_rate_upperbound}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.initial_spreading_rate_upperbound = Number(e.target.value)
           }}

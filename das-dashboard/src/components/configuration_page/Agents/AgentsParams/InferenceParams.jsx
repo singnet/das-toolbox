@@ -1,11 +1,6 @@
 import { TextField } from "@mui/material"
 import { FieldGrid } from "../Agents.styled"
-
-const numberProps = {
-  slotProps: {
-    htmlInput: { onWheel: (e) => e.target.blur() }
-  }
-}
+import { numberField } from "../../formValidation"
 
 export default function InferenceParams({ formRef }) {
   return (
@@ -14,8 +9,9 @@ export default function InferenceParams({ formRef }) {
         label="Request Timeout"
         type="number"
         size="small"
+        required
         defaultValue={formRef.current.inference_request_timeout}
-        {...numberProps}
+        {...numberField}
         onChange={(e) => {
           formRef.current.inference_request_timeout = Number(e.target.value)
         }}
@@ -24,8 +20,9 @@ export default function InferenceParams({ formRef }) {
         label="Repeat Count"
         type="number"
         size="small"
+        required
         defaultValue={formRef.current.repeat_count}
-        {...numberProps}
+        {...numberField}
         onChange={(e) => {
           formRef.current.repeat_count = Number(e.target.value)
         }}
@@ -34,8 +31,9 @@ export default function InferenceParams({ formRef }) {
         label="Max Answers"
         type="number"
         size="small"
+        required
         defaultValue={formRef.current.max_answers}
-        {...numberProps}
+        {...numberField}
         onChange={(e) => {
           formRef.current.max_answers = Number(e.target.value)
         }}

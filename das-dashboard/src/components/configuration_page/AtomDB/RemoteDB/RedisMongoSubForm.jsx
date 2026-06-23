@@ -2,6 +2,7 @@ import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initRedisMongoConnection } from "../../configFormUtils"
+import { portField } from "../../formValidation"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function RedisMongoSubForm({ onChange, category }) {
@@ -27,6 +28,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           fullWidth
           label="Redis Endpoint"
           size="small"
+          required
           defaultValue={form.current.redis_endpoint}
           onChange={(e) => {
             form.current.redis_endpoint = e.target.value
@@ -41,11 +43,13 @@ export function RedisMongoSubForm({ onChange, category }) {
           label="Redis Port"
           size="small"
           type="number"
+          required
           defaultValue={form.current.redis_port}
           onChange={(e) => {
             form.current.redis_port = Number(e.target.value)
             notifyChange()
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -54,6 +58,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           fullWidth
           label="MongoDB Endpoint"
           size="small"
+          required
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
@@ -68,11 +73,13 @@ export function RedisMongoSubForm({ onChange, category }) {
           label="MongoDB Port"
           size="small"
           type="number"
+          required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
             form.current.mongo_port = Number(e.target.value)
             notifyChange()
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -81,6 +88,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo User"
           size="small"
+          required
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -95,6 +103,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           label="Mongo Pass"
           size="small"
           type="password"
+          required
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value

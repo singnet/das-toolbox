@@ -1,11 +1,6 @@
 import { TextField, Switch, FormControlLabel } from "@mui/material"
 import { FieldGrid, SwitchGrid } from "../Agents.styled"
-
-const numberProps = {
-  slotProps: {
-    htmlInput: { onWheel: (e) => e.target.blur() }
-  }
-}
+import { idField, numberField } from "../../formValidation"
 
 export default function LinkCreationParams({ formRef }) {
   return (
@@ -15,8 +10,9 @@ export default function LinkCreationParams({ formRef }) {
           label="Max Answers"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.max_answers}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.max_answers = Number(e.target.value)
           }}
@@ -25,8 +21,9 @@ export default function LinkCreationParams({ formRef }) {
           label="Repeat Count"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.repeat_count}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.repeat_count = Number(e.target.value)
           }}
@@ -34,10 +31,12 @@ export default function LinkCreationParams({ formRef }) {
         <TextField
           label="Context"
           size="small"
+          required
           defaultValue={formRef.current.context}
           onChange={(e) => {
             formRef.current.context = e.target.value
           }}
+          {...idField}
         />
       </FieldGrid>
 
@@ -46,8 +45,9 @@ export default function LinkCreationParams({ formRef }) {
           label="Attention Update"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.attention_update}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.attention_update = Number(e.target.value)
           }}
@@ -56,8 +56,9 @@ export default function LinkCreationParams({ formRef }) {
           label="Attention Correlation"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.attention_correlation}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.attention_correlation = Number(e.target.value)
           }}
@@ -69,8 +70,9 @@ export default function LinkCreationParams({ formRef }) {
           label="Query Interval"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.query_interval}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.query_interval = Number(e.target.value)
           }}
@@ -79,8 +81,9 @@ export default function LinkCreationParams({ formRef }) {
           label="Query Timeout"
           type="number"
           size="small"
+          required
           defaultValue={formRef.current.query_timeout}
-          {...numberProps}
+          {...numberField}
           onChange={(e) => {
             formRef.current.query_timeout = Number(e.target.value)
           }}

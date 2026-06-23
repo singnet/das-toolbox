@@ -1,6 +1,7 @@
 import { Checkbox, FormControlLabel, TextField } from "@mui/material"
 import { useState } from "react"
 import { ClusterForm } from "../ClusterForm"
+import { portField } from "../../formValidation"
 import {
   GridSpan9,
   GridSpan3,
@@ -27,6 +28,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             fullWidth
             label="Redis Endpoint"
             size="small"
+            required
             defaultValue={form.current.redis_endpoint}
             onChange={(e) => {
               form.current.redis_endpoint = e.target.value
@@ -40,10 +42,12 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="Redis Port"
             type="number"
             size="small"
+            required
             defaultValue={form.current.redis_port}
             onChange={(e) => {
               form.current.redis_port = Number(e.target.value)
             }}
+            {...portField}
           />
         </GridSpan3>
 
@@ -52,6 +56,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             fullWidth
             label="MongoDB Endpoint"
             size="small"
+            required
             defaultValue={form.current.mongo_endpoint}
             onChange={(e) => {
               form.current.mongo_endpoint = e.target.value
@@ -65,10 +70,12 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Port"
             type="number"
             size="small"
+            required
             defaultValue={form.current.mongo_port}
             onChange={(e) => {
               form.current.mongo_port = Number(e.target.value)
             }}
+            {...portField}
           />
         </GridSpan3>
 
@@ -77,6 +84,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             fullWidth
             label="MongoDB Username"
             size="small"
+            required
             defaultValue={form.current.mongo_username}
             onChange={(e) => {
               form.current.mongo_username = e.target.value
@@ -90,6 +98,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Password"
             type="password"
             size="small"
+            required
             defaultValue={form.current.mongo_password}
             onChange={(e) => {
               form.current.mongo_password = e.target.value
@@ -161,6 +170,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             fullWidth
             label="MorkDB Endpoint"
             size="small"
+            required
             defaultValue={form.current.mork_endpoint}
             onChange={(e) => {
               form.current.mork_endpoint = e.target.value
@@ -174,10 +184,12 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MorkDB Port"
             type="number"
             size="small"
+            required
             defaultValue={form.current.mork_port}
             onChange={(e) => {
               form.current.mork_port = Number(e.target.value)
             }}
+            {...portField}
           />
         </GridSpan3>
 
@@ -186,6 +198,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             fullWidth
             label="MongoDB Endpoint"
             size="small"
+            required
             defaultValue={form.current.mongo_endpoint}
             onChange={(e) => {
               form.current.mongo_endpoint = e.target.value
@@ -199,10 +212,12 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Port"
             type="number"
             size="small"
+            required
             defaultValue={form.current.mongo_port}
             onChange={(e) => {
               form.current.mongo_port = Number(e.target.value)
             }}
+            {...portField}
           />
         </GridSpan3>
 
@@ -211,6 +226,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             fullWidth
             label="MongoDB Username"
             size="small"
+            required
             defaultValue={form.current.mongo_username}
             onChange={(e) => {
               form.current.mongo_username = e.target.value
@@ -224,6 +240,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Password"
             type="password"
             size="small"
+            required
             defaultValue={form.current.mongo_password}
             onChange={(e) => {
               form.current.mongo_password = e.target.value

@@ -19,6 +19,7 @@ import {
   ActionButtonContainer
 } from "../AtomDBStyled"
 import { SaveButton } from "../../Agents/Agents.styled"
+import { ConfigForm } from "../../ConfigForm"
 
 export function RemoteDBOptions() {
 
@@ -95,7 +96,7 @@ export function RemoteDBOptions() {
   }
 
   return (
-    <>
+    <ConfigForm onSubmit={handleSave}>
       <GridSpan12>
         <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
           Remote Peers List
@@ -213,11 +214,11 @@ export function RemoteDBOptions() {
         <SaveButton
           variant="contained"
           color="success"
-          onClick={handleSave}
+          type="submit"
         >
           Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
-    </>
+    </ConfigForm>
   )
 }

@@ -2,6 +2,7 @@ import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initMorkMongoConnection } from "../../configFormUtils"
+import { portField } from "../../formValidation"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
@@ -27,6 +28,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           fullWidth
           label="MorkDB Endpoint"
           size="small"
+          required
           defaultValue={form.current.mork_endpoint}
           onChange={(e) => {
             form.current.mork_endpoint = e.target.value
@@ -41,11 +43,13 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MorkDB Port"
           size="small"
           type="number"
+          required
           defaultValue={form.current.mork_port}
           onChange={(e) => {
             form.current.mork_port = Number(e.target.value)
             notifyChange()
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -54,6 +58,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           fullWidth
           label="MongoDB Endpoint"
           size="small"
+          required
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
@@ -68,11 +73,13 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MongoDB Port"
           size="small"
           type="number"
+          required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
             form.current.mongo_port = Number(e.target.value)
             notifyChange()
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -81,6 +88,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo User"
           size="small"
+          required
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -95,6 +103,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="Mongo Pass"
           size="small"
           type="password"
+          required
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value

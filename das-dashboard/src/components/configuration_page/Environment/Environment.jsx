@@ -3,6 +3,8 @@ import { useRef } from "react"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
 import { splitEndpoint } from "../configFormUtils"
+import { ConfigForm } from "../ConfigForm"
+import { portField } from "../formValidation"
 import { SaveButton } from "../Agents/Agents.styled"
 
 export function EnvironmentForm() {
@@ -24,22 +26,26 @@ export function EnvironmentForm() {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h6">Environment Configuration</Typography>
+    <ConfigForm onSubmit={handleSave}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Typography variant="h6">Environment Configuration</Typography>
 
-      <TextField
-        label="Jupyter Notebook Port"
-        type="number"
-        size="small"
-        defaultValue={form.current.jupyter_port}
-        onChange={(e) => {
-          form.current.jupyter_port = Number(e.target.value)
-        }}
-      />
+        <TextField
+          label="Jupyter Notebook Port"
+          type="number"
+          size="small"
+          required
+          defaultValue={form.current.jupyter_port}
+          onChange={(e) => {
+            form.current.jupyter_port = Number(e.target.value)
+          }}
+          {...portField}
+        />
 
-      <SaveButton variant="contained" color="success" onClick={handleSave}>
-        Apply environment settings
-      </SaveButton>
-    </Box>
+        <SaveButton variant="contained" color="success" type="submit">
+          Apply environment settings
+        </SaveButton>
+      </Box>
+    </ConfigForm>
   )
 }

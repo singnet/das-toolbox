@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
 import { getAgentParam } from "../configFormUtils"
+import { ConfigForm } from "../ConfigForm"
 import { getAgentByKey, AGENT_COMPONENTS } from "./agentRegistry"
 import {
   AgentContent,
@@ -42,16 +43,18 @@ export default function BaseParametersPanel() {
         <AgentTitle>{agent.label}</AgentTitle>
       </AgentContentHeader>
 
-      {SpecificParamComponent && (
-        <ConfigSection>
-          <ConfigSectionTitle>Parameters</ConfigSectionTitle>
-          <SpecificParamComponent formRef={form} />
-        </ConfigSection>
-      )}
+      <ConfigForm onSubmit={handleSave}>
+        {SpecificParamComponent && (
+          <ConfigSection>
+            <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+            <SpecificParamComponent formRef={form} />
+          </ConfigSection>
+        )}
 
-      <SaveButton variant="contained" color="success" onClick={handleSave}>
-        Apply {agent.label} settings
-      </SaveButton>
+        <SaveButton variant="contained" color="success" type="submit">
+          Apply {agent.label} settings
+        </SaveButton>
+      </ConfigForm>
     </AgentContent>
   )
 }

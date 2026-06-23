@@ -1,6 +1,7 @@
 import { Box, Button, TextField, Typography, IconButton } from "@mui/material"
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import { useEffect, useRef, useState } from "react"
+import { ipv4Field } from "../formValidation"
 
 function createEmptyNode() {
   return { context: "default", username: "", ip: "" }
@@ -88,6 +89,7 @@ export function ClusterForm({ type, initialNodes = [], onChange }) {
               label="Username"
               size="small"
               margin="none"
+              required
               defaultValue={nodes.current[i]?.username ?? ""}
               onChange={(e) => {
                 updateNode(i, "username", e.target.value)
@@ -99,10 +101,12 @@ export function ClusterForm({ type, initialNodes = [], onChange }) {
               label="IP Address"
               size="small"
               margin="none"
+              required
               defaultValue={nodes.current[i]?.ip ?? ""}
               onChange={(e) => {
                 updateNode(i, "ip", e.target.value)
               }}
+              {...ipv4Field}
             />
 
             <IconButton

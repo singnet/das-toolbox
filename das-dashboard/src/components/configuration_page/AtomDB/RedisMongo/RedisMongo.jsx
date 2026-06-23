@@ -4,6 +4,8 @@ import { ClusterForm } from "../ClusterForm"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
 import { initRedisMongoConnection } from "../../configFormUtils"
+import { ConfigForm } from "../../ConfigForm"
+import { portField } from "../../formValidation"
 import {
   GridSpan9,
   GridSpan3,
@@ -32,12 +34,13 @@ export function RedisMongoOptions() {
   }
 
   return (
-    <>
+    <ConfigForm onSubmit={handleSave}>
       <GridSpan9>
         <TextField
           fullWidth
           label="Redis Endpoint"
           size="small"
+          required
           defaultValue={form.current.redis_endpoint}
           onChange={(e) => {
             form.current.redis_endpoint = e.target.value
@@ -51,10 +54,12 @@ export function RedisMongoOptions() {
           label="Redis Port"
           type="number"
           size="small"
+          required
           defaultValue={form.current.redis_port}
           onChange={(e) => {
             form.current.redis_port = Number(e.target.value)
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -63,6 +68,7 @@ export function RedisMongoOptions() {
           fullWidth
           label="MongoDB Endpoint"
           size="small"
+          required
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
@@ -76,10 +82,12 @@ export function RedisMongoOptions() {
           label="MongoDB Port"
           type="number"
           size="small"
+          required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
             form.current.mongo_port = Number(e.target.value)
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -88,6 +96,7 @@ export function RedisMongoOptions() {
           fullWidth
           label="MongoDB Username"
           size="small"
+          required
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -101,6 +110,7 @@ export function RedisMongoOptions() {
           label="MongoDB Password"
           type="password"
           size="small"
+          required
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value
@@ -162,10 +172,10 @@ export function RedisMongoOptions() {
       </ClusterGridContainer>
 
       <ActionButtonContainer>
-        <SaveButton variant="contained" color="success" onClick={handleSave}>
+        <SaveButton variant="contained" color="success" type="submit">
           Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
-    </>
+    </ConfigForm>
   )
 }

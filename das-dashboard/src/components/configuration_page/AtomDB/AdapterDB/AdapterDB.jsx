@@ -17,6 +17,8 @@ import { useToast } from "../../../global_providers/ToastProvider"
 import { saveContextMapping } from "../../../../api/ConfigAPI"
 import { MANAGED_CONTEXT_MAPPING_PATH } from "./adapterConstants"
 import { initAdapterBackend } from "../../configFormUtils"
+import { ConfigForm } from "../../ConfigForm"
+import { portField, pathField } from "../../formValidation"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
 import {
   GridSpan9,
@@ -119,7 +121,7 @@ export function AdapterDBOptions() {
   }
 
   return (
-    <>
+    <ConfigForm onSubmit={handleSave}>
       <SectionTitle>
         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Adapter Connection</Typography>
       </SectionTitle>
@@ -145,6 +147,7 @@ export function AdapterDBOptions() {
           fullWidth
           label="Adapter Endpoint"
           size="small"
+          required
           defaultValue={form.current.adapter_endpoint}
           onChange={(e) => {
             form.current.adapter_endpoint = e.target.value
@@ -158,10 +161,12 @@ export function AdapterDBOptions() {
           label="Adapter Port"
           type="number"
           size="small"
+          required
           defaultValue={form.current.adapter_port}
           onChange={(e) => {
             form.current.adapter_port = Number(e.target.value)
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -174,6 +179,7 @@ export function AdapterDBOptions() {
           fullWidth
           label="Database Host"
           size="small"
+          required
           defaultValue={form.current.db_host}
           onChange={(e) => {
             form.current.db_host = e.target.value
@@ -187,10 +193,12 @@ export function AdapterDBOptions() {
           label="Database Port"
           type="number"
           size="small"
+          required
           defaultValue={form.current.db_port}
           onChange={(e) => {
             form.current.db_port = Number(e.target.value)
           }}
+          {...portField}
         />
       </GridSpan3>
 
@@ -199,6 +207,7 @@ export function AdapterDBOptions() {
           fullWidth
           label="Database Name"
           size="small"
+          required
           defaultValue={form.current.db_name}
           onChange={(e) => {
             form.current.db_name = e.target.value
@@ -211,6 +220,7 @@ export function AdapterDBOptions() {
           fullWidth
           label="Username"
           size="small"
+          required
           defaultValue={form.current.db_username}
           onChange={(e) => {
             form.current.db_username = e.target.value
@@ -224,6 +234,7 @@ export function AdapterDBOptions() {
           label="Password"
           type="password"
           size="small"
+          required
           defaultValue={form.current.db_password}
           onChange={(e) => {
             form.current.db_password = e.target.value
@@ -284,10 +295,11 @@ export function AdapterDBOptions() {
             fullWidth
             label="Context Mapping File Path"
             size="small"
+            required
             placeholder=""
-            defaultValue={form.current.export_metta}
             value={contextMappingPath}
             onChange={(e) => setContextMappingPath(e.target.value)}
+            {...pathField}
           />
         )}
       </GridSpan12>
@@ -299,10 +311,11 @@ export function AdapterDBOptions() {
             label="MeTTa Output Path"
             size="small"
             placeholder=""
-            defaultValue={""}
+            defaultValue={form.current.export_metta_output_dir}
             onChange={(e) => {
               form.current.export_metta_output_dir = e.target.value
             }}
+            {...pathField}
           />
         </GridSpan12>
       )}
@@ -364,10 +377,10 @@ export function AdapterDBOptions() {
       />
 
       <ActionButtonContainer>
-        <SaveButton variant="contained" color="success" onClick={handleSave}>
+        <SaveButton variant="contained" color="success" type="submit">
           Apply AtomDB settings
         </SaveButton>
       </ActionButtonContainer>
-    </>
+    </ConfigForm>
   )
 }
