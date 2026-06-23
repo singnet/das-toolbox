@@ -5,23 +5,21 @@ export async function saveConfig(flatConfig) {
   return response.data;
 }
 
-export async function getConfigSaved() {
-  const response = await api.get("/config/saved");
+export async function exportConfig(flatConfig) {
+  const response = await api.post("/config/export", flatConfig ?? {});
   return response.data;
 }
 
-export async function exportConfig() {
-  const response = await api.post("/config/export");
+export async function getExportTargets(flatConfig) {
+  const response = await api.post("/config/export/targets", flatConfig ?? {});
   return response.data;
 }
 
-export async function getExportTargets() {
-  const response = await api.post("/config/export/targets");
-  return response.data;
-}
-
-export async function exportConfigScp(ip) {
-  const response = await api.post(`/config/export/scp/${encodeURIComponent(ip)}`);
+export async function exportConfigScp(flatConfig, ip) {
+  const response = await api.post(
+    `/config/export/scp/${encodeURIComponent(ip)}`,
+    flatConfig ?? {}
+  );
   return response.data;
 }
 
@@ -42,7 +40,9 @@ export async function saveContextMapping({ content, path } = {}) {
   return response.data;
 }
 
-export async function getConfigDefaults() {
-  const response = await api.get("/config/defaults");
+export async function getConfigDefaults({ factory = false } = {}) {
+  const response = await api.get("/config/defaults", {
+    params: factory ? { factory: true } : undefined,
+  });
   return response.data;
 }

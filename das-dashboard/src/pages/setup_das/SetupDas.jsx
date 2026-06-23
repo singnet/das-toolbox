@@ -64,6 +64,7 @@ const sections = [
 export default function SetupDasPage() {
   const {
     config,
+    configSeed,
     applyLoadedConfiguration,
     resetConfiguration
   } = useConfig()
@@ -206,14 +207,15 @@ export default function SetupDasPage() {
 
           <ContentBody flush={section === "agents"}>
 
-            {section === "atomdb" && <AtomDBForm />}
+            {section === "atomdb" && <AtomDBForm key={configSeed} />}
             {section === "agents" && (
               <AgentsForm
+                key={configSeed}
                 activeAgent={activeAgent}
                 onAgentChange={setActiveAgent}
               />
             )}
-            {section === "environment" && <EnvironmentForm />}
+            {section === "environment" && <EnvironmentForm key={configSeed} />}
 
           </ContentBody>
 
@@ -279,9 +281,15 @@ export default function SetupDasPage() {
 
           <DialogButton
             variant="primary"
-            onClick={() => {
+            onClick={async () => {
               setResetDialog(false)
-              resetConfiguration()
+              try {
+                await resetConfiguration()
+                showToast({ message: "Configuration reset", severity: "success" })
+              } catch (error) {
+                console.error(error)
+                showToast({ message: "Failed to reset configuration", severity: "error" })
+              }
             }}
           >
             Confirm

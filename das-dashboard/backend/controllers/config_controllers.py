@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 from services_init import CONFIG_SERVICES, WEB_CONFIG
 from shared.dtos.configuration_entries_dto import ConfigurationEntriesDto
-from shared.internal.configuration_constants import ATOMDB_TEMPLATES, CONSTANTS
 
 router = APIRouter(prefix="/config", tags=["Configuration"])
 
@@ -23,20 +22,9 @@ async def save_config(configuration_entries: ConfigurationEntriesDto):
     return JSONResponse(status_code=200, content=result)
 
 
-@router.get("/saved")
-async def config_saved():
-    return JSONResponse(
-        status_code=200,
-        content={"saved": await CONFIG_SERVICES.has_saved_config()},
-    )
-
-
 @router.post("/export")
-async def export_config():
-    try:
-        nested = await CONFIG_SERVICES.export_config()
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error)) from error
+async def export_config(configuration_entries: Optional[ConfigurationEntriesDto] = None):
+    nested = await CONFIG_SERVICES.export_config(configuration_entries)
 
     return JSONResponse(
         status_code=200,
@@ -45,19 +33,17 @@ async def export_config():
 
 
 @router.post("/export/targets")
-async def export_targets():
-    try:
-        targets = await CONFIG_SERVICES.export_targets()
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error)) from error
-
-    return JSONResponse(status_code=200, content=targets)
+async def export_targets(configuration_entries: Optional[ConfigurationEntriesDto] = None):
+    return JSONResponse(
+        status_code=200,
+        content=await CONFIG_SERVICES.export_targets(configuration_entries),
+    )
 
 
 @router.post("/export/scp/{ip}")
-async def export_config_scp(ip: str):
+async def export_config_scp(ip: str, configuration_entries: Optional[ConfigurationEntriesDto] = None):
     try:
-        result = await CONFIG_SERVICES.export_config_scp(ip)
+        result = await CONFIG_SERVICES.export_config_scp(ip, configuration_entries)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
@@ -92,11 +78,8 @@ async def get_config():
 
 
 @router.get("/defaults")
-async def get_config_defaults():
+async def get_config_defaults(factory: bool = False):
     return JSONResponse(
         status_code=200,
-        content={
-            "content": CONSTANTS,
-            "atomdb_templates": ATOMDB_TEMPLATES,
-        },
+        content=CONFIG_SERVICES.get_config_defaults(factory=factory),
     )

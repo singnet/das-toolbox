@@ -18,7 +18,7 @@ import { useToast } from "../global_providers/ToastProvider"
 import saveFile from "../../utils/FileSaver"
 import { DialogButton, DialogPaper } from "../../pages/setup_das/SetupDasStyled"
 
-export default function ExportConfigDialog({ open, onClose }) {
+export default function ExportConfigDialog({ open, onClose, flatConfig }) {
   const { showToast } = useToast()
 
   const [destination, setDestination] = useState("local")
@@ -36,7 +36,7 @@ export default function ExportConfigDialog({ open, onClose }) {
       setDestination("local")
 
       try {
-        const response = await getExportTargets()
+        const response = await getExportTargets(flatConfig)
         setTargets(response.targets || [])
       } catch (error) {
         console.error(error)
@@ -46,28 +46,27 @@ export default function ExportConfigDialog({ open, onClose }) {
           severity: "error",
           details: extractErrorDetails(error)
         })
-        onClose()
       } finally {
         setLoadingTargets(false)
       }
     }
 
     loadTargets()
-  }, [open, onClose, showToast])
+  }, [open, flatConfig, showToast])
 
   const handleConfirm = async () => {
     setSubmitting(true)
 
     try {
       if (destination === "local") {
-        const response = await exportConfig()
+        const response = await exportConfig(flatConfig)
         await saveFile(response.content)
         showToast({ message: "Configuration exported locally", severity: "success" })
         onClose()
         return
       }
 
-      const response = await exportConfigScp(destination)
+      const response = await exportConfigScp(flatConfig, destination)
       showToast({
         message: response.message || "Configuration exported remotely",
         severity: "success"
@@ -99,7 +98,11 @@ export default function ExportConfigDialog({ open, onClose }) {
 
       <DialogContent sx={{ color: "#6b7280", fontSize: 14 }}>
         <Typography sx={{ fontSize: 14, mb: 2 }}>
-          Export the saved configuration from the server.
+          Export the configuration locally or export to the machines currently participating in the DAS architecture.
+        </Typography>
+
+        <Typography sx={{ fontSize: 14, mb: 2 }}>
+          Note: exporting to other machines requires an SSH Profile setup, head to /profiles before exporting.
         </Typography>
 
         {loadingTargets ? (
@@ -143,7 +146,7 @@ export default function ExportConfigDialog({ open, onClose }) {
 
         {!loadingTargets && targets.length === 0 && (
           <Typography sx={{ fontSize: 13, color: "#9ca3af", mt: 1 }}>
-            No remote machines found in the saved configuration.
+            No remote machines found in the current configuration.
           </Typography>
         )}
       </DialogContent>

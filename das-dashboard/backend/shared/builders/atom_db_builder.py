@@ -1,14 +1,11 @@
-import os
-
 from shared.builders.builder_helpers import _get, _is_missing, _require
-from shared.utils.adapter_context_mapping import resolve_context_mapping_path
+from shared.utils.adapter_context_mapping import validate_context_mapping_path
 
 class AtomDbBuilder:
 
     REDIS_IMAGE = "redis:7.2.3-alpine"
     MONGO_IMAGE = "mongodb/mongodb-community-server:8.2-ubuntu2204"
     MORK_IMAGE = "trueagi/das:mork-server-1.0.4"
-    MONGO_CLUSTER_SECRET_KEY = "8UDJSgpUCaVOTQG"
 
     _REDIS_MONGO_FIELDS = (
         "redis_endpoint",
@@ -40,6 +37,7 @@ class AtomDbBuilder:
         "db_name",
         "db_username",
         "db_password",
+        "context_mapping_path",
         "export_metta_enabled",
         "export_metta_output_dir",
         "persistence_reuse_mongodb",
@@ -131,7 +129,7 @@ class AtomDbBuilder:
             "username": _get(source, "mongo_username"),
             "password": _get(source, "mongo_password"),
             "cluster": _get(source, "mongo_cluster", False),
-            "cluster_secret_key": self.MONGO_CLUSTER_SECRET_KEY,
+            "cluster_secret_key": None,
         }
         self._with_nodes(mongodb, source, "mongo_cluster", "mongo_nodes", label)
 
@@ -313,11 +311,9 @@ class AtomDbBuilder:
     def _build_adapter_db(self, atomdb) -> dict:
         _require(atomdb, *self._ADAPTER_FIELDS, label="atomdb")
 
-        context_mapping_path = resolve_context_mapping_path()
-        if not os.path.exists(context_mapping_path):
-            raise ValueError(
-                "Context mapping file not found. Save the context mapping first."
-            )
+        context_mapping_path = validate_context_mapping_path(
+            _get(atomdb, "context_mapping_path")
+        )
         export_metta_output_dir = _get(atomdb, "export_metta_output_dir", "")
 
         return {

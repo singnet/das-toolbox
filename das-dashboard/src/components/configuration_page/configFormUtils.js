@@ -111,7 +111,7 @@ export function initMorkMongoConnection(atomdbDefaults, { withCluster = false } 
   }
 }
 
-export function initAdapterBackend(atomdbDefaults, backendType) {
+export function initAdapterBackend(atomdbDefaults, backendType, getAtomdbTemplate) {
   const backendDefaults = atomdbDefaults?.atomdb_backend || {}
 
   if (backendType === "inmemorydb") {
@@ -119,16 +119,18 @@ export function initAdapterBackend(atomdbDefaults, backendType) {
   }
 
   if (backendType === "redismongodb") {
+    const defaults = getAtomdbTemplate?.("redismongodb") || {}
     return {
       type: "redismongodb",
-      ...initRedisMongoConnection(backendDefaults, { withCluster: true })
+      ...initRedisMongoConnection({ ...defaults, ...backendDefaults }, { withCluster: true })
     }
   }
 
   if (backendType === "morkdb") {
+    const defaults = getAtomdbTemplate?.("morkdb") || {}
     return {
       type: "morkdb",
-      ...initMorkMongoConnection(backendDefaults, { withCluster: true })
+      ...initMorkMongoConnection({ ...defaults, ...backendDefaults }, { withCluster: true })
     }
   }
 

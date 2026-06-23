@@ -10,19 +10,10 @@ import { getConfigDefaults } from "../../api/ConfigAPI"
 
 const ConfigContext = createContext(null)
 
-function syncAtomdbTemplate(templates, atomdbSection) {
-  if (!atomdbSection?.atomdb_type) {
-    return templates
-  }
-
-  return {
-    ...templates,
-    [atomdbSection.atomdb_type]: atomdbSection
-  }
-}
-
 export function ConfigurationProvider({ children }) {
   const [config, setConfig] = useState({})
+  const [configSeed, setConfigSeed] = useState(0)
+
   const defaultsRef = useRef({})
   const atomdbTemplatesRef = useRef({})
 
@@ -32,6 +23,8 @@ export function ConfigurationProvider({ children }) {
         const response = await getConfigDefaults()
         defaultsRef.current = response.content || {}
         atomdbTemplatesRef.current = response.atomdb_templates || {}
+        setConfig(defaultsRef.current)
+        setConfigSeed((seed) => seed + 1)
       } catch (error) {
         console.error(error)
       }
@@ -55,29 +48,27 @@ export function ConfigurationProvider({ children }) {
       ...prev,
       [fieldName]: value
     }))
-
-    sessionStorage.setItem(`config_${fieldName}`, JSON.stringify(value))
   }, [])
 
   const applyLoadedConfiguration = useCallback((flat) => {
     defaultsRef.current = flat
-    atomdbTemplatesRef.current = syncAtomdbTemplate(atomdbTemplatesRef.current, flat.atomdb)
     setConfig(flat)
-
-    Object.entries(flat).forEach(([key, value]) => {
-      sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
-    })
+    setConfigSeed((seed) => seed + 1)
   }, [])
 
-  const resetConfiguration = useCallback(() => {
-    setConfig({})
-    sessionStorage.clear()
+  const resetConfiguration = useCallback(async () => {
+    const response = await getConfigDefaults({ factory: true })
+    defaultsRef.current = response.content || {}
+    atomdbTemplatesRef.current = response.atomdb_templates || {}
+    setConfig(defaultsRef.current)
+    setConfigSeed((seed) => seed + 1)
   }, [])
 
   return (
     <ConfigContext.Provider
       value={{
         config,
+        configSeed,
         updateField,
         getDefaults,
         getDefaultSection,
