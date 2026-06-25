@@ -2,7 +2,7 @@ import { Box, TextField, Typography } from "@mui/material"
 import { useRef } from "react"
 import { useConfig } from "../../global_providers/ConfigurationProvider"
 import { useToast } from "../../global_providers/ToastProvider"
-import { splitEndpoint } from "../configFormUtils"
+import { splitEndpoint, parsePortValue } from "../configFormUtils"
 import { ConfigForm } from "../ConfigForm"
 import { portField } from "../formValidation"
 import { SaveButton } from "../Agents/Agents.styled"
@@ -37,7 +37,7 @@ export function EnvironmentForm() {
           required
           defaultValue={form.current.jupyter_port}
           onChange={(e) => {
-            form.current.jupyter_port = Number(e.target.value)
+            form.current.jupyter_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />

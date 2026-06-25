@@ -1,6 +1,7 @@
 import { TextField } from "@mui/material"
 import { FieldGrid } from "./Agents.styled"
-import { portField } from "../formValidation"
+import { parsePortValue } from "../configFormUtils"
+import { ipv4Field, portField } from "../formValidation"
 
 export function AgentConnectionFields({ form, withPortRange = true }) {
   return (
@@ -13,6 +14,7 @@ export function AgentConnectionFields({ form, withPortRange = true }) {
           required
           defaultValue={form.current.endpoint_ip}
           onChange={(e) => { form.current.endpoint_ip = e.target.value }}
+          {...ipv4Field}
         />
         <TextField
           label="Port"
@@ -21,7 +23,7 @@ export function AgentConnectionFields({ form, withPortRange = true }) {
           size="small"
           required
           defaultValue={form.current.endpoint_port}
-          onChange={(e) => { form.current.endpoint_port = Number(e.target.value) }}
+          onChange={(e) => { form.current.endpoint_port = parsePortValue(e.target.value) }}
           {...portField}
         />
       </FieldGrid>
@@ -35,7 +37,7 @@ export function AgentConnectionFields({ form, withPortRange = true }) {
             size="small"
             required
             defaultValue={form.current.ports_range_start}
-            onChange={(e) => { form.current.ports_range_start = Number(e.target.value) }}
+            onChange={(e) => { form.current.ports_range_start = parsePortValue(e.target.value) }}
             {...portField}
           />
           <TextField
@@ -45,7 +47,7 @@ export function AgentConnectionFields({ form, withPortRange = true }) {
             size="small"
             required
             defaultValue={form.current.ports_range_end}
-            onChange={(e) => { form.current.ports_range_end = Number(e.target.value) }}
+            onChange={(e) => { form.current.ports_range_end = parsePortValue(e.target.value) }}
             {...portField}
           />
         </FieldGrid>

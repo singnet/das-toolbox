@@ -3,7 +3,7 @@ import { useRef, useState } from "react"
 import { ClusterForm } from "../ClusterForm"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
-import { initMorkMongoConnection } from "../../configFormUtils"
+import { initMorkMongoConnection, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField } from "../../formValidation"
 import {
@@ -56,7 +56,7 @@ export function MorkMongoOptions() {
           required
           defaultValue={form.current.mork_port}
           onChange={(e) => {
-            form.current.mork_port = Number(e.target.value)
+            form.current.mork_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />
@@ -84,7 +84,7 @@ export function MorkMongoOptions() {
           required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
-            form.current.mongo_port = Number(e.target.value)
+            form.current.mongo_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />

@@ -1,7 +1,7 @@
 import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
-import { initRedisMongoConnection } from "../../configFormUtils"
+import { initRedisMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
@@ -46,7 +46,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           required
           defaultValue={form.current.redis_port}
           onChange={(e) => {
-            form.current.redis_port = Number(e.target.value)
+            form.current.redis_port = parsePortValue(e.target.value)
             notifyChange()
           }}
           {...portField}
@@ -76,7 +76,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
-            form.current.mongo_port = Number(e.target.value)
+            form.current.mongo_port = parsePortValue(e.target.value)
             notifyChange()
           }}
           {...portField}

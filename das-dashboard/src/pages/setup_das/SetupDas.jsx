@@ -25,6 +25,7 @@ import { useState } from "react"
 
 import ExportConfigDialog from "../../components/configuration_page/ExportConfigDialog"
 import { loadConfig, saveConfig } from "../../api/ConfigAPI"
+import { extractErrorDetails } from "../../api/APIUtils"
 import { useToast } from "../../components/global_providers/ToastProvider"
 
 import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
@@ -83,7 +84,11 @@ export default function SetupDasPage() {
       showToast({ message: "Configuration saved successfully", severity: "success" })
     } catch (error) {
       console.error(error)
-      showToast({ message: "Failed to save configuration", severity: "error" })
+      showToast({
+        message: "Failed to save configuration",
+        severity: "error",
+        details: extractErrorDetails(error)
+      })
     }
   }
 
@@ -95,7 +100,11 @@ export default function SetupDasPage() {
         showToast({ message: "Configuration loaded successfully", severity: "success" })
       } catch (error) {
         console.error(error)
-        showToast({ message: "Failed to load configuration", severity: "error" })
+        showToast({
+          message: "Failed to load configuration",
+          severity: "error",
+          details: extractErrorDetails(error)
+        })
       }
     })
   }
@@ -288,7 +297,11 @@ export default function SetupDasPage() {
                 showToast({ message: "Configuration reset", severity: "success" })
               } catch (error) {
                 console.error(error)
-                showToast({ message: "Failed to reset configuration", severity: "error" })
+                showToast({
+                  message: "Failed to reset configuration",
+                  severity: "error",
+                  details: extractErrorDetails(error)
+                })
               }
             }}
           >

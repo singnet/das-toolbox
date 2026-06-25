@@ -16,7 +16,7 @@ import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
 import { saveContextMapping } from "../../../../api/ConfigAPI"
 import { MANAGED_CONTEXT_MAPPING_PATH } from "./adapterConstants"
-import { initAdapterBackend } from "../../configFormUtils"
+import { initAdapterBackend, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField, pathField } from "../../formValidation"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
@@ -164,7 +164,7 @@ export function AdapterDBOptions() {
           required
           defaultValue={form.current.adapter_port}
           onChange={(e) => {
-            form.current.adapter_port = Number(e.target.value)
+            form.current.adapter_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />
@@ -196,7 +196,7 @@ export function AdapterDBOptions() {
           required
           defaultValue={form.current.db_port}
           onChange={(e) => {
-            form.current.db_port = Number(e.target.value)
+            form.current.db_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />

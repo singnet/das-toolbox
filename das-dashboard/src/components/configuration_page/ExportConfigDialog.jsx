@@ -52,7 +52,7 @@ export default function ExportConfigDialog({ open, onClose, flatConfig }) {
     }
 
     loadTargets()
-  }, [open, flatConfig, showToast])
+  }, [open, flatConfig])
 
   const handleConfirm = async () => {
     setSubmitting(true)

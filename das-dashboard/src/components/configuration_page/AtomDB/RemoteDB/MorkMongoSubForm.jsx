@@ -1,7 +1,7 @@
 import { TextField } from "@mui/material"
 import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
-import { initMorkMongoConnection } from "../../configFormUtils"
+import { initMorkMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
@@ -46,7 +46,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           required
           defaultValue={form.current.mork_port}
           onChange={(e) => {
-            form.current.mork_port = Number(e.target.value)
+            form.current.mork_port = parsePortValue(e.target.value)
             notifyChange()
           }}
           {...portField}
@@ -76,7 +76,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
-            form.current.mongo_port = Number(e.target.value)
+            form.current.mongo_port = parsePortValue(e.target.value)
             notifyChange()
           }}
           {...portField}

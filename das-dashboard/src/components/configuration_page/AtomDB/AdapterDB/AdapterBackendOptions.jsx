@@ -1,6 +1,7 @@
 import { Checkbox, FormControlLabel, TextField } from "@mui/material"
 import { useState } from "react"
 import { ClusterForm } from "../ClusterForm"
+import { parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
 import {
   GridSpan9,
@@ -45,7 +46,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             required
             defaultValue={form.current.redis_port}
             onChange={(e) => {
-              form.current.redis_port = Number(e.target.value)
+              form.current.redis_port = parsePortValue(e.target.value)
             }}
             {...portField}
           />
@@ -73,7 +74,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             required
             defaultValue={form.current.mongo_port}
             onChange={(e) => {
-              form.current.mongo_port = Number(e.target.value)
+              form.current.mongo_port = parsePortValue(e.target.value)
             }}
             {...portField}
           />
@@ -187,7 +188,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             required
             defaultValue={form.current.mork_port}
             onChange={(e) => {
-              form.current.mork_port = Number(e.target.value)
+              form.current.mork_port = parsePortValue(e.target.value)
             }}
             {...portField}
           />
@@ -215,7 +216,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             required
             defaultValue={form.current.mongo_port}
             onChange={(e) => {
-              form.current.mongo_port = Number(e.target.value)
+              form.current.mongo_port = parsePortValue(e.target.value)
             }}
             {...portField}
           />

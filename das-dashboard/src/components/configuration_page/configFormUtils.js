@@ -1,3 +1,11 @@
+export function parsePortValue(raw) {
+  if (raw === "") {
+    return undefined
+  }
+
+  return Number(raw)
+}
+
 export function splitEndpoint(endpoint, defaultHost = "localhost", defaultPort = 40020) {
   if (!endpoint) {
     return { host: defaultHost, port: defaultPort }

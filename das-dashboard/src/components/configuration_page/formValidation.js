@@ -1,5 +1,5 @@
 export const ipv4Input = {
-  pattern: "([0-9]{1,3}\\.){3}[0-9]{1,3}",
+  pattern: "((25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})",
   title: "Enter a valid IPv4 address"
 }
 

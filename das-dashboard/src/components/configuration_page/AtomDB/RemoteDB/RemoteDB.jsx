@@ -28,10 +28,11 @@ export function RemoteDBOptions() {
 
   const [peers, setPeers] = useState([])
   const peersRefs = useRef({})
+  const nextPeerIdRef = useRef(1)
 
   const addPeer = () => {
-    const id = Date.now()
-    const uid = `peer${peers.length + 1}`
+    const id = nextPeerIdRef.current++
+    const uid = `peer${id}`
 
     peersRefs.current[id] = {
       uid,
@@ -77,12 +78,33 @@ export function RemoteDBOptions() {
     }
   }
 
+  const isValidLocalPersistence = (localPersistence) => {
+    if (!localPersistence?.type) {
+      return false
+    }
+
+    if (localPersistence.type === "inmemorydb") {
+      return true
+    }
+
+    if (localPersistence.type === "redismongodb") {
+      return Boolean(localPersistence.redis_port && localPersistence.mongo_port)
+    }
+
+    if (localPersistence.type === "morkdb") {
+      return Boolean(localPersistence.mork_port && localPersistence.mongo_port)
+    }
+
+    return false
+  }
+
   const handleSave = () => {
     const cleanedPeers = Object.values(peersRefs.current)
       .filter(peer => {
         if (!peer.type) return false
         if (peer.type === "redismongodb" && (!peer.redis_port || !peer.mongo_port)) return false
         if (peer.type === "morkdb" && (!peer.mork_port || !peer.mongo_port)) return false
+        if (!isValidLocalPersistence(peer.local_persistence)) return false
         return true
       })
       .map(peer => structuredClone(peer))
@@ -178,7 +200,10 @@ export function RemoteDBOptions() {
                 if (val === "inmemorydb") {
                   peersRefs.current[peer.id].local_persistence = { type: "inmemorydb" }
                 } else {
-                  peersRefs.current[peer.id].local_persistence = {}
+                  peersRefs.current[peer.id].local_persistence = {
+                    type: val,
+                    context: `${peersRefs.current[peer.id].context}local_`
+                  }
                 }
               }}
             >

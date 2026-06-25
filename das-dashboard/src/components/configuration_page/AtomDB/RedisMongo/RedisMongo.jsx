@@ -3,7 +3,7 @@ import { useState, useRef } from "react"
 import { ClusterForm } from "../ClusterForm"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
-import { initRedisMongoConnection } from "../../configFormUtils"
+import { initRedisMongoConnection, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField } from "../../formValidation"
 import {
@@ -57,7 +57,7 @@ export function RedisMongoOptions() {
           required
           defaultValue={form.current.redis_port}
           onChange={(e) => {
-            form.current.redis_port = Number(e.target.value)
+            form.current.redis_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />
@@ -85,7 +85,7 @@ export function RedisMongoOptions() {
           required
           defaultValue={form.current.mongo_port}
           onChange={(e) => {
-            form.current.mongo_port = Number(e.target.value)
+            form.current.mongo_port = parsePortValue(e.target.value)
           }}
           {...portField}
         />
