@@ -51,6 +51,27 @@ class FileAlreadyExistsException(Exception):
         self.message = message
         self.file_path = file_path
 
+
+class RemoteSshConnectionError(Exception):
+
+    def __init__(self, message: str, *, detail: str = ""):
+        self.message = message
+        self.detail = detail
+        super().__init__(message)
+
+
+class RemoteSshTransferError(Exception):
+
+    def __init__(self, message: str, *, detail: str = ""):
+        self.message = message
+        self.detail = detail
+        super().__init__(message)
+
+class CustomValueError(Exception):
+
+    def __init__(self, message):
+        self.message = message
+
 # These exceptions will have default messages because we can't set them on service.
 
 class WebSocketError(Exception):

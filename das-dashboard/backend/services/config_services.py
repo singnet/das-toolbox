@@ -1,5 +1,6 @@
 import json
 import os
+from io import BytesIO
 
 from shared.dtos.configuration_entries_dto import ConfigurationEntriesDto
 from shared.internal.configuration_constants import ATOMDB_TEMPLATES, CONSTANTS
@@ -11,6 +12,7 @@ from shared.utils.adapter_context_mapping import save_context_mapping_content
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
 from shared.utils.remote_scp import RemoteScpService
+from shared.exceptions.custom_exceptions import CustomValueError
 
 
 class ConfigServices:
@@ -66,23 +68,28 @@ class ConfigServices:
         nested = self._build_export_config(configuration_entries)
         known_ips = {target["ip"] for target in self.web_config.map_hosts(nested)}
 
-        if ip not in known_ips:
-            raise ValueError(f"IP '{ip}' is not configured in the current architecture.")
-
-        ssh = self.remote_scp.connect(ip)
         try:
+            if ip not in known_ips:
+                raise ValueError()
+
+            ssh = self.remote_scp.connect(ip)
             home = self.remote_scp.get_remote_home(ssh)
             remote_dir = f"{home}/.das"
             remote_path = f"{home}{REMOTE_CONFIG_PATH}"
+
+            self.remote_scp.transfer_fileobj(
+                ip,
+                BytesIO(json.dumps(nested, indent=2).encode("utf-8")),
+                remote_path,
+                remote_dir=remote_dir,
+                ssh=ssh,
+                )
+        
+        except ValueError:
+            raise CustomValueError(message=f"IP '{ip}' is not configured in the current architecture.")
+
         finally:
             ssh.close()
-
-        self.remote_scp.transfer_bytes(
-            ip,
-            json.dumps(nested, indent=2).encode("utf-8"),
-            remote_path,
-            remote_dir=remote_dir,
-        )
 
         set_das_cli_config(remote_path, web_config=self.web_config, host=ip)
 

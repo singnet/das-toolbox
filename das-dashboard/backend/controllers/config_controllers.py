@@ -42,10 +42,7 @@ async def export_targets(configuration_entries: Optional[ConfigurationEntriesDto
 
 @router.post("/export/scp/{ip}")
 async def export_config_scp(ip: str, configuration_entries: Optional[ConfigurationEntriesDto] = None):
-    try:
-        result = await CONFIG_SERVICES.export_config_scp(ip, configuration_entries)
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error)) from error
+    result = await CONFIG_SERVICES.export_config_scp(ip, configuration_entries)
 
     return JSONResponse(status_code=200, content=result)
 

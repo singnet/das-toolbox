@@ -8,6 +8,9 @@ from .custom_exceptions import (
     FileAlreadyExistsException,
     DASServiceInstantiationError,
     DASCLIResponseDecodeError,
+    RemoteSshConnectionError,
+    RemoteSshTransferError,
+    CustomValueError
 )
 
 
@@ -36,6 +39,16 @@ class AppExceptionHandlers:
         )
 
         app.add_exception_handler(
+            RemoteSshConnectionError,
+            self.handle_remote_ssh_connection_error,
+        )
+
+        app.add_exception_handler(
+            RemoteSshTransferError,
+            self.handle_remote_ssh_transfer_error,
+        )
+
+        app.add_exception_handler(
             Exception,
             self.handle_general_exception
         )
@@ -43,6 +56,11 @@ class AppExceptionHandlers:
         app.add_exception_handler(
             DASServiceInstantiationError,
             self.handle_das_cli_service_error,
+        )
+
+        app.add_exception_handler(
+            CustomValueError,
+            self.handle_custom_value_error,
         )
 
     async def handle_das_cli_command_error(
@@ -107,6 +125,28 @@ class AppExceptionHandlers:
                 "file_path": exc.file_path
             }
         )
+
+    async def handle_remote_ssh_connection_error(
+        self,
+        request: Request,
+        exc: RemoteSshConnectionError,
+    ):
+        content = {"message": exc.message}
+        if exc.detail:
+            content["exceptionMessage"] = exc.detail
+
+        return JSONResponse(status_code=502, content=content)
+
+    async def handle_remote_ssh_transfer_error(
+        self,
+        request: Request,
+        exc: RemoteSshTransferError,
+    ):
+        content = {"message": exc.message}
+        if exc.detail:
+            content["exceptionMessage"] = exc.detail
+
+        return JSONResponse(status_code=400, content=content)
     
     async def handle_general_exception(
         self,
@@ -133,6 +173,19 @@ class AppExceptionHandlers:
         
         return JSONResponse(
             status_code=500,
+            content={
+                "message": exc.message
+            }
+        )
+    
+    async def handle_custom_value_error(
+        self,
+        request: Request,
+        exc: CustomValueError,
+    ):
+        
+        return JSONResponse(
+            status_code=400,
             content={
                 "message": exc.message
             }

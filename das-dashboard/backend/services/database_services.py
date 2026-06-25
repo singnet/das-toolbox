@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 from fastapi import UploadFile
-from scp import SCPClient
+from scp import SCPClient, SCPException
 
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import (
@@ -14,6 +14,7 @@ from shared.internal.constants import (
 from shared.exceptions.custom_exceptions import (
     FileAlreadyExistsException,
     DasCliCommandException,
+    RemoteSshTransferError,
 )
 from shared.utils.remote_scp import RemoteScpService
 
@@ -32,7 +33,7 @@ class DatabaseServices:
             remote_dir = f"{home}{REMOTE_METTA_FILES_PATH}"
             remote_save_path = f"{remote_dir}/{file.filename}"
 
-            ssh.exec_command(f"mkdir -p {remote_dir}")
+            self.remote_scp.ensure_remote_dir(ssh, remote_dir)
 
             if self.remote_scp.remote_file_exists(ssh, remote_save_path) and not force_overwrite:
                 raise FileAlreadyExistsException(
@@ -40,8 +41,14 @@ class DatabaseServices:
                     file_path=remote_save_path,
                 )
 
-            with SCPClient(ssh.get_transport()) as scp:
-                scp.putfo(file.file, remote_path=remote_save_path)
+            try:
+                with SCPClient(ssh.get_transport()) as scp:
+                    scp.putfo(file.file, remote_path=remote_save_path)
+            except SCPException as error:
+                raise RemoteSshTransferError(
+                    f"Failed to transfer file to {host}.",
+                    detail=str(error),
+                ) from error
 
             return remote_save_path
         finally:

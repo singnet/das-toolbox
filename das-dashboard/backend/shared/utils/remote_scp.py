@@ -1,11 +1,16 @@
 import os
+import shlex
 from io import BytesIO
 
-from paramiko import SSHClient, AutoAddPolicy
-from scp import SCPClient
+from paramiko import RejectPolicy, SSHClient
+from paramiko.ssh_exception import AuthenticationException, NoValidConnectionsError, SSHException
+from scp import SCPClient, SCPException
 
+from shared.exceptions.custom_exceptions import RemoteSshConnectionError, RemoteSshTransferError
 from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH
 from shared.internal.web_configuration import WebConfiguration
+
+SSH_CONNECT_TIMEOUT = 30
 
 
 class RemoteScpService:
@@ -23,12 +28,50 @@ class RemoteScpService:
 
         return username, key_path
 
+    def _prepare_ssh_client(self) -> SSHClient:
+        ssh = SSHClient()
+        ssh.load_system_host_keys()
+
+        user_known_hosts = os.path.expanduser("~/.ssh/known_hosts")
+        if os.path.exists(user_known_hosts):
+            ssh.load_host_keys(user_known_hosts)
+
+        # Require a known host key; add targets to known_hosts before exporting.
+        ssh.set_missing_host_key_policy(RejectPolicy())
+
+        return ssh
+
     def connect(self, host: str) -> SSHClient:
         username, key_path = self.ensure_profile()
+        ssh = self._prepare_ssh_client()
 
-        ssh = SSHClient()
-        ssh.set_missing_host_key_policy(AutoAddPolicy())
-        ssh.connect(hostname=host, username=username, key_filename=key_path)
+        try:
+            ssh.connect(
+                hostname=host,
+                username=username,
+                key_filename=key_path,
+                timeout=SSH_CONNECT_TIMEOUT,
+            )
+        except NoValidConnectionsError as error:
+            raise RemoteSshConnectionError(
+                f"Could not connect to {host}.",
+                detail=str(error),
+            ) from error
+        except AuthenticationException as error:
+            raise RemoteSshConnectionError(
+                f"SSH authentication failed for {host}.",
+                detail=str(error),
+            ) from error
+        except SSHException as error:
+            raise RemoteSshConnectionError(
+                f"SSH connection failed for {host}.",
+                detail=str(error),
+            ) from error
+        except OSError as error:
+            raise RemoteSshConnectionError(
+                f"SSH connection failed for {host}.",
+                detail=str(error),
+            ) from error
 
         return ssh
 
@@ -36,9 +79,12 @@ class RemoteScpService:
         stdin, stdout, stderr = ssh.exec_command("echo $HOME")
         return stdout.read().decode().strip()
 
+    def ensure_remote_dir(self, ssh: SSHClient, remote_dir: str) -> None:
+        ssh.exec_command(f"mkdir -p {shlex.quote(remote_dir)}")
+
     def remote_file_exists(self, ssh: SSHClient, file_path: str) -> bool:
         stdin, stdout, stderr = ssh.exec_command(
-            f"test -f {file_path} && echo exists"
+            f"test -f {shlex.quote(file_path)} && echo exists"
         )
         return stdout.read().decode().strip() == "exists"
 
@@ -49,19 +95,29 @@ class RemoteScpService:
         remote_path: str,
         *,
         remote_dir: str | None = None,
+        ssh: SSHClient | None = None,
     ) -> str:
-        ssh = self.connect(host)
+        own_ssh = ssh is None
+        if own_ssh:
+            ssh = self.connect(host)
 
         try:
             if remote_dir:
-                ssh.exec_command(f"mkdir -p {remote_dir}")
+                self.ensure_remote_dir(ssh, remote_dir)
 
-            with SCPClient(ssh.get_transport()) as scp:
-                scp.putfo(file_obj, remote_path=remote_path)
+            try:
+                with SCPClient(ssh.get_transport()) as scp:
+                    scp.putfo(file_obj, remote_path=remote_path)
+            except SCPException as error:
+                raise RemoteSshTransferError(
+                    f"Failed to transfer file to {host}.",
+                    detail=str(error),
+                ) from error
 
             return remote_path
         finally:
-            ssh.close()
+            if own_ssh:
+                ssh.close()
 
     def transfer_bytes(
         self,
@@ -70,10 +126,12 @@ class RemoteScpService:
         remote_path: str,
         *,
         remote_dir: str | None = None,
+        ssh: SSHClient | None = None,
     ) -> str:
         return self.transfer_fileobj(
             host,
             BytesIO(content),
             remote_path,
             remote_dir=remote_dir,
+            ssh=ssh,
         )
