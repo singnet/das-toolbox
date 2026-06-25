@@ -41,6 +41,18 @@ class RemoteScpService:
 
         return ssh
 
+    def _exec_checked(self, ssh: SSHClient, command: str, *, failure_message: str) -> str:
+        _stdin, stdout, stderr = ssh.exec_command(command)
+        exit_status = stdout.channel.recv_exit_status()
+        output = stdout.read().decode().strip()
+        error_output = stderr.read().decode().strip()
+
+        if exit_status != 0:
+            detail = error_output or output or f"exit status {exit_status}"
+            raise RemoteSshTransferError(failure_message, detail=detail)
+
+        return output
+
     def connect(self, host: str) -> SSHClient:
         username, key_path = self.ensure_profile()
         ssh = self._prepare_ssh_client()
@@ -76,16 +88,37 @@ class RemoteScpService:
         return ssh
 
     def get_remote_home(self, ssh: SSHClient) -> str:
-        stdin, stdout, stderr = ssh.exec_command("echo $HOME")
-        return stdout.read().decode().strip()
+        home = self._exec_checked(
+            ssh,
+            "echo $HOME",
+            failure_message="Failed to resolve remote home directory.",
+        )
+        if not home:
+            raise RemoteSshTransferError(
+                "Failed to resolve remote home directory.",
+                detail="Remote $HOME was empty.",
+            )
+        return home
 
     def ensure_remote_dir(self, ssh: SSHClient, remote_dir: str) -> None:
-        ssh.exec_command(f"mkdir -p {shlex.quote(remote_dir)}")
+        self._exec_checked(
+            ssh,
+            f"mkdir -p {shlex.quote(remote_dir)}",
+            failure_message=f"Failed to create remote directory {remote_dir}.",
+        )
 
     def remote_file_exists(self, ssh: SSHClient, file_path: str) -> bool:
-        stdin, stdout, stderr = ssh.exec_command(
+        _stdin, stdout, stderr = ssh.exec_command(
             f"test -f {shlex.quote(file_path)} && echo exists"
         )
+        exit_status = stdout.channel.recv_exit_status()
+        if exit_status not in (0, 1):
+            error_output = stderr.read().decode().strip()
+            raise RemoteSshTransferError(
+                f"Failed to check remote file {file_path}.",
+                detail=error_output or f"exit status {exit_status}",
+            )
+
         return stdout.read().decode().strip() == "exists"
 
     def transfer_fileobj(

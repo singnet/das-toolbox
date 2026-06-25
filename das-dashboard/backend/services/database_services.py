@@ -17,6 +17,7 @@ from shared.exceptions.custom_exceptions import (
     RemoteSshTransferError,
 )
 from shared.utils.remote_scp import RemoteScpService
+from shared.utils.upload_utils import safe_upload_filename
 
 
 class DatabaseServices:
@@ -31,7 +32,8 @@ class DatabaseServices:
         try:
             home = self.remote_scp.get_remote_home(ssh)
             remote_dir = f"{home}{REMOTE_METTA_FILES_PATH}"
-            remote_save_path = f"{remote_dir}/{file.filename}"
+            file_name = safe_upload_filename(file.filename)
+            remote_save_path = f"{remote_dir}/{file_name}"
 
             self.remote_scp.ensure_remote_dir(ssh, remote_dir)
 
@@ -55,7 +57,7 @@ class DatabaseServices:
             ssh.close()
 
     async def save_metta_file(self, host: str, knowledge_file: UploadFile, force_overwrite: bool) -> str:
-        file_name = knowledge_file.filename
+        file_name = safe_upload_filename(knowledge_file.filename)
         file_path = f"{DEFAULT_METTA_FILES_PATH}/{file_name}"
         file_exists = os.path.exists(file_path)
 

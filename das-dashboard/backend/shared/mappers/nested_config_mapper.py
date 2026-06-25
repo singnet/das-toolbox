@@ -1,5 +1,7 @@
 from shared.utils.path_utils import split_endpoint
 
+DEFAULT_ENDPOINT_HOST = "0.0.0.0"
+
 
 class NestedConfigMapper:
 
@@ -24,7 +26,7 @@ class NestedConfigMapper:
     @staticmethod
     def _environment_to_flat(environment: dict) -> dict:
         jupyter = environment.get("jupyter", {})
-        return {"jupyter_endpoint": jupyter.get("endpoint", "localhost:40019")}
+        return {"jupyter_endpoint": jupyter.get("endpoint", f"{DEFAULT_ENDPOINT_HOST}:40019")}
 
     @staticmethod
     def _agents_to_flat(agents: dict) -> dict:
@@ -90,8 +92,8 @@ class NestedConfigMapper:
         redis = source.get("redis", {})
         mongo = source.get("mongodb", {})
 
-        redis_host, redis_port = split_endpoint(redis.get("endpoint"), "localhost", 40020)
-        mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
+        redis_host, redis_port = split_endpoint(redis.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40020)
+        mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
 
         result = {
             f"{prefix}redis_endpoint": redis_host,
@@ -122,8 +124,8 @@ class NestedConfigMapper:
         mongo = atomdb.get("mongodb", {})
         mork = atomdb.get("morkdb", {})
 
-        mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
-        mork_host, mork_port = split_endpoint(mork.get("endpoint"), "localhost", 40022)
+        mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
+        mork_host, mork_port = split_endpoint(mork.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40022)
 
         return {
             "atomdb_type": "morkdb",
@@ -150,8 +152,8 @@ class NestedConfigMapper:
         if backend_type == "morkdb":
             mongo = backend.get("mongodb", {})
             mork = backend.get("morkdb", {})
-            mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
-            mork_host, mork_port = split_endpoint(mork.get("endpoint"), "localhost", 40022)
+            mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
+            mork_host, mork_port = split_endpoint(mork.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40022)
 
             return {
                 "type": "morkdb",
@@ -174,7 +176,7 @@ class NestedConfigMapper:
         metta = adapterdb.get("export_metta_on_mapping", {})
         mapping_paths = adapterdb.get("context_mapping_paths") or []
 
-        adapter_host, adapter_port = split_endpoint(adapterdb.get("endpoint"), "localhost", 40023)
+        adapter_host, adapter_port = split_endpoint(adapterdb.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40023)
 
         return {
             "atomdb_type": "adapterdb",
@@ -206,8 +208,8 @@ class NestedConfigMapper:
         if lp_type == "redismongodb":
             redis = local.get("redis", {})
             mongo = local.get("mongodb", {})
-            redis_host, redis_port = split_endpoint(redis.get("endpoint"), "localhost", 40020)
-            mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
+            redis_host, redis_port = split_endpoint(redis.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40020)
+            mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
 
             result.update({
                 "context": local.get("context", ""),
@@ -223,8 +225,8 @@ class NestedConfigMapper:
         if lp_type == "morkdb":
             mongo = local.get("mongodb", {})
             mork = local.get("morkdb", {})
-            mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
-            mork_host, mork_port = split_endpoint(mork.get("endpoint"), "localhost", 40022)
+            mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
+            mork_host, mork_port = split_endpoint(mork.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40022)
 
             result.update({
                 "context": local.get("context", ""),
@@ -256,8 +258,8 @@ class NestedConfigMapper:
             if peer_type == "redismongodb":
                 redis = peer.get("redis", {})
                 mongo = peer.get("mongodb", {})
-                redis_host, redis_port = split_endpoint(redis.get("endpoint"), "localhost", 40020)
-                mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
+                redis_host, redis_port = split_endpoint(redis.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40020)
+                mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
                 flat_peer.update({
                     "redis_endpoint": redis_host,
                     "redis_port": redis_port,
@@ -270,8 +272,8 @@ class NestedConfigMapper:
             elif peer_type == "morkdb":
                 mongo = peer.get("mongodb", {})
                 mork = peer.get("morkdb", {})
-                mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), "localhost", 40021)
-                mork_host, mork_port = split_endpoint(mork.get("endpoint"), "localhost", 40022)
+                mongo_host, mongo_port = split_endpoint(mongo.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40021)
+                mork_host, mork_port = split_endpoint(mork.get("endpoint"), DEFAULT_ENDPOINT_HOST, 40022)
                 flat_peer.update({
                     "mork_endpoint": mork_host,
                     "mork_port": mork_port,

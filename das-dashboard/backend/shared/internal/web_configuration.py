@@ -67,9 +67,14 @@ class WebConfiguration:
         if not host:
             return
 
+        try:
+            port_num = int(port) if port else 0
+        except ValueError:
+            port_num = 0
+
         services[name] = {
             "host": host,
-            "port": int(port) if port else 0,
+            "port": port_num,
         }
 
     @classmethod

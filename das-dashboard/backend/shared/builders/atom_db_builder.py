@@ -152,6 +152,7 @@ class AtomDbBuilder:
             "username": _get(source, "mongo_username"),
             "password": _get(source, "mongo_password"),
             "cluster": _get(source, "mongo_cluster", False),
+            "cluster_secret_key": None,
         }
         self._with_nodes(mongodb, source, "mongo_cluster", "mongo_nodes", label)
 

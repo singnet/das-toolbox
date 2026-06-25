@@ -57,7 +57,10 @@ def set_das_cli_config(
             capture_output=True,
             text=True,
             check=True,
+            timeout=30,
         )
+    except subprocess.TimeoutExpired as error:
+        raise DasCliCommandException("das-cli command timed out.") from error
     except FileNotFoundError as error:
         raise DasCliNotInstalledException("das-cli not found.") from error
     except subprocess.CalledProcessError as error:
