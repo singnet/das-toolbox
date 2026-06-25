@@ -19,7 +19,7 @@ echo "Backend image built successfully."
 
 echo "Starting backend on port ${BACK_PORT}..."
 
-docker rm -f ui_backend >/dev/null 2>&1 || true
+docker rm -f web-interface-backend ui_backend >/dev/null 2>&1 || true
 
 docker run -d \
   --name web-interface-backend \
@@ -34,7 +34,7 @@ echo "Backend started successfully."
 
 echo "Starting frontend on port ${FRONT_PORT}..."
 
-docker rm -f das-dashboard >/dev/null 2>&1 || true
+docker rm -f web-interface-frontend das-dashboard >/dev/null 2>&1 || true
 
 docker run -d \
   --name web-interface-frontend \
