@@ -1,12 +1,9 @@
 import {
-  Box,
-  Card,
-  CardContent,
   Typography,
   List,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
-  Button,
   Dialog,
   DialogContent,
   Divider,
@@ -15,183 +12,311 @@ import {
 } from "@mui/material"
 
 import SettingsIcon from "@mui/icons-material/Settings"
+import StorageIcon from "@mui/icons-material/Storage"
+import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
+import PublicIcon from "@mui/icons-material/Public"
+import RestartAltIcon from "@mui/icons-material/RestartAlt"
+import UploadFileIcon from "@mui/icons-material/UploadFile"
+import DownloadIcon from "@mui/icons-material/Download"
+import PreviewIcon from "@mui/icons-material/Preview"
+import SaveIcon from "@mui/icons-material/Save"
 
-import "./SetupDas.css"
 import { useState } from "react"
-import saveFile  from "../../utils/FileSaver"
 
-import AtomDBForm from "../../components/form_parts/AtomDB/AtomDB"
-import { AgentsForm } from "../../components/form_parts/Agents/Agents"
-import { BrokersForm } from "../../components/form_parts/Brokers/Brokers"
-import { ParamsForm } from "../../components/form_parts/AgentsParams/AgentsParams"
-import { EnvironmentForm } from "../../components/form_parts/Environment/Environment"
+import ExportConfigDialog from "../../components/configuration_page/ExportConfigDialog"
+import { loadConfig, saveConfig } from "../../api/ConfigAPI"
+import { extractErrorDetails } from "../../api/APIUtils"
+import { useToast } from "../../components/global_providers/ToastProvider"
+
+import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
+import { AgentsForm } from "../../components/configuration_page/Agents/Agents"
+import { EnvironmentForm } from "../../components/configuration_page/Environment/Environment"
+import { getAgentByKey } from "../../components/configuration_page/Agents/agentRegistry"
+import ConfigurationPreview from "../../components/configuration_page/ConfigurationPreview"
+
 import { useConfig } from "../../components/global_providers/ConfigurationProvider"
 import { handleLoadConfig } from "../../utils/FileLoader"
 
-export default function SetupDasPage() {
+import {
+  PageContainer,
+  SidebarContainer,
+  SidebarHeader,
+  SidebarTitle,
+  SidebarListContainer,
+  SectionLabel,
+  SidebarButtons,
+  ContentContainer,
+  ContentHeader,
+  Breadcrumb,
+  ContentTitle,
+  ContentBody,
+  CompactActionButton,
+  CompactActionButtonPrimary,
+  DialogButton,
+  DialogPaper
+} from "./SetupDasStyled"
 
-  const { config, loadExternalConfiguration, resetConfiguration } = useConfig()
+const sections = [
+  { key: "atomdb", label: "AtomDB", icon: StorageIcon },
+  { key: "agents", label: "Agents", icon: DeveloperBoardIcon },
+  { key: "environment", label: "Environment", icon: PublicIcon }
+]
+
+export default function SetupDasPage() {
+  const {
+    config,
+    configSeed,
+    applyLoadedConfiguration,
+    resetConfiguration
+  } = useConfig()
+
+  const { showToast } = useToast()
 
   const [section, setSection] = useState("atomdb")
-  const [openJson, setOpenJson] = useState(false)
+  const [activeAgent, setActiveAgent] = useState("query")
+  const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
+  const [openExportDialog, setOpenExportDialog] = useState(false)
 
-  const sections = [
-    { key: "atomdb", label: "AtomDB" },
-    { key: "agents", label: "Agents" },
-    { key: "brokers", label: "Brokers" },
-    { key: "params", label: "Agent Params" },
-    { key: "environment", label: "Environment" }
-  ]
+  const handleSave = async () => {
+    try {
+      await saveConfig(config)
+      showToast({ message: "Configuration saved successfully", severity: "success" })
+    } catch (error) {
+      console.error(error)
+      showToast({
+        message: "Failed to save configuration",
+        severity: "error",
+        details: extractErrorDetails(error)
+      })
+    }
+  }
+
+  const handleLoad = async (event) => {
+    handleLoadConfig(event, async ({ parsed }) => {
+      try {
+        const response = await loadConfig(parsed)
+        applyLoadedConfiguration(response.content)
+        showToast({ message: "Configuration loaded successfully", severity: "success" })
+      } catch (error) {
+        console.error(error)
+        showToast({
+          message: "Failed to load configuration",
+          severity: "error",
+          details: extractErrorDetails(error)
+        })
+      }
+    })
+  }
+
+  const activeSection = sections.find((item) => item.key === section)
+  const activeAgentMeta = section === "agents" ? getAgentByKey(activeAgent) : null
 
   return (
-        <Box className="main-page">
-          <Box className="backgroundBox">
+    <>
+      <PageContainer>
 
-            {/* SIDEBAR */}
-            <Box className="mainSidebar">
+        <SidebarContainer>
 
-              {/* HEADER */}
-              <Box className="sidebarHeader">
-                <SettingsIcon fontSize="small" />
-                <Typography sx={{borderRadius:"3px"}} variant="subtitle1">Settings</Typography>
-              </Box>
+          <SidebarHeader>
+            <SettingsIcon />
+            <SidebarTitle>
+              Settings
+            </SidebarTitle>
+          </SidebarHeader>
 
-              {/* LIST */}
-              <List className="sidebarList">
-                {sections.map(item => (
+          <SidebarListContainer>
+
+            <SectionLabel>
+              Configuration
+            </SectionLabel>
+
+            <List disablePadding>
+
+              {sections.map((item) => {
+                const Icon = item.icon
+
+                return (
                   <ListItemButton
                     key={item.key}
-                    onClick={() => setSection(item.key)}
                     selected={section === item.key}
-                    className="sidebarItem"
+                    onClick={() => setSection(item.key)}
                   >
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                      <Icon sx={{ fontSize: 18 }} />
+                    </ListItemIcon>
                     <ListItemText primary={item.label} />
                   </ListItemButton>
-                ))}
-              </List>
+                )
+              })}
 
-              {/* BUTTONS */}
-              <Box className="sidebarButtons">
+            </List>
 
-                <Button
-                variant="contained"
-                component="label"
-                sx={{
-                    backgroundColor: "#f8a231",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#e4942c" }
-                  }}
-                onClick={() => setResetDialog(true)}
-                >
-                  Reset Configuration
-                </Button>
+          </SidebarListContainer>
 
-                <Button
-                  variant="contained"
-                  component="label"
-                  sx={{
-                    backgroundColor: "#8ba73f",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#7b9436" }
-                  }}
-                >
-                  Load Config
-                  <input
-                    type="file"
-                    hidden
-                    accept=".json"
-                    onChange={(e) => handleLoadConfig(e, loadExternalConfiguration)}
-                  />
-                </Button>
+          <SidebarButtons>
 
-                <Button
-                  variant="contained"
-                  onClick={() => saveFile(config)}
-                  sx={{
-                    backgroundColor: "#4caf50",
-                    "&:hover": { backgroundColor: "#43a047" }
-                  }}
-                >
-                  Export Configuration
-                </Button>
-
-                <Button
-                  variant="contained"
-                  onClick={() => setOpenJson(true)}
-                  sx={{
-                    backgroundColor: "#1976d2",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#1565c0" }
-                  }}
-                >
-                  View JSON Config
-                </Button>
-
-              </Box>
-            </Box>
-
-            {/* CONTENT */}
-            <Box className="formBox">
-              <Card
-                elevation={0}
-                className="formContent"
-                sx={{
-                  borderRadius: 0,
-                  display: "flex", 
-                  flexDirection: "column"
-                }}
-              >
-                <CardContent 
-                  sx={{ 
-                    flex: 1, 
-                    overflowY: "auto",
-                    minHeight: 0
-                  }}
-                >
-                  {section === "atomdb" && <AtomDBForm/>}
-                  {section === "agents" && <AgentsForm />}
-                  {section === "brokers" && <BrokersForm />}
-                  {section === "params" && <ParamsForm />}
-                  {section === "environment" && <EnvironmentForm />}
-                </CardContent>
-              </Card>
-            </Box>
-
-            {/* CONFIRM RESET */}
-            <Dialog
-              open={openJson}
-              onClose={() => setOpenJson(false)}
-              fullWidth
-              maxWidth="md"
+            <CompactActionButton
+              onClick={() => setResetDialog(true)}
             >
-              <DialogContent>
-                <Box sx={{display: "flex", alignContent: "center", justifyContent: "space-between"}}>
-                  <Typography sx={{alignContent:"center"}}>DAS Config Preview:</Typography>
-                  <Button onClick={() => setOpenJson(false)}>Close</Button>
-                </Box>
-                <Divider sx={{ my: 1 }} />
-                <pre>{JSON.stringify(config, null, 2)}</pre>
-              </DialogContent>
-            </Dialog>
+              <RestartAltIcon />
+              Reset
+            </CompactActionButton>
 
-            <Dialog
-              open={openResetDialog}
-              onClose={() => setOpenJson(false)}
-              fullWidth
-              maxWidth="md"
+            <CompactActionButton
+              component="label"
             >
-              <DialogContent>
-                <DialogTitle>Confirm reset</DialogTitle>
-                <DialogContent>Are you sure you want to reset your settings? Everything will turn into default values.</DialogContent>
-                <DialogActions>
-                  <Button onClick={() => {setResetDialog(false)}}>Cancel</Button>
-                  <Button onClick={() => {setResetDialog(false); resetConfiguration()}} autoFocus>Confirm</Button>
-                </DialogActions>
-              </DialogContent>
-            </Dialog>
+              <UploadFileIcon />
+              Load
+              <input
+                hidden
+                type="file"
+                accept=".json"
+                onChange={handleLoad}
+              />
+            </CompactActionButton>
 
-          </Box>
-        </Box>
+            <CompactActionButton onClick={() => setOpenExportDialog(true)}>
+              <DownloadIcon />
+              Export
+            </CompactActionButton>
+
+            <CompactActionButton onClick={handleSave}>
+              <SaveIcon />
+              Save
+            </CompactActionButton>
+
+            <CompactActionButtonPrimary
+              onClick={() => setOpenPreview(true)}
+            >
+              <PreviewIcon />
+              Preview
+            </CompactActionButtonPrimary>
+
+          </SidebarButtons>
+
+        </SidebarContainer>
+
+        <ContentContainer>
+
+          <ContentHeader>
+
+            <Breadcrumb>
+              Settings <span>›</span> {activeSection?.label}
+              {activeAgentMeta && (
+                <> <span>›</span> {activeAgentMeta.label}</>
+              )}
+            </Breadcrumb>
+
+            <ContentTitle>
+              DAS Configuration
+            </ContentTitle>
+
+          </ContentHeader>
+
+          <ContentBody flush={section === "agents"}>
+
+            {section === "atomdb" && <AtomDBForm key={configSeed} />}
+            {section === "agents" && (
+              <AgentsForm
+                key={configSeed}
+                activeAgent={activeAgent}
+                onAgentChange={setActiveAgent}
+              />
+            )}
+            {section === "environment" && <EnvironmentForm key={configSeed} />}
+
+          </ContentBody>
+
+        </ContentContainer>
+
+      </PageContainer>
+
+      <Dialog
+        open={openPreview}
+        onClose={() => setOpenPreview(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{ sx: DialogPaper }}
+      >
+        <DialogContent>
+          <Typography
+            variant="h6"
+            sx={{ fontSize: 16, fontWeight: 600, color: "#111827" }}
+          >
+            Configuration Preview
+          </Typography>
+
+          <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 0.5, mb: 0 }}>
+            Applied settings from each section
+          </Typography>
+
+          <Divider sx={{ mt: 2, mb: 2, borderColor: "#f0f1f3" }} />
+
+          <ConfigurationPreview config={config} />
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <DialogButton
+            variant="primary"
+            onClick={() => setOpenPreview(false)}
+          >
+            Close
+          </DialogButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openResetDialog}
+        onClose={() => setResetDialog(false)}
+        PaperProps={{ sx: DialogPaper }}
+      >
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>
+          Confirm Reset
+        </DialogTitle>
+
+        <DialogContent sx={{ color: "#6b7280", fontSize: 14 }}>
+          Are you sure you want to reset all settings?
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+
+          <DialogButton
+            variant="secondary"
+            onClick={() => setResetDialog(false)}
+          >
+            Cancel
+          </DialogButton>
+
+          <DialogButton
+            variant="primary"
+            onClick={async () => {
+              setResetDialog(false)
+              try {
+                await resetConfiguration()
+                showToast({ message: "Configuration reset", severity: "success" })
+              } catch (error) {
+                console.error(error)
+                showToast({
+                  message: "Failed to reset configuration",
+                  severity: "error",
+                  details: extractErrorDetails(error)
+                })
+              }
+            }}
+          >
+            Confirm
+          </DialogButton>
+
+        </DialogActions>
+
+      </Dialog>
+
+      <ExportConfigDialog
+        open={openExportDialog}
+        onClose={() => setOpenExportDialog(false)}
+        flatConfig={config}
+      />
+    </>
   )
 }

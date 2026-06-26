@@ -1,63 +1,91 @@
-import { useContext, useState, createContext } from "react";
-import { DEFAULT_JSON, DEFAULT_REDISMONGO_SCHEMA } from "../../assets/default_json";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState
+} from "react"
+import { getConfigDefaults } from "../../api/ConfigAPI"
 
 const ConfigContext = createContext(null)
-const DEFAULT_VALUES = structuredClone(DEFAULT_JSON)
 
-export function ConfigurationProvider({ children }){
+export function ConfigurationProvider({ children }) {
+  const [config, setConfig] = useState({})
+  const [configSeed, setConfigSeed] = useState(0)
 
-    const [config, setConfig] = useState(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
+  const defaultsRef = useRef({})
+  const atomdbTemplatesRef = useRef({})
 
-    const getDefault = () => {
-        return new Proxy(DEFAULT_VALUES, {
-            get(target, prop) {
-            try {
-                const saved = sessionStorage.getItem(`config_${prop}`)
-                if (saved) return JSON.parse(saved)
-            } catch (e) {}
-
-            return target[prop]
-            }
-        })
+  useEffect(() => {
+    async function fetchDefaults() {
+      try {
+        const response = await getConfigDefaults()
+        defaultsRef.current = response.content || {}
+        atomdbTemplatesRef.current = response.atomdb_templates || {}
+        setConfig(defaultsRef.current)
+        setConfigSeed((seed) => seed + 1)
+      } catch (error) {
+        console.error(error)
+      }
     }
 
-    const updateSection = (sectionName, sectionData) => {
-        setConfig(prev => ({
-            ...prev,
-            [sectionName]: sectionData
-        }))
+    fetchDefaults()
+  }, [])
 
-        sessionStorage.setItem(
-            `config_${sectionName}`,
-            JSON.stringify(sectionData)
-        )
-    }
+  const getDefaults = useCallback(() => defaultsRef.current, [])
 
-    const loadExternalConfiguration = ({ parsed }) => {
-        const newConfig = parsed
-        setConfig(newConfig)
+  const getDefaultSection = useCallback((sectionKey) => {
+    return defaultsRef.current[sectionKey]
+  }, [])
 
-        Object.entries(parsed).forEach(([key, value]) => {
-            sessionStorage.setItem(`config_${key}`, JSON.stringify(value))
-        })
+  const getAtomdbTemplate = useCallback((atomdbType) => {
+    return atomdbTemplatesRef.current[atomdbType]
+  }, [])
 
-        location.reload()
-    }
+  const updateField = useCallback((fieldName, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      [fieldName]: value
+    }))
+  }, [])
 
-    const resetConfiguration = () => {
-        setConfig(structuredClone(DEFAULT_REDISMONGO_SCHEMA))
-        sessionStorage.clear()
-        location.reload()
-    }
+  const applyLoadedConfiguration = useCallback((flat) => {
+    defaultsRef.current = flat
+    setConfig(flat)
+    setConfigSeed((seed) => seed + 1)
+  }, [])
 
-    return(
-        <ConfigContext.Provider value={{config, updateSection, getDefault, loadExternalConfiguration, resetConfiguration}}>
-            { children }
-        </ConfigContext.Provider>
-    )
+  const resetConfiguration = useCallback(async () => {
+    const response = await getConfigDefaults({ factory: true })
+    defaultsRef.current = response.content || {}
+    atomdbTemplatesRef.current = response.atomdb_templates || {}
+    setConfig(defaultsRef.current)
+    setConfigSeed((seed) => seed + 1)
+  }, [])
 
+  return (
+    <ConfigContext.Provider
+      value={{
+        config,
+        configSeed,
+        updateField,
+        getDefaults,
+        getDefaultSection,
+        getAtomdbTemplate,
+        applyLoadedConfiguration,
+        resetConfiguration
+      }}
+    >
+      {children}
+    </ConfigContext.Provider>
+  )
 }
 
 export function useConfig() {
-    return useContext(ConfigContext)
+  const context = useContext(ConfigContext)
+  if (!context) {
+    throw new Error("useConfig must be used within ConfigurationProvider")
+  }
+  return context
 }

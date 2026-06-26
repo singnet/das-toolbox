@@ -3,7 +3,7 @@ import { AppBar, Box, Menu, MenuItem, Toolbar, Typography } from '@mui/material'
 import { styled } from "@mui/material/styles";
 
 const MainAppBar = styled(AppBar)({
-  backgroundColor: "#008cff",
+  backgroundColor: "#4f46e5",
   boxShadow: "2px 2px 2px 1px rgba(0, 0, 0, 0.2)",
 });
 

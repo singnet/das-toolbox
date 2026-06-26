@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /runtime_keys \
-    /opt/das/.das \
+    /opt/web-das/.das/workspace/mapped_metta \
+    /opt/web-das/.das/workspace/metta_files \
     && chmod 700 /runtime_keys
 
 ENV HOME=/opt/web-das

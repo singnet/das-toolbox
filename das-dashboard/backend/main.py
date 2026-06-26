@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from shared.exceptions.exception_handlers import AppExceptionHandlers
 from shared.utils.storage_check import validate_persistent_storage
-from services_init import WEB_CONFIG
+from services_init import WEB_CONFIG, WORKSPACE_SERVICES
 
 # Controllers
 from controllers.database_controllers import router as database_router
@@ -17,6 +17,7 @@ from controllers.metrics_controllers import router as metrics_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     validate_persistent_storage()
+    WORKSPACE_SERVICES.ensure_workspace()
     WEB_CONFIG.load_user_profile()
     WEB_CONFIG.load_config_dictionary()
     yield

@@ -19,10 +19,10 @@ echo "Backend image built successfully."
 
 echo "Starting backend on port ${BACK_PORT}..."
 
-docker rm -f ui_backend >/dev/null 2>&1 || true
+docker rm -f web-interface-backend ui_backend >/dev/null 2>&1 || true
 
 docker run -d \
-  --name web-interface-frontend \
+  --name web-interface-backend \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /usr/bin/das-cli:/usr/bin/das-cli:ro \
   -v /opt/web-das:/opt/web-das \
@@ -34,10 +34,10 @@ echo "Backend started successfully."
 
 echo "Starting frontend on port ${FRONT_PORT}..."
 
-docker rm -f das-dashboard >/dev/null 2>&1 || true
+docker rm -f web-interface-frontend das-dashboard >/dev/null 2>&1 || true
 
 docker run -d \
-  --name web-interface-backend \
+  --name web-interface-frontend \
   --network host \
   das-dashboard:latest \
   npm run dev -- --host 0.0.0.0 --port ${FRONT_PORT}

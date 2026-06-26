@@ -18,8 +18,8 @@ export default function DashboardPage() {
     <Box
       sx={{
         display: "flex",
-        height: "100vh",
-        width: "100vw",
+        height: "100%",
+        width: "100%",
         overflow: "hidden",
       }}
     >
@@ -28,7 +28,7 @@ export default function DashboardPage() {
       <Box
         sx={{
           flex: 1,
-          height: "100vh",
+          minHeight: 0,
           overflowY: "auto",
           backgroundColor: "#f5f5f5",
         }}
