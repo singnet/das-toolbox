@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material"
 import { FieldGrid } from "../Agents.styled"
-import { idField, numberField } from "../../formValidation"
+import { idField, numberField, elitismRateField, selectionRateInput } from "../../formValidation"
 
 export default function EvolutionParams({ formRef }) {
   return (
@@ -33,7 +33,7 @@ export default function EvolutionParams({ formRef }) {
         size="small"
         required
         defaultValue={formRef.current.elitism_rate}
-        {...numberField}
+        {...elitismRateField}
         onChange={(e) => {
           formRef.current.elitism_rate = Number(e.target.value)
         }}
