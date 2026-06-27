@@ -186,12 +186,12 @@ export default function SetupDasPage() {
               Save
             </CompactActionButton>
 
-            <CompactActionButtonPrimary
+            <CompactActionButton
               onClick={() => setOpenPreview(true)}
             >
               <PreviewIcon />
               Preview
-            </CompactActionButtonPrimary>
+            </CompactActionButton>
 
           </SidebarButtons>
 
