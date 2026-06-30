@@ -5,24 +5,6 @@ export async function saveConfig(flatConfig) {
   return response.data;
 }
 
-export async function exportConfig(flatConfig) {
-  const response = await api.post("/config/export", flatConfig ?? {});
-  return response.data;
-}
-
-export async function getExportTargets(flatConfig) {
-  const response = await api.post("/config/export/targets", flatConfig ?? {});
-  return response.data;
-}
-
-export async function exportConfigScp(flatConfig, ip) {
-  const response = await api.post(
-    `/config/export/scp/${encodeURIComponent(ip)}`,
-    flatConfig ?? {}
-  );
-  return response.data;
-}
-
 export async function loadConfig(nestedConfig) {
   const response = await api.post("/config/load", nestedConfig);
   return response.data;

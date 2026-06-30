@@ -36,7 +36,7 @@ class RemoteScpService:
         if os.path.exists(user_known_hosts):
             ssh.load_host_keys(user_known_hosts)
 
-        # Require a known host key; add targets to known_hosts before exporting.
+        # Require a known host key; add targets to known_hosts before remote transfer.
         ssh.set_missing_host_key_policy(RejectPolicy())
 
         return ssh

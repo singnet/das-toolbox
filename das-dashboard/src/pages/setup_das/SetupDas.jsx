@@ -17,13 +17,11 @@ import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import PublicIcon from "@mui/icons-material/Public"
 import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import UploadFileIcon from "@mui/icons-material/UploadFile"
-import DownloadIcon from "@mui/icons-material/Download"
 import PreviewIcon from "@mui/icons-material/Preview"
 import SaveIcon from "@mui/icons-material/Save"
 
 import { useState } from "react"
 
-import ExportConfigDialog from "../../components/configuration_page/ExportConfigDialog"
 import { loadConfig, saveConfig } from "../../api/ConfigAPI"
 import { extractErrorDetails } from "../../api/APIUtils"
 import { useToast } from "../../components/global_providers/ToastProvider"
@@ -36,6 +34,7 @@ import ConfigurationPreview from "../../components/configuration_page/Configurat
 
 import { useConfig } from "../../components/global_providers/ConfigurationProvider"
 import { handleLoadConfig } from "../../utils/FileLoader"
+import saveFile from "../../utils/FileSaver"
 
 import {
   PageContainer,
@@ -51,7 +50,6 @@ import {
   ContentTitle,
   ContentBody,
   CompactActionButton,
-  CompactActionButtonPrimary,
   DialogButton,
   DialogPaper
 } from "./SetupDasStyled"
@@ -76,12 +74,19 @@ export default function SetupDasPage() {
   const [activeAgent, setActiveAgent] = useState("query")
   const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
-  const [openExportDialog, setOpenExportDialog] = useState(false)
 
   const handleSave = async () => {
     try {
-      await saveConfig(config)
-      showToast({ message: "Configuration saved successfully", severity: "success" })
+      const response = await saveConfig(config)
+
+      if (response?.content) {
+        await saveFile(response.content)
+      }
+
+      showToast({
+        message: response?.message || "Configuration saved successfully",
+        severity: "success"
+      })
     } catch (error) {
       console.error(error)
       showToast({
@@ -174,11 +179,6 @@ export default function SetupDasPage() {
                 accept=".json"
                 onChange={handleLoad}
               />
-            </CompactActionButton>
-
-            <CompactActionButton onClick={() => setOpenExportDialog(true)}>
-              <DownloadIcon />
-              Export
             </CompactActionButton>
 
             <CompactActionButton onClick={handleSave}>
@@ -311,12 +311,6 @@ export default function SetupDasPage() {
         </DialogActions>
 
       </Dialog>
-
-      <ExportConfigDialog
-        open={openExportDialog}
-        onClose={() => setOpenExportDialog(false)}
-        flatConfig={config}
-      />
     </>
   )
 }
