@@ -2,7 +2,7 @@ import os
 import shlex
 from io import BytesIO
 
-from paramiko import RejectPolicy, SSHClient
+from paramiko import AutoAddPolicy, SSHClient
 from paramiko.ssh_exception import AuthenticationException, NoValidConnectionsError, SSHException
 from scp import SCPClient, SCPException
 
@@ -31,14 +31,7 @@ class RemoteScpService:
     def _prepare_ssh_client(self) -> SSHClient:
         ssh = SSHClient()
         ssh.load_system_host_keys()
-
-        user_known_hosts = os.path.expanduser("~/.ssh/known_hosts")
-        if os.path.exists(user_known_hosts):
-            ssh.load_host_keys(user_known_hosts)
-
-        # Require a known host key; add targets to known_hosts before remote transfer.
-        ssh.set_missing_host_key_policy(RejectPolicy())
-
+        ssh.set_missing_host_key_policy(AutoAddPolicy())
         return ssh
 
     def _exec_checked(self, ssh: SSHClient, command: str, *, failure_message: str) -> str:

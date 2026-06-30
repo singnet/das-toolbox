@@ -2,7 +2,7 @@ class DasCliCommandException(Exception):
 
     def __init__(self, stderror : str):
 
-        self.message = "There was an error while executing this das-cli command."
+        self.message = "There was an error while running das-cli."
         self.stderror = stderror
 
         super().__init__(self.message, self.stderror)
