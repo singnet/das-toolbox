@@ -74,9 +74,16 @@ export default function SetupDasPage() {
   const [activeAgent, setActiveAgent] = useState("query")
   const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
+  const [disableActions, setDisableActions] = useState(false)
+
 
   const handleSave = async () => {
     try {
+
+      // Disables all buttons temporarily until action is over, this prevents double clicking or misuse that could potentially cause an error on the server.
+      setDisableActions(true)
+      document.body.style.cursor = 'wait'; // Editing directly on the DOM
+
       const response = await saveConfig(config)
 
       if (response?.content) {
@@ -87,6 +94,7 @@ export default function SetupDasPage() {
         message: response?.message || "Configuration saved successfully",
         severity: "success"
       })
+
     } catch (error) {
       console.error(error)
       showToast({
@@ -95,6 +103,10 @@ export default function SetupDasPage() {
         details: extractErrorDetails(error)
       })
     }
+
+    // Sets back to normal after action is completed.
+    setDisableActions(false)
+    document.body.style.cursor = 'default'
   }
 
   const handleLoad = async (event) => {
@@ -163,6 +175,7 @@ export default function SetupDasPage() {
 
             <CompactActionButton
               onClick={() => setResetDialog(true)}
+              disabled={disableActions}
             >
               <RestartAltIcon />
               Reset
@@ -170,6 +183,7 @@ export default function SetupDasPage() {
 
             <CompactActionButton
               component="label"
+              disabled={disableActions}
             >
               <UploadFileIcon />
               Load
@@ -181,13 +195,14 @@ export default function SetupDasPage() {
               />
             </CompactActionButton>
 
-            <CompactActionButton onClick={handleSave}>
+            <CompactActionButton disabled={disableActions} onClick={handleSave}>
               <SaveIcon />
               Save
             </CompactActionButton>
 
             <CompactActionButton
               onClick={() => setOpenPreview(true)}
+              disabled={disableActions}
             >
               <PreviewIcon />
               Preview
