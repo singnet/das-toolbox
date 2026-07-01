@@ -135,8 +135,11 @@ class ConfigServices:
                     web_config=self.web_config,
                 )
 
-            await run_in_threadpool(sync_and_register)
-            await run_in_threadpool(self.web_config.load_config_dictionary)
+            try:
+                await run_in_threadpool(sync_and_register)
+                await run_in_threadpool(self.web_config.load_config_dictionary)
+            except (OSError, json.JSONDecodeError, TypeError, ValueError, IndexError):
+                self.web_config.config_dictionary = {}
         else:
             self.web_config.config_dictionary = {}
 

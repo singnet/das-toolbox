@@ -67,7 +67,7 @@ export const elitismRateField = field(elitismRateInput)
 export const selectionRateField = field(selectionRateInput)
 export const initialRentField = field(initialRentTakeInput)
 export const spreadLowerField = field(spreadLowerInput)
-export const spreadUpperField = field(spreadLowerField)
+export const spreadUpperField = field(spreadUpperInput)
 
 export const numberField = {
   slotProps: {

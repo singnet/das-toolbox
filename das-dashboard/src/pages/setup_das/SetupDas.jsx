@@ -123,9 +123,14 @@ export default function SetupDasPage() {
       })
       setOpenLoadDialog(true)
     })
+    event.target.value = ""
   }
 
   const closeLoadDialog = () => {
+    if (disableActions) {
+      return
+    }
+
     setOpenLoadDialog(false)
     setPendingLoadConfig(null)
 
@@ -135,6 +140,10 @@ export default function SetupDasPage() {
   }
 
   const handleConfirmLoad = async () => {
+    if (disableActions) {
+      return
+    }
+
     if (!pendingLoadConfig) {
       closeLoadDialog()
       return
@@ -420,7 +429,11 @@ export default function SetupDasPage() {
 
       <Dialog
         open={openLoadDialog}
-        onClose={closeLoadDialog}
+        onClose={() => {
+          if (!disableActions) {
+            closeLoadDialog()
+          }
+        }}
         PaperProps={{ sx: DialogPaper }}
       >
         <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>
@@ -440,6 +453,7 @@ export default function SetupDasPage() {
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <DialogButton
             variant="secondary"
+            disabled={disableActions}
             onClick={closeLoadDialog}
           >
             Cancel
@@ -447,6 +461,7 @@ export default function SetupDasPage() {
 
           <DialogButton
             variant="primary"
+            disabled={disableActions}
             onClick={handleConfirmLoad}
           >
             Load

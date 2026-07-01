@@ -218,13 +218,31 @@ class WebConfiguration:
         return sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
 
     def map_dashboard_hosts(self, config_file: dict | None = None) -> list[dict]:
-        """Hosts for the dashboard server tabs (includes a local fallback when needed)."""
-        hosts = self.map_hosts(config_file)
-        if hosts:
-            return hosts
-
+        """Hosts for the dashboard server tabs (local + remote)."""
         services = self.map_services(config_file) if config_file is not None else self.config_dictionary
-        if services:
-            return [{"ip": LOCAL_DASHBOARD_HOST, "labels": ["local"]}]
+        if not services:
+            return []
 
-        return []
+        hosts_by_ip: dict[str, dict] = {}
+        has_local = False
+
+        for service_name, service in services.items():
+            host = service.get("host", "")
+            if not host:
+                continue
+
+            if host in LOCAL_HOSTS:
+                has_local = True
+                continue
+
+            if host not in hosts_by_ip:
+                hosts_by_ip[host] = {"ip": host, "labels": []}
+
+            hosts_by_ip[host]["labels"].append(service_name)
+
+        dashboard_hosts = sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
+
+        if has_local:
+            dashboard_hosts.insert(0, {"ip": LOCAL_DASHBOARD_HOST, "labels": ["local"]})
+
+        return dashboard_hosts
