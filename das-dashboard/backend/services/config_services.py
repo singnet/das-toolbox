@@ -109,6 +109,20 @@ class ConfigServices:
 
         return flat
 
+    async def sync_dashboard_config(self) -> list[dict]:
+        """Reload saved config and register it with das-cli for dashboard/metrics use."""
+        if os.path.exists(CONFIG_PATH):
+            await run_in_threadpool(self.web_config.load_config_dictionary)
+            await run_in_threadpool(
+                set_das_cli_config,
+                CONFIG_PATH,
+                web_config=self.web_config,
+            )
+        else:
+            self.web_config.config_dictionary = {}
+
+        return self.web_config.map_dashboard_hosts()
+
     def get_config_defaults(self, *, factory: bool = False) -> dict:
         if factory:
             return self._factory_defaults_response()

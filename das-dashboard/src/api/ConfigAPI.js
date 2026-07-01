@@ -10,6 +10,11 @@ export async function loadConfig(nestedConfig) {
   return response.data;
 }
 
+export async function getConfigHosts() {
+  const response = await api.get("/config/hosts");
+  return response.data;
+}
+
 export async function saveContextMapping({ content, path } = {}) {
   const payload = {}
   if (path !== undefined) {

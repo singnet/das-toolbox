@@ -20,6 +20,9 @@ AGENT_SERVICE_COMMANDS = {
 }
 
 
+LOCAL_DASHBOARD_HOST = "127.0.0.1"
+
+
 class WebConfiguration:
 
     _instance = None
@@ -78,12 +81,33 @@ class WebConfiguration:
         }
 
     @classmethod
+    def _register_cluster_nodes(
+        cls,
+        services: dict,
+        nodes: list | None,
+        *,
+        prefix: str,
+    ) -> None:
+        if not isinstance(nodes, list):
+            return
+
+        for index, node in enumerate(nodes):
+            if not isinstance(node, dict):
+                continue
+
+            ip = (node.get("ip") or "").strip()
+            if ip:
+                cls._register_endpoint(services, f"{prefix}-node-{index}", f"{ip}:0")
+
+    @classmethod
     def _map_redis_mongo(cls, services: dict, section: dict, *, db_name: str = "db") -> None:
         redis = section.get("redis") or {}
         mongo = section.get("mongodb") or {}
 
         cls._register_endpoint(services, db_name, mongo.get("endpoint"))
         cls._register_endpoint(services, "redis", redis.get("endpoint"))
+        cls._register_cluster_nodes(services, redis.get("nodes"), prefix=f"{db_name}-redis")
+        cls._register_cluster_nodes(services, mongo.get("nodes"), prefix=f"{db_name}-mongo")
 
     @classmethod
     def _map_mork_mongo(cls, services: dict, section: dict, *, db_name: str = "db") -> None:
@@ -92,6 +116,7 @@ class WebConfiguration:
 
         cls._register_endpoint(services, db_name, mongo.get("endpoint"))
         cls._register_endpoint(services, "morkdb", mork.get("endpoint"))
+        cls._register_cluster_nodes(services, mongo.get("nodes"), prefix=f"{db_name}-mongo")
 
     @classmethod
     def _map_remote_peer(cls, services: dict, peer: dict, index: int) -> None:
@@ -191,3 +216,15 @@ class WebConfiguration:
             hosts_by_ip[host]["labels"].append(service_name)
 
         return sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
+
+    def map_dashboard_hosts(self, config_file: dict | None = None) -> list[dict]:
+        """Hosts for the dashboard server tabs (includes a local fallback when needed)."""
+        hosts = self.map_hosts(config_file)
+        if hosts:
+            return hosts
+
+        services = self.map_services(config_file) if config_file is not None else self.config_dictionary
+        if services:
+            return [{"ip": LOCAL_DASHBOARD_HOST, "labels": ["local"]}]
+
+        return []

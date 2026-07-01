@@ -1,14 +1,12 @@
 import { useRef, useState } from "react";
 import { ListItemText, ListItemIcon, Divider, CircularProgress } from "@mui/material";
-import { SettingsEthernet, Polyline, FileUpload, PlayArrow, Stop, Storage } from "@mui/icons-material";
+import { SettingsEthernet, Polyline, PlayArrow, Stop, Storage } from "@mui/icons-material";
 
 import { SidebarContainer, Title, StyledList, SectionLabel, StyledItem } from "./sidebar.styled";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 
-import { handleLoadConfig } from "../../../../utils/FileLoader";
-import { loadConfig } from "../../../../api/ConfigAPI";
 import { startArchitecture, stopArchitecture, startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
 import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
 import { extractErrorDetails } from "../../../../api/APIUtils";
@@ -24,7 +22,6 @@ export function SideBar() {
 
   const { 
     setCurrentContext, 
-    setDashboardBaseValues, 
     currentMachine, 
     globalServicesState, 
     forceGlobalStateUpdate,
@@ -34,7 +31,6 @@ export function SideBar() {
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
 
-  const fileInputRef = useRef(null);
   const mettaInputRef = useRef(null);
 
   const currentHost = currentMachine?.serverIp;
@@ -56,13 +52,6 @@ export function SideBar() {
       setLoadingAction(null);
     }
   };
-
-  const onLoadConfig = async ({ parsed }) => {
-    await executeAsyncAction("load-config", async () => {
-      const response = await loadConfig(parsed)
-      setDashboardBaseValues(response.content)
-    }, "Configuration loaded successfully.", "Failed to load configuration.")
-  }
 
   const handleMettaUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -215,22 +204,7 @@ export function SideBar() {
         <Divider sx={{ my: 1 }} />
         <SectionLabel>ACTIONS</SectionLabel>
 
-        <input ref={fileInputRef} type="file" accept=".json,application/json" hidden onChange={(e) => handleLoadConfig(e, onLoadConfig)} />
         <input ref={mettaInputRef} type="file" accept=".metta" hidden onChange={handleMettaUpload} />
-
-        <StyledItem 
-          disabled={!!loadingAction || isSwitchingHost}
-          onClick={() => !loadingAction && !isSwitchingHost && fileInputRef.current?.click()} 
-          sx={{ 
-            opacity: (loadingAction || isSwitchingHost) ? 0.5 : 1, 
-            cursor: (loadingAction || isSwitchingHost) ? "wait" : "pointer" 
-          }}
-        >
-          <ListItemIcon>
-            {loadingAction === "load-config" ? <CircularProgress size={16} /> : <FileUpload fontSize="small" />}
-          </ListItemIcon>
-          <ListItemText primary="Load Config File" />
-        </StyledItem>
 
         <StyledItem 
           disabled={!!loadingAction || isServerOffline}
