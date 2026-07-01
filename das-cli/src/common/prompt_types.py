@@ -60,6 +60,10 @@ class AbsolutePath(ClickPath):
         super().__init__(*args, **kwargs)
 
     def convert(self, value, param, ctx):
+
+        if ctx or ctx.params.get("remote"):
+            return value
+
         path = super().convert(value, param, ctx)
         if not os.path.isabs(path):
             self.fail("The path must be absolute.", param, ctx)

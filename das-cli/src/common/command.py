@@ -328,8 +328,13 @@ class Command:
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
 
         try:
-            self._check_remote_config(remote_kwargs)
+            
+            if "config" not in command_path:
+                self._check_remote_config(remote_kwargs)
+
+             # Ignores this check when a config command is called, prevents command from breaking when user is setting up configuration across multiple remote machines.
             Connection(**remote_kwargs).run(command, pty=False)
+
         except Exception as e:
 
             self.stdout(
