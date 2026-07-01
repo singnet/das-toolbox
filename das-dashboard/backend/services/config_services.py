@@ -10,6 +10,7 @@ from shared.internal.constants import CONFIG_PATH, REMOTE_CONFIG_PATH
 from shared.internal.web_configuration import WebConfiguration
 from shared.mappers.das_config_mapper import ConfigMapper
 from shared.mappers.nested_config_mapper import NestedConfigMapper
+from shared.builders.atom_db_builder import AtomDbBuilder
 from shared.utils.adapter_context_mapping import save_context_mapping_content
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
@@ -27,7 +28,10 @@ class ConfigServices:
             configuration_entries.model_dump(by_alias=True, exclude_none=True),
             CONSTANTS,
         )
-        nested_config = ConfigMapper.build_config(flat)
+        await run_in_threadpool(self.web_config.load_user_profile)
+        profile_username = self.web_config.user_profile.get("profile_username") or ""
+        nested_config = ConfigMapper.build_config(flat, profile_username=profile_username)
+        AtomDbBuilder.apply_profile_usernames(nested_config, profile_username)
 
         await run_in_threadpool(self._persist_config, nested_config)
         await run_in_threadpool(self.web_config.load_config_dictionary)
@@ -112,12 +116,27 @@ class ConfigServices:
     async def sync_dashboard_config(self) -> list[dict]:
         """Reload saved config and register it with das-cli for dashboard/metrics use."""
         if os.path.exists(CONFIG_PATH):
+            await run_in_threadpool(self.web_config.load_user_profile)
+            profile_username = self.web_config.user_profile.get("profile_username") or ""
+
+            def sync_and_register() -> None:
+                with open(CONFIG_PATH, "r", encoding="utf-8") as config_file:
+                    nested = json.load(config_file)
+
+                if isinstance(nested, list) and nested:
+                    nested = nested[0]
+
+                if isinstance(nested, dict):
+                    AtomDbBuilder.apply_profile_usernames(nested, profile_username)
+                    self._persist_config(nested)
+
+                set_das_cli_config(
+                    CONFIG_PATH,
+                    web_config=self.web_config,
+                )
+
+            await run_in_threadpool(sync_and_register)
             await run_in_threadpool(self.web_config.load_config_dictionary)
-            await run_in_threadpool(
-                set_das_cli_config,
-                CONFIG_PATH,
-                web_config=self.web_config,
-            )
         else:
             self.web_config.config_dictionary = {}
 

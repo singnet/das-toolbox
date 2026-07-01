@@ -32,10 +32,10 @@ ATOMDB_TEMPLATES = {
         "redis_cluster": False,
         "mongo_cluster": False,
         "redis_nodes": [
-            {"context": "default", "ip": "0.0.0.0", "username": "root"}
+            {"context": "default", "ip": "0.0.0.0", "username": ""}
         ],
         "mongo_nodes": [
-            {"context": "default", "ip": "0.0.0.0", "username": "root"}
+            {"context": "default", "ip": "0.0.0.0", "username": ""}
         ],
     },
     "morkdb": {
@@ -48,7 +48,7 @@ ATOMDB_TEMPLATES = {
         "mongo_password": "admin",
         "mongo_cluster": False,
         "mongo_nodes": [
-            {"context": "default", "ip": "0.0.0.0", "username": "root"}
+            {"context": "default", "ip": "0.0.0.0", "username": ""}
         ],
     },
     "inmemorydb": {
@@ -116,7 +116,7 @@ ATOMDB_TEMPLATES = {
             "mongo_password": "admin",
             "mongo_cluster": False,
             "mongo_nodes": [
-                {"context": "default", "ip": "0.0.0.0", "username": "root"}
+                {"context": "default", "ip": "0.0.0.0", "username": ""}
             ],
         },
     },
