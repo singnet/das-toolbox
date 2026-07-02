@@ -9,6 +9,12 @@ from click import Path as ClickPath
 from common.network import is_server_port_available, is_ssh_server_reachable
 
 
+def _is_remote_invocation(ctx) -> bool:
+    if not ctx:
+        return False
+    params = ctx.params
+    return bool(params.get("remote") or params.get("host") or params.get("user"))
+
 class ReachableIpAddress(ParamType):
     name = "reachable ip address"
 
@@ -60,8 +66,7 @@ class AbsolutePath(ClickPath):
         super().__init__(*args, **kwargs)
 
     def convert(self, value, param, ctx):
-
-        if ctx or ctx.params.get("remote"):
+        if _is_remote_invocation(ctx):
             return value
 
         path = super().convert(value, param, ctx)
