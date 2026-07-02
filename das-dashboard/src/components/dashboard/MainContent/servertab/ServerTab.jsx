@@ -49,7 +49,7 @@ export function ServerTab() {
     return (
       <Container>
         <Header>
-          <Title>No servers loaded. Please load a config file.</Title>
+          <Title>No servers found. Save your configuration on the Configuration page first.</Title>
         </Header>
       </Container>
     );

@@ -5,12 +5,12 @@ from io import BytesIO
 from fastapi.concurrency import run_in_threadpool
 
 from shared.dtos.configuration_entries_dto import ConfigurationEntriesDto
-from shared.exceptions.custom_exceptions import CustomValueError
 from shared.internal.configuration_constants import ATOMDB_TEMPLATES, CONSTANTS
 from shared.internal.constants import CONFIG_PATH, REMOTE_CONFIG_PATH
 from shared.internal.web_configuration import WebConfiguration
 from shared.mappers.das_config_mapper import ConfigMapper
 from shared.mappers.nested_config_mapper import NestedConfigMapper
+from shared.builders.atom_db_builder import AtomDbBuilder
 from shared.utils.adapter_context_mapping import save_context_mapping_content
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
@@ -28,7 +28,10 @@ class ConfigServices:
             configuration_entries.model_dump(by_alias=True, exclude_none=True),
             CONSTANTS,
         )
-        nested_config = ConfigMapper.build_config(flat)
+        await run_in_threadpool(self.web_config.load_user_profile)
+        profile_username = self.web_config.user_profile.get("profile_username") or ""
+        nested_config = ConfigMapper.build_config(flat, profile_username=profile_username)
+        AtomDbBuilder.apply_profile_usernames(nested_config, profile_username)
 
         await run_in_threadpool(self._persist_config, nested_config)
         await run_in_threadpool(self.web_config.load_config_dictionary)
@@ -38,35 +41,41 @@ class ConfigServices:
             web_config=self.web_config,
         )
 
-        return {"message": "Configuration saved successfully."}
+        remote_hosts = await self._propagate_config_to_remotes(nested_config)
 
-    def _build_export_config(
-        self,
-        configuration_entries: ConfigurationEntriesDto | None = None,
-    ) -> dict:
-        if configuration_entries is not None:
-            flat_payload = configuration_entries.model_dump(by_alias=True, exclude_none=True)
-            if flat_payload:
-                flat = merge_flat_config(flat_payload, CONSTANTS)
-                return ConfigMapper.build_config(flat)
+        message = "Configuration saved successfully."
+        if remote_hosts:
+            hosts_label = ", ".join(remote_hosts)
+            message = f"{message} Propagated to remote host(s): {hosts_label}."
 
-        flat = merge_flat_config({}, CONSTANTS)
-        return ConfigMapper.build_config(flat)
+        return {
+            "message": message,
+            "content": nested_config,
+            "remote_hosts": remote_hosts,
+        }
 
-    async def export_config(
-        self,
-        configuration_entries: ConfigurationEntriesDto | None = None,
-    ) -> dict:
-        return self._build_export_config(configuration_entries)
+    async def _propagate_config_to_remotes(self, nested_config: dict) -> list[str]:
+        targets = self.web_config.map_hosts(nested_config)
+        remote_hosts: list[str] = []
 
-    async def export_targets(
-        self,
-        configuration_entries: ConfigurationEntriesDto | None = None,
-    ) -> dict:
-        nested = self._build_export_config(configuration_entries)
-        return {"targets": self.web_config.map_hosts(nested)}
+        for target in targets:
+            ip = target["ip"]
+            remote_path = await run_in_threadpool(
+                self._scp_config_sync,
+                ip,
+                nested_config,
+            )
+            await run_in_threadpool(
+                set_das_cli_config,
+                remote_path,
+                web_config=self.web_config,
+                host=ip,
+            )
+            remote_hosts.append(ip)
 
-    def _export_config_scp_sync(self, ip: str, nested: dict) -> str:
+        return remote_hosts
+
+    def _scp_config_sync(self, ip: str, nested: dict) -> str:
         ssh = None
         try:
             ssh = self.remote_scp.connect(ip)
@@ -86,32 +95,6 @@ class ConfigServices:
             if ssh is not None:
                 ssh.close()
 
-    async def export_config_scp(
-        self,
-        ip: str,
-        configuration_entries: ConfigurationEntriesDto | None = None,
-    ) -> dict:
-        nested = self._build_export_config(configuration_entries)
-        known_ips = {target["ip"] for target in self.web_config.map_hosts(nested)}
-
-        if ip not in known_ips:
-            raise CustomValueError(
-                message=f"IP '{ip}' is not configured in the current architecture."
-            )
-
-        remote_path = await run_in_threadpool(self._export_config_scp_sync, ip, nested)
-        await run_in_threadpool(
-            set_das_cli_config,
-            remote_path,
-            web_config=self.web_config,
-            host=ip,
-        )
-
-        return {
-            "message": f"Configuration exported to {ip}.",
-            "remote_path": remote_path,
-        }
-
     async def load_config(self, nested_config: dict) -> dict:
         if not isinstance(nested_config, dict):
             raise ValueError("Configuration must be a JSON object.")
@@ -129,6 +112,38 @@ class ConfigServices:
         )
 
         return flat
+
+    async def sync_dashboard_config(self) -> list[dict]:
+        """Reload saved config and register it with das-cli for dashboard/metrics use."""
+        if os.path.exists(CONFIG_PATH):
+            await run_in_threadpool(self.web_config.load_user_profile)
+            profile_username = self.web_config.user_profile.get("profile_username") or ""
+
+            def sync_and_register() -> None:
+                with open(CONFIG_PATH, "r", encoding="utf-8") as config_file:
+                    nested = json.load(config_file)
+
+                if isinstance(nested, list) and nested:
+                    nested = nested[0]
+
+                if isinstance(nested, dict):
+                    AtomDbBuilder.apply_profile_usernames(nested, profile_username)
+                    self._persist_config(nested)
+
+                set_das_cli_config(
+                    CONFIG_PATH,
+                    web_config=self.web_config,
+                )
+
+            try:
+                await run_in_threadpool(sync_and_register)
+                await run_in_threadpool(self.web_config.load_config_dictionary)
+            except (OSError, json.JSONDecodeError, TypeError, ValueError, IndexError):
+                self.web_config.config_dictionary = {}
+        else:
+            self.web_config.config_dictionary = {}
+
+        return self.web_config.map_dashboard_hosts()
 
     def get_config_defaults(self, *, factory: bool = False) -> dict:
         if factory:

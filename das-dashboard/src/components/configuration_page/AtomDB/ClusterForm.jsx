@@ -3,10 +3,18 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import { useEffect, useRef, useState } from "react"
 import { ipv4Field } from "../formValidation"
 
+function normalizeNodeContext(context) {
+  if (!context || context === "default") {
+    return "None"
+  }
+
+  return context
+}
+
 function createEmptyNode() {
   return {
     id: crypto.randomUUID(),
-    context: "default",
+    context: "None",
     username: "",
     ip: ""
   }
@@ -17,6 +25,7 @@ function seedNodes(initialNodes) {
     return structuredClone(initialNodes).map((node) => ({
       ...createEmptyNode(),
       ...node,
+      context: normalizeNodeContext(node.context),
       id: node.id || crypto.randomUUID()
     }))
   }

@@ -40,8 +40,8 @@ export default function Navbar() {
         </Typography>
 
         <AppBarItems>
-          <AppBarItem href="/configuration">Configuration</AppBarItem>
           <AppBarItem href="/profiles">Profile</AppBarItem>
+          <AppBarItem href="/configuration">Configuration</AppBarItem>
           <AppBarItem href="/dashboard">Dashboard</AppBarItem>
         </AppBarItems>
 

@@ -7,6 +7,9 @@ class AtomDbBuilder:
     MONGO_IMAGE = "mongodb/mongodb-community-server:8.2-ubuntu2204"
     MORK_IMAGE = "trueagi/das:mork-server-1.0.4"
 
+    def __init__(self, profile_username: str = ""):
+        self.profile_username = profile_username or ""
+
     _REDIS_MONGO_FIELDS = (
         "redis_endpoint",
         "redis_port",
@@ -79,7 +82,57 @@ class AtomDbBuilder:
             raise ValueError(f"{label}.{nodes_key} must be a list when {cluster_key} is true")
 
     @classmethod
-    def _map_cluster_nodes(cls, nodes) -> list:
+    def _resolve_node_username(cls, context, username, profile_username: str) -> str:
+        if not username or username in ("root", "default"):
+            return profile_username or ""
+        return username
+
+    @classmethod
+    def _patch_section_nodes(cls, section, profile_username: str) -> None:
+        if not isinstance(section, dict):
+            return
+
+        nodes = section.get("nodes")
+        if not isinstance(nodes, list):
+            return
+
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            node["username"] = cls._resolve_node_username(
+                node.get("context", "default"),
+                node.get("username", ""),
+                profile_username,
+            )
+
+    @classmethod
+    def apply_profile_usernames(cls, nested_config: dict, profile_username: str) -> dict:
+        if not isinstance(nested_config, dict):
+            return nested_config
+
+        atomdb = nested_config.get("atomdb")
+        if isinstance(atomdb, dict):
+            cls._patch_atomdb_nodes(atomdb, profile_username)
+
+        return nested_config
+
+    @classmethod
+    def _patch_atomdb_nodes(cls, atomdb: dict, profile_username: str) -> None:
+        atomdb_type = atomdb.get("type")
+
+        if atomdb_type == "redismongodb":
+            cls._patch_section_nodes(atomdb.get("redis"), profile_username)
+            cls._patch_section_nodes(atomdb.get("mongodb"), profile_username)
+        elif atomdb_type == "morkdb":
+            cls._patch_section_nodes(atomdb.get("mongodb"), profile_username)
+        elif atomdb_type == "adapterdb":
+            adapter = atomdb.get("adapterdb")
+            if isinstance(adapter, dict):
+                backend = adapter.get("atomdb_backend")
+                if isinstance(backend, dict):
+                    cls._patch_atomdb_nodes(backend, profile_username)
+
+    def _map_cluster_nodes(self, nodes) -> list:
         if not isinstance(nodes, list):
             return []
 
@@ -87,21 +140,24 @@ class AtomDbBuilder:
             {
                 "context": _get(node, "context", "default"),
                 "ip": _get(node, "ip", ""),
-                "username": _get(node, "username", ""),
+                "username": self._resolve_node_username(
+                    _get(node, "context", "default"),
+                    _get(node, "username", ""),
+                    self.profile_username,
+                ),
             }
             for node in nodes
         ]
 
-    @classmethod
-    def _with_nodes(cls, section: dict, source, cluster_key: str, nodes_key: str, label: str) -> dict:
+    def _with_nodes(self, section: dict, source, cluster_key: str, nodes_key: str, label: str) -> dict:
         cluster = _get(source, cluster_key, False)
         raw_nodes = _get(source, nodes_key, [])
 
         if cluster:
-            cls._validate_cluster_nodes(source, cluster_key, nodes_key, label)
-            section["nodes"] = cls._map_cluster_nodes(raw_nodes)
+            self._validate_cluster_nodes(source, cluster_key, nodes_key, label)
+            section["nodes"] = self._map_cluster_nodes(raw_nodes)
         elif raw_nodes:
-            section["nodes"] = cls._map_cluster_nodes(raw_nodes)
+            section["nodes"] = self._map_cluster_nodes(raw_nodes)
 
         return section
 

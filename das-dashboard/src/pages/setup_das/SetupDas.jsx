@@ -17,13 +17,11 @@ import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import PublicIcon from "@mui/icons-material/Public"
 import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import UploadFileIcon from "@mui/icons-material/UploadFile"
-import DownloadIcon from "@mui/icons-material/Download"
 import PreviewIcon from "@mui/icons-material/Preview"
 import SaveIcon from "@mui/icons-material/Save"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 
-import ExportConfigDialog from "../../components/configuration_page/ExportConfigDialog"
 import { loadConfig, saveConfig } from "../../api/ConfigAPI"
 import { extractErrorDetails } from "../../api/APIUtils"
 import { useToast } from "../../components/global_providers/ToastProvider"
@@ -36,6 +34,7 @@ import ConfigurationPreview from "../../components/configuration_page/Configurat
 
 import { useConfig } from "../../components/global_providers/ConfigurationProvider"
 import { handleLoadConfig } from "../../utils/FileLoader"
+import saveFile from "../../utils/FileSaver"
 
 import {
   PageContainer,
@@ -51,7 +50,6 @@ import {
   ContentTitle,
   ContentBody,
   CompactActionButton,
-  CompactActionButtonPrimary,
   DialogButton,
   DialogPaper
 } from "./SetupDasStyled"
@@ -76,12 +74,33 @@ export default function SetupDasPage() {
   const [activeAgent, setActiveAgent] = useState("query")
   const [openPreview, setOpenPreview] = useState(false)
   const [openResetDialog, setResetDialog] = useState(false)
-  const [openExportDialog, setOpenExportDialog] = useState(false)
+  const [openSaveCopyDialog, setOpenSaveCopyDialog] = useState(false)
+  const [savedConfigContent, setSavedConfigContent] = useState(null)
+  const [openLoadDialog, setOpenLoadDialog] = useState(false)
+  const [pendingLoadConfig, setPendingLoadConfig] = useState(null)
+  const [disableActions, setDisableActions] = useState(false)
+  const loadInputRef = useRef(null)
+
 
   const handleSave = async () => {
     try {
-      await saveConfig(config)
-      showToast({ message: "Configuration saved successfully", severity: "success" })
+
+      // Disables all buttons temporarily until action is over, this prevents double clicking or misuse that could potentially cause an error on the server.
+      setDisableActions(true)
+      document.body.style.cursor = 'wait'; // Editing directly on the DOM
+
+      const response = await saveConfig(config)
+
+      showToast({
+        message: response?.message || "Configuration saved successfully",
+        severity: "success"
+      })
+
+      if (response?.content) {
+        setSavedConfigContent(response.content)
+        setOpenSaveCopyDialog(true)
+      }
+
     } catch (error) {
       console.error(error)
       showToast({
@@ -90,23 +109,90 @@ export default function SetupDasPage() {
         details: extractErrorDetails(error)
       })
     }
+
+    // Sets back to normal after action is completed.
+    setDisableActions(false)
+    document.body.style.cursor = 'default'
   }
 
   const handleLoad = async (event) => {
-    handleLoadConfig(event, async ({ parsed }) => {
-      try {
-        const response = await loadConfig(parsed)
-        applyLoadedConfiguration(response.content)
-        showToast({ message: "Configuration loaded successfully", severity: "success" })
-      } catch (error) {
-        console.error(error)
-        showToast({
-          message: "Failed to load configuration",
-          severity: "error",
-          details: extractErrorDetails(error)
-        })
-      }
+    handleLoadConfig(event, ({ parsed, file }) => {
+      setPendingLoadConfig({
+        parsed,
+        fileName: file?.name || "config.json"
+      })
+      setOpenLoadDialog(true)
     })
+    event.target.value = ""
+  }
+
+  const closeLoadDialog = () => {
+    if (disableActions) {
+      return
+    }
+
+    setOpenLoadDialog(false)
+    setPendingLoadConfig(null)
+
+    if (loadInputRef.current) {
+      loadInputRef.current.value = ""
+    }
+  }
+
+  const handleConfirmLoad = async () => {
+    if (disableActions) {
+      return
+    }
+
+    if (!pendingLoadConfig) {
+      closeLoadDialog()
+      return
+    }
+
+    try {
+      setDisableActions(true)
+      document.body.style.cursor = "wait"
+
+      const response = await loadConfig(pendingLoadConfig.parsed)
+      applyLoadedConfiguration(response.content)
+      showToast({ message: "Configuration loaded successfully", severity: "success" })
+    } catch (error) {
+      console.error(error)
+      showToast({
+        message: "Failed to load configuration",
+        severity: "error",
+        details: extractErrorDetails(error)
+      })
+    } finally {
+      setDisableActions(false)
+      document.body.style.cursor = "default"
+      closeLoadDialog()
+    }
+  }
+
+  const closeSaveCopyDialog = () => {
+    setOpenSaveCopyDialog(false)
+    setSavedConfigContent(null)
+  }
+
+  const handleSaveLocalCopy = async () => {
+    if (!savedConfigContent) {
+      closeSaveCopyDialog()
+      return
+    }
+
+    try {
+      await saveFile(savedConfigContent)
+    } catch (error) {
+      console.error(error)
+      showToast({
+        message: "Failed to save local copy",
+        severity: "error",
+        details: extractErrorDetails(error)
+      })
+    } finally {
+      closeSaveCopyDialog()
+    }
   }
 
   const activeSection = sections.find((item) => item.key === section)
@@ -158,6 +244,7 @@ export default function SetupDasPage() {
 
             <CompactActionButton
               onClick={() => setResetDialog(true)}
+              disabled={disableActions}
             >
               <RestartAltIcon />
               Reset
@@ -165,10 +252,12 @@ export default function SetupDasPage() {
 
             <CompactActionButton
               component="label"
+              disabled={disableActions}
             >
               <UploadFileIcon />
               Load
               <input
+                ref={loadInputRef}
                 hidden
                 type="file"
                 accept=".json"
@@ -176,22 +265,18 @@ export default function SetupDasPage() {
               />
             </CompactActionButton>
 
-            <CompactActionButton onClick={() => setOpenExportDialog(true)}>
-              <DownloadIcon />
-              Export
-            </CompactActionButton>
-
-            <CompactActionButton onClick={handleSave}>
+            <CompactActionButton disabled={disableActions} onClick={handleSave}>
               <SaveIcon />
               Save
             </CompactActionButton>
 
-            <CompactActionButtonPrimary
+            <CompactActionButton
               onClick={() => setOpenPreview(true)}
+              disabled={disableActions}
             >
               <PreviewIcon />
               Preview
-            </CompactActionButtonPrimary>
+            </CompactActionButton>
 
           </SidebarButtons>
 
@@ -312,11 +397,77 @@ export default function SetupDasPage() {
 
       </Dialog>
 
-      <ExportConfigDialog
-        open={openExportDialog}
-        onClose={() => setOpenExportDialog(false)}
-        flatConfig={config}
-      />
+      <Dialog
+        open={openSaveCopyDialog}
+        onClose={closeSaveCopyDialog}
+        PaperProps={{ sx: DialogPaper }}
+      >
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>
+          Save a local copy?
+        </DialogTitle>
+
+        <DialogContent sx={{ color: "#6b7280", fontSize: 14 }}>
+          Your configuration was saved on the server. Would you like to download a copy of the configuration file to your computer?
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <DialogButton
+            variant="secondary"
+            onClick={closeSaveCopyDialog}
+          >
+            Not now
+          </DialogButton>
+
+          <DialogButton
+            variant="primary"
+            onClick={handleSaveLocalCopy}
+          >
+            Save copy
+          </DialogButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openLoadDialog}
+        onClose={() => {
+          if (!disableActions) {
+            closeLoadDialog()
+          }
+        }}
+        PaperProps={{ sx: DialogPaper }}
+      >
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>
+          Load configuration?
+        </DialogTitle>
+
+        <DialogContent sx={{ color: "#6b7280", fontSize: 14 }}>
+          {pendingLoadConfig?.fileName ? (
+            <>
+              <strong>{pendingLoadConfig.fileName}</strong> will become the current and active configuration on the server, replacing any existing configuration. Do you want to continue?
+            </>
+          ) : (
+            <>This file will become the current and active configuration on the server, replacing any existing configuration. Do you want to continue?</>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <DialogButton
+            variant="secondary"
+            disabled={disableActions}
+            onClick={closeLoadDialog}
+          >
+            Cancel
+          </DialogButton>
+
+          <DialogButton
+            variant="primary"
+            disabled={disableActions}
+            onClick={handleConfirmLoad}
+          >
+            Load
+          </DialogButton>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }

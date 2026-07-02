@@ -22,38 +22,26 @@ async def save_config(configuration_entries: ConfigurationEntriesDto):
     return JSONResponse(status_code=200, content=result)
 
 
-@router.post("/export")
-async def export_config(configuration_entries: Optional[ConfigurationEntriesDto] = None):
-    nested = await CONFIG_SERVICES.export_config(configuration_entries)
-
-    return JSONResponse(
-        status_code=200,
-        content={"content": nested},
-    )
-
-
-@router.post("/export/targets")
-async def export_targets(configuration_entries: Optional[ConfigurationEntriesDto] = None):
-    return JSONResponse(
-        status_code=200,
-        content=await CONFIG_SERVICES.export_targets(configuration_entries),
-    )
-
-
-@router.post("/export/scp/{ip}")
-async def export_config_scp(ip: str, configuration_entries: Optional[ConfigurationEntriesDto] = None):
-    result = await CONFIG_SERVICES.export_config_scp(ip, configuration_entries)
-
-    return JSONResponse(status_code=200, content=result)
-
-
 @router.post("/load")
 async def load_config(nested_config: dict[str, Any]):
     flat = await CONFIG_SERVICES.load_config(nested_config)
 
     return JSONResponse(
         status_code=200,
-        content={"content": flat},
+        content={
+            "content": flat,
+            "hosts": WEB_CONFIG.map_dashboard_hosts(),
+        },
+    )
+
+
+@router.get("/hosts")
+async def get_config_hosts():
+    hosts = await CONFIG_SERVICES.sync_dashboard_config()
+
+    return JSONResponse(
+        status_code=200,
+        content={"hosts": hosts},
     )
 
 

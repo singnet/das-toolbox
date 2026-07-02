@@ -1,6 +1,6 @@
 import { TextField, Switch, FormControlLabel } from "@mui/material"
 import { FieldGrid, SwitchGrid } from "../Agents.styled"
-import { idField, numberField } from "../../formValidation"
+import { idField, numberField, spreadLowerField, spreadUpperField, initialRentField } from "../../formValidation"
 
 export default function ContextParams({ formRef }) {
   return (
@@ -22,7 +22,7 @@ export default function ContextParams({ formRef }) {
           size="small"
           required
           defaultValue={formRef.current.initial_rent_rate}
-          {...numberField}
+          {...initialRentField}
           onChange={(e) => {
             formRef.current.initial_rent_rate = Number(e.target.value)
           }}
@@ -33,7 +33,7 @@ export default function ContextParams({ formRef }) {
           size="small"
           required
           defaultValue={formRef.current.initial_spreading_rate_lowerbound}
-          {...numberField}
+          {...spreadLowerField}
           onChange={(e) => {
             formRef.current.initial_spreading_rate_lowerbound = Number(e.target.value)
           }}
@@ -44,7 +44,7 @@ export default function ContextParams({ formRef }) {
           size="small"
           required
           defaultValue={formRef.current.initial_spreading_rate_upperbound}
-          {...numberField}
+          {...spreadUpperField}
           onChange={(e) => {
             formRef.current.initial_spreading_rate_upperbound = Number(e.target.value)
           }}

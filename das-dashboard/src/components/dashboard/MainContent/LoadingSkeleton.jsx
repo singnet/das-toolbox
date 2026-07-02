@@ -17,7 +17,7 @@ const ChartPlaceholderContainer = styled(Card)({
 });
 
 export function EmptyState({ 
-  title = <>No configuration file detected. <br /> Please upload your configuration file using the button by the sidebar.</>, 
+  title = <>No saved configuration detected. <br /> Open the Configuration page, apply your settings, and click Save.</>, 
   description = null,
   icon: IconComponent = CloudUploadOutlined 
 }) {

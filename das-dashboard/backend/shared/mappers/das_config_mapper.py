@@ -7,9 +7,9 @@ from shared.builders.loaders_builder import LoadersBuilder
 class ConfigMapper:
 
     @staticmethod
-    def build_config(flat: dict) -> dict:
+    def build_config(flat: dict, profile_username: str = "") -> dict:
         return {
-            "atomdb": AtomDbBuilder().build(flat["atomdb"]),
+            "atomdb": AtomDbBuilder(profile_username=profile_username).build(flat["atomdb"]),
             "loaders": LoadersBuilder().build(),
             "agents": AgentsBuilder().build(flat),
             "environment": EnvironmentBuilder().build(flat["environment"]),

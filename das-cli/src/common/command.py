@@ -104,17 +104,20 @@ class Command:
             type=bool,
             default=False,
             is_flag=True,
+            is_eager=True,
             help="Whether to run the command on a remote server",
         ),
         CommandOption(
             ["--host", "-h"],
             type=str,
+            is_eager=True,
             help="Remote host to connect to",
             required=False,
         ),
         CommandOption(
             ["--user", "-u"],
             type=ValidUsername(),
+            is_eager=True,
             help="SSH username for the remote connection",
             required=False,
         ),
@@ -328,8 +331,13 @@ class Command:
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
 
         try:
-            self._check_remote_config(remote_kwargs)
+            
+            if "config" not in command_path:
+                self._check_remote_config(remote_kwargs)
+
+             # Ignores this check when a config command is called, prevents command from breaking when user is setting up configuration across multiple remote machines.
             Connection(**remote_kwargs).run(command, pty=False)
+
         except Exception as e:
 
             self.stdout(

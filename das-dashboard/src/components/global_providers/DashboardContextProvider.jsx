@@ -9,6 +9,7 @@ import {
 
 import { useDashboardMetrics } from "../../../src/hooks/UseDashboardMetrics";
 import { fetchDashboardDataStatic } from "../../api/MetricsAPI";
+import { getConfigHosts } from "../../api/ConfigAPI";
 
 const DashboardContext = createContext(null);
 
@@ -42,49 +43,52 @@ export default function DashboardContextProvider({ children }) {
     }, 3000);
   }, []);
 
-  const setDashboardBaseValues = useCallback((config) => {
-    if (!config) return;
-
-    const foundIps = new Set();
-    const machineList = [];
-
-    const findEndpoints = (obj) => {
-      if (!obj || typeof obj !== "object") {
-        return;
+  const setDashboardBaseValues = useCallback((hosts, { force = false } = {}) => {
+    if (!Array.isArray(hosts)) {
+      if (force) {
+        setMachines([]);
+        setCurrentMachine(null);
       }
-
-      const rawAddress = obj.endpoint || obj.ip;
-
-      if (rawAddress) {
-        const serverIp = String(rawAddress).split(":")[0];
-
-        if (!foundIps.has(serverIp)) {
-          foundIps.add(serverIp);
-          machineList.push({
-            serverIp,
-            running: true
-          });
-        }
-      }
-
-      Object.values(obj).forEach((value) => {
-        if (typeof value === "object") {
-          findEndpoints(value);
-        }
-      });
-    };
-
-    findEndpoints(config);
-    
-    setMachines(machineList);
-
-    if (machineList.length > 0) {
-      setCurrentMachine(machineList[0]);
-    } else {
-      setCurrentMachine(null);
+      return;
     }
 
+    const machineList = hosts.map(({ ip }) => ({
+      serverIp: ip,
+      running: true,
+    }));
+
+    setMachines((prev) => {
+      if (!force && prev.length > 0 && machineList.length === 0) {
+        return prev;
+      }
+      return machineList;
+    });
+
+    setCurrentMachine((prev) => {
+      if (!force && machineList.length === 0) {
+        return prev;
+      }
+      return machineList[0] ?? null;
+    });
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    getConfigHosts()
+      .then(({ hosts }) => {
+        if (active) {
+          setDashboardBaseValues(hosts ?? [], { force: true });
+        }
+      })
+      .catch(() => {
+        // No saved config yet — configure and save from the Configuration page.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [setDashboardBaseValues]);
 
   useEffect(() => {
     if (machines.length === 0) return;
