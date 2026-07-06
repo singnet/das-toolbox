@@ -41,7 +41,7 @@ export function CPUViewChart({ machine, currentService }) {
   return (
     <LineChart
       xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" },}]}
-      yAxis={[{ min: 0, max: 100, label: "CPU (%/Core)" }]}
+      yAxis={[{ min: 0, max: 100, label: "CPU (container %)" }]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 20 }}

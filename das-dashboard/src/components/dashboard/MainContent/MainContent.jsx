@@ -8,6 +8,7 @@ import { MemoryViewChart } from "./charts/MemoryViewChart";
 import { AgentTable } from "./servicestable/ServicesTable";
 import { LoadingOverlay, EmptyState, ChartPlaceholder } from "./LoadingSkeleton";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 const MainBoxGrid = styled(Box)({
   display: "grid",
@@ -16,12 +17,26 @@ const MainBoxGrid = styled(Box)({
   width: "100%",
   backgroundColor: "inherit",
   alignContent: "start",
-  position: "relative"
+  position: "relative",
+  padding: "24px 28px 28px",
+  gap: 16,
+  boxSizing: "border-box"
+});
+
+const ChartPanel = styled(Box)({
+  backgroundColor: palette.surface,
+  border: `1px solid ${palette.borderSubtle}`,
+  borderRadius: 12,
+  padding: 16,
+  boxShadow: palette.shadow,
+  minHeight: 300,
+  display: "flex",
+  flexDirection: "column"
 });
 
 const TableBox = styled(Box)({
   gridColumn: "span 2",
-  padding: "25px"
+  padding: 0
 });
 
 export function MainContent() {
@@ -58,7 +73,6 @@ export function MainContent() {
     );
   }
 
-
   if (isSwitchingHost) {
     return (
       <MainBoxGrid>
@@ -70,21 +84,25 @@ export function MainContent() {
   return (
     <MainBoxGrid>
       {hasChartData ? (
-        <CPUViewChart 
-          key={`cpu-${currentMachine?.serverIp}`} 
-          machine={aggregatedMetrics} 
-          currentService={currentService} 
-        />
+        <ChartPanel>
+          <CPUViewChart
+            key={`cpu-${currentMachine?.serverIp}`}
+            machine={aggregatedMetrics}
+            currentService={currentService}
+          />
+        </ChartPanel>
       ) : (
         <ChartPlaceholder title="CPU Usage History" />
       )}
 
       {hasChartData ? (
-        <MemoryViewChart 
-          key={`memory-${currentMachine?.serverIp}`} 
-          machine={aggregatedMetrics} 
-          currentService={currentService} 
-        />
+        <ChartPanel>
+          <MemoryViewChart
+            key={`memory-${currentMachine?.serverIp}`}
+            machine={aggregatedMetrics}
+            currentService={currentService}
+          />
+        </ChartPanel>
       ) : (
         <ChartPlaceholder title="Memory Usage History" />
       )}

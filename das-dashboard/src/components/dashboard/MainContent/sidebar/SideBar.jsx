@@ -1,8 +1,17 @@
 import { useRef, useState } from "react";
-import { ListItemText, ListItemIcon, Divider, CircularProgress } from "@mui/material";
-import { SettingsEthernet, Polyline, PlayArrow, Stop, Storage } from "@mui/icons-material";
+import { List, ListItemIcon, ListItemText, CircularProgress } from "@mui/material";
+import { Dashboard as DashboardIcon, SettingsEthernet, Polyline, PlayArrow, Stop, Storage } from "@mui/icons-material";
 
-import { SidebarContainer, Title, StyledList, SectionLabel, StyledItem } from "./sidebar.styled";
+import {
+  SidebarContainer,
+  SidebarHeader,
+  SidebarTitle,
+  SidebarListContainer,
+  SectionLabel,
+  StyledList,
+  StyledItem,
+  ActionDivider
+} from "./sidebar.styled";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
@@ -20,14 +29,14 @@ export function SideBar() {
   const [selected, setSelected] = useState("servers");
   const [loadingAction, setLoadingAction] = useState(null);
 
-  const { 
-    setCurrentContext, 
-    currentMachine, 
-    globalServicesState, 
+  const {
+    setCurrentContext,
+    currentMachine,
+    globalServicesState,
     forceGlobalStateUpdate,
     isSwitchingHost
   } = useDashboardContext();
-  
+
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
 
@@ -62,16 +71,16 @@ export function SideBar() {
     try {
       setLoadingAction("upload-metta");
       const uploadResponse = await uploadMettaFile(hostSnapshot, false, file);
-      
+
       setLoadingAction("load-metta");
       await loadMettaFile(hostSnapshot, uploadResponse.saved_path);
       showToast({ message: "MeTTa database loaded successfully.", severity: "success" });
     } catch (err) {
       const responseData = err?.response?.data;
-      
+
       if (err?.response?.status === 409 && responseData?.file_path) {
         const existingFilePath = responseData.file_path;
-        
+
         showConfirm({
           title: "File already exists",
           message: `The file "${file.name}" already exists on the server.\n\nDo you want to OVERWRITE it? (Click CANCEL to safely load the existing server file instead).`,
@@ -117,9 +126,9 @@ export function SideBar() {
         title: "Stop DAS Services",
         message: "Are you sure you want to stop all DAS services?\n\nEverything will be shut down except AtomDB.",
         onConfirm: () => executeAsyncAction(
-          "stop-architecture", 
-          () => stopArchitecture(currentHost), 
-          "Architecture stopped successfully.", 
+          "stop-architecture",
+          () => stopArchitecture(currentHost),
+          "Architecture stopped successfully.",
           "Failed to stop architecture.",
           () => forceGlobalStateUpdate({ architectureOnline: false })
         )
@@ -131,9 +140,9 @@ export function SideBar() {
       title: "Start Architecture",
       message: "Do you want to start the architecture?",
       onConfirm: () => executeAsyncAction(
-        "start-architecture", 
-        () => startArchitecture(currentHost), 
-        "Architecture started successfully.", 
+        "start-architecture",
+        () => startArchitecture(currentHost),
+        "Architecture started successfully.",
         "Failed to start architecture.",
         () => forceGlobalStateUpdate({ architectureOnline: true })
       )
@@ -146,9 +155,9 @@ export function SideBar() {
         title: "Stop AtomDB",
         message: "Are you sure you want to stop AtomDB?\n\nAll in-memory data may be lost.",
         onConfirm: () => executeAsyncAction(
-          "stop-database", 
-          () => stopDatabases(currentHost), 
-          "AtomDB stopped successfully.", 
+          "stop-database",
+          () => stopDatabases(currentHost),
+          "AtomDB stopped successfully.",
           "Failed to stop AtomDB.",
           () => forceGlobalStateUpdate({ atomDbOnline: false })
         )
@@ -160,9 +169,9 @@ export function SideBar() {
       title: "Start AtomDB",
       message: "Do you want to start AtomDB?",
       onConfirm: () => executeAsyncAction(
-        "start-database", 
-        () => startDatabases(currentHost), 
-        "AtomDB started successfully.", 
+        "start-database",
+        () => startDatabases(currentHost),
+        "AtomDB started successfully.",
         "Failed to start AtomDB.",
         () => forceGlobalStateUpdate({ atomDbOnline: true })
       )
@@ -173,80 +182,82 @@ export function SideBar() {
 
   return (
     <SidebarContainer>
-      <Title variant="h6">DAS</Title>
+      <SidebarHeader>
+        <DashboardIcon />
+        <SidebarTitle>Dashboard</SidebarTitle>
+      </SidebarHeader>
 
-      <StyledList>
-        <SectionLabel>INFRA</SectionLabel>
-        {navigationItems.map(item => {
-          const Icon = item.icon;
-          const isNavDisabled = isSwitchingHost;
-          return (
+      <SidebarListContainer>
+        <StyledList>
+          <SectionLabel>Infra</SectionLabel>
+
+          <List disablePadding>
+            {navigationItems.map(item => {
+              const Icon = item.icon;
+              const isNavDisabled = isSwitchingHost;
+              return (
+                <StyledItem
+                  key={item.key}
+                  selected={selected === item.key}
+                  disabled={isNavDisabled}
+                  onClick={() => {
+                    if (isNavDisabled) return;
+                    setSelected(item.key);
+                    setCurrentContext(item.context);
+                  }}
+                >
+                  <ListItemIcon>
+                    <Icon />
+                  </ListItemIcon>
+                  <ListItemText primary={item.label} />
+                </StyledItem>
+              );
+            })}
+          </List>
+
+          <ActionDivider />
+
+          <SectionLabel>Actions</SectionLabel>
+
+          <List disablePadding>
+            <input ref={mettaInputRef} type="file" accept=".metta" hidden onChange={handleMettaUpload} />
+
             <StyledItem
-              key={item.key}
-              selected={selected === item.key}
-              disabled={isNavDisabled}
-              onClick={() => {
-                if (isNavDisabled) return;
-                setSelected(item.key);
-                setCurrentContext(item.context);
-              }}
-              sx={{ 
-                opacity: isNavDisabled ? 0.5 : 1, 
-                cursor: isNavDisabled ? "not-allowed" : "pointer" 
-              }}
+              disabled={!!loadingAction || isServerOffline}
+              onClick={() => !loadingAction && !isServerOffline && mettaInputRef.current?.click()}
             >
-              <ListItemIcon><Icon fontSize="small" /></ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemIcon>
+                {isActionLoading ? <CircularProgress size={16} /> : <Storage />}
+              </ListItemIcon>
+              <ListItemText primary="Load MeTTa Database" />
             </StyledItem>
-          );
-        })}
 
-        <Divider sx={{ my: 1 }} />
-        <SectionLabel>ACTIONS</SectionLabel>
+            <StyledItem
+              disabled={!!loadingAction || isServerOffline || (!atomDbOnline && !architectureOnline)}
+              onClick={() => !loadingAction && !isServerOffline && (atomDbOnline || architectureOnline) && handleArchitectureAction()}
+            >
+              <ListItemIcon>
+                {["start-architecture", "stop-architecture"].includes(loadingAction) ? (
+                  <CircularProgress size={16} />
+                ) : architectureOnline ? <Stop /> : <PlayArrow />}
+              </ListItemIcon>
+              <ListItemText primary={architectureOnline ? "Stop Architecture" : "Start Architecture"} />
+            </StyledItem>
 
-        <input ref={mettaInputRef} type="file" accept=".metta" hidden onChange={handleMettaUpload} />
-
-        <StyledItem 
-          disabled={!!loadingAction || isServerOffline}
-          onClick={() => !loadingAction && !isServerOffline && mettaInputRef.current?.click()} 
-          sx={{ 
-            opacity: (loadingAction || isServerOffline) ? 0.5 : 1, 
-            cursor: loadingAction ? "wait" : isServerOffline ? "not-allowed" : "pointer" 
-          }}
-        >
-          <ListItemIcon>
-            {isActionLoading ? <CircularProgress size={16} /> : <Storage fontSize="small" />}
-          </ListItemIcon>
-          <ListItemText primary="Load MeTTa Database" />
-        </StyledItem>
-
-        <StyledItem 
-          disabled={!!loadingAction || isServerOffline || (!atomDbOnline && !architectureOnline)}
-          onClick={() => !loadingAction && !isServerOffline && (atomDbOnline || architectureOnline) && handleArchitectureAction()} 
-          sx={{ opacity: (loadingAction || isServerOffline || (!atomDbOnline && !architectureOnline)) ? 0.5 : 1 }}
-        >
-          <ListItemIcon>
-            {["start-architecture", "stop-architecture"].includes(loadingAction) ? (
-              <CircularProgress size={16} />
-            ) : architectureOnline ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
-          </ListItemIcon>
-          <ListItemText primary={architectureOnline ? "Stop Architecture" : "Start Architecture"} />
-        </StyledItem>
-
-        <StyledItem 
-          disabled={!!loadingAction || isServerOffline}
-          onClick={() => !loadingAction && !isServerOffline && handleDatabaseAction()} 
-          sx={{ opacity: (loadingAction || isServerOffline) ? 0.5 : 1 }}
-        >
-          <ListItemIcon>
-            {["start-database", "stop-database"].includes(loadingAction) ? (
-              <CircularProgress size={16} />
-            ) : atomDbOnline ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
-          </ListItemIcon>
-          <ListItemText primary={atomDbOnline ? "Stop AtomDB" : "Start AtomDB"} />
-        </StyledItem>
-
-      </StyledList>
+            <StyledItem
+              disabled={!!loadingAction || isServerOffline}
+              onClick={() => !loadingAction && !isServerOffline && handleDatabaseAction()}
+            >
+              <ListItemIcon>
+                {["start-database", "stop-database"].includes(loadingAction) ? (
+                  <CircularProgress size={16} />
+                ) : atomDbOnline ? <Stop /> : <PlayArrow />}
+              </ListItemIcon>
+              <ListItemText primary={atomDbOnline ? "Stop AtomDB" : "Start AtomDB"} />
+            </StyledItem>
+          </List>
+        </StyledList>
+      </SidebarListContainer>
     </SidebarContainer>
   );
 }

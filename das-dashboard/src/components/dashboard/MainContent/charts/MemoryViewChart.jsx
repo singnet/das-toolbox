@@ -42,7 +42,7 @@ export function MemoryViewChart({ machine, currentService }) {
   return (
     <LineChart
       xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" } }]}
-      yAxis={[{ label: "Memory (MB)" }]}
+      yAxis={[{ label: "Memory (GB)" }]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 20 }}

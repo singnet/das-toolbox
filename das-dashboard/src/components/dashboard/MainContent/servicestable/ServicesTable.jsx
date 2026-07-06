@@ -82,12 +82,12 @@ export function AgentTable({ machine }) {
         <Table>
           <TableHead>
             <TableRow>
-              <HeaderCell>Container Name</HeaderCell>
+              <HeaderCell>Agent Name</HeaderCell>
               <HeaderCell>Image</HeaderCell>
               <HeaderCell>Port</HeaderCell>
               <HeaderCell>Age</HeaderCell>
-              <HeaderCell>CPU (% / Core)</HeaderCell>
-              <HeaderCell>Memory (MB)</HeaderCell>
+              <HeaderCell>CPU (container %)</HeaderCell>
+              <HeaderCell>Memory (GB)</HeaderCell>
               <HeaderCell>Status</HeaderCell>
               <HeaderCell>Health</HeaderCell>
               <HeaderCell align="center">Actions</HeaderCell>

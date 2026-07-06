@@ -1,16 +1,20 @@
 import styled from "@emotion/styled";
 import { Box, Typography } from "@mui/material";
+import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 
 export const ServerInfoWrapper = styled(Box)({
-  marginBottom: 24,
-  paddingInline: 8,
-
+  marginBottom: 20,
+  padding: "16px 20px",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-
-  gap: 32,
-  color: "#334155",
+  flexWrap: "wrap",
+  gap: 24,
+  color: palette.textPrimary,
+  backgroundColor: palette.surface,
+  border: `1px solid ${palette.borderSubtle}`,
+  borderRadius: 12,
+  boxShadow: palette.shadow
 });
 
 export const ServerInfoBox = styled(Box)({
@@ -25,17 +29,19 @@ export const ServerInfoBox = styled(Box)({
 export const Divider = styled(Box)({
   width: 1,
   height: 32,
-  background: "#334155",
+  background: palette.border,
 });
 
 export const Label = styled(Typography)({
   fontSize: 11,
-  color: "#334155",
+  color: palette.textMuted,
   textTransform: "uppercase",
-  letterSpacing: "0.04em",
+  letterSpacing: "0.06em",
+  fontWeight: 600
 });
 
 export const Value = styled(Typography)({
   fontWeight: 600,
-  color: "#334155",
+  fontSize: 18,
+  color: palette.textPrimary,
 });
