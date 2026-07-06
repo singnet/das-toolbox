@@ -30,8 +30,8 @@ class SystemInfoExtractor:
         memoryInfo = psutil.virtual_memory()
 
         return {
-            "totalMemory": round(memoryInfo.total / 1024**2),
-            "usedMemory": round(memoryInfo.used / 1024**2),
+            "totalMemory": f'{(memoryInfo.total / 1024**3):.1f}',
+            "usedMemory": f'{memoryInfo.used / 1024 ** 3:.2f}',
         }
 
     def get_disks_info(self):
@@ -47,8 +47,8 @@ class SystemInfoExtractor:
                 partition_mntpoint = partition.mountpoint
 
                 generalDiskInfo = shutil.disk_usage(partition.mountpoint)
-                diskTotalMB = round(generalDiskInfo.total / 1024**2)
-                diskUsedMB = round(generalDiskInfo.used / 1024**2)
+                diskTotalMB = f'{(generalDiskInfo.total / 1024**3):.1f}'
+                diskUsedMB = f'{generalDiskInfo.used / 1024**3:.2f}'
 
                 formatted_partitions.append(
                     {

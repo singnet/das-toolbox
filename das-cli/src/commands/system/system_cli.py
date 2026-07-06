@@ -38,8 +38,15 @@ class SystemStatus(Command):
             default=False,
             required=False,
             is_flag=True,
+        ),
+        CommandOption(
+            ["--cooldown", "-c"],
+            help="Sets how many seconds of cooldown before updating the metrics again.",
+            default=2,
+            required=False,
         )
     ]
+
 
     @inject
     def __init__(
@@ -54,6 +61,27 @@ class SystemStatus(Command):
         self._settings = settings
 
         super().__init__()
+
+    def run(
+        self,
+        stream: bool = False,
+        cooldown: int = 2,
+    ) -> None:
+
+        self._settings.validate_configuration_file()
+
+        if stream:
+            self._run_stream(cooldown)
+            return
+
+        # Solo snapshot
+        system_info = self._collect_snapshot()
+        self.stdout(
+            system_info,
+            stdout_type=StdoutType.MACHINE_READABLE,
+        )
+
+        self._format_info_for_display(system_info)
 
     def _collect_snapshot(self) -> dict:
 
@@ -86,7 +114,7 @@ class SystemStatus(Command):
 
         machine_rows = [
             {
-                "CPU (%)": cpu_info.get("cpuUsage", 0),
+                "CPU (Machine load / %)": cpu_info.get("cpuUsage", 0),
                 "CPU CORES": cpu_info.get("cpuTotalCores", 0),
                 "MEM USED (MB)": memory_info.get("usedMemory", 0),
                 "MEM TOTAL (MB)": memory_info.get("totalMemory", 0),
@@ -96,7 +124,7 @@ class SystemStatus(Command):
         print_table(
             machine_rows,
             columns=[
-                "CPU (%)",
+                "CPU (Machine load / %)",
                 "CPU CORES",
                 "MEM USED (MB)",
                 "MEM TOTAL (MB)",
@@ -114,8 +142,8 @@ class SystemStatus(Command):
                 {
                     "DEVICE": disk.get("disk_device", "-"),
                     "MOUNT": disk.get("disk_mntpoint", "-"),
-                    "USED (MB)": disk.get("disk_used_space", 0),
-                    "TOTAL (MB)": disk.get("disk_total_space", 0),
+                    "USED (GB)": disk.get("disk_used_space", 0),
+                    "TOTAL (GB)": disk.get("disk_total_space", 0),
                 }
             )
 
@@ -124,8 +152,8 @@ class SystemStatus(Command):
             columns=[
                 "DEVICE",
                 "MOUNT",
-                "USED (MB)",
-                "TOTAL (MB)",
+                "USED (GB)",
+                "TOTAL (GB)",
             ],
             stdout=self.stdout,
         )
@@ -138,12 +166,12 @@ class SystemStatus(Command):
 
             container_rows.append(
                 {
-                    "CONTAINER NAME": info.get("container_name", "-"),
+                    "AGENT NAME": info.get("container_name", "-"),
                     "CONTAINER INFO": info.get("image", "-"),
                     "PORT": info.get("port", "-"),
                     "AGE": info.get("age", "-"),
-                    "CPU (% / Core)": info.get("cpu_percent", 0),
-                    "MEMORY(MB)": info.get("memory_mb", 0),
+                    "CPU (Container %)": info.get("cpu_percent", 0),
+                    "MEMORY(GB)": info.get("memory_mb", 0),
                     "CONTAINER STATUS": info.get("status", "-"),
                     "SERVICE HEALTH": info.get("service_health", "-"),
                 }
@@ -152,19 +180,19 @@ class SystemStatus(Command):
         print_table(
             container_rows,
             columns=[
-                "CONTAINER NAME",
+                "AGENT NAME",
                 "CONTAINER INFO",
                 "PORT",
                 "AGE",
-                "CPU (% / Core)",
-                "MEMORY(MB)",
+                "CPU (Container %)",
+                "MEMORY(GB)",
                 "CONTAINER STATUS",
                 "SERVICE HEALTH",
             ],
             stdout=self.stdout,
         )
 
-    def _run_stream(self) -> None:
+    def _run_stream(self, cooldown) -> None:
         latest_machine: dict[str, str] = {}
         latest_services: dict[str, str] = {}
 
@@ -189,7 +217,7 @@ class SystemStatus(Command):
                 except Exception as e:
                     print(f"[machine_loop] {e}")
 
-                time.sleep(2)
+                time.sleep(cooldown)
 
         def docker_loop():
 
@@ -225,30 +253,10 @@ class SystemStatus(Command):
 
                 self.stdout(system_info, stdout_type=StdoutType.MACHINE_READABLE, stream_mode=True)
                 self._format_info_for_display(system_info)
-                time.sleep(2)
+                time.sleep(cooldown)
 
         except KeyboardInterrupt:
             return
-
-    def run(
-        self,
-        stream: bool = False,
-    ) -> None:
-
-        self._settings.validate_configuration_file()
-
-        if stream:
-            self._run_stream()
-            return
-
-        system_info = self._collect_snapshot()
-
-        self.stdout(
-            system_info,
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
-
-        self._format_info_for_display(system_info)
 
 
 class SystemCli(CommandGroup):
