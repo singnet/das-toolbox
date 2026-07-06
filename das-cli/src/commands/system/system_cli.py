@@ -116,8 +116,8 @@ class SystemStatus(Command):
             {
                 "CPU (Machine load / %)": cpu_info.get("cpuUsage", 0),
                 "CPU CORES": cpu_info.get("cpuTotalCores", 0),
-                "MEM USED (MB)": memory_info.get("usedMemory", 0),
-                "MEM TOTAL (MB)": memory_info.get("totalMemory", 0),
+                "MEM USED (GB)": memory_info.get("usedMemory", 0),
+                "MEM TOTAL (GB)": memory_info.get("totalMemory", 0),
             }
         ]
 
@@ -126,8 +126,8 @@ class SystemStatus(Command):
             columns=[
                 "CPU (Machine load / %)",
                 "CPU CORES",
-                "MEM USED (MB)",
-                "MEM TOTAL (MB)",
+                "MEM USED (GB)",
+                "MEM TOTAL (GB)",
             ],
             stdout=self.stdout,
         )
