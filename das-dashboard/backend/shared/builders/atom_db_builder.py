@@ -150,15 +150,12 @@ class AtomDbBuilder:
         ]
 
     def _with_nodes(self, section: dict, source, cluster_key: str, nodes_key: str, label: str) -> dict:
-        cluster = _get(source, cluster_key, False)
+        if not _get(source, cluster_key, False):
+            return section
+
+        self._validate_cluster_nodes(source, cluster_key, nodes_key, label)
         raw_nodes = _get(source, nodes_key, [])
-
-        if cluster:
-            self._validate_cluster_nodes(source, cluster_key, nodes_key, label)
-            section["nodes"] = self._map_cluster_nodes(raw_nodes)
-        elif raw_nodes:
-            section["nodes"] = self._map_cluster_nodes(raw_nodes)
-
+        section["nodes"] = self._map_cluster_nodes(raw_nodes)
         return section
 
     def _build_redis_mongo(self, source, *, label: str = "atomdb") -> dict:

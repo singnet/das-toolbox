@@ -5,7 +5,9 @@ from shared.internal.constants import (
     CONFIG_PATH,
     DEFAULT_WEBPROFILE_PATH as PROFILE_PATH,
     LOCAL_HOSTS,
+    LOCAL_DASHBOARD_HOST,
 )
+from shared.utils.service_inventory import build_service_row
 
 # Agent section keys mapped to das-cli service command names.
 AGENT_SERVICE_COMMANDS = {
@@ -16,11 +18,8 @@ AGENT_SERVICE_COMMANDS = {
     "evolution": "evolution-agent",
     "context": "context-broker",
     "atomdb": "atomdb-broker",
-    "command_router": "command-router-agent",
+    "command_router": "command-router",
 }
-
-
-LOCAL_DASHBOARD_HOST = "127.0.0.1"
 
 
 class WebConfiguration:
@@ -61,6 +60,72 @@ class WebConfiguration:
         except:
             self.config_dictionary = {}
 
+    def map_services(self, config_file: dict) -> dict:
+        services: dict[str, dict] = {}
+
+        atomdb = config_file.get("atomdb") or {}
+        self._map_atomdb_section(services, atomdb)
+
+        agents = config_file.get("agents") or {}
+        for agent_key, command_name in AGENT_SERVICE_COMMANDS.items():
+            section = agents.get(agent_key)
+            if not isinstance(section, dict):
+                continue
+
+            self._register_endpoint(services, command_name, section.get("endpoint"))
+
+        return services
+
+    def map_hosts_from_config(self, config_file: dict) -> list[dict]:
+        return self._remote_hosts_from_services(self.map_services(config_file))
+
+    @staticmethod
+    def _remote_hosts_from_services(services: dict) -> list[dict]:
+        hosts_by_ip: dict[str, dict] = {}
+
+        for service_name, service in services.items():
+            host = service.get("host", "")
+            if not host or host in LOCAL_HOSTS:
+                continue
+
+            if host not in hosts_by_ip:
+                hosts_by_ip[host] = {"ip": host, "labels": []}
+
+            hosts_by_ip[host]["labels"].append(service_name)
+
+        return sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
+
+    def map_dashboard_hosts(self) -> list[dict]:
+        if not self.config_dictionary:
+            return []
+
+        hosts_by_ip: dict[str, dict] = {}
+        local_services: list[dict] = []
+
+        for service_key, service in self.config_dictionary.items():
+            host = service.get("host", "")
+            if not host:
+                continue
+
+            row = build_service_row(service_key, service)
+
+            if host in LOCAL_HOSTS:
+                local_services.append(row)
+                continue
+
+            if host not in hosts_by_ip:
+                hosts_by_ip[host] = {"ip": host, "services": []}
+
+            hosts_by_ip[host]["services"].append(row)
+
+        dashboard_hosts = sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
+
+        if local_services:
+            dashboard_hosts.insert(0, {"ip": LOCAL_DASHBOARD_HOST, "services": local_services})
+
+        return dashboard_hosts
+
+
     @staticmethod
     def _register_endpoint(services: dict, name: str, endpoint: str | None) -> None:
         if not endpoint or not isinstance(endpoint, str):
@@ -87,8 +152,9 @@ class WebConfiguration:
         nodes: list | None,
         *,
         prefix: str,
+        enabled: bool = False,
     ) -> None:
-        if not isinstance(nodes, list):
+        if not enabled or not isinstance(nodes, list):
             return
 
         for index, node in enumerate(nodes):
@@ -106,8 +172,18 @@ class WebConfiguration:
 
         cls._register_endpoint(services, db_name, mongo.get("endpoint"))
         cls._register_endpoint(services, "redis", redis.get("endpoint"))
-        cls._register_cluster_nodes(services, redis.get("nodes"), prefix=f"{db_name}-redis")
-        cls._register_cluster_nodes(services, mongo.get("nodes"), prefix=f"{db_name}-mongo")
+        cls._register_cluster_nodes(
+            services,
+            redis.get("nodes"),
+            prefix=f"{db_name}-redis",
+            enabled=bool(redis.get("cluster")),
+        )
+        cls._register_cluster_nodes(
+            services,
+            mongo.get("nodes"),
+            prefix=f"{db_name}-mongo",
+            enabled=bool(mongo.get("cluster")),
+        )
 
     @classmethod
     def _map_mork_mongo(cls, services: dict, section: dict, *, db_name: str = "db") -> None:
@@ -116,7 +192,12 @@ class WebConfiguration:
 
         cls._register_endpoint(services, db_name, mongo.get("endpoint"))
         cls._register_endpoint(services, "morkdb", mork.get("endpoint"))
-        cls._register_cluster_nodes(services, mongo.get("nodes"), prefix=f"{db_name}-mongo")
+        cls._register_cluster_nodes(
+            services,
+            mongo.get("nodes"),
+            prefix=f"{db_name}-mongo",
+            enabled=bool(mongo.get("cluster")),
+        )
 
     @classmethod
     def _map_remote_peer(cls, services: dict, peer: dict, index: int) -> None:
@@ -183,66 +264,3 @@ class WebConfiguration:
             for index, peer in enumerate(atomdb.get("remote_peers") or []):
                 if isinstance(peer, dict):
                     cls._map_remote_peer(services, peer, index)
-
-    def map_services(self, config_file: dict) -> dict:
-        services: dict[str, dict] = {}
-
-        atomdb = config_file.get("atomdb") or {}
-        self._map_atomdb_section(services, atomdb)
-
-        agents = config_file.get("agents") or {}
-        for agent_key, command_name in AGENT_SERVICE_COMMANDS.items():
-            section = agents.get(agent_key)
-            if not isinstance(section, dict):
-                continue
-
-            self._register_endpoint(services, command_name, section.get("endpoint"))
-
-        return services
-
-    def map_hosts(self, config_file: dict | None = None) -> list[dict]:
-        services = self.map_services(config_file) if config_file is not None else self.config_dictionary
-
-        hosts_by_ip: dict[str, dict] = {}
-
-        for service_name, service in services.items():
-            host = service.get("host", "")
-            if not host or host in LOCAL_HOSTS:
-                continue
-
-            if host not in hosts_by_ip:
-                hosts_by_ip[host] = {"ip": host, "labels": []}
-
-            hosts_by_ip[host]["labels"].append(service_name)
-
-        return sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
-
-    def map_dashboard_hosts(self, config_file: dict | None = None) -> list[dict]:
-        """Hosts for the dashboard server tabs (local + remote)."""
-        services = self.map_services(config_file) if config_file is not None else self.config_dictionary
-        if not services:
-            return []
-
-        hosts_by_ip: dict[str, dict] = {}
-        has_local = False
-
-        for service_name, service in services.items():
-            host = service.get("host", "")
-            if not host:
-                continue
-
-            if host in LOCAL_HOSTS:
-                has_local = True
-                continue
-
-            if host not in hosts_by_ip:
-                hosts_by_ip[host] = {"ip": host, "labels": []}
-
-            hosts_by_ip[host]["labels"].append(service_name)
-
-        dashboard_hosts = sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
-
-        if has_local:
-            dashboard_hosts.insert(0, {"ip": LOCAL_DASHBOARD_HOST, "labels": ["local"]})
-
-        return dashboard_hosts
