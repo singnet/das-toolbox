@@ -18,6 +18,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
+        <DashboardContextProvider>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
           <Navbar />
           <Box component="main" sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
@@ -41,15 +42,14 @@ function App() {
                   <Route path='/dashboard' element={
                     <DialogProvider>
                       <ToastProvider>
-                        <DashboardContextProvider>
                           <DashboardPage />
-                        </DashboardContextProvider>
                       </ToastProvider>
                     </DialogProvider>
                   }/>
             </Routes>
           </Box>
         </Box>
+        </DashboardContextProvider>
       </BrowserRouter>
     </>
   )

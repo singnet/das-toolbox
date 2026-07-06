@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { normalizeService } from "../utils/NormalizeMetrics";
+import { mergeHostServices } from "../utils/serviceInventory";
 import { createMetricsStream } from "../api/MetricsStreamService";
 
-export function useDashboardMetrics(host) {
+export function useDashboardMetrics(host, expectedServices = []) {
   const [machineStats, setMachineStats] = useState(null);
   const [services, setServices] = useState([]);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
@@ -151,9 +152,15 @@ export function useDashboardMetrics(host) {
     return { agents: Object.values(servicesMap) };
   }, [lastUpdate]);
 
+  const mergedServices = useMemo(
+    () => mergeHostServices(expectedServices, services),
+    [expectedServices, services]
+  );
+
   return {
     machineStats,
     services,
+    mergedServices,
     lastUpdate,
     isConnected,
     isSwitchingHost,

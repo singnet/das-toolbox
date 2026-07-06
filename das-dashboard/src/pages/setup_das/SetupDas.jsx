@@ -33,6 +33,7 @@ import { getAgentByKey } from "../../components/configuration_page/Agents/agentR
 import ConfigurationPreview from "../../components/configuration_page/ConfigurationPreview"
 
 import { useConfig } from "../../components/global_providers/ConfigurationProvider"
+import { useDashboardContext } from "../../components/global_providers/DashboardContextProvider"
 import { handleLoadConfig } from "../../utils/FileLoader"
 import saveFile from "../../utils/FileSaver"
 
@@ -69,6 +70,7 @@ export default function SetupDasPage() {
   } = useConfig()
 
   const { showToast } = useToast()
+  const { setDashboardBaseValues } = useDashboardContext()
 
   const [section, setSection] = useState("atomdb")
   const [activeAgent, setActiveAgent] = useState("query")
@@ -90,6 +92,10 @@ export default function SetupDasPage() {
       document.body.style.cursor = 'wait'; // Editing directly on the DOM
 
       const response = await saveConfig(config)
+
+      if (response?.hosts) {
+        setDashboardBaseValues(response.hosts)
+      }
 
       showToast({
         message: response?.message || "Configuration saved successfully",
@@ -155,6 +161,9 @@ export default function SetupDasPage() {
 
       const response = await loadConfig(pendingLoadConfig.parsed)
       applyLoadedConfiguration(response.content)
+      if (response?.hosts) {
+        setDashboardBaseValues(response.hosts)
+      }
       showToast({ message: "Configuration loaded successfully", severity: "success" })
     } catch (error) {
       console.error(error)

@@ -19,6 +19,7 @@ import { useDialog } from "../../../global_providers/DialogProvider";
 import { startArchitecture, stopArchitecture, startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
 import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
 import { extractErrorDetails } from "../../../../api/APIUtils";
+import { getInfraStatus } from "../../../../utils/serviceInventory";
 
 const navigationItems = [
   { key: "servers", label: "Servers", icon: SettingsEthernet, context: "servers" },
@@ -32,8 +33,7 @@ export function SideBar() {
   const {
     setCurrentContext,
     currentMachine,
-    globalServicesState,
-    forceGlobalStateUpdate,
+    mergedServices,
     isSwitchingHost
   } = useDashboardContext();
 
@@ -44,16 +44,13 @@ export function SideBar() {
 
   const currentHost = currentMachine?.serverIp;
   const isServerOffline = !currentHost || isSwitchingHost;
+  const { atomDbOnline, architectureOnline } = getInfraStatus(mergedServices);
 
-  const atomDbOnline = globalServicesState.atomDbOnline;
-  const architectureOnline = globalServicesState.architectureOnline;
-
-  const executeAsyncAction = async (actionKey, action, successMessage, errorMessage, onActionSuccess) => {
+  const executeAsyncAction = async (actionKey, action, successMessage, errorMessage) => {
     try {
       setLoadingAction(actionKey);
       await action();
       showToast({ message: successMessage, severity: "success" });
-      if (onActionSuccess) onActionSuccess();
     } catch (err) {
       console.error(errorMessage, err);
       showToast({ message: errorMessage, severity: "error", details: extractErrorDetails(err) });
@@ -129,8 +126,7 @@ export function SideBar() {
           "stop-architecture",
           () => stopArchitecture(currentHost),
           "Architecture stopped successfully.",
-          "Failed to stop architecture.",
-          () => forceGlobalStateUpdate({ architectureOnline: false })
+          "Failed to stop architecture."
         )
       });
       return;
@@ -143,8 +139,7 @@ export function SideBar() {
         "start-architecture",
         () => startArchitecture(currentHost),
         "Architecture started successfully.",
-        "Failed to start architecture.",
-        () => forceGlobalStateUpdate({ architectureOnline: true })
+        "Failed to start architecture."
       )
     });
   };
@@ -158,8 +153,7 @@ export function SideBar() {
           "stop-database",
           () => stopDatabases(currentHost),
           "AtomDB stopped successfully.",
-          "Failed to stop AtomDB.",
-          () => forceGlobalStateUpdate({ atomDbOnline: false })
+          "Failed to stop AtomDB."
         )
       });
       return;
@@ -172,8 +166,7 @@ export function SideBar() {
         "start-database",
         () => startDatabases(currentHost),
         "AtomDB started successfully.",
-        "Failed to start AtomDB.",
-        () => forceGlobalStateUpdate({ atomDbOnline: true })
+        "Failed to start AtomDB."
       )
     });
   };

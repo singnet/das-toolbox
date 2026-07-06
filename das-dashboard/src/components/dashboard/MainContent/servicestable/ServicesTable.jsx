@@ -11,60 +11,41 @@ export function AgentTable({ machine }) {
   const { showToast } = useToast();
   
   const {
-    services,
+    mergedServices,
     currentService,
     setCurrentService,
     currentMachine
   } = useDashboardContext();
 
-  const getStatusColor = (status) => (status === "running" ? "success" : "error");
+  const getStatusColor = (status) => {
+    if (status === "running") return "success";
+    if (status === "offline") return "default";
+    return "error";
+  };
   const getHealthStatusColor = (health) => (health === "healthy" ? "success" : "error");
 
-  function handleSelect(containerName) {
-    setCurrentService((current) => (current === containerName ? null : containerName));
+  function handleSelect(serviceKey) {
+    setCurrentService((current) => (current === serviceKey ? null : serviceKey));
   }
 
   async function handleAction(actionType, containerName) {
     const host = currentMachine?.serverIp || "localhost";
-    
+
     try {
-      console.log(`Executing ${actionType} on ${containerName} (${host})`);
-      
-      switch (actionType.toLowerCase()) {
-        case "stop":
-          showToast({
-            message: `Stopping container ${containerName}...`,
-            severity: "warning"
-          });
-          
-          await stopService(containerName, host);
-          
-          showToast({
-            message: `Container ${containerName} stopped successfully!`,
-            severity: "success"
-          });
-          break;
-          
-        case "restart":
-          showToast({
-            message: `Restarting container ${containerName}...`,
-            severity: "info"
-          });
-          
-          await restartService(containerName, host);
-          
-          showToast({
-            message: `Container ${containerName} restarted successfully!`,
-            severity: "success"
-          });
-          break;
-          
-        default:
-          console.warn(`Unknown action: ${actionType}`);
+      if (actionType.toLowerCase() === "stop") {
+        showToast({ message: `Stopping container ${containerName}...`, severity: "warning" });
+        await stopService(containerName, host);
+        showToast({ message: `Container ${containerName} stopped successfully!`, severity: "success" });
+        return;
+      }
+
+      if (actionType.toLowerCase() === "restart") {
+        showToast({ message: `Restarting container ${containerName}...`, severity: "info" });
+        await restartService(containerName, host);
+        showToast({ message: `Container ${containerName} restarted successfully!`, severity: "success" });
       }
     } catch (error) {
       console.error("Error while executing action:", error);
-      
       showToast({
         message: `Failed to ${actionType.toLowerCase()} container ${containerName}.`,
         severity: "error",
@@ -82,7 +63,7 @@ export function AgentTable({ machine }) {
         <Table>
           <TableHead>
             <TableRow>
-              <HeaderCell>Agent Name</HeaderCell>
+              <HeaderCell>Service Name</HeaderCell>
               <HeaderCell>Image</HeaderCell>
               <HeaderCell>Port</HeaderCell>
               <HeaderCell>Age</HeaderCell>
@@ -94,14 +75,14 @@ export function AgentTable({ machine }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {services.length === 0 ? (
+            {mergedServices.length === 0 ? (
               <EmptyContent />
             ) : (
-              services.map((service) => (
+              mergedServices.map((service) => (
                 <AgentRow
-                  key={service.container_name}
+                  key={service.service_key}
                   agent={service}
-                  selected={currentService === service.container_name}
+                  selected={currentService === service.service_key}
                   handleSelect={handleSelect}
                   onAction={handleAction}
                   getStatusColor={getStatusColor}

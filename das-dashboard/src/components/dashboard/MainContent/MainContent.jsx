@@ -44,12 +44,20 @@ export function MainContent() {
     machines,
     currentMachine,
     currentService,
+    mergedServices,
     isSwitchingHost,
     connectionError,
     aggregatedMetrics,
-    services,
-    isConnected
   } = useDashboardContext();
+
+  const chartContainerName = useMemo(() => {
+    if (!currentService) {
+      return null;
+    }
+
+    const selected = mergedServices?.find((service) => service.service_key === currentService);
+    return selected?.is_running ? selected.container_name : null;
+  }, [mergedServices, currentService]);
 
   const hasChartData = useMemo(() => {
     return aggregatedMetrics?.agents?.some(
@@ -88,7 +96,7 @@ export function MainContent() {
           <CPUViewChart
             key={`cpu-${currentMachine?.serverIp}`}
             machine={aggregatedMetrics}
-            currentService={currentService}
+            currentService={chartContainerName}
           />
         </ChartPanel>
       ) : (
@@ -100,7 +108,7 @@ export function MainContent() {
           <MemoryViewChart
             key={`memory-${currentMachine?.serverIp}`}
             machine={aggregatedMetrics}
-            currentService={currentService}
+            currentService={chartContainerName}
           />
         </ChartPanel>
       ) : (
