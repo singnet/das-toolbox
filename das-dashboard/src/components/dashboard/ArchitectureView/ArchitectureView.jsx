@@ -4,14 +4,11 @@ import { Container, Grid } from "./architectureview.styled";
 import { ServiceChart } from "./ServiceChart";
 import { ServerCard } from "./ServerCard";
 import { StyledTab, StyledTabs } from "../MainContent/servertab/servertab.styled";
-import { SERVICE_LABELS } from "./utils/constants";
 import { formatCpuCell, formatMemoryCell } from "../../../utils/serviceInventory";
 
-const TAB_CATEGORIES = ["Agents", "Brokers", "Loaders", "AtomDB"];
-const LOADER_MARKERS = ["metta-loader", "metta-mork-loader"];
+const TAB_CATEGORIES = ["Agents", "AtomDB"];
 
 function mapServiceType(type) {
-  if (type === "broker") return "Brokers";
   if (type === "atomdb") return "AtomDB";
   return "Agents";
 }
@@ -49,17 +46,13 @@ function buildServiceCard(service, history = { cpu: [], memory: [] }) {
 }
 
 export default function ArchitectureView() {
-  const {
-    allMergedServices,
-    aggregatedMetricsByHost,
-    servicesByHost,
-    allMachinesLastUpdate,
-  } = useDashboardContext();
+  const { allMergedServices, aggregatedMetricsByHost, allMachinesLastUpdate } =
+    useDashboardContext();
   const [tab, setTab] = useState(0);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   const processedServices = useMemo(() => {
-    const cards = allMergedServices.map((service) => {
+    return allMergedServices.map((service) => {
       const history =
         aggregatedMetricsByHost[service.serverIp]?.agents?.find(
           (agent) => agent.name === service.container_name
@@ -67,63 +60,7 @@ export default function ArchitectureView() {
 
       return buildServiceCard(service, history);
     });
-
-    const seenLoaderIds = new Set(
-      cards.filter((card) => card.type === "Loaders").map((card) => card.id)
-    );
-
-    Object.entries(servicesByHost).forEach(([serverIp, runtimeServices]) => {
-      runtimeServices.forEach((runtime) => {
-        const marker = LOADER_MARKERS.find((name) =>
-          runtime.container_name?.includes(name)
-        );
-        if (!marker) {
-          return;
-        }
-
-        const id = `${serverIp}:${marker}`;
-        if (seenLoaderIds.has(id)) {
-          return;
-        }
-
-        seenLoaderIds.add(id);
-        const history =
-          aggregatedMetricsByHost[serverIp]?.agents?.find(
-            (agent) => agent.name === runtime.container_name
-          ) || { cpu: [], memory: [] };
-
-        cards.push({
-          id,
-          name: runtime.container_name,
-          serviceKey: marker,
-          displayName: SERVICE_LABELS[marker] || runtime.container_name,
-          serverIp,
-          type: "Loaders",
-          status: runtime.status === "running" ? "Running" : "Offline",
-          cpu: formatCpuCell(runtime),
-          memory: formatMemoryCell(runtime),
-          port: runtime.port ?? "-",
-          image: runtime.image ?? "-",
-          age: runtime.age ?? "-",
-          health:
-            runtime.status === "running"
-              ? runtime.service_health === "healthy"
-                ? "Healthy"
-                : runtime.service_health === "-"
-                  ? "Running"
-                  : "Unhealthy"
-              : "No status",
-          isPlaceholder: runtime.status !== "running",
-          metrics: {
-            cpu: history.cpu,
-            memory: history.memory,
-          },
-        });
-      });
-    });
-
-    return cards;
-  }, [allMergedServices, aggregatedMetricsByHost, servicesByHost, allMachinesLastUpdate]);
+  }, [allMergedServices, aggregatedMetricsByHost, allMachinesLastUpdate]);
 
   const filteredServices = processedServices.filter(
     (service) => service.type === TAB_CATEGORIES[tab]
