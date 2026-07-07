@@ -75,7 +75,7 @@ export function formatMemoryCell(agent) {
   if (agent.memory_mb === null || agent.memory_mb === undefined) {
     return EMPTY_VALUE;
   }
-  return `${Math.round(agent.memory_mb)} GB`;
+  return `${Number(agent.memory_mb).toFixed(2)} GB`;
 }
 
 export function hostsToMachines(hosts = []) {

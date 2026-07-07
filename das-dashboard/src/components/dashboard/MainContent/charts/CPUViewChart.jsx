@@ -1,5 +1,4 @@
 import { LineChart } from "@mui/x-charts";
-import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 
 const stringToColor = (str) => {
   let hash = 0;
@@ -15,8 +14,7 @@ const stringToColor = (str) => {
 };
 
 export function CPUViewChart({ machine, currentService }) {
-  const { getAggregatedMetrics } = useDashboardContext();
-  const data = machine || getAggregatedMetrics();
+  const data = machine;
 
   if (!data?.agents?.length) {
     return null;

@@ -5,10 +5,9 @@ const formatCpuLabel = (cpu) => {
   return `${value.toFixed(2)}%`;
 };
 
-const formatMemoryLabel = (mb) => {
-  const value = Number(mb || 0);
-  if (value >= 1024) return `${(value / 1024).toFixed(2)} GB`;
-  return `${value.toFixed(2)} MB`;
+const formatMemoryLabel = (gb) => {
+  const value = Number(gb || 0);
+  return `${value.toFixed(2)} GB`;
 };
 
 export function normalizeMachine(machine) {

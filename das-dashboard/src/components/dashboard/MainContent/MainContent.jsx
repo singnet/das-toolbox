@@ -42,6 +42,7 @@ const TableBox = styled(Box)({
 export function MainContent() {
   const {
     machines,
+    machineStats,
     currentMachine,
     currentService,
     mergedServices,
@@ -97,6 +98,7 @@ export function MainContent() {
             key={`cpu-${currentMachine?.serverIp}`}
             machine={aggregatedMetrics}
             currentService={chartContainerName}
+            stats={machineStats}
           />
         </ChartPanel>
       ) : (
