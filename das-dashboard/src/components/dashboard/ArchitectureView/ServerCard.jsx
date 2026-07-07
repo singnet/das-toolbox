@@ -23,7 +23,7 @@ export function ServerCard({
   selectedService,
   setSelectedService,
 }) {
-  const isSelected = selectedService?.name === service.name;
+  const isSelected = selectedService?.id === service.id;
 
   return (
     <StyledCard
@@ -56,7 +56,7 @@ export function ServerCard({
                 textOverflow: "ellipsis"
               }}
             >
-              ID: {service.name}
+              {service.serverIp} · {service.name}
             </Typography>
           </Box>
         </Box>

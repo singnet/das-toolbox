@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import { useDashboardMetrics } from "../../hooks/UseDashboardMetrics";
+import { useAllMachinesMetrics } from "../../hooks/UseAllMachinesMetrics";
 import { getConfigHosts } from "../../api/ConfigAPI";
 import { hostsToMachines } from "../../utils/serviceInventory";
 
@@ -58,6 +59,13 @@ export default function DashboardContextProvider({ children }) {
     currentMachine?.expectedServices ?? []
   );
 
+  const {
+    allMergedServices,
+    aggregatedMetricsByHost,
+    servicesByHost,
+    lastUpdate: allMachinesLastUpdate,
+  } = useAllMachinesMetrics(machines);
+
   return (
     <DashboardContext.Provider
       value={{
@@ -78,6 +86,10 @@ export default function DashboardContextProvider({ children }) {
         connectionError,
         setDashboardBaseValues,
         aggregatedMetrics,
+        allMergedServices,
+        aggregatedMetricsByHost,
+        servicesByHost,
+        allMachinesLastUpdate,
       }}
     >
       {children}

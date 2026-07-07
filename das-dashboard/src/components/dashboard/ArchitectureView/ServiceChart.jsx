@@ -5,24 +5,24 @@ import { MemoryViewChart } from "../MainContent/charts/MemoryViewChart";
 import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export function ServiceChart({ selectedService }) {
-  const { aggregatedMetrics } = useDashboardContext();
+  const { aggregatedMetricsByHost } = useDashboardContext();
 
-  const aggregated = aggregatedMetrics || { agents: [], timestamps: [] };
-
+  const aggregated = aggregatedMetricsByHost[selectedService.serverIp] || { agents: [] };
   const machine = {
-    timestamps: aggregated.timestamps || [],
-    agents: (aggregated.agents || []).filter(a => a.name === selectedService.name)
+    agents: aggregated.agents.filter((agent) => agent.name === selectedService.name),
   };
 
-  if (machine.agents.length === 0) return null;
+  if (machine.agents.length === 0) {
+    return null;
+  }
 
   return (
-    <Box mt={4} key={selectedService.name}>
+    <Box mt={4} key={selectedService.id}>
       <Typography
         variant="h6"
         sx={{ fontWeight: 600, mb: 2, color: palette.textPrimary, fontSize: 16 }}
       >
-        Metrics — {selectedService.displayName}
+        Metrics — {selectedService.displayName} ({selectedService.serverIp})
       </Typography>
 
       <Box
@@ -31,11 +31,11 @@ export function ServiceChart({ selectedService }) {
         gap={2}
       >
         <ChartPanel title="CPU Usage In-Time">
-          <CPUViewChart machine={machine} />
+          <CPUViewChart machine={machine} currentService={selectedService.name} />
         </ChartPanel>
 
         <ChartPanel title="Memory Usage In-Time">
-          <MemoryViewChart machine={machine} />
+          <MemoryViewChart machine={machine} currentService={selectedService.name} />
         </ChartPanel>
       </Box>
     </Box>
