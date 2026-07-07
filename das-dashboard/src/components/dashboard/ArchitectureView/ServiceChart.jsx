@@ -5,7 +5,7 @@ import { MemoryViewChart } from "../MainContent/charts/MemoryViewChart";
 import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export function ServiceChart({ selectedService }) {
-  const { aggregatedMetricsByHost } = useDashboardContext();
+  const { aggregatedMetricsByHost, machineStatsByHost } = useDashboardContext();
 
   const aggregated = aggregatedMetricsByHost[selectedService.serverIp] || { agents: [] };
   const machine = {
@@ -35,7 +35,11 @@ export function ServiceChart({ selectedService }) {
         </ChartPanel>
 
         <ChartPanel title="Memory Usage In-Time">
-          <MemoryViewChart machine={machine} currentService={selectedService.name} />
+          <MemoryViewChart
+            machine={machine}
+            currentService={selectedService.name}
+            stats={machineStatsByHost[selectedService.serverIp]}
+          />
         </ChartPanel>
       </Box>
     </Box>

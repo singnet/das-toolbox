@@ -24,6 +24,7 @@ function buildAggregatedMetrics(snapshots = []) {
 
 export function useAllMachinesMetrics(machines = []) {
   const [servicesByHost, setServicesByHost] = useState({});
+  const [machineStatsByHost, setMachineStatsByHost] = useState({});
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const streamsRef = useRef({});
   const historyRef = useRef({});
@@ -71,6 +72,10 @@ export function useAllMachinesMetrics(machines = []) {
             }
           }
 
+          if (data.machineInfo) {
+            setMachineStatsByHost((prev) => ({ ...prev, [host]: data.machineInfo }));
+          }
+
           setLastUpdate(Date.now());
         },
       });
@@ -111,6 +116,7 @@ export function useAllMachinesMetrics(machines = []) {
     allMergedServices,
     aggregatedMetricsByHost,
     servicesByHost,
+    machineStatsByHost,
     lastUpdate,
   };
 }

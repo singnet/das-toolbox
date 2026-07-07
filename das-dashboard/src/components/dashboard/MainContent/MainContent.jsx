@@ -111,6 +111,7 @@ export function MainContent() {
             key={`memory-${currentMachine?.serverIp}`}
             machine={aggregatedMetrics}
             currentService={chartContainerName}
+            stats={machineStats}
           />
         </ChartPanel>
       ) : (

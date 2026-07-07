@@ -63,6 +63,7 @@ export default function DashboardContextProvider({ children }) {
     allMergedServices,
     aggregatedMetricsByHost,
     servicesByHost,
+    machineStatsByHost,
     lastUpdate: allMachinesLastUpdate,
   } = useAllMachinesMetrics(machines);
 
@@ -89,6 +90,7 @@ export default function DashboardContextProvider({ children }) {
         allMergedServices,
         aggregatedMetricsByHost,
         servicesByHost,
+        machineStatsByHost,
         allMachinesLastUpdate,
       }}
     >
