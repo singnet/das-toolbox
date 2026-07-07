@@ -23,7 +23,10 @@ class ContainerServices:
         command: str = None,
     ):
         if command is None:
-            service = DASServices.from_container(container_name)
+            try:
+                service = DASServices.from_container(container_name)
+            except ValueError:
+                service = DASServices.from_command(container_name)
             host = self._resolve_service_host(service)
         else:
             service = DASServices.from_command(command)

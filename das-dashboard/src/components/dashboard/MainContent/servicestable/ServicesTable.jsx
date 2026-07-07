@@ -1,6 +1,6 @@
 import { Table, TableHead, TableRow, TableBody } from "@mui/material";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-import { stopService, restartService } from "../../../../api/ServicesAPI";
+import { stopService, restartService, startService } from "../../../../api/ServicesAPI";
 import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
@@ -28,22 +28,31 @@ export function AgentTable({ machine }) {
     setCurrentService((current) => (current === serviceKey ? null : serviceKey));
   }
 
-  async function handleAction(actionType, containerName) {
+  async function handleAction(actionType, containerName, serviceKey) {
     const host = currentMachine?.serverIp || "localhost";
+    const serviceId = serviceKey || containerName;
 
     try {
+      if (actionType.toLowerCase() === "start") {
+        showToast({ message: `Starting service ${serviceId}...`, severity: "warning" });
+        await startService(serviceId, host);
+        showToast({ message: `Service ${serviceId} started successfully!`, severity: "success" });
+        return;
+      }
+
       if (actionType.toLowerCase() === "stop") {
-        showToast({ message: `Stopping container ${containerName}...`, severity: "warning" });
+        showToast({ message: `Stopping service ${containerName}...`, severity: "warning" });
         await stopService(containerName, host);
-        showToast({ message: `Container ${containerName} stopped successfully!`, severity: "success" });
+        showToast({ message: `Service ${containerName} stopped successfully!`, severity: "success" });
         return;
       }
 
       if (actionType.toLowerCase() === "restart") {
-        showToast({ message: `Restarting container ${containerName}...`, severity: "info" });
+        showToast({ message: `Restarting service ${containerName}...`, severity: "info" });
         await restartService(containerName, host);
-        showToast({ message: `Container ${containerName} restarted successfully!`, severity: "success" });
+        showToast({ message: `Service ${containerName} restarted successfully!`, severity: "success" });
       }
+
     } catch (error) {
       console.error("Error while executing action:", error);
       showToast({

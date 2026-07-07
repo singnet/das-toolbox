@@ -19,10 +19,19 @@ export function AgentRow({
 
   const executeAction = (e, actionType) => {
     e.stopPropagation();
-    if (!isRunning || !onAction) {
+    if (!onAction) {
       return;
     }
-    onAction(actionType, agent.container_name);
+
+    const action = actionType.toLowerCase();
+    if (action === "start" && isRunning) {
+      return;
+    }
+    if ((action === "stop" || action === "restart") && !isRunning) {
+      return;
+    }
+
+    onAction(actionType, agent.container_name, agent.service_key);
   };
 
   const statusLabel = agent.status === "offline" ? "Offline" : agent.status;

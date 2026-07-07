@@ -63,7 +63,7 @@ export function ServerInfoHeader() {
         >
           <Divider />
           <ServerInfoBox>
-            <Label>Disk {index + 1} (Root partition '/')</Label>
+            <Label>Disk (Root partition '/')</Label>
             <Value>
               {disk.disk_used_space}GB / {disk.disk_total_space}GB
             </Value>
