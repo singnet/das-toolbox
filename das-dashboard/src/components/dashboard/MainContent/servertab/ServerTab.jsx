@@ -5,12 +5,11 @@ import { useDashboardContext } from "../../../global_providers/DashboardContextP
 import { ServerDrawer } from "./ServerDrawer";
 import {
   Container,
-  Header,
-  Title,
   StyledTabs,
   StyledTab,
   StatusIcon,
 } from "./servertab.styled";
+import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 
 const MAX_VISIBLE_TABS = 8;
 
@@ -30,7 +29,7 @@ export function ServerTab() {
     }
   }, [machines, currentMachine, setCurrentMachine]);
 
-  const setStatusColor = (running) => (running ? "green" : "darkgrey");
+  const setStatusColor = (running) => (running ? palette.accent : palette.textMuted);
 
   const visibleServers = machines ? machines.slice(0, MAX_VISIBLE_TABS) : [];
   const hiddenServers = machines ? machines.slice(MAX_VISIBLE_TABS) : [];
@@ -46,62 +45,65 @@ export function ServerTab() {
   };
 
   if (!machines || machines.length === 0) {
-    return (
-      <Container>
-        <Header>
-          <Title>No servers found. Save your configuration on the Configuration page first.</Title>
-        </Header>
-      </Container>
-    );
+    return null;
   }
 
   return (
     <Container>
-      <Header>
-        <Title>
-          {connectionError ? "Connection Failed" : `${currentMachine?.serverIp || "Select server"} - Metrics Overview`}
-        </Title>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          pr: 1
+        }}
+      >
+        <StyledTabs
+          value={currentMachine?.serverIp ?? false}
+          onChange={(_, newValue) => selectMachine(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            flex: 1,
+            pointerEvents: connectionError ? "none" : "auto",
+            opacity: connectionError ? 0.6 : 1
+          }}
+        >
+          {visibleServers.map((server) => (
+            <StyledTab
+              key={server.serverIp}
+              value={server.serverIp}
+              disabled={!!connectionError}
+              label={
+                <Box display="flex" alignItems="center" gap={1}>
+                  <StatusIcon
+                    sx={{
+                      color: setStatusColor(server.running),
+                    }}
+                  />
+                  {server.serverIp}
+                </Box>
+              }
+            />
+          ))}
+        </StyledTabs>
 
         {hiddenServers.length > 0 && (
           <IconButton
             size="small"
             disabled={!!connectionError}
             onClick={() => setDrawerOpen(true)}
-            sx={{ color: connectionError ? "rgba(255,255,255,0.3)" : "white" }}
+            sx={{
+              color: palette.textSecondary,
+              border: `1px solid ${palette.border}`,
+              borderRadius: 2,
+              ml: 1
+            }}
           >
-            <MenuIcon />
+            <MenuIcon fontSize="small" />
           </IconButton>
         )}
-      </Header>
-
-      <StyledTabs
-        value={currentMachine?.serverIp ?? false}
-        onChange={(_, newValue) => selectMachine(newValue)}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{
-          pointerEvents: connectionError ? "none" : "auto",
-          opacity: connectionError ? 0.6 : 1
-        }}
-      >
-        {visibleServers.map((server) => (
-          <StyledTab
-            key={server.serverIp}
-            value={server.serverIp}
-            disabled={!!connectionError}
-            label={
-              <Box display="flex" alignItems="center" gap={1}>
-                <StatusIcon
-                  sx={{
-                    color: setStatusColor(server.running),
-                  }}
-                />
-                {server.serverIp}
-              </Box>
-            }
-          />
-        ))}
-      </StyledTabs>
+      </Box>
 
       <ServerDrawer
         drawerOpen={drawerOpen}

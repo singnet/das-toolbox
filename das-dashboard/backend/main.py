@@ -1,8 +1,12 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.logger import logger
 
 from shared.exceptions.exception_handlers import AppExceptionHandlers
+from shared.internal.constants import CONFIG_PATH
+from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.storage_check import validate_persistent_storage
 from services_init import WEB_CONFIG, WORKSPACE_SERVICES
 
@@ -20,6 +24,13 @@ async def lifespan(app: FastAPI):
     WORKSPACE_SERVICES.ensure_workspace()
     WEB_CONFIG.load_user_profile()
     WEB_CONFIG.load_config_dictionary()
+
+    if os.path.exists(CONFIG_PATH):
+        try:
+            set_das_cli_config(CONFIG_PATH, web_config=WEB_CONFIG)
+        except Exception as error:
+            logger.warning("Startup das-cli config initialization failed: %s", error)
+
     yield
 
 

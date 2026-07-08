@@ -145,9 +145,9 @@ class SystemContainersManager(DockerManager):
         cpu_percent = self._calculate_cpu_percent(stats)
 
         memory_usage = stats.get("memory_stats", {}).get("usage", 0)
-
+        
         memory_mb = round(
-            memory_usage / (1024 * 1024),
+            memory_usage / (1024 ** 3),
             2,
         )
 

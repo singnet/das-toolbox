@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 
 import { StatusIcon } from "./servertab.styled";
+import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 
 export function ServerDrawer({
   drawerOpen,
@@ -18,42 +19,49 @@ export function ServerDrawer({
   selectMachine,
   setStatusColor,
 }) {
-
   return (
     <Drawer
       anchor="right"
       open={drawerOpen}
       onClose={() => setDrawerOpen(false)}
+      slotProps={{
+        paper: {
+          sx: {
+            width: 320,
+            backgroundColor: palette.surface,
+            borderLeft: `1px solid ${palette.border}`,
+          },
+        },
+      }}
     >
-      <Box
-        sx={{
-          width: 320,
-          background: "#0f172a",
-          color: "white",
-          height: "100%",
-        }}
-      >
-
-        <Box p={2}>
-          <Typography variant="h6">
+      <Box sx={{ height: "100%" }}>
+        <Box sx={{ px: 2.5, py: 2 }}>
+          <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 600, color: palette.textPrimary }}>
             All Servers
           </Typography>
         </Box>
 
-        <Divider sx={{ borderColor: "#334155" }} />
+        <Divider sx={{ borderColor: palette.borderSubtle }} />
 
-        <List>
-
+        <List sx={{ py: 1 }}>
           {machines.map((server) => (
-
             <ListItemButton
               key={server.serverIp}
               onClick={() => selectMachine(server.serverIp)}
-              selected={
-                currentMachine?.serverIp === server.serverIp
-              }
+              selected={currentMachine?.serverIp === server.serverIp}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                mb: 0.5,
+                "&.Mui-selected": {
+                  backgroundColor: palette.accentLight,
+                  color: palette.accent
+                },
+                "&:hover": {
+                  backgroundColor: palette.surfaceMuted
+                }
+              }}
             >
-
               <StatusIcon
                 sx={{
                   color: setStatusColor(server.running),
@@ -63,22 +71,20 @@ export function ServerDrawer({
 
               <ListItemText
                 primary={server.serverIp}
-                secondary={
-                  server.running
-                    ? "Online"
-                    : "Offline"
-                }
+                secondary={server.running ? "Online" : "Offline"}
+                primaryTypographyProps={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: palette.textPrimary
+                }}
                 secondaryTypographyProps={{
-                  color: "#94a3b8",
+                  fontSize: 12,
+                  color: palette.textMuted
                 }}
               />
-
             </ListItemButton>
-
           ))}
-
         </List>
-
       </Box>
     </Drawer>
   );

@@ -2,47 +2,76 @@ import { Box, Typography } from "@mui/material";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 import { CPUViewChart } from "../MainContent/charts/CPUViewChart";
 import { MemoryViewChart } from "../MainContent/charts/MemoryViewChart";
+import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export function ServiceChart({ selectedService }) {
-  const { aggregatedMetrics } = useDashboardContext();
-  
-  const aggregated = aggregatedMetrics || { agents: [], timestamps: [] };
+  const { aggregatedMetricsByHost, machineStatsByHost } = useDashboardContext();
 
+  const aggregated = aggregatedMetricsByHost[selectedService.serverIp] || { agents: [] };
   const machine = {
-    timestamps: aggregated.timestamps || [],
-    agents: (aggregated.agents || []).filter(a => a.name === selectedService.name)
+    agents: aggregated.agents.filter((agent) => agent.name === selectedService.name),
   };
 
-  if (machine.agents.length === 0) return null;
+  if (machine.agents.length === 0) {
+    return null;
+  }
 
   return (
-    <Box mt={4} key={selectedService.name}>
-      <Typography variant="h6" fontWeight="bold" mb={2} color="#64748b">
-        Metrics — {selectedService.displayName}
+    <Box mt={4} key={selectedService.id}>
+      <Typography
+        variant="h6"
+        sx={{ fontWeight: 600, mb: 2, color: palette.textPrimary, fontSize: 16 }}
+      >
+        Metrics — {selectedService.displayName} ({selectedService.serverIp})
       </Typography>
 
       <Box
         display="grid"
         gridTemplateColumns={{ xs: "1fr", lg: "1fr 1fr" }}
-        gap={3}
+        gap={2}
       >
-        <Box sx={{ background: "#f8fafc", border: "1px solid #e2e8f0", p: 2, minHeight: 320 }}>
-          <Typography fontSize={12} fontWeight={700} color="#475569" mb={1.5} textTransform="uppercase">
-            CPU Usage In-Time
-          </Typography>
-          <Box sx={{ width: "100%", height: 250 }}>
-            <CPUViewChart machine={machine} />
-          </Box>
-        </Box>
+        <ServiceChartPanel title="CPU Usage In-Time">
+          <CPUViewChart machine={machine} currentService={selectedService.name} />
+        </ServiceChartPanel>
 
-        <Box sx={{ background: "#f8fafc", border: "1px solid #e2e8f0", p: 2, minHeight: 320 }}>
-          <Typography fontSize={12} fontWeight={700} color="#475569" mb={1.5} textTransform="uppercase">
-            Memory Usage In-Time
-          </Typography>
-          <Box sx={{ width: "100%", height: 250 }}>
-            <MemoryViewChart machine={machine} />
-          </Box>
-        </Box>
+        <ServiceChartPanel title="Memory Usage In-Time">
+          <MemoryViewChart
+            machine={machine}
+            currentService={selectedService.name}
+            stats={machineStatsByHost[selectedService.serverIp]}
+          />
+        </ServiceChartPanel>
+      </Box>
+    </Box>
+  );
+}
+
+function ServiceChartPanel({ title, children }) {
+  return (
+    <Box
+      sx={{
+        backgroundColor: palette.surface,
+        border: `1px solid ${palette.borderSubtle}`,
+        borderRadius: 3,
+        p: 2,
+        minHeight: 320,
+        boxShadow: palette.shadow
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: palette.textMuted,
+          mb: 1.5,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em"
+        }}
+      >
+        {title}
+      </Typography>
+      <Box sx={{ width: "100%", height: 250 }}>
+        {children}
       </Box>
     </Box>
   );

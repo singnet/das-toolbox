@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -37,11 +38,10 @@ async def load_config(nested_config: dict[str, Any]):
 
 @router.get("/hosts")
 async def get_config_hosts():
-    hosts = await CONFIG_SERVICES.sync_dashboard_config()
-
+    await run_in_threadpool(WEB_CONFIG.load_config_dictionary)
     return JSONResponse(
         status_code=200,
-        content={"hosts": hosts},
+        content={"hosts": WEB_CONFIG.map_dashboard_hosts()},
     )
 
 

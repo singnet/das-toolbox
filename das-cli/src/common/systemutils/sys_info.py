@@ -20,8 +20,8 @@ class SystemInfoExtractor:
         "/var/lib/kubelet",
     )
 
-    def get_cpu_info(self):
-        cpuUsagePercent = psutil.cpu_percent()
+    def get_cpu_info(self, interval):
+        cpuUsagePercent = psutil.cpu_percent(interval=interval)
         cpuTotalCores = psutil.cpu_count()
 
         return {"cpuUsage": cpuUsagePercent, "cpuTotalCores": cpuTotalCores}
@@ -30,8 +30,8 @@ class SystemInfoExtractor:
         memoryInfo = psutil.virtual_memory()
 
         return {
-            "totalMemory": round(memoryInfo.total / 1024**2),
-            "usedMemory": round(memoryInfo.used / 1024**2),
+            "totalMemory": f'{(memoryInfo.total / 1024**3):.1f}',
+            "usedMemory": f'{memoryInfo.used / 1024 ** 3:.2f}',
         }
 
     def get_disks_info(self):
@@ -47,15 +47,15 @@ class SystemInfoExtractor:
                 partition_mntpoint = partition.mountpoint
 
                 generalDiskInfo = shutil.disk_usage(partition.mountpoint)
-                diskTotalMB = round(generalDiskInfo.total / 1024**2)
-                diskUsedMB = round(generalDiskInfo.used / 1024**2)
+                diskTotalGB = f'{(generalDiskInfo.total / 1024**3):.1f}'
+                diskUsedGB = f'{generalDiskInfo.used / 1024**3:.2f}'
 
                 formatted_partitions.append(
                     {
                         "disk_device": partition_device,
                         "disk_mntpoint": partition_mntpoint,
-                        "disk_total_space": diskTotalMB,
-                        "disk_used_space": diskUsedMB,
+                        "disk_total_space": diskTotalGB,
+                        "disk_used_space": diskUsedGB,
                     }
                 )
 

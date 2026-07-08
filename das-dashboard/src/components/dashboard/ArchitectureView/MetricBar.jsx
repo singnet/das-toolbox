@@ -1,4 +1,5 @@
 import { Box, Typography, LinearProgress } from "@mui/material";
+import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export function MetricBar({
   label,
@@ -7,16 +8,12 @@ export function MetricBar({
 }) {
   return (
     <Box mb={1.5}>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        mb={0.5}
-      >
-        <Typography variant="caption" color="#94a3b8">
+      <Box display="flex" justifyContent="space-between" mb={0.5}>
+        <Typography variant="caption" sx={{ color: palette.textMuted }}>
           {label}
         </Typography>
 
-        <Typography fontWeight="bold" fontSize={12}>
+        <Typography fontWeight={600} fontSize={12} sx={{ color: palette.textPrimary }}>
           {value}
         </Typography>
       </Box>
@@ -27,9 +24,10 @@ export function MetricBar({
         sx={{
           height: 6,
           borderRadius: 999,
-          background: "#1e293b",
+          backgroundColor: palette.borderSubtle,
           "& .MuiLinearProgress-bar": {
             borderRadius: 999,
+            backgroundColor: palette.accent
           },
         }}
       />

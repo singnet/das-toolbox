@@ -6,32 +6,43 @@ import {
   Box,
   IconButton,
 } from "@mui/material";
+import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 
 export const TableContainer = styled(Paper)({
-  border: "1px solid #ccc",
-  borderRadius: "8px",
+  border: `1px solid ${palette.borderSubtle}`,
+  borderRadius: 12,
   overflow: "hidden",
+  boxShadow: palette.shadow,
+  backgroundColor: palette.surface
 });
 
 export const HeaderCell = styled(TableCell)({
-  fontWeight: "bold",
-  fontSize: "14px",
-  backgroundColor: "#f0f0f0",
-  padding: "14px",
+  fontWeight: 600,
+  fontSize: 13,
+  backgroundColor: palette.surfaceMuted,
+  color: palette.textSecondary,
+  padding: "12px 16px",
+  borderBottom: `1px solid ${palette.borderSubtle}`
 });
 
 export const BodyCell = styled(TableCell)({
-  fontSize: "14px",
-  padding: "14px",
+  fontSize: 13,
+  padding: "12px 16px",
+  color: palette.textPrimary,
+  borderBottom: `1px solid ${palette.borderSubtle}`
 });
 
 export const StyledRow = styled(TableRow)({
   cursor: "pointer",
-  transition: "0.2s ease",
+  transition: "background-color 0.15s ease",
 
   "&:hover": {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: palette.surfaceMuted,
   },
+
+  "&:last-child td": {
+    borderBottom: "none"
+  }
 });
 
 export const ActionsBox = styled(Box)({
@@ -41,5 +52,19 @@ export const ActionsBox = styled(Box)({
 });
 
 export const ActionButton = styled(IconButton)({
-  padding: "6px",
+  width: 34,
+  height: 34,
+  padding: 7,
+  borderRadius: 4,
+  border: `1px solid ${palette.border}`,
+  backgroundColor: palette.surface,
+  boxSizing: "border-box",
+
+  "& .MuiSvgIcon-root": {
+    fontSize: 18
+  },
+
+  "&.Mui-disabled": {
+    opacity: 0.45
+  }
 });

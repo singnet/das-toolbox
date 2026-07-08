@@ -1,5 +1,4 @@
 import { LineChart } from "@mui/x-charts";
-import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 
 const stringToColor = (str) => {
   let hash = 0;
@@ -14,9 +13,14 @@ const stringToColor = (str) => {
   return color;
 };
 
-export function MemoryViewChart({ machine, currentService }) {
-  const { getAggregatedMetrics } = useDashboardContext();
-  const data = machine || getAggregatedMetrics();
+function formatAxisValue(value) {
+  const numeric = Number(value);
+  return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2);
+}
+
+export function MemoryViewChart({ machine, currentService, stats }) {
+  const data = machine;
+  const totalMemoryGb = Number(stats?.MemoryInfo?.totalMemory);
 
   if (!data?.agents?.length) {
     return null;
@@ -39,10 +43,20 @@ export function MemoryViewChart({ machine, currentService }) {
   const maxLength = Math.max(...filtered.map((a) => a.memory.length), 0);
   const xAxisData = Array.from({ length: maxLength }, (_, i) => i + 1);
 
+  const yAxis = {
+    label: "Memory (GB)",
+    min: 0,
+    valueFormatter: formatAxisValue,
+  };
+
+  if (totalMemoryGb > 0) {
+    yAxis.max = totalMemoryGb;
+  }
+
   return (
     <LineChart
       xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" } }]}
-      yAxis={[{ label: "Memory (MB)" }]}
+      yAxis={[yAxis]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 20 }}

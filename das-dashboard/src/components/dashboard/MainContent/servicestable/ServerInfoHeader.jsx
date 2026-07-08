@@ -42,7 +42,7 @@ export function ServerInfoHeader() {
   return (
     <ServerInfoWrapper>
       <ServerInfoBox>
-        <Label>CPU - {cpuCores} cores</Label>
+        <Label>Machine Load - {cpuCores} cores</Label>
         <Value>{cpuUsage}%</Value>
       </ServerInfoBox>
       <Divider />
@@ -50,7 +50,7 @@ export function ServerInfoHeader() {
       <ServerInfoBox>
         <Label>Memory Usage</Label>
         <Value>
-          {usedMem}MB / {totalMem}MB
+          {usedMem}GB / {totalMem}GB
         </Value>
       </ServerInfoBox>
 
@@ -63,9 +63,9 @@ export function ServerInfoHeader() {
         >
           <Divider />
           <ServerInfoBox>
-            <Label>Disk {index + 1} ({disk.disk_device})</Label>
+            <Label>Disk (Root partition '/')</Label>
             <Value>
-              {disk.disk_used_space}MB / {disk.disk_total_space}MB
+              {disk.disk_used_space}GB / {disk.disk_total_space}GB
             </Value>
           </ServerInfoBox>
         </Box>

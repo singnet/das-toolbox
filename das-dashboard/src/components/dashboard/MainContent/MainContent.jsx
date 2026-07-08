@@ -1,6 +1,4 @@
 import { useMemo } from "react";
-import styled from "@emotion/styled";
-import { Box } from "@mui/material";
 import ErrorIcon from "@mui/icons-material/Error";
 
 import { CPUViewChart } from "./charts/CPUViewChart";
@@ -8,39 +6,45 @@ import { MemoryViewChart } from "./charts/MemoryViewChart";
 import { AgentTable } from "./servicestable/ServicesTable";
 import { LoadingOverlay, EmptyState, ChartPlaceholder } from "./LoadingSkeleton";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
-
-const MainBoxGrid = styled(Box)({
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  minHeight: "auto",
-  width: "100%",
-  backgroundColor: "inherit",
-  alignContent: "start",
-  position: "relative"
-});
-
-const TableBox = styled(Box)({
-  gridColumn: "span 2",
-  padding: "25px"
-});
+import { ChartPanel, MainBoxGrid, TableBox } from "./maincontent.styled";
 
 export function MainContent() {
   const {
     machines,
+    machineStats,
     currentMachine,
     currentService,
+    mergedServices,
     isSwitchingHost,
     connectionError,
     aggregatedMetrics,
-    services,
-    isConnected
   } = useDashboardContext();
+
+  const selectedService = useMemo(
+    () => mergedServices?.find((service) => service.service_key === currentService),
+    [mergedServices, currentService]
+  );
+
+  const chartContainerName = selectedService?.is_running
+    ? selectedService.container_name
+    : null;
+
+  const isOfflineSelection = Boolean(
+    currentService && selectedService && !selectedService.is_running
+  );
 
   const hasChartData = useMemo(() => {
     return aggregatedMetrics?.agents?.some(
       (agent) => agent.cpu?.length > 0 || agent.memory?.length > 0
     );
   }, [aggregatedMetrics]);
+
+  const offlineChartPlaceholder = (
+    <ChartPlaceholder
+      title="Selected service is offline"
+      description="Start the service to view CPU and memory history."
+    />
+  );
 
   if (connectionError) {
     return (
@@ -58,7 +62,6 @@ export function MainContent() {
     );
   }
 
-
   if (isSwitchingHost) {
     return (
       <MainBoxGrid>
@@ -69,22 +72,32 @@ export function MainContent() {
 
   return (
     <MainBoxGrid>
-      {hasChartData ? (
-        <CPUViewChart 
-          key={`cpu-${currentMachine?.serverIp}`} 
-          machine={aggregatedMetrics} 
-          currentService={currentService} 
-        />
+      {isOfflineSelection ? (
+        <ChartPanel>{offlineChartPlaceholder}</ChartPanel>
+      ) : hasChartData ? (
+        <ChartPanel>
+          <CPUViewChart
+            key={`cpu-${currentMachine?.serverIp}`}
+            machine={aggregatedMetrics}
+            currentService={chartContainerName}
+            stats={machineStats}
+          />
+        </ChartPanel>
       ) : (
         <ChartPlaceholder title="CPU Usage History" />
       )}
 
-      {hasChartData ? (
-        <MemoryViewChart 
-          key={`memory-${currentMachine?.serverIp}`} 
-          machine={aggregatedMetrics} 
-          currentService={currentService} 
-        />
+      {isOfflineSelection ? (
+        <ChartPanel>{offlineChartPlaceholder}</ChartPanel>
+      ) : hasChartData ? (
+        <ChartPanel>
+          <MemoryViewChart
+            key={`memory-${currentMachine?.serverIp}`}
+            machine={aggregatedMetrics}
+            currentService={chartContainerName}
+            stats={machineStats}
+          />
+        </ChartPanel>
       ) : (
         <ChartPlaceholder title="Memory Usage History" />
       )}

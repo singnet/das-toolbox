@@ -52,10 +52,11 @@ class ConfigServices:
             "message": message,
             "content": nested_config,
             "remote_hosts": remote_hosts,
+            "hosts": self.web_config.map_dashboard_hosts(),
         }
 
     async def _propagate_config_to_remotes(self, nested_config: dict) -> list[str]:
-        targets = self.web_config.map_hosts(nested_config)
+        targets = self.web_config.map_hosts_from_config(nested_config)
         remote_hosts: list[str] = []
 
         for target in targets:
@@ -112,38 +113,6 @@ class ConfigServices:
         )
 
         return flat
-
-    async def sync_dashboard_config(self) -> list[dict]:
-        """Reload saved config and register it with das-cli for dashboard/metrics use."""
-        if os.path.exists(CONFIG_PATH):
-            await run_in_threadpool(self.web_config.load_user_profile)
-            profile_username = self.web_config.user_profile.get("profile_username") or ""
-
-            def sync_and_register() -> None:
-                with open(CONFIG_PATH, "r", encoding="utf-8") as config_file:
-                    nested = json.load(config_file)
-
-                if isinstance(nested, list) and nested:
-                    nested = nested[0]
-
-                if isinstance(nested, dict):
-                    AtomDbBuilder.apply_profile_usernames(nested, profile_username)
-                    self._persist_config(nested)
-
-                set_das_cli_config(
-                    CONFIG_PATH,
-                    web_config=self.web_config,
-                )
-
-            try:
-                await run_in_threadpool(sync_and_register)
-                await run_in_threadpool(self.web_config.load_config_dictionary)
-            except (OSError, json.JSONDecodeError, TypeError, ValueError, IndexError):
-                self.web_config.config_dictionary = {}
-        else:
-            self.web_config.config_dictionary = {}
-
-        return self.web_config.map_dashboard_hosts()
 
     def get_config_defaults(self, *, factory: bool = False) -> dict:
         if factory:

@@ -15,6 +15,10 @@ export const palette = {
   accentHover: "#4338ca",
   accentLight: "#eef2ff",
   accentMuted: "#e0e7ff",
+  success: "#33e622",
+  successHover: "#24ac18",
+  danger: "#dc2626",
+  dangerHover: "#b91c1c",
   shadow: "0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04)"
 }
 

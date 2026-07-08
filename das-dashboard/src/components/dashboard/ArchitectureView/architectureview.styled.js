@@ -1,36 +1,57 @@
 import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
+import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export const Container = styled(Box)({
-  marginLeft: "15px",
-  marginRight: "15px"
+  padding: "24px 28px 28px",
+  boxSizing: "border-box"
 });
 
 export const Grid = styled(Box)({
   display: "grid",
-  gridTemplateColumns:
-    "repeat(auto-fill, minmax(380px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
   gap: 16,
 });
 
-export const StyledCard = styled(Box)({
-  background: "#0f172a",
-  border: "1px solid #1e293b",
+export const StyledCard = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "selected"
+})(({ selected }) => ({
+  position: "relative",
+  background: selected ? palette.accentLight : palette.surface,
+  border: `1px solid ${selected ? palette.accent : palette.borderSubtle}`,
   borderRadius: 12,
   padding: 18,
-  color: "#e2e8f0",
-  minHeight: 260,
-
+  color: palette.textPrimary,
+  minHeight: 240,
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
+  boxShadow: selected
+    ? `0 0 0 3px ${palette.accentMuted}, 0 8px 24px rgba(79, 70, 229, 0.12)`
+    : palette.shadow,
+  transition: "border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease",
+  overflow: "hidden",
 
-  transition: "0.2s ease",
+  "&::before": selected
+    ? {
+        content: '""',
+        position: "absolute",
+        top: 14,
+        left: 0,
+        bottom: 14,
+        width: 4,
+        borderRadius: "0 4px 4px 0",
+        backgroundColor: palette.accent
+      }
+    : {},
 
   "&:hover": {
-    borderColor: "#3b82f6",
-  },
-});
+    borderColor: selected ? palette.accent : palette.accentMuted,
+    boxShadow: selected
+      ? `0 0 0 3px ${palette.accentMuted}, 0 10px 28px rgba(79, 70, 229, 0.16)`
+      : "0 4px 20px rgba(79, 70, 229, 0.08)"
+  }
+}));
 
 export const MetricsRow = styled(Box)({
   display: "flex",
@@ -40,8 +61,9 @@ export const MetricsRow = styled(Box)({
 
 export const Metric = styled(Box)({
   flex: 1,
-  background: "#1e293b",
+  background: palette.surfaceMuted,
+  border: `1px solid ${palette.borderSubtle}`,
   borderRadius: 8,
-  padding: "6px 8px",
+  padding: "8px 10px",
   textAlign: "center",
 });

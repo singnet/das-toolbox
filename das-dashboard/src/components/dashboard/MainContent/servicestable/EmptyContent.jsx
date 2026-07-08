@@ -5,7 +5,7 @@ export function EmptyContent() {
   return (
     <TableRow>
       <BodyCell colSpan={9} align="center">
-        No agents running
+        No configured services for this machine
       </BodyCell>
     </TableRow>
   );

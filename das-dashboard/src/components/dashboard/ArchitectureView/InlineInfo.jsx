@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export function InlineInfo({
   label,
@@ -6,18 +7,15 @@ export function InlineInfo({
   valueColor,
 }) {
   return (
-    <Box
-      display="flex"
-      justifyContent="space-between"
-    >
-      <Typography variant="caption" color="#94a3b8">
+    <Box display="flex" justifyContent="space-between" gap={2}>
+      <Typography variant="caption" sx={{ color: palette.textMuted }}>
         {label}
       </Typography>
 
       <Typography
-        fontWeight="bold"
+        fontWeight={600}
         fontSize={12}
-        color={valueColor || "inherit"}
+        sx={{ color: valueColor || palette.textPrimary, textAlign: "right" }}
       >
         {value}
       </Typography>

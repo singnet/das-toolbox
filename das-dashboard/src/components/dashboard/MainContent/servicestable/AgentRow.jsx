@@ -1,8 +1,10 @@
 import { Chip, Tooltip } from "@mui/material";
-import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { StyledRow, BodyCell, ActionsBox, ActionButton } from "./servicestable.styled";
+import { palette } from "../../../../pages/setup_das/SetupDasStyled";
+import { formatCpuCell, formatMemoryCell } from "../../../../utils/serviceInventory";
 
 export function AgentRow({
   agent,
@@ -10,70 +12,123 @@ export function AgentRow({
   handleSelect,
   getStatusColor,
   getHealthStatusColor,
-  onAction, 
+  onAction,
 }) {
-  
+  const isRunning = agent.is_running;
+  const rowKey = agent.service_key ?? agent.container_name;
+
   const executeAction = (e, actionType) => {
     e.stopPropagation();
-    if (onAction) {
-      onAction(actionType, agent.container_name);
+    if (!onAction) {
+      return;
     }
+
+    const action = actionType.toLowerCase();
+    if (action === "start" && isRunning) {
+      return;
+    }
+    if ((action === "stop" || action === "restart") && !isRunning) {
+      return;
+    }
+
+    onAction(actionType, agent.container_name, agent.service_key);
   };
+
+  const statusLabel = agent.status === "offline" ? "Offline" : agent.status;
+  const healthLabel = agent.service_health === "-" || !agent.service_health
+    ? (isRunning ? "Running" : "-")
+    : agent.service_health;
 
   return (
     <StyledRow
-      onClick={() => handleSelect(agent.container_name)}
+      onClick={() => handleSelect(rowKey)}
       sx={{
-        backgroundColor: selected ? "#f8fafc" : "inherit",
+        backgroundColor: selected ? palette.accentLight : "inherit",
         cursor: "pointer",
-        transition: "all 0.2s ease",
-        "&:hover": { backgroundColor: selected ? "#f1f5f9" : "#f8fafc" },
+        transition: "background-color 0.15s ease",
+        "&:hover": {
+          backgroundColor: selected ? palette.accentLight : palette.surfaceMuted,
+        },
       }}
     >
-      <BodyCell sx={{ fontWeight: 500 }}>{agent.container_name}</BodyCell>
+      <BodyCell sx={{ fontWeight: 500 }}>{agent.display_name ?? agent.container_name}</BodyCell>
       <BodyCell color="textSecondary">{agent.image}</BodyCell>
       <BodyCell>{agent.port}</BodyCell>
       <BodyCell>{agent.age}</BodyCell>
-
-      <BodyCell>{agent.cpu_percent}%</BodyCell>
-      <BodyCell>{Math.round(agent.memory_mb)} MB</BodyCell>
+      <BodyCell>{formatCpuCell(agent)}</BodyCell>
+      <BodyCell>{formatMemoryCell(agent)}</BodyCell>
 
       <BodyCell>
         <Chip
-          label={agent.status}
+          label={statusLabel}
           color={getStatusColor(agent.status)}
           size="small"
-          sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.75rem' }}
+          sx={{ textTransform: "capitalize", fontWeight: 600, fontSize: "0.75rem" }}
         />
       </BodyCell>
 
       <BodyCell>
         <Chip
-          label={agent.service_health === "-" ? "Running" : agent.service_health}
-          color={getHealthStatusColor(agent.service_health === "healthy" ? "healthy" : "unhealthy")}
+          label={healthLabel}
+          color={isRunning ? getHealthStatusColor(healthLabel === "healthy" ? "healthy" : "unhealthy") : "default"}
           size="small"
-          sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.75rem' }}
+          sx={{ textTransform: "capitalize", fontWeight: 600, fontSize: "0.75rem" }}
         />
       </BodyCell>
 
       <BodyCell align="right">
         <ActionsBox>
-          <Tooltip title="Stop">
-            <ActionButton 
-              onClick={(e) => executeAction(e, "STOP")}
-              disabled={agent.status !== "running"}
-              sx={{ color: agent.status !== "running" ? "action.disabled" : "error.main" }}
+          <Tooltip title="Start">
+            <ActionButton
+              onClick={(e) => executeAction(e, "START")}
+              disabled={isRunning}
+              sx={{
+                color: "#ffffff",
+                backgroundColor: isRunning ? palette.borderSubtle : palette.success,
+                borderColor: isRunning ? palette.borderSubtle : palette.success,
+                "&:hover": {
+                  backgroundColor: isRunning ? palette.borderSubtle : palette.successHover,
+                  borderColor: isRunning ? palette.borderSubtle : palette.successHover,
+                },
+              }}
             >
-              <StopCircleIcon fontSize="small" />
+              <PlayArrowIcon />
+            </ActionButton>
+          </Tooltip>
+
+          <Tooltip title="Stop">
+            <ActionButton
+              onClick={(e) => executeAction(e, "STOP")}
+              disabled={!isRunning}
+              sx={{
+                color: "#ffffff",
+                backgroundColor: !isRunning ? palette.borderSubtle : palette.danger,
+                borderColor: !isRunning ? palette.borderSubtle : palette.danger,
+                "&:hover": {
+                  backgroundColor: !isRunning ? palette.borderSubtle : palette.dangerHover,
+                  borderColor: !isRunning ? palette.borderSubtle : palette.dangerHover,
+                },
+              }}
+            >
+              <StopCircleIcon />
             </ActionButton>
           </Tooltip>
 
           <Tooltip title="Restart">
-            <ActionButton 
+            <ActionButton
               onClick={(e) => executeAction(e, "RESTART")}
-              sx={{ color: "primary.main" }}
+              disabled={!isRunning}
+              sx={{
+                color: "#ffffff",
+                backgroundColor: !isRunning ? palette.borderSubtle : palette.accent,
+                borderColor: !isRunning ? palette.borderSubtle : palette.accent,
+                "&:hover": {
+                  backgroundColor: !isRunning ? palette.borderSubtle : palette.accentHover,
+                  borderColor: !isRunning ? palette.borderSubtle : palette.accentHover,
+                },
+              }}
             >
-              <RestartAltIcon fontSize="small" />
+              <RestartAltIcon />
             </ActionButton>
           </Tooltip>
         </ActionsBox>

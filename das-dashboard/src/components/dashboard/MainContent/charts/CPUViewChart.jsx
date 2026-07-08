@@ -1,5 +1,4 @@
 import { LineChart } from "@mui/x-charts";
-import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 
 const stringToColor = (str) => {
   let hash = 0;
@@ -15,8 +14,7 @@ const stringToColor = (str) => {
 };
 
 export function CPUViewChart({ machine, currentService }) {
-  const { getAggregatedMetrics } = useDashboardContext();
-  const data = machine || getAggregatedMetrics();
+  const data = machine;
 
   if (!data?.agents?.length) {
     return null;
@@ -41,7 +39,7 @@ export function CPUViewChart({ machine, currentService }) {
   return (
     <LineChart
       xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" },}]}
-      yAxis={[{ min: 0, max: 100, label: "CPU (%/Core)" }]}
+      yAxis={[{ min: 0, max: 100, label: "CPU (container %)" }]}
       series={series}
       height={250}
       margin={{ left: 60, right: 20, top: 40, bottom: 20 }}

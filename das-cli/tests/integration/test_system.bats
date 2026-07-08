@@ -53,8 +53,9 @@ teardown() {
 
     for header in \
         "MACHINE INFO" \
-        "CPU (%)" \
-        "MEM USED (MB)" \
+        "CPU (Machine load / %)" \
+        "CPU CORES" \
+        "MEM USED (GB)" \
         "DISKS" \
         "DEVICE" \
         "SERVICES" \
