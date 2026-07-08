@@ -90,7 +90,7 @@ class SystemStatus(Command):
     def _collect_snapshot(self) -> dict:
 
         machine_info = {
-            "CPUInfo": self._sysinfo.get_cpu_info(),
+            "CPUInfo": self._sysinfo.get_cpu_info(interval=2),
             "MemoryInfo": self._sysinfo.get_memory_info(),
             "DisksInfo": self._sysinfo.get_disks_info(),
         }
@@ -209,7 +209,7 @@ class SystemStatus(Command):
                 try:
 
                     data = {
-                        "CPUInfo": self._sysinfo.get_cpu_info(),
+                        "CPUInfo": self._sysinfo.get_cpu_info(cooldown),
                         "MemoryInfo": self._sysinfo.get_memory_info(),
                         "DisksInfo": self._sysinfo.get_disks_info(),
                     }

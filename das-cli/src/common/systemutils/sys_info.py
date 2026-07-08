@@ -20,8 +20,8 @@ class SystemInfoExtractor:
         "/var/lib/kubelet",
     )
 
-    def get_cpu_info(self):
-        cpuUsagePercent = psutil.cpu_percent(interval=2)
+    def get_cpu_info(self, interval):
+        cpuUsagePercent = psutil.cpu_percent(interval=interval)
         cpuTotalCores = psutil.cpu_count()
 
         return {"cpuUsage": cpuUsagePercent, "cpuTotalCores": cpuTotalCores}
