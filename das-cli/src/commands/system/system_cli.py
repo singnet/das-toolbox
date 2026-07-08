@@ -170,7 +170,7 @@ class SystemStatus(Command):
 
             container_rows.append(
                 {
-                    "AGENT NAME": info.get("container_name", "-"),
+                    "CONTAINER NAME": info.get("container_name", "-"),
                     "CONTAINER INFO": info.get("image", "-"),
                     "PORT": info.get("port", "-"),
                     "AGE": info.get("age", "-"),
@@ -184,7 +184,7 @@ class SystemStatus(Command):
         print_table(
             container_rows,
             columns=[
-                "AGENT NAME",
+                "CONTAINER NAME",
                 "CONTAINER INFO",
                 "PORT",
                 "AGE",
