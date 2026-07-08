@@ -53,7 +53,7 @@ export default function DashboardPage() {
                 Dashboard <span>›</span> {viewLabel}
               </Breadcrumb>
               <ContentTitle>{pageTitle}</ContentTitle>
-              {!connectionError && hasServers && (
+              {!connectionError && (hasServers || isAgentsView) && (
                 <ContentSubtitle>{pageSubtitle}</ContentSubtitle>
               )}
             </ContentHeaderText>

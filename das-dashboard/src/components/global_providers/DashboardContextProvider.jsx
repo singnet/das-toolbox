@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 
 import { useDashboardMetrics } from "../../hooks/UseDashboardMetrics";
@@ -38,7 +39,9 @@ export default function DashboardContextProvider({ children }) {
           setDashboardBaseValues(hosts ?? []);
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error("Failed to load dashboard hosts:", error);
+      });
 
     return () => {
       active = false;
@@ -64,13 +67,23 @@ export default function DashboardContextProvider({ children }) {
     aggregatedMetricsByHost,
     servicesByHost,
     machineStatsByHost,
+    connectionByHost,
     lastUpdate: allMachinesLastUpdate,
   } = useAllMachinesMetrics(machines);
+
+  const machinesWithStatus = useMemo(
+    () =>
+      machines.map((machine) => ({
+        ...machine,
+        running: connectionByHost[machine.serverIp] ?? false,
+      })),
+    [machines, connectionByHost]
+  );
 
   return (
     <DashboardContext.Provider
       value={{
-        machines,
+        machines: machinesWithStatus,
         setMachines,
         currentMachine,
         setCurrentMachine,

@@ -24,12 +24,14 @@ export function ServerDrawer({
       anchor="right"
       open={drawerOpen}
       onClose={() => setDrawerOpen(false)}
-      PaperProps={{
-        sx: {
-          width: 320,
-          backgroundColor: palette.surface,
-          borderLeft: `1px solid ${palette.border}`
-        }
+      slotProps={{
+        paper: {
+          sx: {
+            width: 320,
+            backgroundColor: palette.surface,
+            borderLeft: `1px solid ${palette.border}`,
+          },
+        },
       }}
     >
       <Box sx={{ height: "100%" }}>

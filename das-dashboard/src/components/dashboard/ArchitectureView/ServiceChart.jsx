@@ -30,23 +30,23 @@ export function ServiceChart({ selectedService }) {
         gridTemplateColumns={{ xs: "1fr", lg: "1fr 1fr" }}
         gap={2}
       >
-        <ChartPanel title="CPU Usage In-Time">
+        <ServiceChartPanel title="CPU Usage In-Time">
           <CPUViewChart machine={machine} currentService={selectedService.name} />
-        </ChartPanel>
+        </ServiceChartPanel>
 
-        <ChartPanel title="Memory Usage In-Time">
+        <ServiceChartPanel title="Memory Usage In-Time">
           <MemoryViewChart
             machine={machine}
             currentService={selectedService.name}
             stats={machineStatsByHost[selectedService.serverIp]}
           />
-        </ChartPanel>
+        </ServiceChartPanel>
       </Box>
     </Box>
   );
 }
 
-function ChartPanel({ title, children }) {
+function ServiceChartPanel({ title, children }) {
   return (
     <Box
       sx={{

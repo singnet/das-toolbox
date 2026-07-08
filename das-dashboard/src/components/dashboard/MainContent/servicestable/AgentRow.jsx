@@ -84,11 +84,11 @@ export function AgentRow({
               disabled={isRunning}
               sx={{
                 color: "#ffffff",
-                backgroundColor: isRunning ? palette.borderSubtle : "#33e622",
-                borderColor: isRunning ? palette.borderSubtle : "#33e622",
+                backgroundColor: isRunning ? palette.borderSubtle : palette.success,
+                borderColor: isRunning ? palette.borderSubtle : palette.success,
                 "&:hover": {
-                  backgroundColor: isRunning ? palette.borderSubtle : "#24ac18",
-                  borderColor: isRunning ? palette.borderSubtle : "#24ac18",
+                  backgroundColor: isRunning ? palette.borderSubtle : palette.successHover,
+                  borderColor: isRunning ? palette.borderSubtle : palette.successHover,
                 },
               }}
             >
@@ -102,11 +102,11 @@ export function AgentRow({
               disabled={!isRunning}
               sx={{
                 color: "#ffffff",
-                backgroundColor: !isRunning ? palette.borderSubtle : "#dc2626",
-                borderColor: !isRunning ? palette.borderSubtle : "#dc2626",
+                backgroundColor: !isRunning ? palette.borderSubtle : palette.danger,
+                borderColor: !isRunning ? palette.borderSubtle : palette.danger,
                 "&:hover": {
-                  backgroundColor: !isRunning ? palette.borderSubtle : "#b91c1c",
-                  borderColor: !isRunning ? palette.borderSubtle : "#b91c1c",
+                  backgroundColor: !isRunning ? palette.borderSubtle : palette.dangerHover,
+                  borderColor: !isRunning ? palette.borderSubtle : palette.dangerHover,
                 },
               }}
             >

@@ -25,6 +25,7 @@ function buildAggregatedMetrics(snapshots = []) {
 export function useAllMachinesMetrics(machines = []) {
   const [servicesByHost, setServicesByHost] = useState({});
   const [machineStatsByHost, setMachineStatsByHost] = useState({});
+  const [connectionByHost, setConnectionByHost] = useState({});
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const streamsRef = useRef({});
   const historyRef = useRef({});
@@ -38,6 +39,11 @@ export function useAllMachinesMetrics(machines = []) {
         stream.close();
         delete streamsRef.current[host];
         delete historyRef.current[host];
+        setConnectionByHost((prev) => {
+          const next = { ...prev };
+          delete next[host];
+          return next;
+        });
       }
     });
 
@@ -56,9 +62,15 @@ export function useAllMachinesMetrics(machines = []) {
 
       const stream = createMetricsStream({
         host,
+        onOpen: () => {
+          setConnectionByHost((prev) => ({ ...prev, [host]: true }));
+        },
         onData: (incomingData) => {
           const data = Array.isArray(incomingData) ? incomingData[0] : incomingData;
           if (!data || data.type === "error") {
+            if (data?.type === "error") {
+              setConnectionByHost((prev) => ({ ...prev, [host]: false }));
+            }
             return;
           }
 
@@ -78,17 +90,25 @@ export function useAllMachinesMetrics(machines = []) {
 
           setLastUpdate(Date.now());
         },
+        onClose: () => {
+          setConnectionByHost((prev) => ({ ...prev, [host]: false }));
+        },
+        onError: () => {
+          setConnectionByHost((prev) => ({ ...prev, [host]: false }));
+        },
       });
 
       streamsRef.current[host] = stream;
     });
+  }, [machines]);
 
+  useEffect(() => {
     return () => {
       Object.values(streamsRef.current).forEach((stream) => stream.close());
       streamsRef.current = {};
       historyRef.current = {};
     };
-  }, [machines]);
+  }, []);
 
   const allMergedServices = useMemo(
     () =>
@@ -117,6 +137,7 @@ export function useAllMachinesMetrics(machines = []) {
     aggregatedMetricsByHost,
     servicesByHost,
     machineStatsByHost,
+    connectionByHost,
     lastUpdate,
   };
 }

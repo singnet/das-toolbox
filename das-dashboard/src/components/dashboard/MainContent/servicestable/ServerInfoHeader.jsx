@@ -42,7 +42,7 @@ export function ServerInfoHeader() {
   return (
     <ServerInfoWrapper>
       <ServerInfoBox>
-        <Label>CPU Load - {cpuCores} cores</Label>
+        <Label>Machine Load - {cpuCores} cores</Label>
         <Value>{cpuUsage}%</Value>
       </ServerInfoBox>
       <Divider />

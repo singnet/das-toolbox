@@ -81,7 +81,6 @@ export function formatMemoryCell(agent) {
 export function hostsToMachines(hosts = []) {
   return hosts.map(({ ip, services = [] }) => ({
     serverIp: ip,
-    running: true,
     expectedServices: services,
   }));
 }

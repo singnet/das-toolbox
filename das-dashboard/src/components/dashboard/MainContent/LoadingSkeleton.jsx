@@ -105,7 +105,7 @@ export function LoadingOverlay({ text = "Loading server metrics..." }) {
   );
 }
 
-export function ChartPlaceholder({ title }) {
+export function ChartPlaceholder({ title, description = "Waiting for data to display" }) {
   return (
     <ChartPlaceholderContainer elevation={0}>
       <BarChartIcon sx={{ fontSize: 40, color: palette.textMuted }} />
@@ -113,7 +113,7 @@ export function ChartPlaceholder({ title }) {
         {title}
       </Typography>
       <Typography variant="body2" sx={{ color: palette.textMuted }}>
-        Waiting for data to display
+        {description}
       </Typography>
     </ChartPlaceholderContainer>
   );

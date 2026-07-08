@@ -71,6 +71,10 @@ class SystemStatus(Command):
         self._settings.validate_configuration_file()
 
         if stream:
+
+            if cooldown < 2:
+                raise ValueError("Cooldown value cannot be smaller than 2 seconds")
+
             self._run_stream(cooldown)
             return
 
@@ -214,10 +218,9 @@ class SystemStatus(Command):
                         latest_machine.clear()
                         latest_machine.update(data)
 
+
                 except Exception as e:
                     print(f"[machine_loop] {e}")
-
-                time.sleep(cooldown)
 
         def docker_loop():
 
@@ -231,18 +234,19 @@ class SystemStatus(Command):
                     print(f"[docker_loop] {e}")
 
         threading.Thread(
-            target=machine_loop,
+            target=docker_loop,
             daemon=True,
         ).start()
 
         threading.Thread(
-            target=docker_loop,
+            target=machine_loop,
             daemon=True,
         ).start()
 
         try:
 
             while True:
+
                 with lock:
                     system_info = {
                         "machineInfo": dict(latest_machine),

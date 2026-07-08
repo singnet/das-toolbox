@@ -1,5 +1,4 @@
 import { LineChart } from "@mui/x-charts";
-import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 
 const stringToColor = (str) => {
   let hash = 0;
@@ -20,9 +19,8 @@ function formatAxisValue(value) {
 }
 
 export function MemoryViewChart({ machine, currentService, stats }) {
-  const { machineStats } = useDashboardContext();
   const data = machine;
-  const totalMemoryGb = Number((stats ?? machineStats)?.MemoryInfo?.totalMemory) || 0;
+  const totalMemoryGb = Number(stats?.MemoryInfo?.totalMemory);
 
   if (!data?.agents?.length) {
     return null;
