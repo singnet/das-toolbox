@@ -60,6 +60,7 @@ export function ArchitectureActionControl({
   isServerOffline,
   disabled = false,
   onBusyChange,
+  onActionComplete,
 }) {
   const [expanded, setExpanded] = useState(false);
   const [selectedAgents, setSelectedAgents] = useState(() =>
@@ -101,6 +102,11 @@ export function ArchitectureActionControl({
     try {
       setBusy(actionKey);
       await action();
+      try {
+        await onActionComplete?.();
+      } catch (refreshError) {
+        console.error("Failed to refresh sidebar status after action:", refreshError);
+      }
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);

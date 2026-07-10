@@ -16,6 +16,7 @@ export function AtomDBActionControl({
   isServerOffline,
   disabled = false,
   onBusyChange,
+  onActionComplete,
 }) {
   const [loadingAction, setLoadingAction] = useState(null);
 
@@ -35,6 +36,11 @@ export function AtomDBActionControl({
     try {
       setBusy(actionKey);
       await action();
+      try {
+        await onActionComplete?.();
+      } catch (refreshError) {
+        console.error("Failed to refresh sidebar status after action:", refreshError);
+      }
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);

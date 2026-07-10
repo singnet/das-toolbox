@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { List, ListItemIcon, ListItemText } from "@mui/material";
 import { Dashboard as DashboardIcon, SettingsEthernet, Polyline } from "@mui/icons-material";
 
@@ -13,7 +13,8 @@ import {
   ActionDivider
 } from "./sidebar.styled";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-import { getInfraStatus } from "../../../../utils/serviceInventory";
+import { getConfigHosts } from "../../../../api/ConfigAPI";
+import { fetchInfraStatusForAllHosts } from "../../../../utils/infraStatus";
 
 import { ArchitectureActionControl } from "./ArchitectureActionControl";
 import { AtomDBActionControl } from "./AtomDBActionControl";
@@ -27,17 +28,37 @@ const navigationItems = [
 export function SideBar() {
   const [selected, setSelected] = useState("servers");
   const [busyActions, setBusyActions] = useState({});
+  const [atomDbOnline, setAtomDbOnline] = useState(false);
+  const [architectureOnline, setArchitectureOnline] = useState(false);
 
   const {
     setCurrentContext,
     currentMachine,
     mergedServices,
-    isSwitchingHost
+    isSwitchingHost,
   } = useDashboardContext();
+
+  const loadInfraStatus = useCallback(async () => {
+    const { hosts } = await getConfigHosts();
+    const serverIps = (hosts ?? []).map((host) => host.ip).filter(Boolean);
+    const statusByHost = await fetchInfraStatusForAllHosts(serverIps);
+
+    setAtomDbOnline(
+      Object.values(statusByHost).some((status) => status.atomDbOnline)
+    );
+    setArchitectureOnline(
+      Object.values(statusByHost).some((status) => status.architectureOnline)
+    );
+  }, []);
+
+  useEffect(() => {
+    loadInfraStatus().catch((error) => {
+      console.error("Failed to load sidebar infra status:", error);
+    });
+  }, [loadInfraStatus]);
 
   const currentHost = currentMachine?.serverIp;
   const isServerOffline = !currentHost || isSwitchingHost;
-  const { atomDbOnline, architectureOnline } = getInfraStatus(mergedServices);
   const isAnyActionLoading = Object.values(busyActions).some(Boolean);
 
   const setActionBusy = (actionKey, busy) => {
@@ -97,6 +118,7 @@ export function SideBar() {
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.architecture}
               onBusyChange={(busy) => setActionBusy("architecture", busy)}
+              onActionComplete={loadInfraStatus}
             />
 
             <AtomDBActionControl
@@ -104,6 +126,7 @@ export function SideBar() {
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.atomdb}
               onBusyChange={(busy) => setActionBusy("atomdb", busy)}
+              onActionComplete={loadInfraStatus}
             />
           </List>
         </StyledList>

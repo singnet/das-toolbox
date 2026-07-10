@@ -1,21 +1,30 @@
 import api from "./AxiosBaseClient";
 
-export async function fetchDashboardDataStatic(metricScope = "all", host = "localhost") {
-
-  try {
-    const response = await api.get("/metrics", {
-      params: {
-        metric_scope: metricScope,
-        host
-      }
-    });
-
-    return response.data;
-
-  } catch (error) {
-    console.error("Failed to fetch metrics:", error);
+export function extractMetricsContent(payload) {
+  if (!payload || typeof payload !== "object") {
     return null;
   }
+
+  if (payload.serviceInfo) {
+    return payload;
+  }
+
+  if (payload.content?.serviceInfo) {
+    return payload.content;
+  }
+
+  return payload.content ?? payload;
+}
+
+export async function fetchDashboardDataStatic(metricScope = "all", host = "localhost") {
+  const response = await api.get("/metrics", {
+    params: {
+      metric_scope: metricScope,
+      host,
+    },
+  });
+
+  return extractMetricsContent(response.data);
 }
 
 export function fetchDashboardDataStream(onMessage, host, { onOpen, onClose, onError } = {}) {
