@@ -109,3 +109,12 @@ export const AgentLabel = styled(Typography)({
   color: palette.textSecondary,
   flex: 1,
 });
+
+export const GroupLabel = styled(Typography)({
+  fontSize: 10,
+  fontWeight: 600,
+  letterSpacing: "0.06em",
+  textTransform: "uppercase",
+  color: palette.textMuted,
+  padding: "6px 8px 2px",
+});

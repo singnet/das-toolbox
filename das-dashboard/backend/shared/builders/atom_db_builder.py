@@ -1,14 +1,12 @@
 from shared.builders.builder_helpers import _get, _is_missing, _require
 from shared.utils.adapter_context_mapping import validate_context_mapping_path
 
+
 class AtomDbBuilder:
 
     REDIS_IMAGE = "redis:7.2.3-alpine"
     MONGO_IMAGE = "mongodb/mongodb-community-server:8.2-ubuntu2204"
     MORK_IMAGE = "trueagi/das:mork-server-1.0.4"
-
-    def __init__(self, profile_username: str = ""):
-        self.profile_username = profile_username or ""
 
     _REDIS_MONGO_FIELDS = (
         "redis_endpoint",
@@ -47,10 +45,14 @@ class AtomDbBuilder:
         "atomdb_backend",
     )
 
-    def build(self, atomdb) -> dict:
-        _require(atomdb, "atomdb_type")
+    def __init__(self, profile_username: str = ""):
+        self.profile_username = profile_username or ""
 
-        handlers = {
+    def build(self, flat_atomdb: dict) -> dict:
+        _require(flat_atomdb, "atomdb_type")
+
+        atomdb_type = flat_atomdb["atomdb_type"]
+        builders = {
             "redismongodb": self._build_redis_mongo,
             "morkdb": self._build_mork_mongo,
             "inmemorydb": self._build_inmemory_db,
@@ -58,52 +60,21 @@ class AtomDbBuilder:
             "adapterdb": self._build_adapter_db,
         }
 
-        atomdb_type = _get(atomdb, "atomdb_type")
-        builder = handlers.get(atomdb_type)
-
+        builder = builders.get(atomdb_type)
         if not builder:
             raise ValueError(f"Unsupported atomdb type: {atomdb_type}")
 
-        return builder(atomdb)
+        return builder(flat_atomdb)
 
     @staticmethod
-    def _endpoint(host, port) -> str:
+    def _endpoint(host: str, port) -> str:
         return f"{host}:{port}"
 
     @classmethod
-    def _validate_cluster_nodes(cls, source, cluster_key: str, nodes_key: str, label: str) -> None:
-        if not _get(source, cluster_key, False):
-            return
-
-        _require(source, nodes_key, label=label)
-        nodes = _get(source, nodes_key)
-
-        if not isinstance(nodes, list):
-            raise ValueError(f"{label}.{nodes_key} must be a list when {cluster_key} is true")
-
-    @classmethod
-    def _resolve_node_username(cls, context, username, profile_username: str) -> str:
+    def _resolve_node_username(cls, username: str) -> str:
         if not username or username in ("root", "default"):
-            return profile_username or ""
+            return ""
         return username
-
-    @classmethod
-    def _patch_section_nodes(cls, section, profile_username: str) -> None:
-        if not isinstance(section, dict):
-            return
-
-        nodes = section.get("nodes")
-        if not isinstance(nodes, list):
-            return
-
-        for node in nodes:
-            if not isinstance(node, dict):
-                continue
-            node["username"] = cls._resolve_node_username(
-                node.get("context", "default"),
-                node.get("username", ""),
-                profile_username,
-            )
 
     @classmethod
     def apply_profile_usernames(cls, nested_config: dict, profile_username: str) -> dict:
@@ -112,179 +83,190 @@ class AtomDbBuilder:
 
         atomdb = nested_config.get("atomdb")
         if isinstance(atomdb, dict):
-            cls._patch_atomdb_nodes(atomdb, profile_username)
+            cls._fill_empty_node_usernames(atomdb, profile_username)
 
         return nested_config
 
     @classmethod
-    def _patch_atomdb_nodes(cls, atomdb: dict, profile_username: str) -> None:
+    def _fill_empty_node_usernames(cls, atomdb: dict, profile_username: str) -> None:
         atomdb_type = atomdb.get("type")
 
         if atomdb_type == "redismongodb":
-            cls._patch_section_nodes(atomdb.get("redis"), profile_username)
-            cls._patch_section_nodes(atomdb.get("mongodb"), profile_username)
+            cls._fill_nodes_username(atomdb.get("redis"), profile_username)
+            cls._fill_nodes_username(atomdb.get("mongodb"), profile_username)
         elif atomdb_type == "morkdb":
-            cls._patch_section_nodes(atomdb.get("mongodb"), profile_username)
+            cls._fill_nodes_username(atomdb.get("mongodb"), profile_username)
         elif atomdb_type == "adapterdb":
             adapter = atomdb.get("adapterdb")
             if isinstance(adapter, dict):
                 backend = adapter.get("atomdb_backend")
                 if isinstance(backend, dict):
-                    cls._patch_atomdb_nodes(backend, profile_username)
+                    cls._fill_empty_node_usernames(backend, profile_username)
 
-    def _map_cluster_nodes(self, nodes) -> list:
-        if not isinstance(nodes, list):
-            return []
+    @classmethod
+    def _fill_nodes_username(cls, database_section: dict, profile_username: str) -> None:
+        if not isinstance(database_section, dict):
+            return
 
-        return [
-            {
-                "context": _get(node, "context", "default"),
-                "ip": _get(node, "ip", ""),
-                "username": self._resolve_node_username(
-                    _get(node, "context", "default"),
-                    _get(node, "username", ""),
-                    self.profile_username,
-                ),
-            }
-            for node in nodes
-        ]
+        for node in database_section.get("nodes") or []:
+            if not isinstance(node, dict):
+                continue
+            if not cls._resolve_node_username(node.get("username", "")):
+                node["username"] = profile_username or ""
 
-    def _with_nodes(self, section: dict, source, cluster_key: str, nodes_key: str, label: str) -> dict:
-        if not _get(source, cluster_key, False):
-            return section
+    def _build_nodes(
+        self,
+        flat_nodes: list | None,
+        *,
+        endpoint_host: str,
+        cluster_enabled: bool,
+        field_name: str,
+    ) -> list[dict]:
+        if cluster_enabled and not isinstance(flat_nodes, list):
+            raise ValueError(f"{field_name} must be a list when cluster mode is enabled")
 
-        self._validate_cluster_nodes(source, cluster_key, nodes_key, label)
-        raw_nodes = _get(source, nodes_key, [])
-        section["nodes"] = self._map_cluster_nodes(raw_nodes)
-        return section
+        nodes = []
+        for entry in flat_nodes or []:
+            if not isinstance(entry, dict):
+                continue
+            nodes.append({
+                "context": entry.get("context", "default"),
+                "ip": entry.get("ip", ""),
+                "username": self._resolve_node_username(entry.get("username", "")) or self.profile_username,
+            })
 
-    def _build_redis_mongo(self, source, *, label: str = "atomdb") -> dict:
-        _require(source, *self._REDIS_MONGO_FIELDS, label=label)
-        self._validate_cluster_nodes(source, "redis_cluster", "redis_nodes", label)
-        self._validate_cluster_nodes(source, "mongo_cluster", "mongo_nodes", label)
+        if nodes:
+            return nodes
 
-        redis = {
-            "image": self.REDIS_IMAGE,
-            "endpoint": self._endpoint(
-                _get(source, "redis_endpoint"),
-                _get(source, "redis_port"),
-            ),
-            "cluster": _get(source, "redis_cluster", False),
-        }
-        self._with_nodes(redis, source, "redis_cluster", "redis_nodes", label)
+        if cluster_enabled:
+            raise ValueError(f"{field_name} cannot be empty when cluster mode is enabled")
 
-        mongodb = {
-            "image": self.MONGO_IMAGE,
-            "endpoint": self._endpoint(
-                _get(source, "mongo_endpoint"),
-                _get(source, "mongo_port"),
-            ),
-            "username": _get(source, "mongo_username"),
-            "password": _get(source, "mongo_password"),
-            "cluster": _get(source, "mongo_cluster", False),
-            "cluster_secret_key": None,
-        }
-        self._with_nodes(mongodb, source, "mongo_cluster", "mongo_nodes", label)
+        return [{
+            "context": "default",
+            "ip": endpoint_host or "localhost",
+            "username": self.profile_username,
+        }]
+
+    def _build_redis_mongo(self, flat: dict, *, where: str = "atomdb") -> dict:
+        _require(flat, *self._REDIS_MONGO_FIELDS, label=where)
+
+        redis_host = flat["redis_endpoint"]
+        redis_port = flat["redis_port"]
+        mongo_host = flat["mongo_endpoint"]
+        mongo_port = flat["mongo_port"]
+        redis_cluster = flat.get("redis_cluster", False)
+        mongo_cluster = flat.get("mongo_cluster", False)
 
         return {
             "type": "redismongodb",
-            "redis": redis,
-            "mongodb": mongodb,
-        }
-
-    def _build_mork_mongo(self, source, *, label: str = "atomdb") -> dict:
-        _require(source, *self._MORK_CONNECTION_FIELDS, *self._MONGO_CONNECTION_FIELDS, label=label)
-        self._validate_cluster_nodes(source, "mongo_cluster", "mongo_nodes", label)
-
-        mongodb = {
-            "image": self.MONGO_IMAGE,
-            "endpoint": self._endpoint(
-                _get(source, "mongo_endpoint"),
-                _get(source, "mongo_port"),
-            ),
-            "username": _get(source, "mongo_username"),
-            "password": _get(source, "mongo_password"),
-            "cluster": _get(source, "mongo_cluster", False),
-            "cluster_secret_key": None,
-        }
-        self._with_nodes(mongodb, source, "mongo_cluster", "mongo_nodes", label)
-
-        return {
-            "type": "morkdb",
-            "mongodb": mongodb,
-            "morkdb": {
-                "image": self.MORK_IMAGE,
-                "endpoint": self._endpoint(
-                    _get(source, "mork_endpoint"),
-                    _get(source, "mork_port"),
+            "redis": {
+                "image": self.REDIS_IMAGE,
+                "endpoint": self._endpoint(redis_host, redis_port),
+                "cluster": redis_cluster,
+                "nodes": self._build_nodes(
+                    flat.get("redis_nodes"),
+                    endpoint_host=redis_host,
+                    cluster_enabled=redis_cluster,
+                    field_name=f"{where}.redis_nodes",
+                ),
+            },
+            "mongodb": {
+                "image": self.MONGO_IMAGE,
+                "endpoint": self._endpoint(mongo_host, mongo_port),
+                "username": flat["mongo_username"],
+                "password": flat["mongo_password"],
+                "cluster": mongo_cluster,
+                "cluster_secret_key": None,
+                "nodes": self._build_nodes(
+                    flat.get("mongo_nodes"),
+                    endpoint_host=mongo_host,
+                    cluster_enabled=mongo_cluster,
+                    field_name=f"{where}.mongo_nodes",
                 ),
             },
         }
 
-    def _build_inmemory_db(self, _source, *, label: str = "atomdb") -> dict:
+    def _build_mork_mongo(self, flat: dict, *, where: str = "atomdb") -> dict:
+        _require(flat, *self._MORK_CONNECTION_FIELDS, *self._MONGO_CONNECTION_FIELDS, label=where)
+
+        mongo_host = flat["mongo_endpoint"]
+        mongo_port = flat["mongo_port"]
+        mongo_cluster = flat.get("mongo_cluster", False)
+
+        return {
+            "type": "morkdb",
+            "mongodb": {
+                "image": self.MONGO_IMAGE,
+                "endpoint": self._endpoint(mongo_host, mongo_port),
+                "username": flat["mongo_username"],
+                "password": flat["mongo_password"],
+                "cluster": mongo_cluster,
+                "cluster_secret_key": None,
+                "nodes": self._build_nodes(
+                    flat.get("mongo_nodes"),
+                    endpoint_host=mongo_host,
+                    cluster_enabled=mongo_cluster,
+                    field_name=f"{where}.mongo_nodes",
+                ),
+            },
+            "morkdb": {
+                "image": self.MORK_IMAGE,
+                "endpoint": self._endpoint(flat["mork_endpoint"], flat["mork_port"]),
+            },
+        }
+
+    def _build_inmemory_db(self, _flat: dict, *, where: str = "atomdb") -> dict:
         return {"type": "inmemorydb"}
 
-    def _build_remote_db(self, atomdb) -> dict:
-        _require(atomdb, "remote_peers", label="atomdb")
+    def _build_remote_db(self, flat: dict) -> dict:
+        _require(flat, "remote_peers", label="atomdb")
 
-        remote_peers = _get(atomdb, "remote_peers")
+        remote_peers = flat["remote_peers"]
         if not isinstance(remote_peers, list):
             raise ValueError("atomdb.remote_peers must be a list")
 
         peers = []
 
         for index, peer in enumerate(remote_peers):
-            peer_label = f"atomdb.remote_peers[{index}]"
-            _require(peer, "uid", "type", "context", "local_persistence", label=peer_label)
+            peer_where = f"atomdb.remote_peers[{index}]"
+            _require(peer, "uid", "type", "context", "local_persistence", label=peer_where)
 
-            peer_type = _get(peer, "type")
+            peer_type = peer["type"]
             peer_config = {
-                "uid": _get(peer, "uid"),
+                "uid": peer["uid"],
                 "type": peer_type,
-                "context": _get(peer, "context"),
+                "context": peer["context"],
             }
 
             if peer_type == "redismongodb":
-                _require(peer, *self._REDIS_MONGO_FIELDS, label=peer_label)
+                _require(peer, *self._REDIS_MONGO_FIELDS, label=peer_where)
                 peer_config["redis"] = {
-                    "endpoint": self._endpoint(
-                        _get(peer, "redis_endpoint"),
-                        _get(peer, "redis_port"),
-                    ),
+                    "endpoint": self._endpoint(peer["redis_endpoint"], peer["redis_port"]),
                     "cluster": False,
                 }
                 peer_config["mongodb"] = {
-                    "endpoint": self._endpoint(
-                        _get(peer, "mongo_endpoint"),
-                        _get(peer, "mongo_port"),
-                    ),
-                    "username": _get(peer, "mongo_username"),
-                    "password": _get(peer, "mongo_password"),
+                    "endpoint": self._endpoint(peer["mongo_endpoint"], peer["mongo_port"]),
+                    "username": peer["mongo_username"],
+                    "password": peer["mongo_password"],
                 }
 
             elif peer_type == "morkdb":
-                _require(peer, *self._MORK_CONNECTION_FIELDS, *self._MONGO_CONNECTION_FIELDS, label=peer_label)
+                _require(peer, *self._MORK_CONNECTION_FIELDS, *self._MONGO_CONNECTION_FIELDS, label=peer_where)
                 peer_config["morkdb"] = {
-                    "endpoint": self._endpoint(
-                        _get(peer, "mork_endpoint"),
-                        _get(peer, "mork_port"),
-                    ),
+                    "endpoint": self._endpoint(peer["mork_endpoint"], peer["mork_port"]),
                 }
                 peer_config["mongodb"] = {
-                    "endpoint": self._endpoint(
-                        _get(peer, "mongo_endpoint"),
-                        _get(peer, "mongo_port"),
-                    ),
-                    "username": _get(peer, "mongo_username"),
-                    "password": _get(peer, "mongo_password"),
+                    "endpoint": self._endpoint(peer["mongo_endpoint"], peer["mongo_port"]),
+                    "username": peer["mongo_username"],
+                    "password": peer["mongo_password"],
                 }
 
             else:
-                raise ValueError(f"Unsupported remote peer type at {peer_label}: {peer_type}")
+                raise ValueError(f"Unsupported remote peer type at {peer_where}: {peer_type}")
 
             peer_config["local_persistence"] = self._build_local_persistence(
-                _get(peer, "local_persistence"),
-                label=f"{peer_label}.local_persistence",
+                peer["local_persistence"],
+                where=f"{peer_where}.local_persistence",
             )
 
             peers.append(peer_config)
@@ -294,107 +276,87 @@ class AtomDbBuilder:
             "remote_peers": peers,
         }
 
-    def _build_local_persistence(self, local, *, label: str) -> dict:
-        _require(local, "type", label=label)
+    def _build_local_persistence(self, flat: dict, *, where: str) -> dict:
+        _require(flat, "type", label=where)
 
-        lp_type = _get(local, "type")
+        lp_type = flat["type"]
         result = {"type": lp_type}
 
         if lp_type == "inmemorydb":
-            if not _is_missing(local, "context"):
-                result["context"] = _get(local, "context")
+            if not _is_missing(flat, "context"):
+                result["context"] = flat["context"]
             return result
 
         if lp_type == "redismongodb":
-            _require(local, "context", *self._REDIS_MONGO_FIELDS, label=label)
-            result["context"] = _get(local, "context")
+            _require(flat, "context", *self._REDIS_MONGO_FIELDS, label=where)
+            result["context"] = flat["context"]
             result["redis"] = {
-                "endpoint": self._endpoint(
-                    _get(local, "redis_endpoint"),
-                    _get(local, "redis_port"),
-                ),
+                "endpoint": self._endpoint(flat["redis_endpoint"], flat["redis_port"]),
                 "cluster": False,
             }
             result["mongodb"] = {
-                "endpoint": self._endpoint(
-                    _get(local, "mongo_endpoint"),
-                    _get(local, "mongo_port"),
-                ),
-                "username": _get(local, "mongo_username"),
-                "password": _get(local, "mongo_password"),
+                "endpoint": self._endpoint(flat["mongo_endpoint"], flat["mongo_port"]),
+                "username": flat["mongo_username"],
+                "password": flat["mongo_password"],
             }
             return result
 
         if lp_type == "morkdb":
-            _require(local, "context", *self._MORK_CONNECTION_FIELDS, *self._MONGO_CONNECTION_FIELDS, label=label)
-            result["context"] = _get(local, "context")
+            _require(flat, "context", *self._MORK_CONNECTION_FIELDS, *self._MONGO_CONNECTION_FIELDS, label=where)
+            result["context"] = flat["context"]
             result["morkdb"] = {
-                "endpoint": self._endpoint(
-                    _get(local, "mork_endpoint"),
-                    _get(local, "mork_port"),
-                ),
+                "endpoint": self._endpoint(flat["mork_endpoint"], flat["mork_port"]),
             }
             result["mongodb"] = {
-                "endpoint": self._endpoint(
-                    _get(local, "mongo_endpoint"),
-                    _get(local, "mongo_port"),
-                ),
-                "username": _get(local, "mongo_username"),
-                "password": _get(local, "mongo_password"),
+                "endpoint": self._endpoint(flat["mongo_endpoint"], flat["mongo_port"]),
+                "username": flat["mongo_username"],
+                "password": flat["mongo_password"],
             }
             return result
 
-        raise ValueError(f"Unsupported local_persistence type at {label}: {lp_type}")
+        raise ValueError(f"Unsupported local_persistence type at {where}: {lp_type}")
 
-    def _build_backend_section(self, backend) -> dict:
-        _require(backend, "type", label="atomdb.atomdb_backend")
+    def _build_backend_section(self, flat_backend: dict) -> dict:
+        _require(flat_backend, "type", label="atomdb.atomdb_backend")
 
-        backend_type = _get(backend, "type")
-        handlers = {
+        backend_type = flat_backend["type"]
+        builders = {
             "redismongodb": self._build_redis_mongo,
             "morkdb": self._build_mork_mongo,
             "inmemorydb": self._build_inmemory_db,
         }
 
-        handler = handlers.get(backend_type)
-        if not handler:
+        builder = builders.get(backend_type)
+        if not builder:
             raise ValueError(f"Unsupported atomdb_backend type: {backend_type}")
 
-        return handler(backend, label="atomdb.atomdb_backend")
+        return builder(flat_backend, where="atomdb.atomdb_backend")
 
-    def _build_adapter_db(self, atomdb) -> dict:
-        _require(atomdb, *self._ADAPTER_FIELDS, label="atomdb")
+    def _build_adapter_db(self, flat: dict) -> dict:
+        _require(flat, *self._ADAPTER_FIELDS, label="atomdb")
 
-        context_mapping_path = validate_context_mapping_path(
-            _get(atomdb, "context_mapping_path")
-        )
-        export_metta_output_dir = _get(atomdb, "export_metta_output_dir", "")
+        context_mapping_path = validate_context_mapping_path(flat["context_mapping_path"])
 
         return {
             "type": "adapterdb",
             "adapterdb": {
-                "endpoint": self._endpoint(
-                    _get(atomdb, "adapter_endpoint"),
-                    _get(atomdb, "adapter_port"),
-                ),
-                "type": _get(atomdb, "adapter_type"),
+                "endpoint": self._endpoint(flat["adapter_endpoint"], flat["adapter_port"]),
+                "type": flat["adapter_type"],
                 "database_credentials": {
-                    "host": _get(atomdb, "db_host"),
-                    "port": _get(atomdb, "db_port"),
-                    "username": _get(atomdb, "db_username"),
-                    "password": _get(atomdb, "db_password"),
-                    "database": _get(atomdb, "db_name"),
+                    "host": flat["db_host"],
+                    "port": flat["db_port"],
+                    "username": flat["db_username"],
+                    "password": flat["db_password"],
+                    "database": flat["db_name"],
                 },
                 "context_mapping_paths": [context_mapping_path],
                 "export_metta_on_mapping": {
-                    "enabled": _get(atomdb, "export_metta_enabled"),
-                    "output_dir": export_metta_output_dir,
+                    "enabled": flat["export_metta_enabled"],
+                    "output_dir": flat.get("export_metta_output_dir", ""),
                 },
                 "persistence": {
-                    "reuse_mongodb": _get(atomdb, "persistence_reuse_mongodb")
+                    "reuse_mongodb": flat["persistence_reuse_mongodb"],
                 },
-                "atomdb_backend": self._build_backend_section(
-                    _get(atomdb, "atomdb_backend")
-                ),
+                "atomdb_backend": self._build_backend_section(flat["atomdb_backend"]),
             },
         }

@@ -93,6 +93,7 @@ export function SideBar() {
             <ArchitectureActionControl
               atomDbOnline={atomDbOnline}
               architectureOnline={architectureOnline}
+              mergedServices={mergedServices}
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.architecture}
               onBusyChange={(busy) => setActionBusy("architecture", busy)}
