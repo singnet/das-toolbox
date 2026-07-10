@@ -1,15 +1,28 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from shared.enums.action_types import ActionTypes
+from shared.exceptions.custom_exceptions import DasCliCommandException
 from services_init import CONTAINER_SERVICES
 
 router = APIRouter(prefix="/services", tags=["Orchestration & Services"])
 
 @router.post("/orchestration/start")
-def start_orchestration():
-    result = CONTAINER_SERVICES.orchestrate_architecture(
-        action=ActionTypes.START,
-    )
+def start_orchestration(services: list[str]):
+    if not services:
+        raise HTTPException(status_code=400, detail="At least one service is required.")
+
+    try:
+        result = CONTAINER_SERVICES.orchestrate_architecture(
+            action=ActionTypes.START,
+            services=services,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    
+    except DasCliCommandException as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     return JSONResponse(
         status_code=200,
         content={
@@ -19,10 +32,20 @@ def start_orchestration():
     )
 
 @router.post("/orchestration/stop")
-def stop_orchestration():
-    result = CONTAINER_SERVICES.orchestrate_architecture(
-        action=ActionTypes.STOP,
-    )
+def stop_orchestration(services: list[str]):
+    if not services:
+        raise HTTPException(status_code=400, detail="At least one service is required.")
+
+    try:
+        result = CONTAINER_SERVICES.orchestrate_architecture(
+            action=ActionTypes.STOP,
+            services=services,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except DasCliCommandException as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     return JSONResponse(
         status_code=200,
         content={

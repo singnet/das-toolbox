@@ -1,11 +1,12 @@
 class DasCliCommandException(Exception):
 
-    def __init__(self, stderror : str):
-
+    def __init__(self, stderror: str):
         self.message = "There was an error while running das-cli."
         self.stderror = stderror
+        super().__init__(stderror)
 
-        super().__init__(self.message, self.stderror)
+    def __str__(self) -> str:
+        return self.stderror
 
 class DasCliNotInstalledException(Exception):
 
@@ -96,6 +97,14 @@ class DASServiceInstantiationError(Exception):
         self.message = "There was an error while trying to resolve this service. Command cannot be executed."
 
 class DASCLIResponseDecodeError(Exception):
-    
-    def __init__(self):
-        self.message = "DAS-CLI Returned a message in a format it could not be read by the server. Try running the command manually to check the results."
+
+    def __init__(self, detail: str = ""):
+        self.message = (
+            "DAS-CLI returned a message in a format the server could not read. "
+            "Try running the command manually to check the results."
+        )
+        self.detail = detail
+        super().__init__(self.detail or self.message)
+
+    def __str__(self) -> str:
+        return self.detail or self.message
