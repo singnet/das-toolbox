@@ -56,11 +56,15 @@ def stop_orchestration(services: list[str]):
 
 @router.post("/atomdb/start")
 def start_databases():
-    result = CONTAINER_SERVICES.manage_container(
-        container_name=None,
-        command="db",
-        action=ActionTypes.START,
-    )
+    try:
+        result = CONTAINER_SERVICES.manage_container(
+            container_name=None,
+            command="db",
+            action=ActionTypes.START,
+        )
+    except DasCliCommandException as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     return JSONResponse(
         status_code=200,
         content={
@@ -71,11 +75,15 @@ def start_databases():
 
 @router.post("/atomdb/stop")
 def stop_databases():
-    result = CONTAINER_SERVICES.manage_container(
-        container_name=None,
-        command="db",
-        action=ActionTypes.STOP,
-    )
+    try:
+        result = CONTAINER_SERVICES.manage_container(
+            container_name=None,
+            command="db",
+            action=ActionTypes.STOP,
+        )
+    except DasCliCommandException as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     return JSONResponse(
         status_code=200,
         content={

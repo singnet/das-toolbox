@@ -193,6 +193,7 @@ class ContainerServices:
         return cmd
 
     def run_das_cli_command(self, command: list):
+        result = None
         try:
             result = subprocess.run(
                 command,
@@ -215,10 +216,17 @@ class ContainerServices:
             raise DasCliCommandException(error_output)
 
         except json.JSONDecodeError as e:
-            raise DASCLIResponseDecodeError(str(e))
-
-        except DASCLIResponseDecodeError:
-            raise
+            output = self._clean_cli_output(result.stdout if result else "")
+            if result is not None and not output:
+                return {
+                    "success": True,
+                    "stdout": None,
+                    "stderr": result.stderr,
+                    "command": command,
+                }
+            raise DasCliCommandException(
+                f"Could not parse das-cli output as JSON: {output or '(empty)'}"
+            ) from e
 
         except DasCliCommandException:
             raise
@@ -228,6 +236,19 @@ class ContainerServices:
 
     def _parse_das_cli_stdout(self, stdout: str):
         cleaned = self._ANSI_ESCAPE.sub("", stdout.strip())
+        if not cleaned:
+            raise json.JSONDecodeError("Empty das-cli output", "", 0)
+
+        parsers = (
+            lambda text: json.loads(text),
+            lambda text: json.loads(text.replace("\n", "")),
+        )
+
+        for parse in parsers:
+            try:
+                return parse(cleaned)
+            except json.JSONDecodeError:
+                continue
 
         for line in reversed(cleaned.splitlines()):
             candidate = line.strip()
