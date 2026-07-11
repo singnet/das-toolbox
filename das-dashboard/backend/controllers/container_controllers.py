@@ -11,17 +11,10 @@ def start_orchestration(services: list[str]):
     if not services:
         raise HTTPException(status_code=400, detail="At least one service is required.")
 
-    try:
-        result = CONTAINER_SERVICES.orchestrate_architecture(
-            action=ActionTypes.START,
-            services=services,
-        )
-
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    
-    except DasCliCommandException as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    result = CONTAINER_SERVICES.orchestrate_architecture(
+        action=ActionTypes.START,
+        services=services,
+    )
 
     return JSONResponse(
         status_code=200,
@@ -36,15 +29,11 @@ def stop_orchestration(services: list[str]):
     if not services:
         raise HTTPException(status_code=400, detail="At least one service is required.")
 
-    try:
-        result = CONTAINER_SERVICES.orchestrate_architecture(
-            action=ActionTypes.STOP,
-            services=services,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except DasCliCommandException as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    result = CONTAINER_SERVICES.orchestrate_architecture(
+        action=ActionTypes.STOP,
+        services=services,
+    )
+
 
     return JSONResponse(
         status_code=200,
@@ -56,14 +45,13 @@ def stop_orchestration(services: list[str]):
 
 @router.post("/atomdb/start")
 def start_databases():
-    try:
-        result = CONTAINER_SERVICES.manage_container(
-            container_name=None,
-            command="db",
-            action=ActionTypes.START,
-        )
-    except DasCliCommandException as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    result = CONTAINER_SERVICES.manage_container(
+        container_name=None,
+        command="db",
+        action=ActionTypes.START,
+    )
+
 
     return JSONResponse(
         status_code=200,
@@ -75,14 +63,12 @@ def start_databases():
 
 @router.post("/atomdb/stop")
 def stop_databases():
-    try:
-        result = CONTAINER_SERVICES.manage_container(
-            container_name=None,
-            command="db",
-            action=ActionTypes.STOP,
-        )
-    except DasCliCommandException as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    result = CONTAINER_SERVICES.manage_container(
+        container_name=None,
+        command="db",
+        action=ActionTypes.STOP,
+    )
 
     return JSONResponse(
         status_code=200,
@@ -94,10 +80,12 @@ def stop_databases():
 
 @router.post("/{container_name}/start")
 def start_service(container_name: str):
+
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.START,
     )
+
     return JSONResponse(
         status_code=200,
         content={
@@ -108,10 +96,12 @@ def start_service(container_name: str):
 
 @router.post("/{container_name}/stop")
 def stop_service(container_name: str):
+    
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.STOP,
     )
+
     return JSONResponse(
         status_code=200,
         content={

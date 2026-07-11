@@ -41,6 +41,7 @@ class ContainerServices:
         container_name: str = None,
         command: str = None,
     ):
+        
         if command is None:
             try:
                 service = DASServices.from_container(container_name)
@@ -51,12 +52,12 @@ class ContainerServices:
             service = DASServices.from_command(command)
             host = self._resolve_service_host(service)
 
-        generated_command = self.build_das_cli_command(
-            host=host,
-            service=service,
-            action=action.value,
-        )
-        return self.run_das_cli_command(generated_command)
+        try:
+            generated_command = self.build_das_cli_command(host=host, service=service, action=action.value)
+            return self.run_das_cli_command(generated_command)
+        
+        except DasCliCommandException as e:
+            raise e
 
     def orchestrate_architecture(self, action: ActionTypes, services: list[str]):
         ordered_services = self._order_services(services, action)
@@ -224,6 +225,7 @@ class ContainerServices:
                     "stderr": result.stderr,
                     "command": command,
                 }
+            
             raise DasCliCommandException(
                 f"Could not parse das-cli output as JSON: {output or '(empty)'}"
             ) from e
@@ -232,7 +234,9 @@ class ContainerServices:
             raise
 
         except Exception as e:
-            raise DasCliCommandException(str(e))
+            details = str(e) or e.__class__.__name__
+
+            raise DasCliCommandException(details)
 
     def _parse_das_cli_stdout(self, stdout: str):
         cleaned = self._ANSI_ESCAPE.sub("", stdout.strip())

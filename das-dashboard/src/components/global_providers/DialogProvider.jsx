@@ -21,6 +21,7 @@ export function DialogProvider({ children }) {
     title: "",
     message: "",
     onConfirm: null,
+    onCancel: null,
     type: "info"
   })
 
@@ -33,33 +34,43 @@ export function DialogProvider({ children }) {
       title,
       message,
       type: "info",
-      onConfirm: null
+      onConfirm: null,
+      onCancel: null
     })
   }
 
   const showConfirm = ({
     title = "Confirm",
     message,
-    onConfirm
+    onConfirm,
+    onCancel
   }) => {
     setDialog({
       open: true,
       title,
       message,
       type: "confirm",
-      onConfirm
+      onConfirm,
+      onCancel
     })
   }
 
   const closeDialog = () => {
     setDialog(prev => ({
       ...prev,
-      open: false
+      open: false,
+      onConfirm: null,
+      onCancel: null
     }))
   }
 
   const handleConfirm = () => {
     dialog.onConfirm?.()
+    closeDialog()
+  }
+
+  const handleCancel = () => {
+    dialog.onCancel?.()
     closeDialog()
   }
 
@@ -74,7 +85,7 @@ export function DialogProvider({ children }) {
 
       <Dialog
         open={dialog.open}
-        onClose={closeDialog}
+        onClose={handleCancel}
       >
         <DialogTitle>
           {dialog.title}
@@ -89,7 +100,7 @@ export function DialogProvider({ children }) {
         <DialogActions>
           {dialog.type === "confirm" ? (
             <>
-              <Button onClick={closeDialog}>
+              <Button onClick={handleCancel}>
                 Cancel
               </Button>
 

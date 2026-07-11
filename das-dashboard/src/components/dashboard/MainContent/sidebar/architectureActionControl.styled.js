@@ -2,6 +2,15 @@ import { Box, Checkbox, ListItemIcon, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 
+const buttonReset = {
+  margin: 0,
+  font: "inherit",
+  color: "inherit",
+  background: "none",
+  border: "none",
+  textAlign: "left",
+};
+
 export const ControlRoot = styled(Box)({
   marginBottom: 2,
   borderRadius: 8,
@@ -23,9 +32,10 @@ export const ActionRow = styled(Box)({
   overflow: "hidden",
 });
 
-export const PrimaryAction = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "disabled" && prop !== "online",
+export const PrimaryAction = styled("button", {
+  shouldForwardProp: (prop) => prop !== "online",
 })(({ disabled, online }) => ({
+  ...buttonReset,
   flex: 1,
   display: "flex",
   alignItems: "center",
@@ -46,13 +56,15 @@ export const PrimaryAction = styled(Box, {
   }),
 }));
 
-export const ExpandToggle = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "disabled" && prop !== "expanded",
+export const ExpandToggle = styled("button", {
+  shouldForwardProp: (prop) => prop !== "expanded",
 })(({ disabled, expanded }) => ({
+  ...buttonReset,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   width: 36,
+  padding: 0,
   borderLeft: `1px solid ${palette.borderSubtle}`,
   color: disabled ? palette.textMuted : palette.textSecondary,
   cursor: disabled ? "not-allowed" : "pointer",

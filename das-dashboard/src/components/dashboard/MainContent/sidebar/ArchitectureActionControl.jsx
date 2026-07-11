@@ -117,10 +117,6 @@ export function ArchitectureActionControl({
   };
 
   const handleArchitectureAction = () => {
-    if (!atomDbOnline) {
-      showToast({ message: "AtomDB must be online before starting architecture.", severity: "warning" });
-      return;
-    }
 
     if (architectureOnline) {
       const toStop = [...selectedAgents, "query-agent", "attention-broker"];
@@ -136,6 +132,11 @@ export function ArchitectureActionControl({
             "Failed to stop architecture."
           ),
       });
+      return;
+    }
+
+    if (!atomDbOnline) {
+      showToast({ message: "AtomDB must be online before starting architecture.", severity: "warning" });
       return;
     }
 
@@ -168,9 +169,10 @@ export function ArchitectureActionControl({
     <ControlRoot data-expanded={expanded}>
       <ActionRow>
         <PrimaryAction
+          type="button"
           disabled={!canSubmit}
           online={architectureOnline}
-          onClick={() => canSubmit && handleArchitectureAction()}
+          onClick={handleArchitectureAction}
         >
           <ActionIcon>
             {isLoading ? (
@@ -185,8 +187,11 @@ export function ArchitectureActionControl({
         </PrimaryAction>
 
         <ExpandToggle
+          type="button"
           disabled={isActionDisabled}
           expanded={expanded}
+          aria-expanded={expanded}
+          aria-label={expanded ? "Collapse agent selection" : "Expand agent selection"}
           onClick={(event) => {
             event.stopPropagation();
             if (!isActionDisabled) {
