@@ -1,21 +1,18 @@
 import { Table, TableHead, TableRow, TableBody } from "@mui/material";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
+import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
 import { stopService, restartService, startService } from "../../../../api/ServicesAPI";
 import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
 import { ServerInfoHeader } from "./ServerInfoHeader";
-import { useToast } from "../../../global_providers/ToastProvider"
+import { useToast } from "../../../global_providers/ToastProvider";
 
 export function AgentTable({ machine }) {
   const { showToast } = useToast();
-  
-  const {
-    mergedServices,
-    currentService,
-    setCurrentService,
-    currentMachine
-  } = useDashboardContext();
+
+  const { currentMachine, currentService, setCurrentService } = useDashboardContext();
+  const { hostMergedServices } = useServerTabMetricsContext();
 
   const getStatusColor = (status) => {
     if (status === "running") return "success";
@@ -52,7 +49,6 @@ export function AgentTable({ machine }) {
         await restartService(containerName, host);
         showToast({ message: `Service ${containerName} restarted successfully!`, severity: "success" });
       }
-
     } catch (error) {
       console.error("Error while executing action:", error);
       showToast({
@@ -84,10 +80,10 @@ export function AgentTable({ machine }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {mergedServices.length === 0 ? (
+            {hostMergedServices.length === 0 ? (
               <EmptyContent />
             ) : (
-              mergedServices.map((service) => (
+              hostMergedServices.map((service) => (
                 <AgentRow
                   key={service.service_key}
                   agent={service}

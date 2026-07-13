@@ -6,23 +6,22 @@ import { MemoryViewChart } from "./charts/MemoryViewChart";
 import { AgentTable } from "./servicestable/ServicesTable";
 import { LoadingOverlay, EmptyState, ChartPlaceholder } from "./LoadingSkeleton";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { useServerTabMetricsContext } from "../../global_providers/ServerTabMetricsProvider";
 import { ChartPanel, MainBoxGrid, TableBox } from "./maincontent.styled";
 
 export function MainContent() {
+  const { machines, currentMachine, currentService } = useDashboardContext();
   const {
-    machines,
-    machineStats,
-    currentMachine,
-    currentService,
-    mergedServices,
-    isSwitchingHost,
-    connectionError,
-    aggregatedMetrics,
-  } = useDashboardContext();
+    hostMachineStats,
+    hostMergedServices,
+    hostStreamSwitching,
+    hostStreamError,
+    hostMetricsRollup,
+  } = useServerTabMetricsContext();
 
   const selectedService = useMemo(
-    () => mergedServices?.find((service) => service.service_key === currentService),
-    [mergedServices, currentService]
+    () => hostMergedServices?.find((service) => service.service_key === currentService),
+    [hostMergedServices, currentService]
   );
 
   const chartContainerName = selectedService?.is_running
@@ -34,10 +33,10 @@ export function MainContent() {
   );
 
   const hasChartData = useMemo(() => {
-    return aggregatedMetrics?.agents?.some(
+    return hostMetricsRollup?.agents?.some(
       (agent) => agent.cpu?.length > 0 || agent.memory?.length > 0
     );
-  }, [aggregatedMetrics]);
+  }, [hostMetricsRollup]);
 
   const offlineChartPlaceholder = (
     <ChartPlaceholder
@@ -46,10 +45,10 @@ export function MainContent() {
     />
   );
 
-  if (connectionError) {
+  if (hostStreamError) {
     return (
       <MainBoxGrid>
-        <EmptyState title={connectionError.title} description={connectionError.description} icon={ErrorIcon} />
+        <EmptyState title={hostStreamError.title} description={hostStreamError.description} icon={ErrorIcon} />
       </MainBoxGrid>
     );
   }
@@ -62,7 +61,7 @@ export function MainContent() {
     );
   }
 
-  if (isSwitchingHost) {
+  if (hostStreamSwitching) {
     return (
       <MainBoxGrid>
         <LoadingOverlay text="Connecting and establishing stream..." />
@@ -78,9 +77,9 @@ export function MainContent() {
         <ChartPanel>
           <CPUViewChart
             key={`cpu-${currentMachine?.serverIp}`}
-            machine={aggregatedMetrics}
+            machine={hostMetricsRollup}
             currentService={chartContainerName}
-            stats={machineStats}
+            stats={hostMachineStats}
           />
         </ChartPanel>
       ) : (
@@ -93,9 +92,9 @@ export function MainContent() {
         <ChartPanel>
           <MemoryViewChart
             key={`memory-${currentMachine?.serverIp}`}
-            machine={aggregatedMetrics}
+            machine={hostMetricsRollup}
             currentService={chartContainerName}
-            stats={machineStats}
+            stats={hostMachineStats}
           />
         </ChartPanel>
       ) : (

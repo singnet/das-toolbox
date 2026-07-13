@@ -21,15 +21,14 @@ export const restartService = (containerName, host) =>
     serviceAction(normalizeContainerName(containerName), "restart", host);
 
 
-async function orchestrationAction(action, host = "localhost") {
-  const response = await api.post(`/services/orchestration/${action}`, null, {
-    params: { host }
-  });
+async function orchestrationAction(action, services) {
+  const response = await api.post(`/services/orchestration/${action}`, services);
   return response.data;
 }
 
-export const startArchitecture = (host) => orchestrationAction("start", host);
-export const stopArchitecture = (host) => orchestrationAction("stop", host);
+export const startArchitecture = (services) => orchestrationAction("start", services);
+
+export const stopArchitecture = (services) => orchestrationAction("stop", services);
 
 
 async function atomDbAction(action, host = "localhost") {

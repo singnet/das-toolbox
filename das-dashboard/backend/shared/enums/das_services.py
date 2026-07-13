@@ -50,6 +50,12 @@ class DASServices(Enum):
         "requires_peer": False,
     }
 
+    COMMAND_ROUTER = {
+        "pattern": "das-command-router",
+        "command": "command-router",
+        "requires_peer": False,
+    }
+
     @classmethod
     def from_container(cls, container_name: str):
 

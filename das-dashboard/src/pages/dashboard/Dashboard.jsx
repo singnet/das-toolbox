@@ -2,8 +2,10 @@ import ArchitectureView from "../../components/dashboard/ArchitectureView/Archit
 import { MainContent } from "../../components/dashboard/MainContent/MainContent";
 import { ServerTab } from "../../components/dashboard/MainContent/servertab/ServerTab";
 import { SideBar } from "../../components/dashboard/MainContent/sidebar/SideBar";
-
+import { ServerTabMetricsProvider } from "../../components/global_providers/ServerTabMetricsProvider";
+import { ArchitectureTabMetricsProvider } from "../../components/global_providers/ArchitectureTabMetricsProvider";
 import { useDashboardContext } from "../../components/global_providers/DashboardContextProvider";
+import { useServerTabMetricsContext } from "../../components/global_providers/ServerTabMetricsProvider";
 
 import {
   PageContainer,
@@ -18,14 +20,16 @@ import {
   SoftAlert
 } from "./Dashboard.styled";
 
-export default function DashboardPage() {
-  const { currentContext, machines, currentMachine, connectionError } = useDashboardContext();
+function DashboardPageContent() {
+  const { currentContext, machines, currentMachine } = useDashboardContext();
+  const { hostStreamError } = useServerTabMetricsContext();
 
   const isAgentsView = currentContext === "agents";
   const hasServers = machines && machines.length > 0;
   const viewLabel = isAgentsView ? "Agents" : "Servers";
+  const showServerStreamError = !isAgentsView && hostStreamError;
 
-  const pageTitle = connectionError
+  const pageTitle = showServerStreamError
     ? "Connection failed"
     : !hasServers
       ? "No servers configured"
@@ -33,8 +37,8 @@ export default function DashboardPage() {
         ? "Architecture overview"
         : `${currentMachine?.serverIp || "Select server"} · Metrics overview`;
 
-  const pageSubtitle = connectionError
-    ? connectionError.title
+  const pageSubtitle = showServerStreamError
+    ? hostStreamError.title
     : !hasServers
       ? "Save your configuration on the Configuration page first."
       : isAgentsView
@@ -53,15 +57,15 @@ export default function DashboardPage() {
                 Dashboard <span>›</span> {viewLabel}
               </Breadcrumb>
               <ContentTitle>{pageTitle}</ContentTitle>
-              {!connectionError && (hasServers || isAgentsView) && (
+              {!showServerStreamError && (hasServers || isAgentsView) && (
                 <ContentSubtitle>{pageSubtitle}</ContentSubtitle>
               )}
             </ContentHeaderText>
           </ContentHeaderMain>
 
-          {connectionError && (
+          {showServerStreamError && (
             <SoftAlert>
-              {connectionError.description || connectionError.title}
+              {hostStreamError.description || hostStreamError.title}
             </SoftAlert>
           )}
 
@@ -73,5 +77,15 @@ export default function DashboardPage() {
         </ContentBody>
       </ContentContainer>
     </PageContainer>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ServerTabMetricsProvider>
+      <ArchitectureTabMetricsProvider>
+        <DashboardPageContent />
+      </ArchitectureTabMetricsProvider>
+    </ServerTabMetricsProvider>
   );
 }

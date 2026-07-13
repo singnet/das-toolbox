@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { useArchitectureTabMetricsContext } from "../../global_providers/ArchitectureTabMetricsProvider";
 import { Container, Grid } from "./architectureview.styled";
 import { ServiceChart } from "./ServiceChart";
 import { ServerCard } from "./ServerCard";
@@ -46,21 +46,21 @@ function buildServiceCard(service, history = { cpu: [], memory: [] }) {
 }
 
 export default function ArchitectureView() {
-  const { allMergedServices, aggregatedMetricsByHost, allMachinesLastUpdate } =
-    useDashboardContext();
+  const { fleetMergedServices, fleetMetricsByHost, fleetStreamTick } =
+    useArchitectureTabMetricsContext();
   const [tab, setTab] = useState(0);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   const processedServices = useMemo(() => {
-    return allMergedServices.map((service) => {
+    return fleetMergedServices.map((service) => {
       const history =
-        aggregatedMetricsByHost[service.serverIp]?.agents?.find(
+        fleetMetricsByHost[service.serverIp]?.agents?.find(
           (agent) => agent.name === service.container_name
         ) || { cpu: [], memory: [] };
 
       return buildServiceCard(service, history);
     });
-  }, [allMergedServices, aggregatedMetricsByHost, allMachinesLastUpdate]);
+  }, [fleetMergedServices, fleetMetricsByHost, fleetStreamTick]);
 
   const filteredServices = processedServices.filter(
     (service) => service.type === TAB_CATEGORIES[tab]

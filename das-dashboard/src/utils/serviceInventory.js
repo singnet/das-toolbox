@@ -1,10 +1,14 @@
 const EMPTY_VALUE = "-";
-const ATOMDB_MARKERS = ["mongodb", "redis", "morkdb"];
-const ARCH_MARKERS = ["agent", "broker"];
 
 function containerMatches(containerName, patterns, serviceKey) {
   const matchPatterns = patterns?.length ? patterns : [serviceKey];
-  return matchPatterns.some((pattern) => containerName.includes(pattern));
+  return matchPatterns.some((pattern) =>
+    String(containerName ?? "").toLowerCase().includes(String(pattern).toLowerCase())
+  );
+}
+
+function isRunningStatus(status) {
+  return String(status ?? "").toLowerCase() === "running";
 }
 
 export function mergeHostServices(expectedServices = [], runtimeServices = []) {
@@ -23,7 +27,7 @@ export function mergeHostServices(expectedServices = [], runtimeServices = []) {
       usedContainers.add(runtime.container_name);
     }
 
-    const isRunning = runtime?.status === "running";
+    const isRunning = isRunningStatus(runtime?.status);
 
     return {
       service_key: expected.key,
@@ -43,9 +47,20 @@ export function mergeHostServices(expectedServices = [], runtimeServices = []) {
 }
 
 export function getInfraStatus(services = []) {
+  const ATOMDB_MARKERS = ["mongodb", "redis", "morkdb"];
+  const ARCH_MARKERS = [
+    "query-engine",
+    "attention-broker",
+    "context-broker",
+    "command-router",
+    "link-creation",
+    "inference",
+    "evolution",
+  ];
+
   const running = services.filter((service) => service.is_running);
   const nameMatches = (name, markers) =>
-    markers.some((marker) => name?.includes(marker));
+    markers.some((marker) => String(name ?? "").toLowerCase().includes(marker));
 
   return {
     atomDbOnline: running.some((service) =>

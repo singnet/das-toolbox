@@ -1,15 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from shared.enums.action_types import ActionTypes
+from shared.exceptions.custom_exceptions import DasCliCommandException
 from services_init import CONTAINER_SERVICES
 
 router = APIRouter(prefix="/services", tags=["Orchestration & Services"])
 
 @router.post("/orchestration/start")
-def start_orchestration():
+def start_orchestration(services: list[str]):
+    if not services:
+        raise HTTPException(status_code=400, detail="At least one service is required.")
+
     result = CONTAINER_SERVICES.orchestrate_architecture(
         action=ActionTypes.START,
+        services=services,
     )
+
     return JSONResponse(
         status_code=200,
         content={
@@ -19,10 +25,16 @@ def start_orchestration():
     )
 
 @router.post("/orchestration/stop")
-def stop_orchestration():
+def stop_orchestration(services: list[str]):
+    if not services:
+        raise HTTPException(status_code=400, detail="At least one service is required.")
+
     result = CONTAINER_SERVICES.orchestrate_architecture(
         action=ActionTypes.STOP,
+        services=services,
     )
+
+
     return JSONResponse(
         status_code=200,
         content={
@@ -33,11 +45,14 @@ def stop_orchestration():
 
 @router.post("/atomdb/start")
 def start_databases():
+
     result = CONTAINER_SERVICES.manage_container(
         container_name=None,
         command="db",
         action=ActionTypes.START,
     )
+
+
     return JSONResponse(
         status_code=200,
         content={
@@ -48,11 +63,13 @@ def start_databases():
 
 @router.post("/atomdb/stop")
 def stop_databases():
+
     result = CONTAINER_SERVICES.manage_container(
         container_name=None,
         command="db",
         action=ActionTypes.STOP,
     )
+
     return JSONResponse(
         status_code=200,
         content={
@@ -63,10 +80,12 @@ def stop_databases():
 
 @router.post("/{container_name}/start")
 def start_service(container_name: str):
+
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.START,
     )
+
     return JSONResponse(
         status_code=200,
         content={
@@ -77,10 +96,12 @@ def start_service(container_name: str):
 
 @router.post("/{container_name}/stop")
 def stop_service(container_name: str):
+    
     result = CONTAINER_SERVICES.manage_container(
         container_name=container_name,
         action=ActionTypes.STOP,
     )
+
     return JSONResponse(
         status_code=200,
         content={

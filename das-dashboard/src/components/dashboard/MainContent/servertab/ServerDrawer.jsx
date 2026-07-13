@@ -18,6 +18,7 @@ export function ServerDrawer({
   currentMachine,
   selectMachine,
   setStatusColor,
+  hostStreamConnected = false,
 }) {
   return (
     <Drawer
@@ -64,14 +65,20 @@ export function ServerDrawer({
             >
               <StatusIcon
                 sx={{
-                  color: setStatusColor(server.running),
+                  color: setStatusColor(
+                    server.serverIp === currentMachine?.serverIp && hostStreamConnected
+                  ),
                   mr: 1.5,
                 }}
               />
 
               <ListItemText
                 primary={server.serverIp}
-                secondary={server.running ? "Online" : "Offline"}
+                secondary={
+                  server.serverIp === currentMachine?.serverIp && hostStreamConnected
+                    ? "Online"
+                    : "Offline"
+                }
                 primaryTypographyProps={{
                   fontSize: 13,
                   fontWeight: 500,
