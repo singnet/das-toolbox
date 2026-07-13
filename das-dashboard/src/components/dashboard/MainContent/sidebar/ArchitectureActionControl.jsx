@@ -33,38 +33,24 @@ const AGENT_SERVICES = [
   { id: "command-router", label: "Command Router" },
 ];
 
-const START_ORDER = [
-  "attention-broker",
-  "query-agent",
-  "atomdb-broker",
-  "command-router",
-  "context-broker",
-  "link-creation-agent",
-  "evolution-agent",
-  "inference-agent",
-];
+const CORE_TOOLTIP =
+  "'Core' refers to necessary services to start/connect to other agents; disabling them can cause the architecture to be unusable or prone to failure.";
 
-const AGENTS_LOCKED_TOOLTIP =
-  "Start Attention Broker and Query Agent before managing other agents.";
+const AGENTS_TOOLTIP = "DAS Agents and services"
 
-function isServiceRunning(services, serviceId) {
-  return services.some(
-    (service) => service.service_key === serviceId && service.is_running
-  );
-}
+const ALL_SERVICES = [...CORE_SERVICES, ...AGENT_SERVICES];
 
 export function ArchitectureActionControl({
   atomDbOnline,
   architectureOnline,
-  mergedServices = [],
   isServerOffline,
   disabled = false,
   onBusyChange,
   onActionComplete,
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [selectedAgents, setSelectedAgents] = useState(() =>
-    AGENT_SERVICES.map((service) => service.id)
+  const [selectedServices, setSelectedServices] = useState(() =>
+    ALL_SERVICES.map((service) => service.id)
   );
   const [loadingAction, setLoadingAction] = useState(null);
 
@@ -73,29 +59,12 @@ export function ArchitectureActionControl({
 
   const isLoading = !!loadingAction;
 
-  const coreOnline =
-    isServiceRunning(mergedServices, "attention-broker") &&
-    isServiceRunning(mergedServices, "query-agent");
-
-  const agentsLocked = architectureOnline && !coreOnline;
-  const agentsEnabled = !agentsLocked;
-
   const isActionDisabled =
     disabled || isLoading || isServerOffline || (!atomDbOnline && !architectureOnline);
 
   const setBusy = (actionKey) => {
     setLoadingAction(actionKey);
     onBusyChange?.(!!actionKey);
-  };
-
-  const runServices = async (serviceIds, action) => {
-    const ordered =
-      action === "start"
-        ? START_ORDER.filter((id) => serviceIds.includes(id))
-        : [...START_ORDER].reverse().filter((id) => serviceIds.includes(id));
-
-    const fn = action === "start" ? startArchitecture : stopArchitecture;
-    return fn(ordered);
   };
 
   const executeAsyncAction = async (actionKey, action, successMessage, errorMessage) => {
@@ -119,15 +88,18 @@ export function ArchitectureActionControl({
   const handleArchitectureAction = () => {
 
     if (architectureOnline) {
-      const toStop = [...selectedAgents, "query-agent", "attention-broker"];
+      if (!selectedServices.length) {
+        showToast({ message: "Select at least one service to stop.", severity: "warning" });
+        return;
+      }
 
       showConfirm({
         title: "Stop DAS Services",
-        message: "Stop selected agents, then Query Agent and Attention Broker?",
+        message: `Stop ${selectedServices.length} selected service(s)?`,
         onConfirm: () =>
           executeAsyncAction(
             "stop-architecture",
-            () => runServices(toStop, "stop"),
+            () => stopArchitecture(selectedServices),
             "Architecture stopped successfully.",
             "Failed to stop architecture."
           ),
@@ -140,30 +112,31 @@ export function ArchitectureActionControl({
       return;
     }
 
-    const toStart = [...CORE_SERVICES.map((s) => s.id), ...selectedAgents];
+    if (!selectedServices.length) {
+      showToast({ message: "Select at least one service to start.", severity: "warning" });
+      return;
+    }
 
     showConfirm({
       title: "Start Architecture",
-      message: "Start core services first, then selected agents?",
+      message: `Start ${selectedServices.length} selected service(s)?`,
       onConfirm: () =>
         executeAsyncAction(
           "start-architecture",
-          () => runServices(toStart, "start"),
+          () => startArchitecture(selectedServices),
           "Architecture started successfully.",
           "Failed to start architecture."
         ),
     });
   };
 
-  const toggleAgent = (id) => {
-    setSelectedAgents((current) =>
+  const toggleService = (id) => {
+    setSelectedServices((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     );
   };
 
-  const canSubmit =
-    !isActionDisabled &&
-    (architectureOnline || selectedAgents.length > 0 || CORE_SERVICES.length > 0);
+  const canSubmit = !isActionDisabled && selectedServices.length > 0;
 
   return (
     <ControlRoot data-expanded={expanded}>
@@ -205,30 +178,37 @@ export function ArchitectureActionControl({
 
       <Collapse in={expanded}>
         <AgentPanel>
-          <GroupLabel>Core</GroupLabel>
+          <Tooltip title={CORE_TOOLTIP} placement="right">
+            <GroupLabel component="span" sx={{ cursor: "help" }}>
+              Core
+            </GroupLabel>
+          </Tooltip>
           {CORE_SERVICES.map((service) => (
             <AgentOption key={service.id}>
-              <AgentCheckbox size="small" checked disabled />
+              <AgentCheckbox
+                size="small"
+                checked={selectedServices.includes(service.id)}
+                onChange={() => toggleService(service.id)}
+                disabled={isActionDisabled}
+              />
               <AgentLabel>{service.label}</AgentLabel>
             </AgentOption>
           ))}
 
-          <Tooltip title={agentsLocked ? AGENTS_LOCKED_TOOLTIP : ""} placement="right">
-            <span>
-              <GroupLabel>Agents</GroupLabel>
-              {AGENT_SERVICES.map((service) => (
-                <AgentOption key={service.id}>
-                  <AgentCheckbox
-                    size="small"
-                    checked={selectedAgents.includes(service.id)}
-                    onChange={() => toggleAgent(service.id)}
-                    disabled={isActionDisabled || !agentsEnabled}
-                  />
-                  <AgentLabel>{service.label}</AgentLabel>
-                </AgentOption>
-              ))}
-            </span>
+          <Tooltip title={AGENTS_TOOLTIP} placement="right">
+            <GroupLabel component="span" sx={{ cursor: "help" }}>Agents</GroupLabel>
           </Tooltip>
+          {AGENT_SERVICES.map((service) => (
+            <AgentOption key={service.id}>
+              <AgentCheckbox
+                size="small"
+                checked={selectedServices.includes(service.id)}
+                onChange={() => toggleService(service.id)}
+                disabled={isActionDisabled}
+              />
+              <AgentLabel>{service.label}</AgentLabel>
+            </AgentOption>
+          ))}
         </AgentPanel>
       </Collapse>
     </ControlRoot>

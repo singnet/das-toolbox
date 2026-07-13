@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, IconButton } from "@mui/material";
 import { Menu as MenuIcon } from "@mui/icons-material";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
+import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
 import { ServerDrawer } from "./ServerDrawer";
 import {
   Container,
@@ -14,12 +15,8 @@ import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 const MAX_VISIBLE_TABS = 8;
 
 export function ServerTab() {
-  const {
-    machines,
-    currentMachine,
-    setCurrentMachine,
-    connectionError,
-  } = useDashboardContext();
+  const { machines, currentMachine, setCurrentMachine } = useDashboardContext();
+  const { hostStreamConnected, hostStreamError } = useServerTabMetricsContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -29,13 +26,13 @@ export function ServerTab() {
     }
   }, [machines, currentMachine, setCurrentMachine]);
 
-  const setStatusColor = (running) => (running ? palette.accent : palette.textMuted);
+  const setStatusColor = (isActiveHost) => (isActiveHost ? palette.accent : palette.textMuted);
 
   const visibleServers = machines ? machines.slice(0, MAX_VISIBLE_TABS) : [];
   const hiddenServers = machines ? machines.slice(MAX_VISIBLE_TABS) : [];
 
   const selectMachine = (serverIp) => {
-    if (connectionError) return;
+    if (hostStreamError) return;
 
     const selectedMachine = machines.find((m) => m.serverIp === serverIp);
     if (selectedMachine) {
@@ -65,20 +62,22 @@ export function ServerTab() {
           scrollButtons="auto"
           sx={{
             flex: 1,
-            pointerEvents: connectionError ? "none" : "auto",
-            opacity: connectionError ? 0.6 : 1
+            pointerEvents: hostStreamError ? "none" : "auto",
+            opacity: hostStreamError ? 0.6 : 1
           }}
         >
           {visibleServers.map((server) => (
             <StyledTab
               key={server.serverIp}
               value={server.serverIp}
-              disabled={!!connectionError}
+              disabled={!!hostStreamError}
               label={
                 <Box display="flex" alignItems="center" gap={1}>
                   <StatusIcon
                     sx={{
-                      color: setStatusColor(server.running),
+                      color: setStatusColor(
+                        server.serverIp === currentMachine?.serverIp && hostStreamConnected
+                      ),
                     }}
                   />
                   {server.serverIp}
@@ -91,7 +90,7 @@ export function ServerTab() {
         {hiddenServers.length > 0 && (
           <IconButton
             size="small"
-            disabled={!!connectionError}
+            disabled={!!hostStreamError}
             onClick={() => setDrawerOpen(true)}
             sx={{
               color: palette.textSecondary,
@@ -112,6 +111,7 @@ export function ServerTab() {
         currentMachine={currentMachine}
         selectMachine={selectMachine}
         setStatusColor={setStatusColor}
+        hostStreamConnected={hostStreamConnected}
       />
     </Container>
   );

@@ -1,13 +1,13 @@
 import { Box, Typography } from "@mui/material";
-import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
+import { useArchitectureTabMetricsContext } from "../../global_providers/ArchitectureTabMetricsProvider";
 import { CPUViewChart } from "../MainContent/charts/CPUViewChart";
 import { MemoryViewChart } from "../MainContent/charts/MemoryViewChart";
 import { palette } from "../../../pages/setup_das/SetupDasStyled";
 
 export function ServiceChart({ selectedService }) {
-  const { aggregatedMetricsByHost, machineStatsByHost } = useDashboardContext();
+  const { fleetMetricsByHost, fleetHostStatsByHost } = useArchitectureTabMetricsContext();
 
-  const aggregated = aggregatedMetricsByHost[selectedService.serverIp] || { agents: [] };
+  const aggregated = fleetMetricsByHost[selectedService.serverIp] || { agents: [] };
   const machine = {
     agents: aggregated.agents.filter((agent) => agent.name === selectedService.name),
   };
@@ -38,7 +38,7 @@ export function ServiceChart({ selectedService }) {
           <MemoryViewChart
             machine={machine}
             currentService={selectedService.name}
-            stats={machineStatsByHost[selectedService.serverIp]}
+            stats={fleetHostStatsByHost[selectedService.serverIp]}
           />
         </ServiceChartPanel>
       </Box>

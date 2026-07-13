@@ -10,9 +10,11 @@ import {
   SectionLabel,
   StyledList,
   StyledItem,
-  ActionDivider
+  ActionDivider,
 } from "./sidebar.styled";
+
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
+import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
 import { getConfigHosts } from "../../../../api/ConfigAPI";
 import { fetchInfraStatusForAllHosts } from "../../../../utils/infraStatus";
 
@@ -22,7 +24,7 @@ import { MettaLoadActionControl } from "./MettaLoadActionControl";
 
 const navigationItems = [
   { key: "servers", label: "Servers", icon: SettingsEthernet, context: "servers" },
-  { key: "agents", label: "Agents", icon: Polyline, context: "agents" }
+  { key: "agents", label: "Agents", icon: Polyline, context: "agents" },
 ];
 
 export function SideBar() {
@@ -31,12 +33,8 @@ export function SideBar() {
   const [atomDbOnline, setAtomDbOnline] = useState(false);
   const [architectureOnline, setArchitectureOnline] = useState(false);
 
-  const {
-    setCurrentContext,
-    currentMachine,
-    mergedServices,
-    isSwitchingHost,
-  } = useDashboardContext();
+  const { setCurrentContext, currentMachine, currentContext } = useDashboardContext();
+  const { hostStreamSwitching } = useServerTabMetricsContext();
 
   const loadInfraStatus = useCallback(async () => {
     const { hosts } = await getConfigHosts();
@@ -58,6 +56,7 @@ export function SideBar() {
   }, [loadInfraStatus]);
 
   const currentHost = currentMachine?.serverIp;
+  const isSwitchingHost = currentContext === "servers" && hostStreamSwitching;
   const isServerOffline = !currentHost || isSwitchingHost;
   const isAnyActionLoading = Object.values(busyActions).some(Boolean);
 
@@ -77,7 +76,7 @@ export function SideBar() {
           <SectionLabel>Infra</SectionLabel>
 
           <List disablePadding>
-            {navigationItems.map(item => {
+            {navigationItems.map((item) => {
               const Icon = item.icon;
               const isNavDisabled = isSwitchingHost;
               return (
@@ -114,7 +113,6 @@ export function SideBar() {
             <ArchitectureActionControl
               atomDbOnline={atomDbOnline}
               architectureOnline={architectureOnline}
-              mergedServices={mergedServices}
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.architecture}
               onBusyChange={(busy) => setActionBusy("architecture", busy)}

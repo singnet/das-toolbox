@@ -1,12 +1,12 @@
 import styled from "@emotion/styled";
 import { Box, Typography, Skeleton } from "@mui/material";
-import { useDashboardContext } from "../../../../components/global_providers/DashboardContextProvider";
+import { useServerTabMetricsContext } from "../../../../components/global_providers/ServerTabMetricsProvider";
 import { ServerInfoWrapper, ServerInfoBox, Divider, Label, Value } from "./serverinfoheader.styled.js";
 
 export function ServerInfoHeader() {
-  const { machineStats, isSwitchingHost } = useDashboardContext();
+  const { hostMachineStats, hostStreamSwitching } = useServerTabMetricsContext();
 
-  if (!machineStats || isSwitchingHost) {
+  if (!hostMachineStats || hostStreamSwitching) {
     return (
       <ServerInfoWrapper>
         <ServerInfoBox>
@@ -29,12 +29,12 @@ export function ServerInfoHeader() {
     );
   }
 
-  const cpuUsage = machineStats.CPUInfo?.cpuUsage ?? 0;
-  const cpuCores = machineStats.CPUInfo?.cpuTotalCores ?? 0;
-  const usedMem = machineStats.MemoryInfo?.usedMemory ?? 0;
-  const totalMem = machineStats.MemoryInfo?.totalMemory ?? 0;
+  const cpuUsage = hostMachineStats.CPUInfo?.cpuUsage ?? 0;
+  const cpuCores = hostMachineStats.CPUInfo?.cpuTotalCores ?? 0;
+  const usedMem = hostMachineStats.MemoryInfo?.usedMemory ?? 0;
+  const totalMem = hostMachineStats.MemoryInfo?.totalMemory ?? 0;
   
-  const rawDisks = machineStats.DisksInfo ?? [];
+  const rawDisks = hostMachineStats.DisksInfo ?? [];
   const uniqueDisks = Array.from(
     new Map(rawDisks.map((d) => [d.disk_device, d])).values()
   );
