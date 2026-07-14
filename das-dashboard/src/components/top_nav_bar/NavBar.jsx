@@ -30,7 +30,7 @@ const AppBarItem = styled("a")({
   },
 });
 
-export default function Navbar() {
+export default function NavBar() {
   return (
     <MainAppBar position="static" elevation={0}>
       <StyledToolbar>
@@ -43,6 +43,7 @@ export default function Navbar() {
           <AppBarItem href="/profiles">Profile</AppBarItem>
           <AppBarItem href="/configuration">Configuration</AppBarItem>
           <AppBarItem href="/dashboard">Dashboard</AppBarItem>
+          <AppBarItem href="/query">Query</AppBarItem>
         </AppBarItems>
 
       </StyledToolbar>
