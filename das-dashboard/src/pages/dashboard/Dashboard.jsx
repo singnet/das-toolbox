@@ -2,7 +2,6 @@ import ArchitectureView from "../../components/dashboard/ArchitectureView/Archit
 import { MainContent } from "../../components/dashboard/MainContent/MainContent";
 import { ServerTab } from "../../components/dashboard/MainContent/servertab/ServerTab";
 import { SideBar } from "../../components/dashboard/MainContent/sidebar/SideBar";
-import DashboardContextProvider from "../../components/global_providers/DashboardContextProvider";
 import { ServerTabMetricsProvider } from "../../components/global_providers/ServerTabMetricsProvider";
 import { ArchitectureTabMetricsProvider } from "../../components/global_providers/ArchitectureTabMetricsProvider";
 import { useDashboardContext } from "../../components/global_providers/DashboardContextProvider";
@@ -83,12 +82,10 @@ function DashboardPageContent() {
 
 export default function DashboardPage() {
   return (
-    <DashboardContextProvider>
-      <ServerTabMetricsProvider>
-        <ArchitectureTabMetricsProvider>
-          <DashboardPageContent />
-        </ArchitectureTabMetricsProvider>
-      </ServerTabMetricsProvider>
-    </DashboardContextProvider>
+    <ServerTabMetricsProvider>
+      <ArchitectureTabMetricsProvider>
+        <DashboardPageContent />
+      </ArchitectureTabMetricsProvider>
+    </ServerTabMetricsProvider>
   );
 }
