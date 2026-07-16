@@ -10,7 +10,8 @@ from .custom_exceptions import (
     DASCLIResponseDecodeError,
     RemoteSshConnectionError,
     RemoteSshTransferError,
-    CustomValueError
+    CustomValueError,
+    CommandRouterConnectionError,
 )
 
 
@@ -61,6 +62,11 @@ class AppExceptionHandlers:
         app.add_exception_handler(
             CustomValueError,
             self.handle_custom_value_error,
+        )
+
+        app.add_exception_handler(
+            CommandRouterConnectionError,
+            self.handle_command_router_connection_error,
         )
 
     async def handle_das_cli_command_error(
@@ -148,15 +154,29 @@ class AppExceptionHandlers:
 
         return JSONResponse(status_code=400, content=content)
     
+    async def handle_command_router_connection_error(
+        self,
+        request: Request,
+        exc: CommandRouterConnectionError,
+    ):
+        content = {"message": exc.message, "endpoint": exc.endpoint}
+        if exc.detail:
+            content["exceptionMessage"] = exc.detail
+
+        return JSONResponse(status_code=502, content=content)
+
     async def handle_general_exception(
         self,
         request: Request,
         exc: Exception
     ):
         error_message = getattr(exc, "message", None)
-        
+
         if not error_message:
-            error_message = exc.args[0] if exc.args else str(exc) or "An unexpected internal server error occurred."
+            if exc.args:
+                error_message = str(exc.args[0])
+            else:
+                error_message = str(exc) or "An unexpected internal server error occurred."
 
         return JSONResponse(
             status_code=500,

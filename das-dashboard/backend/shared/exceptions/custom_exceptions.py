@@ -108,3 +108,15 @@ class DASCLIResponseDecodeError(Exception):
 
     def __str__(self) -> str:
         return self.detail or self.message
+
+
+class CommandRouterConnectionError(Exception):
+
+    def __init__(self, endpoint: str, detail: str = ""):
+        self.endpoint = endpoint
+        self.message = f"Could not reach the Command Router HTTP API at {endpoint}."
+        self.detail = detail
+        super().__init__(self.detail or self.message)
+
+    def __str__(self) -> str:
+        return self.detail or self.message
