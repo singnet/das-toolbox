@@ -9,15 +9,11 @@ from requests import Response
 from services_init import QUERY_SERVICES
 from shared.exceptions.custom_exceptions import CommandRouterConnectionError
 
+from shared.dtos.query_execution_dto import QueryExecutionDto
+
 router = APIRouter(prefix="/query", tags=["Query", "Query Agent"])
 
 TERMINAL_STATUSES = frozenset({"completed", "error", "aborted"})
-
-
-class QueryExecutionBody(BaseModel):
-    command_type: str
-    command_text: str
-
 
 @router.get("/ping")
 def proxy_health_check():
@@ -30,7 +26,7 @@ def proxy_health_check():
 
 
 @router.post("/executions")
-def create_execution_on_proxy(body: QueryExecutionBody):
+def create_execution_on_proxy(body: QueryExecutionDto):
     response = QUERY_SERVICES.execute_proxy_command(
         body.command_type,
         body.command_text,

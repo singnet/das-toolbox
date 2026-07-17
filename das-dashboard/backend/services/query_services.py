@@ -1,4 +1,3 @@
-import os
 import json
 from collections.abc import AsyncIterator
 
@@ -14,7 +13,7 @@ from shared.internal.constants import LOCAL_HOSTS
 from shared.internal.web_configuration import WebConfiguration
 
 VALID_COMMAND_TYPES = ("get", "set", "query")  # Evolution will be disconsidered for now.
-
+ROUTE_PREFIX = "/command-router"
 
 class QueryServices:
 
@@ -43,10 +42,10 @@ class QueryServices:
             raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
 
     def get_query_status(self, execution_id: str) -> Response:
-        return self._call_http_proxy("GET", f"/executions/{execution_id}")
+        return self._call_http_proxy("GET", f"{ROUTE_PREFIX}/executions/{execution_id}")
 
     def cancel_query_execution(self, execution_id: str) -> Response:
-        return self._call_http_proxy("POST", f"/executions/{execution_id}/cancel")
+        return self._call_http_proxy("POST", f"{ROUTE_PREFIX}/executions/{execution_id}/cancel")
 
     def execute_proxy_command(self, command_type: str, command_text: str) -> Response:
         handlers = {
@@ -63,30 +62,28 @@ class QueryServices:
         return handlers[command_type](command_type, command_text)
 
     def _get_query_parameters(self, command_type: str, command_text: str) -> Response:
-        return self._call_http_proxy(
-            "POST",
-            "/executions",
-            data={"command_type": command_type, "command_text": command_text},
-        )
+        return self._post_execution(command_type, command_text)
 
     def _set_query_parameters(self, command_type: str, command_text: str) -> Response:
         custom_parameters_dict = json.loads(command_text)
         response = None
 
         for key, value in custom_parameters_dict.items():
-            response = self._call_http_proxy(
-                "POST",
-                "/executions",
-                data={"command_type": command_type, "command_text": f"param {key} {value}"},
+            response = self._post_execution(
+                command_type,
+                f"param {key} {value}",
             )
 
         return response
 
     def _create_query_execution(self, command_type: str, command_text: str) -> Response:
+        return self._post_execution(command_type, command_text)
+
+    def _post_execution(self, command_type: str, command_text: str) -> Response:
         return self._call_http_proxy(
             "POST",
-            "/executions",
-            data={"command_type": command_type, "command_text": command_text},
+            f"{ROUTE_PREFIX}/executions",
+            json={"command_type": command_type, "command_text": command_text},
         )
 
     def _call_http_proxy(self, method: str, path: str, **request_kwargs) -> Response:
@@ -116,4 +113,4 @@ class QueryServices:
             raise
 
     def _build_websocket_url(self, execution_id: str) -> str:
-        return f"ws://{self._find_command_router_http_url()}/executions/{execution_id}"
+        return f"ws://{self._find_command_router_http_url()}{ROUTE_PREFIX}/ws/{execution_id}"
