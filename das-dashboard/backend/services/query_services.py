@@ -1,4 +1,6 @@
+import os
 import json
+from collections.abc import AsyncIterator
 
 import requests
 from fastapi.logger import logger
@@ -6,6 +8,7 @@ from requests import Response
 from requests.exceptions import RequestException
 from websockets.asyncio.client import connect
 
+from shared.db import query_db
 from shared.exceptions.custom_exceptions import CommandRouterConnectionError, CustomValueError
 from shared.internal.constants import LOCAL_HOSTS
 from shared.internal.web_configuration import WebConfiguration
@@ -21,22 +24,29 @@ class QueryServices:
     def health_check_proxy(self) -> Response:
         return self._call_http_proxy("GET", "/ping")
 
-    def get_query_websocket_data(self, execution_id: str):
+    async def stream_execution_events(self, execution_id: str) -> AsyncIterator[dict]:
+        websocket_url = self._build_websocket_url(execution_id)
+
         try:
-            command_proxy_url = self._find_command_router_http_url()
-            connect(
-                uri=f"ws://{command_proxy_url}/executions/{execution_id}",
+            async with connect(
+                websocket_url,
                 open_timeout=10,
                 close_timeout=5,
-            )
-        except RequestException:
-            pass
+            ) as upstream:
+                async for message in upstream:
+                    payload = json.loads(message)
+                    query_db.save_event(execution_id, payload)
+                    yield payload
+        except RequestException as error:
+            raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
+        except OSError as error:
+            raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
 
     def get_query_status(self, execution_id: str) -> Response:
         return self._call_http_proxy("GET", f"/executions/{execution_id}")
 
     def cancel_query_execution(self, execution_id: str) -> Response:
-        return self._call_http_proxy("GET", f"/executions/{execution_id}/cancel")
+        return self._call_http_proxy("POST", f"/executions/{execution_id}/cancel")
 
     def execute_proxy_command(self, command_type: str, command_text: str) -> Response:
         handlers = {
@@ -104,3 +114,6 @@ class QueryServices:
         except (AttributeError, KeyError):
             logger.critical("Command Router not found in service/host map.")
             raise
+
+    def _build_websocket_url(self, execution_id: str) -> str:
+        return f"ws://{self._find_command_router_http_url()}/executions/{execution_id}"
