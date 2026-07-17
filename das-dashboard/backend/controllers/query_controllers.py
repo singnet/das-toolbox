@@ -4,6 +4,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from requests import Response
+
 from services_init import QUERY_SERVICES
 from shared.exceptions.custom_exceptions import CommandRouterConnectionError
 
@@ -91,7 +93,7 @@ async def get_execution_stream(websocket: WebSocket, execution_id: str):
         )
 
 
-def _proxy_json_content(response):
+def _proxy_json_content(response : Response):
     try:
         return response.json()
     except ValueError:
