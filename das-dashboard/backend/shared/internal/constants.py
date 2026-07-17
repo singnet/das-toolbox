@@ -7,6 +7,7 @@ SHARED_DAS_ROOT = os.environ.get("DAS_SHARED_ROOT", "/opt/web-das")
 CONFIG_DIR = os.path.join(SHARED_DAS_ROOT, ".das")
 
 CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
+QUERY_DB_PATH = os.path.join(CONFIG_DIR, "query_responses.db")
 DEFAULT_WEBPROFILE_PATH = os.path.join(CONFIG_DIR, "web_profile.json")
 DEFAULT_SSHKEY_CLONE_PATH = os.path.join(CONFIG_DIR, "web_key")
 ADAPTER_CONTEXT_MAPPING_FILE = os.path.join(CONFIG_DIR, "adapter_context_mapping.sql")

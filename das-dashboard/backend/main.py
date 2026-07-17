@@ -8,6 +8,7 @@ from shared.exceptions.exception_handlers import AppExceptionHandlers
 from shared.internal.constants import CONFIG_PATH
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.storage_check import validate_persistent_storage
+from shared.db.init_db import init_db
 from services_init import WEB_CONFIG, WORKSPACE_SERVICES
 
 # Controllers
@@ -23,6 +24,7 @@ from controllers.query_controllers import router as query_router
 async def lifespan(app: FastAPI):
     validate_persistent_storage()
     WORKSPACE_SERVICES.ensure_workspace()
+    init_db()
     WEB_CONFIG.load_user_profile()
     WEB_CONFIG.load_config_dictionary()
 
