@@ -9,11 +9,18 @@ import {
   Switch,
   TextField
 } from "@mui/material";
+import { setQueryParameters } from "../../api/QueryAPI";
+import { extractErrorDetails } from "../../api/APIUtils";
+import { buildQueryParameters } from "../../utils/queryParameters";
 import {
+  ApplyParametersButton,
+  ParameterApplyFooter,
+  ParameterApplyMessage,
   ParameterDivider,
   ParameterFieldGrid,
   ParameterLimitField,
   ParameterSectionBody,
+  ParameterSectionRoot,
   ParameterSwitchStack,
   SliderLabel,
   SliderLabelRow,
@@ -72,12 +79,15 @@ const INITIAL_SWITCH_STATE = Object.fromEntries(
 
 export default function ParameterSection() {
   const [attentionUpdate, setAttentionUpdate] = useState(0);
-  const [attentionCorrelation, setAttentionCorrelation] = useState(1);
+  const [attentionCorrelation, setAttentionCorrelation] = useState(0);
   const [attentionFocusStrictness, setAttentionFocusStrictness] = useState(0);
   const [maxBundleSize, setMaxBundleSize] = useState(1000);
   const [limitAnswersEnabled, setLimitAnswersEnabled] = useState(false);
   const [maxAnswersLimit, setMaxAnswersLimit] = useState(1);
   const [switches, setSwitches] = useState(INITIAL_SWITCH_STATE);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyMessage, setApplyMessage] = useState(null);
+  const [applyMessageType, setApplyMessageType] = useState(null);
 
   const limitValueInvalid =
     limitAnswersEnabled &&
@@ -87,168 +97,219 @@ export default function ParameterSection() {
     setSwitches((previous) => ({ ...previous, [key]: checked }));
   };
 
+  const collectParameters = () =>
+    buildQueryParameters({
+      attentionUpdate,
+      attentionCorrelation,
+      attentionFocusStrictness,
+      maxBundleSize,
+      limitAnswersEnabled,
+      maxAnswersLimit,
+      switches
+    });
+
+  const handleApplyParameters = async () => {
+    if (limitValueInvalid || isApplying) {
+      return;
+    }
+
+    setIsApplying(true);
+    setApplyMessage(null);
+    setApplyMessageType(null);
+
+    try {
+      await setQueryParameters(collectParameters());
+      setApplyMessage("Parameters applied.");
+      setApplyMessageType("success");
+    } catch (error) {
+      setApplyMessage(extractErrorDetails(error));
+      setApplyMessageType("error");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
   return (
-    <ParameterSectionBody>
-      <ParameterFieldGrid>
-        <FormControl size="small" fullWidth sx={fieldSx}>
-          <InputLabel>Attention update</InputLabel>
-          <Select
-            label="Attention update"
-            value={attentionUpdate}
-            onChange={(event) => setAttentionUpdate(event.target.value)}
-          >
-            {ATTENTION_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+    <ParameterSectionRoot>
+      <ParameterSectionBody>
+        <ParameterFieldGrid>
+          <FormControl size="small" fullWidth sx={fieldSx}>
+            <InputLabel>Attention update</InputLabel>
+            <Select
+              label="Attention update"
+              value={attentionUpdate}
+              onChange={(event) => setAttentionUpdate(event.target.value)}
+            >
+              {ATTENTION_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <FormControl size="small" fullWidth sx={fieldSx}>
-          <InputLabel>Attention correlation</InputLabel>
-          <Select
-            label="Attention correlation"
-            value={attentionCorrelation}
-            onChange={(event) => setAttentionCorrelation(event.target.value)}
-          >
-            {ATTENTION_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </ParameterFieldGrid>
+          <FormControl size="small" fullWidth sx={fieldSx}>
+            <InputLabel>Attention correlation</InputLabel>
+            <Select
+              label="Attention correlation"
+              value={attentionCorrelation}
+              onChange={(event) => setAttentionCorrelation(event.target.value)}
+            >
+              {ATTENTION_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </ParameterFieldGrid>
 
-      <SliderRow>
-        <SliderLabelRow>
-          <SliderLabel>Attention focus strictness</SliderLabel>
-          <SliderValue>{attentionFocusStrictness.toFixed(1)}</SliderValue>
-        </SliderLabelRow>
-        <Slider
-          size="small"
-          value={attentionFocusStrictness}
-          onChange={(_, value) => setAttentionFocusStrictness(value)}
-          min={0}
-          max={1}
-          step={0.1}
-          sx={{
-            color: paletteQuery.accent,
-            "& .MuiSlider-rail": { opacity: 0.35 }
-          }}
-        />
-      </SliderRow>
+        <SliderRow>
+          <SliderLabelRow>
+            <SliderLabel>Attention focus strictness</SliderLabel>
+            <SliderValue>{attentionFocusStrictness.toFixed(1)}</SliderValue>
+          </SliderLabelRow>
+          <Slider
+            size="small"
+            value={attentionFocusStrictness}
+            onChange={(_, value) => setAttentionFocusStrictness(value)}
+            min={0}
+            max={1}
+            step={0.1}
+            sx={{
+              color: paletteQuery.accent,
+              "& .MuiSlider-rail": { opacity: 0.35 }
+            }}
+          />
+        </SliderRow>
 
-      <ParameterFieldGrid>
-        <TextField
-          label="Max bundle size"
-          type="number"
-          size="small"
-          value={maxBundleSize}
-          onChange={(event) => setMaxBundleSize(Number(event.target.value))}
-          fullWidth
-          sx={fieldSx}
-        />
-      </ParameterFieldGrid>
+        <ParameterFieldGrid>
+          <TextField
+            label="Max bundle size"
+            type="number"
+            size="small"
+            value={maxBundleSize}
+            onChange={(event) => setMaxBundleSize(Number(event.target.value))}
+            fullWidth
+            sx={fieldSx}
+          />
+        </ParameterFieldGrid>
 
-      <ParameterLimitField>
-        <FormControlLabel
-          sx={switchSx}
-          labelPlacement="start"
-          control={
-            <Switch
-              size="small"
-              checked={limitAnswersEnabled}
-              onChange={(event) => setLimitAnswersEnabled(event.target.checked)}
-              sx={{
-                "& .MuiSwitch-switchBase.Mui-checked": {
-                  color: paletteQuery.accent
-                },
-                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                  backgroundColor: paletteQuery.accent
-                }
-              }}
+        <ParameterLimitField>
+          <FormControlLabel
+            sx={switchSx}
+            labelPlacement="start"
+            control={
+              <Switch
+                size="small"
+                checked={limitAnswersEnabled}
+                onChange={(event) => setLimitAnswersEnabled(event.target.checked)}
+                sx={{
+                  "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: paletteQuery.accent
+                  },
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    backgroundColor: paletteQuery.accent
+                  }
+                }}
+              />
+            }
+            label="Limit the number of answers"
+          />
+
+          <TextField
+            label="Answer limit"
+            type="number"
+            size="small"
+            value={maxAnswersLimit}
+            disabled={!limitAnswersEnabled}
+            error={limitValueInvalid}
+            helperText={
+              limitValueInvalid ? "Enter an integer greater than or equal to 1." : " "
+            }
+            onChange={(event) => {
+              const parsed = Number.parseInt(event.target.value, 10);
+              if (!Number.isNaN(parsed)) {
+                setMaxAnswersLimit(parsed);
+              }
+            }}
+            inputProps={{ min: 1, step: 1 }}
+            fullWidth
+            sx={fieldSx}
+          />
+        </ParameterLimitField>
+
+        <ParameterSwitchStack>
+          {BASE_QUERY_SWITCHES.map((item) => (
+            <FormControlLabel
+              key={item.key}
+              sx={switchSx}
+              labelPlacement="start"
+              control={
+                <Switch
+                  size="small"
+                  checked={switches[item.key]}
+                  onChange={(event) => updateSwitch(item.key, event.target.checked)}
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: paletteQuery.accent
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: paletteQuery.accent
+                    }
+                  }}
+                />
+              }
+              label={item.label}
             />
-          }
-          label="Limit the number of answers"
-        />
+          ))}
+        </ParameterSwitchStack>
 
-        <TextField
-          label="Answer limit"
-          type="number"
-          size="small"
-          value={maxAnswersLimit}
-          disabled={!limitAnswersEnabled}
-          error={limitValueInvalid}
-          helperText={
-            limitValueInvalid ? "Enter an integer greater than or equal to 1." : " "
-          }
-          onChange={(event) => {
-            const parsed = Number.parseInt(event.target.value, 10);
-            if (!Number.isNaN(parsed)) {
-              setMaxAnswersLimit(parsed);
-            }
-          }}
-          inputProps={{ min: 1, step: 1 }}
+        <ParameterDivider />
+
+        <ParameterSwitchStack>
+          {QUERY_SWITCHES.map((item) => (
+            <FormControlLabel
+              key={item.key}
+              sx={switchSx}
+              labelPlacement="start"
+              control={
+                <Switch
+                  size="small"
+                  checked={switches[item.key]}
+                  onChange={(event) => updateSwitch(item.key, event.target.checked)}
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: paletteQuery.accent
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: paletteQuery.accent
+                    }
+                  }}
+                />
+              }
+              label={item.label}
+            />
+          ))}
+        </ParameterSwitchStack>
+      </ParameterSectionBody>
+
+      <ParameterApplyFooter>
+        <ApplyParametersButton
+          variant="contained"
+          disableElevation
           fullWidth
-          sx={fieldSx}
-        />
-      </ParameterLimitField>
-
-      <ParameterSwitchStack>
-        {BASE_QUERY_SWITCHES.map((item) => (
-          <FormControlLabel
-            key={item.key}
-            sx={switchSx}
-            labelPlacement="start"
-            control={
-              <Switch
-                size="small"
-                checked={switches[item.key]}
-                onChange={(event) => updateSwitch(item.key, event.target.checked)}
-                sx={{
-                  "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: paletteQuery.accent
-                  },
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: paletteQuery.accent
-                  }
-                }}
-              />
-            }
-            label={item.label}
-          />
-        ))}
-      </ParameterSwitchStack>
-
-      <ParameterDivider />
-
-      <ParameterSwitchStack>
-        {QUERY_SWITCHES.map((item) => (
-          <FormControlLabel
-            key={item.key}
-            sx={switchSx}
-            labelPlacement="start"
-            control={
-              <Switch
-                size="small"
-                checked={switches[item.key]}
-                onChange={(event) => updateSwitch(item.key, event.target.checked)}
-                sx={{
-                  "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: paletteQuery.accent
-                  },
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: paletteQuery.accent
-                  }
-                }}
-              />
-            }
-            label={item.label}
-          />
-        ))}
-      </ParameterSwitchStack>
-    </ParameterSectionBody>
+          disabled={limitValueInvalid || isApplying}
+          onClick={handleApplyParameters}
+        >
+          {isApplying ? "Applying…" : "Apply parameters"}
+        </ApplyParametersButton>
+        {applyMessage ? (
+          <ParameterApplyMessage className={applyMessageType}>
+            {applyMessage}
+          </ParameterApplyMessage>
+        ) : null}
+      </ParameterApplyFooter>
+    </ParameterSectionRoot>
   );
 }

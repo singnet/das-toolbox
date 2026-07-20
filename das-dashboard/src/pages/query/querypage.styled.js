@@ -75,6 +75,13 @@ export const SideBarSubtitle = styled(Typography)({
   lineHeight: 1.45
 });
 
+export const ParameterSectionRoot = styled(Box)({
+  flex: 1,
+  minHeight: 0,
+  display: "flex",
+  flexDirection: "column"
+});
+
 export const ParameterSectionBody = styled(Box)({
   flex: 1,
   minHeight: 0,
@@ -84,6 +91,45 @@ export const ParameterSectionBody = styled(Box)({
   flexDirection: "column",
   gap: 16,
   boxSizing: "border-box"
+});
+
+export const ParameterApplyFooter = styled(Box)({
+  flexShrink: 0,
+  padding: "12px 18px 16px",
+  borderTop: `1px solid ${paletteQuery.borderSubtle}`,
+  backgroundColor: paletteQuery.surface,
+  display: "flex",
+  flexDirection: "column",
+  gap: 8
+});
+
+export const ApplyParametersButton = styled(Button)({
+  textTransform: "none",
+  fontWeight: 600,
+  borderRadius: 8,
+  height: 36,
+  boxShadow: "none",
+  backgroundColor: paletteQuery.accent,
+  "&:hover": {
+    backgroundColor: paletteQuery.accentHover,
+    boxShadow: "none"
+  },
+  "&.Mui-disabled": {
+    backgroundColor: paletteQuery.borderSubtle,
+    color: paletteQuery.textMuted
+  }
+});
+
+export const ParameterApplyMessage = styled(Typography)({
+  fontSize: 12,
+  lineHeight: 1.4,
+  color: paletteQuery.textSecondary,
+  "&.error": {
+    color: paletteQuery.danger
+  },
+  "&.success": {
+    color: paletteQuery.successHover
+  }
 });
 
 export const ParameterDivider = styled(Box)({

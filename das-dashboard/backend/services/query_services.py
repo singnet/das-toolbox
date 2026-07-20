@@ -71,10 +71,16 @@ class QueryServices:
         for key, value in custom_parameters_dict.items():
             response = self._post_execution(
                 command_type,
-                f"param {key} {value}",
+                f"param {key} {self._format_param_value(value)}",
             )
 
         return response
+
+    @staticmethod
+    def _format_param_value(value) -> str:
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        return str(value)
 
     def _create_query_execution(self, command_type: str, command_text: str) -> Response:
         return self._post_execution(command_type, command_text)
