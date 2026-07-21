@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FormControl,
   FormControlLabel,
@@ -11,11 +11,11 @@ import {
 } from "@mui/material";
 import { setQueryParameters } from "../../api/QueryAPI";
 import { extractErrorDetails } from "../../api/APIUtils";
-import { buildQueryParameters } from "../../utils/queryParameters";
+import { useToast } from "../global_providers/ToastProvider";
+import { useQueryParameters } from "../../hooks/useQueryParameters";
 import {
   ApplyParametersButton,
   ParameterApplyFooter,
-  ParameterApplyMessage,
   ParameterDivider,
   ParameterFieldGrid,
   ParameterLimitField,
@@ -73,40 +73,44 @@ const switchSx = {
   }
 };
 
-const INITIAL_SWITCH_STATE = Object.fromEntries(
-  [...BASE_QUERY_SWITCHES, ...QUERY_SWITCHES].map((item) => [item.key, false])
-);
-
 export default function ParameterSection() {
-  const [attentionUpdate, setAttentionUpdate] = useState(0);
-  const [attentionCorrelation, setAttentionCorrelation] = useState(0);
-  const [attentionFocusStrictness, setAttentionFocusStrictness] = useState(0);
-  const [maxBundleSize, setMaxBundleSize] = useState(1000);
-  const [limitAnswersEnabled, setLimitAnswersEnabled] = useState(false);
-  const [maxAnswersLimit, setMaxAnswersLimit] = useState(1);
-  const [switches, setSwitches] = useState(INITIAL_SWITCH_STATE);
+  const {
+    attentionUpdate,
+    setAttentionUpdate,
+    attentionCorrelation,
+    setAttentionCorrelation,
+    attentionFocusStrictness,
+    setAttentionFocusStrictness,
+    maxBundleSize,
+    setMaxBundleSize,
+    limitAnswersEnabled,
+    setLimitAnswersEnabled,
+    maxAnswersLimit,
+    setMaxAnswersLimit,
+    switches,
+    updateSwitch,
+    collectParameters,
+    markParametersApplied
+  } = useQueryParameters();
+
+  const { showToast } = useToast();
   const [isApplying, setIsApplying] = useState(false);
-  const [applyMessage, setApplyMessage] = useState(null);
-  const [applyMessageType, setApplyMessageType] = useState(null);
+
+  useEffect(() => {
+    if (!isApplying) {
+      return undefined;
+    }
+
+    document.body.style.cursor = "wait";
+
+    return () => {
+      document.body.style.cursor = "";
+    };
+  }, [isApplying]);
 
   const limitValueInvalid =
     limitAnswersEnabled &&
     (!Number.isInteger(maxAnswersLimit) || maxAnswersLimit < 1);
-
-  const updateSwitch = (key, checked) => {
-    setSwitches((previous) => ({ ...previous, [key]: checked }));
-  };
-
-  const collectParameters = () =>
-    buildQueryParameters({
-      attentionUpdate,
-      attentionCorrelation,
-      attentionFocusStrictness,
-      maxBundleSize,
-      limitAnswersEnabled,
-      maxAnswersLimit,
-      switches
-    });
 
   const handleApplyParameters = async () => {
     if (limitValueInvalid || isApplying) {
@@ -114,16 +118,18 @@ export default function ParameterSection() {
     }
 
     setIsApplying(true);
-    setApplyMessage(null);
-    setApplyMessageType(null);
 
     try {
-      await setQueryParameters(collectParameters());
-      setApplyMessage("Parameters applied.");
-      setApplyMessageType("success");
+      const params = collectParameters();
+      await setQueryParameters(params);
+      markParametersApplied(params);
+      showToast({ message: "Query parameters applied.", severity: "success" });
     } catch (error) {
-      setApplyMessage(extractErrorDetails(error));
-      setApplyMessageType("error");
+      showToast({
+        message: "Failed to apply query parameters.",
+        severity: "error",
+        details: extractErrorDetails(error)
+      });
     } finally {
       setIsApplying(false);
     }
@@ -304,11 +310,6 @@ export default function ParameterSection() {
         >
           {isApplying ? "Applying…" : "Apply parameters"}
         </ApplyParametersButton>
-        {applyMessage ? (
-          <ParameterApplyMessage className={applyMessageType}>
-            {applyMessage}
-          </ParameterApplyMessage>
-        ) : null}
       </ParameterApplyFooter>
     </ParameterSectionRoot>
   );

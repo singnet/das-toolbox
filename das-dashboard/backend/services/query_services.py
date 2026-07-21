@@ -1,5 +1,6 @@
 import json
 from collections.abc import AsyncIterator
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from fastapi.logger import logger
@@ -11,6 +12,7 @@ from shared.db import query_db
 from shared.exceptions.custom_exceptions import CommandRouterConnectionError, CustomValueError
 from shared.internal.constants import LOCAL_HOSTS
 from shared.internal.web_configuration import WebConfiguration
+from shared.utils.parse_query_answer import transform_stream_event
 
 VALID_COMMAND_TYPES = ("get", "set", "query")  # Evolution will be disconsidered for now.
 ROUTE_PREFIX = "/command-router"
@@ -33,8 +35,10 @@ class QueryServices:
                 close_timeout=5,
             ) as upstream:
                 async for message in upstream:
-                    payload = json.loads(message)
+                    payload = transform_stream_event(json.loads(message))
                     query_db.save_event(execution_id, payload)
+                    if payload.get("type") == "chunk":
+                        query_db.save_answers_from_chunk(execution_id, payload)
                     yield payload
         except RequestException as error:
             raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
@@ -43,6 +47,14 @@ class QueryServices:
 
     def get_query_status(self, execution_id: str) -> Response:
         return self._call_http_proxy("GET", f"{ROUTE_PREFIX}/executions/{execution_id}")
+
+    def get_execution_answers(
+        self,
+        execution_id: str,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> dict:
+        return query_db.get_answers_page(execution_id, page, page_size)
 
     def cancel_query_execution(self, execution_id: str) -> Response:
         return self._call_http_proxy("POST", f"{ROUTE_PREFIX}/executions/{execution_id}/cancel")
@@ -66,15 +78,33 @@ class QueryServices:
 
     def _set_query_parameters(self, command_type: str, command_text: str) -> Response:
         custom_parameters_dict = json.loads(command_text)
-        response = None
+        if not custom_parameters_dict:
+            raise CustomValueError("No query parameters were provided.")
 
-        for key, value in custom_parameters_dict.items():
-            response = self._post_execution(
-                command_type,
-                f"param {key} {self._format_param_value(value)}",
-            )
+        responses = []
+        max_workers = min(len(custom_parameters_dict), 8)
 
-        return response
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(
+                    self._post_execution,
+                    command_type,
+                    f"param {key} {self._format_param_value(value)}",
+                )
+                for key, value in custom_parameters_dict.items()
+            ]
+
+            for future in as_completed(futures):
+                responses.append(future.result())
+
+        failed_response = next(
+            (response for response in responses if response.status_code >= 400),
+            None,
+        )
+        if failed_response is not None:
+            return failed_response
+
+        return responses[-1]
 
     @staticmethod
     def _format_param_value(value) -> str:

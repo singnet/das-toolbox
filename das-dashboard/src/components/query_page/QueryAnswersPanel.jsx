@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { Box } from "@mui/material";
+import QueryAllAnswersModal from "./QueryAllAnswersModal";
 import {
   EmptyPanelState,
   PanelHeader,
@@ -7,58 +10,81 @@ import {
   ResultAccent,
   ResultRow,
   ResultText,
-  ResultsFooter,
-  ResultsFooterLink,
   ResultsList,
   StreamingHint
 } from "../../pages/query/querypage.styled";
 
-const PREVIEW_LIMIT = 5;
+const RESULT_LIMIT = 10;
 
 export default function QueryAnswersPanel({
   answers,
+  executionId,
   isRunning,
-  previewLimit = PREVIEW_LIMIT
+  isCountOnly = false,
+  totalAnswers,
+  resultLimit = RESULT_LIMIT
 }) {
-  const previewAnswers = answers.slice(-previewLimit);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const visibleAnswers = answers.slice(-resultLimit);
+  const answerTotal = totalAnswers ?? answers.length;
+  const canShowAll = Boolean(executionId) && answerTotal > 0;
 
   return (
-    <QueryResultsCard>
-      <PanelHeader>
-        <PanelTitle>Results</PanelTitle>
-        <PanelMeta>MeTTa expression</PanelMeta>
-      </PanelHeader>
+    <>
+      <QueryResultsCard>
+        <PanelHeader>
+          <PanelTitle>Results</PanelTitle>
+          <Box sx={{ display: "flex", gap: "10px" }}>
+            <PanelMeta>
+              {answerTotal > 0
+                ? `• Last ${Math.min(resultLimit, visibleAnswers.length)} of ${answerTotal}`
+                : "MeTTa expression"}
+            </PanelMeta>
+            {canShowAll ? (
+              <PanelMeta
+                sx={{ textDecoration: "underline", cursor: "pointer" }}
+                onClick={() => setIsModalOpen(true)}
+              >
+                Show all results
+              </PanelMeta>
+            ) : null}
+          </Box>
+        </PanelHeader>
 
-      {previewAnswers.length === 0 ? (
-        <EmptyPanelState>
-          {isRunning
-            ? "Waiting for the first answer…"
-            : "Run a query to stream answers here."}
-        </EmptyPanelState>
-      ) : (
-        <>
-          <ResultsList>
-            {previewAnswers.map((answer) => (
-              <ResultRow key={answer.id}>
-                <ResultAccent />
-                <ResultText>{answer.text}</ResultText>
-              </ResultRow>
-            ))}
-          </ResultsList>
+        {visibleAnswers.length === 0 ? (
+          <EmptyPanelState>
+            {isRunning
+              ? isCountOnly
+                ? "Waiting for the count result…"
+                : "Waiting for the first answer…"
+              : isCountOnly
+                ? "Run a count-only query to see the total here."
+                : "Run a query to stream answers here."}
+          </EmptyPanelState>
+        ) : (
+          <>
+            <ResultsList>
+              {visibleAnswers.map((answer) => (
+                <ResultRow key={answer.id}>
+                  <ResultAccent />
+                  <ResultText>{answer.response}</ResultText>
+                </ResultRow>
+              ))}
+            </ResultsList>
 
-          {answers.length > previewLimit && (
-            <ResultsFooter>
-              <ResultsFooterLink>
-                View all {answers.length} answers
-              </ResultsFooterLink>
-            </ResultsFooter>
-          )}
+            {isRunning ? (
+              <StreamingHint>Streaming more answers…</StreamingHint>
+            ) : null}
+          </>
+        )}
+      </QueryResultsCard>
 
-          {isRunning && (
-            <StreamingHint>Streaming more answers…</StreamingHint>
-          )}
-        </>
-      )}
-    </QueryResultsCard>
+      <QueryAllAnswersModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        executionId={executionId}
+        answers={answers}
+      />
+    </>
   );
 }

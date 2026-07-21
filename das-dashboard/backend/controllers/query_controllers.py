@@ -1,6 +1,7 @@
 import json
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi.logger import logger
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -41,10 +42,27 @@ def create_execution_on_proxy(body: QueryExecutionDto):
 @router.get("/executions/{execution_id}")
 def get_execution_status(execution_id: str):
     response = QUERY_SERVICES.get_query_status(execution_id)
-
+    content = _proxy_json_content(response)
+    
     return JSONResponse(
         status_code=response.status_code,
-        content=_proxy_json_content(response),
+        content=content,
+    )
+
+
+@router.get("/executions/{execution_id}/answers")
+def get_execution_answers(
+    execution_id: str,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+):
+    return JSONResponse(
+        status_code=200,
+        content=QUERY_SERVICES.get_execution_answers(
+            execution_id,
+            page=page,
+            page_size=page_size,
+        ),
     )
 
 

@@ -10,24 +10,24 @@ import {
 } from "../../pages/query/querypage.styled";
 
 export default function QueryStatusBar({
-  status,
+  isRunning,
   answerCount,
   elapsedLabel,
-  answersPerSecond,
-  queryId
+  executionId,
+  isCountOnly = false
 }) {
   return (
     <GeneralStatusBar>
-      <StatusPill tone={status}>
-        <StatusDot tone={status} />
-        {status}
+      <StatusPill tone={isRunning ? "running" : "idle"}>
+        <StatusDot tone={isRunning ? "running" : "idle"} />
+        {isRunning ? "Running" : "Running"}
       </StatusPill>
 
       <StatusDivider />
 
       <StatusMetrics>
         <StatusMetric>
-          <StatusMetricLabel>Answers</StatusMetricLabel>
+          <StatusMetricLabel>{isCountOnly ? "Count" : "Answers"}</StatusMetricLabel>
           <StatusMetricValue>{answerCount}</StatusMetricValue>
         </StatusMetric>
 
@@ -41,23 +41,16 @@ export default function QueryStatusBar({
         <StatusDivider />
 
         <StatusMetric>
-          <StatusMetricLabel>Retrieved</StatusMetricLabel>
+          <StatusMetricLabel>{isCountOnly ? "Total" : "Retrieved"}</StatusMetricLabel>
           <StatusMetricValue>{answerCount}</StatusMetricValue>
         </StatusMetric>
 
-        <StatusDivider />
-
-        <StatusMetric>
-          <StatusMetricLabel>Rate</StatusMetricLabel>
-          <StatusMetricValue>{answersPerSecond.toFixed(1)} ans/s</StatusMetricValue>
-        </StatusMetric>
-
-        {queryId != null && (
+        {executionId != null && (
           <>
             <StatusDivider />
             <StatusMetric>
               <StatusMetricLabel>Query ID</StatusMetricLabel>
-              <StatusMetricValue>#{queryId}</StatusMetricValue>
+              <StatusMetricValue>#{executionId.slice(0, 8)}</StatusMetricValue>
             </StatusMetric>
           </>
         )}

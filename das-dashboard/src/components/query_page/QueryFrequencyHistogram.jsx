@@ -19,7 +19,7 @@ export default function QueryFrequencyHistogram({ histogram }) {
       <PanelHeader>
         <PanelTitle>Answer frequency</PanelTitle>
         <PanelMeta>
-          {histogram.scaleLabel} · {BUCKET_COUNT} buckets
+          Answers in the last {histogram.scaleLabel}
         </PanelMeta>
       </PanelHeader>
 

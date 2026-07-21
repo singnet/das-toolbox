@@ -132,6 +132,16 @@ export const ParameterApplyMessage = styled(Typography)({
   }
 });
 
+export const QueryStreamError = styled(Typography)({
+  fontSize: 13,
+  lineHeight: 1.45,
+  color: paletteQuery.danger,
+  padding: "10px 14px",
+  borderRadius: 8,
+  border: `1px solid rgba(220, 38, 38, 0.25)`,
+  backgroundColor: "rgba(220, 38, 38, 0.06)"
+});
+
 export const ParameterDivider = styled(Box)({
   height: 1,
   backgroundColor: paletteQuery.borderSubtle,
@@ -343,6 +353,11 @@ export const StatusPill = styled(Box, {
   shouldForwardProp: (prop) => prop !== "tone"
 })(({ tone }) => {
   const tones = {
+    rest: {
+      backgroundColor: paletteQuery.surfaceMuted,
+      color: paletteQuery.textSecondary,
+      borderColor: paletteQuery.border
+    },
     idle: {
       backgroundColor: paletteQuery.surfaceMuted,
       color: paletteQuery.textSecondary,
@@ -365,7 +380,7 @@ export const StatusPill = styled(Box, {
     }
   };
 
-  const style = tones[tone] || tones.idle;
+  const style = tones[tone] || tones.rest;
 
   return {
     display: "inline-flex",
@@ -584,4 +599,19 @@ export const StreamingHint = styled(Typography)({
   fontSize: 12,
   fontStyle: "italic",
   color: paletteQuery.textMuted
+});
+
+export const AllAnswersModalPaper = {
+  borderRadius: "2px",
+  backgroundColor: paletteQuery.surface,
+  boxShadow: paletteQuery.shadow,
+  border: `1px solid ${paletteQuery.borderSubtle}`
+};
+
+export const AllAnswersList = styled(Box)({
+  maxHeight: 420,
+  overflowY: "auto",
+  border: `1px solid ${paletteQuery.borderSubtle}`,
+  borderRadius: "2px",
+  backgroundColor: paletteQuery.surface
 });

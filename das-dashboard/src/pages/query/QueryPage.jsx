@@ -7,6 +7,10 @@ import QueryFrequencyHistogram from "../../components/query_page/QueryFrequencyH
 import QueryImportanceChart from "../../components/query_page/QueryImportanceChart";
 import QueryStatusBar from "../../components/query_page/QueryStatusBar";
 import {
+  QueryExecutionProvider,
+  useQueryExecutionContext
+} from "../../components/global_providers/QueryExecutionProvider";
+import {
   PageContainer,
   ParamSideBar,
   QueryBreadcrumb,
@@ -27,20 +31,31 @@ import {
   SideBarSubtitle,
   SideBarTitle,
   SideBarTitleHeader,
-  StopButton
+  StopButton,
+  QueryStreamError
 } from "./querypage.styled";
 
-const EMPTY_HISTOGRAM = {
-  counts: Array(30).fill(0),
-  labels: Array.from({ length: 30 }, (_, index) => String(index + 1)),
-  scaleLabel: "1 minute",
-  maxCount: 1
-};
-
-export default function QueryPage() {
+function QueryPageContent() {
   const [queryText, setQueryText] = useState(
-    '(Evaluation (Predicate (public.cvterm "FBgn0034331")) (Concept "gene"))'
+    ''
   );
+
+  const {
+    answers,
+    isRunning,
+    executionId,
+    answerCount,
+    elapsedLabel,
+    frequencyHistogram,
+    stiChart,
+    streamError,
+    isCountOnly,
+    startQuery,
+    stopQuery
+  } = useQueryExecutionContext();
+
+  const canRun = queryText.trim().length > 0 && !isRunning;
+  const canStop = isRunning && executionId != null;
 
   return (
     <PageContainer>
@@ -76,7 +91,8 @@ export default function QueryPage() {
                   variant="contained"
                   disableElevation
                   startIcon={<PlayArrowIcon />}
-                  disabled={!queryText.trim()}
+                  disabled={!canRun}
+                  onClick={() => startQuery(queryText)}
                 >
                   Run
                 </RunButton>
@@ -84,7 +100,8 @@ export default function QueryPage() {
                   variant="contained"
                   disableElevation
                   startIcon={<StopIcon />}
-                  disabled
+                  disabled={!canStop}
+                  onClick={stopQuery}
                 >
                   Stop
                 </StopButton>
@@ -103,21 +120,40 @@ export default function QueryPage() {
           </QueryCard>
 
           <QueryStatusBar
-            status="idle"
-            answerCount={0}
-            elapsedLabel="00:00"
-            answersPerSecond={0}
+            isRunning={isRunning}
+            answerCount={answerCount}
+            elapsedLabel={elapsedLabel}
+            executionId={executionId}
+            isCountOnly={isCountOnly}
           />
 
+          {streamError ? (
+            <QueryStreamError>{streamError}</QueryStreamError>
+          ) : null}
+
           <ResultsSection>
-            <QueryAnswersPanel answers={[]} isRunning={false} />
+            <QueryAnswersPanel
+              answers={answers}
+              executionId={executionId}
+              isRunning={isRunning}
+              isCountOnly={isCountOnly}
+              totalAnswers={answerCount}
+            />
             <ChartsRow>
-              <QueryFrequencyHistogram histogram={EMPTY_HISTOGRAM} />
-              <QueryImportanceChart />
+              <QueryFrequencyHistogram histogram={frequencyHistogram} />
+              <QueryImportanceChart chart={stiChart} />
             </ChartsRow>
           </ResultsSection>
         </QueryContentBody>
       </QueryContent>
     </PageContainer>
+  );
+}
+
+export default function QueryPage() {
+  return (
+    <QueryExecutionProvider>
+      <QueryPageContent />
+    </QueryExecutionProvider>
   );
 }
