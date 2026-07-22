@@ -29,7 +29,7 @@ REDIS_IMAGE_NAME = "redis"
 REDIS_IMAGE_VERSION = "7.2.3-alpine"
 
 MONGODB_IMAGE_NAME = "mongodb/mongodb-community-server"
-MONGODB_IMAGE_VERSION = "8.2-ubuntu2204"
+MONGODB_IMAGE_VERSION = "8.0.4-ubuntu2204"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "1.0.0-metta-parser"
