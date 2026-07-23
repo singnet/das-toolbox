@@ -105,8 +105,21 @@ class QueryServices:
 
         return responses[-1]
 
-    def get_default_params_from_config():
-        pass
+    def get_default_params_from_config(self) -> dict:
+        config = self.web_config.load_raw_configuration()
+        agents = config.get("agents") or {}
+
+        defaults = dict(agents.get("base_query", {}).get("params", {}))
+
+        query = dict(agents.get("query") or {})
+        query.pop("endpoint", None)
+        query.pop("ports_range", None)
+
+        query_params = query.get("params") or {}
+        if isinstance(query_params, dict):
+            defaults.update(query_params)
+
+        return defaults
 
     @staticmethod
     def _format_param_value(value) -> str:

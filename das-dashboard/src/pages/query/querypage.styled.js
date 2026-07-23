@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography, styled, keyframes } from "@mui/material";
+import { Box, Button, FormControlLabel, TextField, Typography, styled, keyframes } from "@mui/material";
 
 export const paletteQuery = {
   background: "#f4f4f6",
@@ -255,6 +255,23 @@ export const QueryToolbar = styled(Box)({
   alignItems: "center",
   justifyContent: "space-between",
   gap: 12
+});
+
+export const QueryToolbarLeading = styled(Box)({
+  display: "flex",
+  alignItems: "center",
+  gap: 16,
+  minWidth: 0
+});
+
+export const QueryMettaSwitch = styled(FormControlLabel)({
+  margin: 0,
+  gap: 8,
+  "& .MuiFormControlLabel-label": {
+    fontSize: 13,
+    color: paletteQuery.textPrimary,
+    whiteSpace: "nowrap"
+  }
 });
 
 export const QueryKindChip = styled(Box)({

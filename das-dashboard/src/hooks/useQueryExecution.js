@@ -169,15 +169,9 @@ export function useQueryExecution(parameters) {
       startedAtRef.current = Date.now();
 
       try {
-        const params = {
-          ...parameters.collectParameters(),
-          use_metta_as_query_tokens: true,
-          populate_metta_mapping: true
-        };
-
-        if (parameters.needsParameterApply(params)) {
-          await setQueryParameters(params);
-          parameters.markParametersApplied(params);
+        const pendingParams = parameters.consumeQueryRunParameters();
+        if (Object.keys(pendingParams).length > 0) {
+          await setQueryParameters(pendingParams);
         }
 
         const { execution_id: nextExecutionId } = await startQueryExecution(trimmedQuery);

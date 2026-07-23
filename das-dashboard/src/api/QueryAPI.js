@@ -1,5 +1,10 @@
 import api from "./AxiosBaseClient";
 
+export async function getQueryParamDefaults() {
+  const response = await api.get("/query/param/defaults");
+  return response.data;
+}
+
 export async function setQueryParameters(params) {
   const response = await api.post("/query/executions", {
     command_type: "set",

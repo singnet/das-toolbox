@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
+import { Switch } from "@mui/material";
 import ParameterSection from "../../components/query_page/ParameterSection";
 import QueryAnswersPanel from "../../components/query_page/QueryAnswersPanel";
 import QueryFrequencyHistogram from "../../components/query_page/QueryFrequencyHistogram";
@@ -10,6 +11,7 @@ import {
   QueryExecutionProvider,
   useQueryExecutionContext
 } from "../../components/global_providers/QueryExecutionProvider";
+import { useQueryParameters } from "../../hooks/useQueryParameters";
 import {
   PageContainer,
   ParamSideBar,
@@ -20,10 +22,13 @@ import {
   QueryContentHeader,
   QueryInput,
   QueryKindChip,
+  QueryMettaSwitch,
   QueryPageSubtitle,
   QueryPageTitle,
   QueryToolbar,
   QueryToolbarActions,
+  QueryToolbarLeading,
+  paletteQuery,
   ChartsRow,
   ResultsSection,
   RunButton,
@@ -53,6 +58,8 @@ function QueryPageContent() {
     startQuery,
     stopQuery
   } = useQueryExecutionContext();
+
+  const { switches, updateSwitch } = useQueryParameters();
 
   const canRun = queryText.trim().length > 0 && !isRunning;
   const canStop = isRunning && executionId != null;
@@ -85,7 +92,30 @@ function QueryPageContent() {
         <QueryContentBody>
           <QueryCard>
             <QueryToolbar>
-              <QueryKindChip>Query</QueryKindChip>
+              <QueryToolbarLeading>
+                <QueryKindChip>Query</QueryKindChip>
+                <QueryMettaSwitch
+                  label="Use metta query"
+                  labelPlacement="end"
+                  control={
+                    <Switch
+                      size="small"
+                      checked={switches.use_metta_as_query_tokens}
+                      onChange={(event) =>
+                        updateSwitch("use_metta_as_query_tokens", event.target.checked)
+                      }
+                      sx={{
+                        "& .MuiSwitch-switchBase.Mui-checked": {
+                          color: paletteQuery.accent
+                        },
+                        "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                          backgroundColor: paletteQuery.accent
+                        }
+                      }}
+                    />
+                  }
+                />
+              </QueryToolbarLeading>
               <QueryToolbarActions>
                 <RunButton
                   variant="contained"

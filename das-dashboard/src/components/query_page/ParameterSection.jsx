@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   FormControl,
   FormControlLabel,
@@ -9,13 +8,8 @@ import {
   Switch,
   TextField
 } from "@mui/material";
-import { setQueryParameters } from "../../api/QueryAPI";
-import { extractErrorDetails } from "../../api/APIUtils";
-import { useToast } from "../global_providers/ToastProvider";
 import { useQueryParameters } from "../../hooks/useQueryParameters";
 import {
-  ApplyParametersButton,
-  ParameterApplyFooter,
   ParameterDivider,
   ParameterFieldGrid,
   ParameterLimitField,
@@ -40,7 +34,6 @@ const BASE_QUERY_SWITCHES = [
   { key: "unique_assignment_flag", label: "Unique assignment" },
   { key: "use_link_template_cache", label: "Use link template cache" },
   { key: "populate_metta_mapping", label: "Populate MeTTa mapping" },
-  { key: "use_metta_as_query_tokens", label: "Use MeTTa as query tokens" },
   { key: "allow_incomplete_chain_path", label: "Allow incomplete chain path" }
 ];
 
@@ -88,52 +81,12 @@ export default function ParameterSection() {
     maxAnswersLimit,
     setMaxAnswersLimit,
     switches,
-    updateSwitch,
-    collectParameters,
-    markParametersApplied
+    updateSwitch
   } = useQueryParameters();
-
-  const { showToast } = useToast();
-  const [isApplying, setIsApplying] = useState(false);
-
-  useEffect(() => {
-    if (!isApplying) {
-      return undefined;
-    }
-
-    document.body.style.cursor = "wait";
-
-    return () => {
-      document.body.style.cursor = "";
-    };
-  }, [isApplying]);
 
   const limitValueInvalid =
     limitAnswersEnabled &&
     (!Number.isInteger(maxAnswersLimit) || maxAnswersLimit < 1);
-
-  const handleApplyParameters = async () => {
-    if (limitValueInvalid || isApplying) {
-      return;
-    }
-
-    setIsApplying(true);
-
-    try {
-      const params = collectParameters();
-      await setQueryParameters(params);
-      markParametersApplied(params);
-      showToast({ message: "Query parameters applied.", severity: "success" });
-    } catch (error) {
-      showToast({
-        message: "Failed to apply query parameters.",
-        severity: "error",
-        details: extractErrorDetails(error)
-      });
-    } finally {
-      setIsApplying(false);
-    }
-  };
 
   return (
     <ParameterSectionRoot>
@@ -299,18 +252,6 @@ export default function ParameterSection() {
           ))}
         </ParameterSwitchStack>
       </ParameterSectionBody>
-
-      <ParameterApplyFooter>
-        <ApplyParametersButton
-          variant="contained"
-          disableElevation
-          fullWidth
-          disabled={limitValueInvalid || isApplying}
-          onClick={handleApplyParameters}
-        >
-          {isApplying ? "Applying…" : "Apply parameters"}
-        </ApplyParametersButton>
-      </ParameterApplyFooter>
     </ParameterSectionRoot>
   );
 }

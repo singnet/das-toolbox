@@ -16,14 +16,14 @@ router = APIRouter(prefix="/query", tags=["Query", "Query Agent"])
 
 TERMINAL_STATUSES = frozenset({"completed", "error", "aborted"})
 
+
 @router.get("/param/defaults")
 def get_param_defaults():
-    response = QUERY_SERVICES.get_default_params_from_config()
-
     return JSONResponse(
         status_code=200,
-        content=response
+        content=QUERY_SERVICES.get_default_params_from_config(),
     )
+
 
 @router.get("/ping")
 def proxy_health_check():
