@@ -21,4 +21,4 @@ REMOTE_METTA_FILES_PATH = f"{REMOTE_WORKSPACE_ROOT}/metta_files"
 REMOTE_CONFIG_PATH = "/.das/config.json"
 
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0"})
-LOCAL_DASHBOARD_HOST = "127.0.0.1"
+LOCAL_DASHBOARD_HOST = "localhost"

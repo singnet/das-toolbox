@@ -9,8 +9,9 @@ from shared.enums.das_services import DASServices
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.exceptions.custom_exceptions import (
+    ConfigurationFileLoadError,
+    ConfigurationValueNotFoundError,
     DasCliCommandException,
-    DASServiceInstantiationError,
     DASCLIResponseDecodeError,
 )
 
@@ -65,22 +66,19 @@ class ContainerServices:
         has_local_command = False
 
         for cmd_name in ordered_services:
-            if cmd_name not in self.web_config.config_dictionary:
-                continue
-
             try:
                 service = DASServices.from_command(cmd_name)
                 host = self._resolve_service_host(service)
+            except ConfigurationValueNotFoundError:
+                continue
 
+            try:
                 if not self._is_remote(host):
                     has_local_command = True
 
                 commands_to_run[cmd_name] = self.build_das_cli_command(
                     host=host, service=service, action=action.value
                 )
-
-            except DASServiceInstantiationError as exc:
-                raise ValueError(f"Service '{cmd_name}' is not configured.") from exc
             except ValueError as exc:
                 raise ValueError(f"Unknown service: '{cmd_name}'") from exc
 
@@ -270,14 +268,11 @@ class ContainerServices:
 
     def _resolve_service_host(self, service: DASServices) -> str:
         command = service.value["command"]
-        service_config = self.web_config.config_dictionary.get(command)
-
-        if not service_config:
-            raise DASServiceInstantiationError()
+        service_config = self.web_config.get_service_config(command)
         return service_config["host"]
 
     def _resolve_query_peer(self):
-        query = self.web_config.config_dictionary.get("query-agent")
+        query = self.web_config.get_service_config("query-agent", required=False)
         if not query:
             return None
         return {

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.logger import logger
 
 from shared.exceptions.exception_handlers import AppExceptionHandlers
+from shared.exceptions.custom_exceptions import ConfigurationFileLoadError
 from shared.internal.constants import CONFIG_PATH
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.storage_check import validate_persistent_storage
@@ -26,7 +27,10 @@ async def lifespan(app: FastAPI):
     WORKSPACE_SERVICES.ensure_workspace()
     init_db()
     WEB_CONFIG.load_user_profile()
-    WEB_CONFIG.load_config_dictionary()
+    try:
+        WEB_CONFIG.load_config_dictionary(required=False)
+    except ConfigurationFileLoadError as error:
+        logger.info("Configuration not loaded at startup: %s", error)
 
     if os.path.exists(CONFIG_PATH):
         try:

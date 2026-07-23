@@ -109,6 +109,38 @@ class DASCLIResponseDecodeError(Exception):
     def __str__(self) -> str:
         return self.detail or self.message
 
+class ConfigurationFileLoadError(Exception):
+
+    def __init__(self, detail: str = ""):
+        base_message = (
+            "The DAS configuration file could not be loaded from the specified path. "
+            "Please set-up services and endpoints at the configuration page."
+        )
+        self.detail = detail.strip()
+        self.message = f"{base_message} {self.detail}".strip() if self.detail else base_message
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+
+class ConfigurationValueNotFoundError(Exception):
+
+    def __init__(self, key: str = ""):
+        base_message = (
+            "Could not find specified section/value from configuration file. "
+            "Please try setting up any missing services and endpoints at the configuration page."
+        )
+        self.key = key.strip()
+        self.message = (
+            f"{base_message} Missing: '{self.key}'."
+            if self.key
+            else base_message
+        )
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
 
 class CommandRouterConnectionError(Exception):
 

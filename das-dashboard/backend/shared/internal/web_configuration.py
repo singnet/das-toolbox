@@ -1,6 +1,10 @@
 import json
 import os
 
+from shared.exceptions.custom_exceptions import (
+    ConfigurationFileLoadError,
+    ConfigurationValueNotFoundError,
+)
 from shared.internal.constants import (
     CONFIG_PATH,
     DEFAULT_WEBPROFILE_PATH as PROFILE_PATH,
@@ -41,30 +45,132 @@ class WebConfiguration:
         try:
             with open(PROFILE_PATH, "r") as f:
                 self.user_profile = json.load(f)
-        except:
+        except Exception:
             self.user_profile = {}
 
-    def load_config_dictionary(self):
+    def load_config_dictionary(self, config: dict | None = None, *, required: bool = True) -> None:
+        if config is not None:
+            self._validate_nested_config(config)
+            self.config_dictionary = self._build_service_map(config)
+            return
+
         if not os.path.exists(CONFIG_PATH):
+            if required:
+                raise ConfigurationFileLoadError(f"Configuration file not found: {CONFIG_PATH}")
             self.config_dictionary = {}
             return
 
         try:
-            with open(CONFIG_PATH, "r") as f:
-                config = json.load(f)
+            with open(CONFIG_PATH, "r") as config_file:
+                loaded = json.load(config_file)
+        except json.JSONDecodeError as error:
+            raise ConfigurationFileLoadError(
+                f"Invalid JSON in configuration file: {error}"
+            ) from error
+        except OSError as error:
+            raise ConfigurationFileLoadError(
+                f"Could not read configuration file: {error}"
+            ) from error
 
-            if isinstance(config, list):
-                config = config[0]
+        if isinstance(loaded, list):
+            if not loaded:
+                raise ConfigurationFileLoadError("Configuration file is empty.")
+            loaded = loaded[0]
 
-            self.config_dictionary = self.map_services(config)
-        except:
-            self.config_dictionary = {}
+        self._validate_nested_config(loaded)
+        self.config_dictionary = self._build_service_map(loaded)
 
-    def map_services(self, config_file: dict) -> dict:
+    def load_raw_configuration(self) -> dict:
+        if not os.path.exists(CONFIG_PATH):
+            raise ConfigurationFileLoadError(f"Configuration file not found: {CONFIG_PATH}")
+
+        try:
+            with open(CONFIG_PATH, "r") as file:
+                loaded = json.load(file)
+        except json.JSONDecodeError as error:
+            raise ConfigurationFileLoadError(
+                f"Invalid JSON in configuration file: {error}"
+            ) from error
+        except OSError as error:
+            raise ConfigurationFileLoadError(
+                f"Could not read configuration file: {error}"
+            ) from error
+
+        if isinstance(loaded, list):
+            if not loaded:
+                raise ConfigurationFileLoadError("Configuration file is empty.")
+            loaded = loaded[0]
+
+        self._validate_nested_config(loaded)
+        return loaded
+
+    def get_service_config(self, service_key: str, *, required: bool = True) -> dict | None:
+        service = self.config_dictionary.get(service_key)
+        if not service or not service.get("host"):
+            if required:
+                raise ConfigurationValueNotFoundError(service_key)
+            return None
+        return service
+
+    def require_config_dictionary(self) -> dict[str, dict]:
+        if not self.config_dictionary:
+            raise ConfigurationFileLoadError("Configuration has not been loaded.")
+        return self.config_dictionary
+
+    def map_remote_hosts(self) -> list[dict]:
+        _, remote_by_host = self._group_services_by_host(self.require_config_dictionary())
+
+        return [
+            {"ip": host, "labels": [service_key for service_key, _ in entries]}
+            for host, entries in sorted(remote_by_host.items(), key=lambda item: item[0])
+        ]
+
+    def map_dashboard_hosts(self) -> list[dict]:
+        local_entries, remote_by_host = self._group_services_by_host(
+            self.require_config_dictionary()
+        )
+
+        dashboard_hosts = [
+            {
+                "ip": host,
+                "services": [
+                    build_service_row(service_key, service)
+                    for service_key, service in entries
+                ],
+            }
+            for host, entries in sorted(remote_by_host.items(), key=lambda item: item[0])
+        ]
+
+        if local_entries:
+            dashboard_hosts.insert(
+                0,
+                {
+                    "ip": LOCAL_DASHBOARD_HOST,
+                    "services": [
+                        build_service_row(service_key, service)
+                        for service_key, service in local_entries
+                    ],
+                },
+            )
+
+        return dashboard_hosts
+
+    @staticmethod
+    def _validate_nested_config(config) -> None:
+        if not isinstance(config, dict):
+            raise ConfigurationFileLoadError("Configuration must be a JSON object.")
+
+        if "atomdb" not in config or "agents" not in config:
+            raise ConfigurationFileLoadError(
+                "Configuration must include 'atomdb' and 'agents' sections."
+            )
+
+    @classmethod
+    def _build_service_map(cls, config_file: dict) -> dict[str, dict]:
         services: dict[str, dict] = {}
 
         atomdb = config_file.get("atomdb") or {}
-        self._map_atomdb_section(services, atomdb)
+        cls._map_atomdb_section(services, atomdb)
 
         agents = config_file.get("agents") or {}
         for agent_key, command_name in AGENT_SERVICE_COMMANDS.items():
@@ -72,59 +178,30 @@ class WebConfiguration:
             if not isinstance(section, dict):
                 continue
 
-            self._register_endpoint(services, command_name, section.get("endpoint"))
+            cls._register_endpoint(services, command_name, section.get("endpoint"))
 
         return services
 
-    def map_hosts_from_config(self, config_file: dict) -> list[dict]:
-        return self._remote_hosts_from_services(self.map_services(config_file))
-
     @staticmethod
-    def _remote_hosts_from_services(services: dict) -> list[dict]:
-        hosts_by_ip: dict[str, dict] = {}
+    def _group_services_by_host(
+        services: dict[str, dict],
+    ) -> tuple[list[tuple[str, dict]], dict[str, list[tuple[str, dict]]]]:
+        local_entries: list[tuple[str, dict]] = []
+        remote_by_host: dict[str, list[tuple[str, dict]]] = {}
 
-        for service_name, service in services.items():
-            host = service.get("host", "")
-            if not host or host in LOCAL_HOSTS:
-                continue
-
-            if host not in hosts_by_ip:
-                hosts_by_ip[host] = {"ip": host, "labels": []}
-
-            hosts_by_ip[host]["labels"].append(service_name)
-
-        return sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
-
-    def map_dashboard_hosts(self) -> list[dict]:
-        if not self.config_dictionary:
-            return []
-
-        hosts_by_ip: dict[str, dict] = {}
-        local_services: list[dict] = []
-
-        for service_key, service in self.config_dictionary.items():
+        for service_key, service in services.items():
             host = service.get("host", "")
             if not host:
                 continue
 
-            row = build_service_row(service_key, service)
-
+            entry = (service_key, service)
             if host in LOCAL_HOSTS:
-                local_services.append(row)
+                local_entries.append(entry)
                 continue
 
-            if host not in hosts_by_ip:
-                hosts_by_ip[host] = {"ip": host, "services": []}
+            remote_by_host.setdefault(host, []).append(entry)
 
-            hosts_by_ip[host]["services"].append(row)
-
-        dashboard_hosts = sorted(hosts_by_ip.values(), key=lambda item: item["ip"])
-
-        if local_services:
-            dashboard_hosts.insert(0, {"ip": LOCAL_DASHBOARD_HOST, "services": local_services})
-
-        return dashboard_hosts
-
+        return local_entries, remote_by_host
 
     @staticmethod
     def _register_endpoint(services: dict, name: str, endpoint: str | None) -> None:

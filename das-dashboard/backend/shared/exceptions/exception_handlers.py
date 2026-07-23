@@ -12,62 +12,34 @@ from .custom_exceptions import (
     RemoteSshTransferError,
     CustomValueError,
     CommandRouterConnectionError,
+    ConfigurationFileLoadError,
+    ConfigurationValueNotFoundError,
+    
 )
-
 
 class AppExceptionHandlers:
 
     def __init__(self, app: FastAPI):
 
-        app.add_exception_handler(
-            DasCliCommandException,
-            self.handle_das_cli_command_error
-        )
+        CUSTOM_EXCEPTIONS = [
+            (Exception, self.handle_general_exception),
+            (DasCliCommandException, self.handle_das_cli_command_error),
+            (DasCliNotInstalledException, self.handle_das_cli_not_installed_error),
+            (FileSaveException, self.handle_file_save_exception),
+            (FileAlreadyExistsException, self.handle_file_already_exists_error),
+            (RemoteSshConnectionError, self.handle_remote_ssh_connection_error),
+            (RemoteSshTransferError, self.handle_remote_ssh_transfer_error),
+            (DASServiceInstantiationError, self.handle_das_cli_service_error),
+            (CustomValueError, self.handle_custom_value_error),
+            (CommandRouterConnectionError, self.handle_command_router_connection_error),
+            (ConfigurationFileLoadError, self.handle_config_load_error),
+            (ConfigurationValueNotFoundError, self.handle_config_value_not_found)
+        ]
 
-        app.add_exception_handler(
-            DasCliNotInstalledException,
-            self.handle_das_cli_not_installed_error
-        )
-
-        app.add_exception_handler(
-            FileSaveException,
-            self.handle_file_save_exception
-        )
-
-        app.add_exception_handler(
-            FileAlreadyExistsException,
-            self.handle_file_already_exists_error
-        )
-
-        app.add_exception_handler(
-            RemoteSshConnectionError,
-            self.handle_remote_ssh_connection_error,
-        )
-
-        app.add_exception_handler(
-            RemoteSshTransferError,
-            self.handle_remote_ssh_transfer_error,
-        )
-
-        app.add_exception_handler(
-            Exception,
-            self.handle_general_exception
-        )
-
-        app.add_exception_handler(
-            DASServiceInstantiationError,
-            self.handle_das_cli_service_error,
-        )
-
-        app.add_exception_handler(
-            CustomValueError,
-            self.handle_custom_value_error,
-        )
-
-        app.add_exception_handler(
-            CommandRouterConnectionError,
-            self.handle_command_router_connection_error,
-        )
+        for exception, handler in CUSTOM_EXCEPTIONS:
+            app.add_exception_handler(
+                exception, handler
+            )
 
     async def handle_das_cli_command_error(
         self,
@@ -206,6 +178,31 @@ class AppExceptionHandlers:
         
         return JSONResponse(
             status_code=400,
+            content={
+                "message": exc.message
+            }
+        )
+
+    async def handle_config_value_not_found(
+            self,
+            request: Request,
+            exc: ConfigurationValueNotFoundError
+    ):
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "message": exc.message
+            }
+        )
+
+    async def handle_config_load_error(
+            self,
+            request: Request,
+            exc: ConfigurationFileLoadError
+    ):
+        return JSONResponse(
+            status_code=500,
             content={
                 "message": exc.message
             }

@@ -3,7 +3,6 @@ from collections.abc import AsyncIterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
-from fastapi.logger import logger
 from requests import Response
 from requests.exceptions import RequestException
 from websockets.asyncio.client import connect
@@ -106,6 +105,9 @@ class QueryServices:
 
         return responses[-1]
 
+    def get_default_params_from_config():
+        pass
+
     @staticmethod
     def _format_param_value(value) -> str:
         if isinstance(value, bool):
@@ -133,20 +135,10 @@ class QueryServices:
 
     def _find_command_router_http_url(self) -> str:
         HTTP_PROXY_PORT = 40009
-        service_host_map = self.web_config.config_dictionary
-
-        try:
-            router_host = service_host_map.get("command-router", None).get("host")
-
-            if router_host is None:
-                raise KeyError
-
-            connect_host = "localhost" if router_host in LOCAL_HOSTS else router_host
-            return f"{connect_host}:{HTTP_PROXY_PORT}"
-
-        except (AttributeError, KeyError):
-            logger.critical("Command Router not found in service/host map.")
-            raise
+        router = self.web_config.get_service_config("command-router")
+        router_host = router["host"]
+        connect_host = "localhost" if router_host in LOCAL_HOSTS else router_host
+        return f"{connect_host}:{HTTP_PROXY_PORT}"
 
     def _build_websocket_url(self, execution_id: str) -> str:
         return f"ws://{self._find_command_router_http_url()}{ROUTE_PREFIX}/ws/{execution_id}"
