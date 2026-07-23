@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { getQueryAnswers } from "../../api/QueryAPI";
 import { extractErrorDetails } from "../../api/APIUtils";
+import { formatQueryAnswer } from "../../utils/formatQueryAnswer";
 import {
   AllAnswersList,
   AllAnswersModalPaper,
@@ -32,11 +33,7 @@ function toPage(answers, page) {
     page_size: PAGE_SIZE,
     total,
     total_pages: total > 0 ? Math.ceil(total / PAGE_SIZE) : 0,
-    items: answers.slice(start, start + PAGE_SIZE).map((answer) => ({
-      id: answer.id,
-      response: answer.response,
-      importance: answer.importance
-    }))
+    items: answers.slice(start, start + PAGE_SIZE)
   };
 }
 
@@ -153,7 +150,7 @@ export default function QueryAllAnswersModal({
             {items.map((answer) => (
               <ResultRow key={answer.id}>
                 <ResultAccent />
-                <ResultText>{answer.response}</ResultText>
+                <ResultText>{answer.label ?? formatQueryAnswer(answer)}</ResultText>
               </ResultRow>
             ))}
           </AllAnswersList>

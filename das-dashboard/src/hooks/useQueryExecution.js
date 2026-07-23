@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   cancelQueryExecution,
-  getQueryExecutionStatus,
   setQueryParameters,
   startQueryExecution
 } from "../api/QueryAPI";
 import { extractErrorDetails } from "../api/APIUtils";
 import { createQueryExecutionStream } from "../api/QueryStreamService";
 import { buildFrequencyHistogram, buildStiChart } from "../utils/queryCharts";
+import { formatQueryAnswer } from "../utils/formatQueryAnswer";
 
 const TERMINAL_STATUSES = new Set(["completed", "aborted", "error"]);
 
@@ -63,8 +63,10 @@ export function useQueryExecution(parameters) {
       answerSeqRef.current += 1;
       return {
         id: answerSeqRef.current,
-        response: item.response ?? "",
+        ...item,
+        label: formatQueryAnswer(item),
         importance: Number(item.importance ?? 0),
+        strength: Number(item.strength ?? 0),
         receivedAt: receivedAt + index
       };
     });
@@ -77,7 +79,9 @@ export function useQueryExecution(parameters) {
     setAnswers([
       {
         id: answerSeqRef.current,
-        response: `Returned ${count} answers`,
+        count_only: true,
+        count: Number(count),
+        label: `Returned ${count} answers`,
         importance: 0,
         receivedAt: Date.now()
       }
@@ -85,7 +89,7 @@ export function useQueryExecution(parameters) {
     setAnswerCount(Number(count));
   }, []);
 
-  const finishExecution = useCallback(async (event) => {
+  const finishExecution = useCallback((event) => {
     closeStream();
     startedAtRef.current = null;
     setIsRunning(false);
@@ -94,32 +98,20 @@ export function useQueryExecution(parameters) {
       setStreamError(event.message);
     }
 
-    const isCountOnlyQuery =
-      isCountOnlyRef.current &&
-      event?.status === "completed" &&
-      executionIdRef.current;
-
-    if (isCountOnlyQuery) {
-      try {
-        const status = await getQueryExecutionStatus(executionIdRef.current);
-        const count = status.total_items ?? status.received_count;
-        if (typeof count === "number") {
-          showCountResult(count);
-        }
-      } catch (error) {
-        setStreamError(extractErrorDetails(error));
-      }
-      return;
-    }
-
-    if (typeof event?.received_count === "number") {
+    if (typeof event?.received_count === "number" && !isCountOnlyRef.current) {
       setAnswerCount(event.received_count);
     }
-  }, [closeStream, showCountResult]);
+  }, [closeStream]);
 
   const handleStreamEvent = useCallback(
     (event) => {
-      if (event?.type === "chunk" && !isCountOnlyRef.current) {
+      if (event?.type === "chunk") {
+        const countItem = event.data?.find((item) => item?.count_only);
+        if (countItem) {
+          showCountResult(countItem.count);
+          return;
+        }
+
         appendAnswersFromChunk(event.data, event.received_count);
         return;
       }
@@ -133,7 +125,7 @@ export function useQueryExecution(parameters) {
         void finishExecution(event);
       }
     },
-    [appendAnswersFromChunk, finishExecution]
+    [appendAnswersFromChunk, finishExecution, showCountResult]
   );
 
   const connectStream = useCallback(

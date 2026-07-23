@@ -49,7 +49,7 @@ def save_answers_from_chunk(execution_id: str, payload: dict) -> None:
         rows = []
 
         for item in data:
-            if not isinstance(item, dict):
+            if not isinstance(item, dict) or item.get("count_only"):
                 continue
 
             rows.append(
@@ -57,8 +57,8 @@ def save_answers_from_chunk(execution_id: str, payload: dict) -> None:
                     execution_id,
                     seq,
                     next_index,
-                    str(item.get("response", "")),
-                    0.0,
+                    json.dumps(item),
+                    float(item.get("strength", 0.0)),
                     float(item.get("importance", 0.0)),
                     None,
                     created_at,
@@ -118,7 +118,7 @@ def get_answers_page(
         "items": [
             {
                 "id": row[0],
-                "response": row[1],
+                **json.loads(row[1]),
                 "importance": row[2],
             }
             for row in rows

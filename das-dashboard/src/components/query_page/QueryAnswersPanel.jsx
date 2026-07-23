@@ -67,7 +67,7 @@ export default function QueryAnswersPanel({
               {visibleAnswers.map((answer) => (
                 <ResultRow key={answer.id}>
                   <ResultAccent />
-                  <ResultText>{answer.response}</ResultText>
+                  <ResultText>{answer.label}</ResultText>
                 </ResultRow>
               ))}
             </ResultsList>
