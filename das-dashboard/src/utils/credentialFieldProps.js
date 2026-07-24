@@ -1,23 +1,46 @@
+const autofillOffInput = {
+  autoComplete: "off",
+  "data-form-type": "other",
+  "data-lpignore": "true",
+  "data-1p-ignore": "true"
+};
+
+const unlockOnFocusInput = {
+  readOnly: true,
+  onFocus: (event) => {
+    event.target.readOnly = false;
+  }
+};
+
+export const disableAutofillField = {
+  autoComplete: "off",
+  slotProps: {
+    htmlInput: {
+      ...autofillOffInput
+    }
+  }
+};
+
 export const credentialUsernameField = {
   autoComplete: "off",
   slotProps: {
     htmlInput: {
-      autoComplete: "off",
-      "data-form-type": "other",
-      "data-lpignore": "true",
-      "data-1p-ignore": "true"
+      ...autofillOffInput,
+      ...unlockOnFocusInput
     }
   }
 };
 
 export const credentialPasswordField = {
-  autoComplete: "new-password",
+  autoComplete: "off",
   slotProps: {
     htmlInput: {
-      autoComplete: "new-password",
+      // Avoid "new-password" — Chrome treats that as sign-up and offers to generate.
+      autoComplete: "one-time-code",
       "data-form-type": "other",
       "data-lpignore": "true",
-      "data-1p-ignore": "true"
+      "data-1p-ignore": "true",
+      ...unlockOnFocusInput
     }
   }
 };

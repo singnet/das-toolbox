@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initRedisMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
-import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
+import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function RedisMongoSubForm({ onChange, category }) {
@@ -30,6 +30,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           label="Redis Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.redis_endpoint}
           onChange={(e) => {
             form.current.redis_endpoint = e.target.value
@@ -60,6 +61,7 @@ export function RedisMongoSubForm({ onChange, category }) {
           label="MongoDB Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value

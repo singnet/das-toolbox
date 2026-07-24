@@ -19,7 +19,7 @@ import { MANAGED_CONTEXT_MAPPING_PATH } from "./adapterConstants"
 import { initAdapterBackend, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField, pathField } from "../../formValidation"
-import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
+import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
 import {
   GridSpan9,
@@ -149,6 +149,7 @@ export function AdapterDBOptions() {
           label="Adapter Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.adapter_endpoint}
           onChange={(e) => {
             form.current.adapter_endpoint = e.target.value
@@ -181,6 +182,7 @@ export function AdapterDBOptions() {
           label="Database Host"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.db_host}
           onChange={(e) => {
             form.current.db_host = e.target.value
@@ -209,6 +211,7 @@ export function AdapterDBOptions() {
           label="Database Name"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.db_name}
           onChange={(e) => {
             form.current.db_name = e.target.value

@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initMorkMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
-import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
+import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
@@ -30,6 +30,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MorkDB Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.mork_endpoint}
           onChange={(e) => {
             form.current.mork_endpoint = e.target.value
@@ -60,6 +61,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MongoDB Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value

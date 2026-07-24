@@ -6,7 +6,7 @@ import { useToast } from "../../../global_providers/ToastProvider"
 import { initRedisMongoConnection, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField } from "../../formValidation"
-import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
+import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import {
   GridSpan9,
   GridSpan3,
@@ -42,6 +42,7 @@ export function RedisMongoOptions() {
           label="Redis Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.redis_endpoint}
           onChange={(e) => {
             form.current.redis_endpoint = e.target.value
@@ -70,6 +71,7 @@ export function RedisMongoOptions() {
           label="MongoDB Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
