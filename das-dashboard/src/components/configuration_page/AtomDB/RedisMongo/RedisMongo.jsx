@@ -112,7 +112,6 @@ export function RedisMongoOptions() {
         <TextField
           fullWidth
           label="MongoDB Password"
-          type="password"
           size="small"
           required
           {...credentialPasswordField}

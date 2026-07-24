@@ -106,7 +106,6 @@ export function RedisMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo Pass"
           size="small"
-          type="password"
           required
           {...credentialPasswordField}
           defaultValue={form.current.mongo_password}

@@ -80,7 +80,7 @@ export default function ProfilePage() {
           onSubmit={(event) => event.preventDefault()}
         >
           <TextField
-            label="SSH Username"
+            label="SSH user"
             value={form.sshUsername}
             onChange={handleChange("sshUsername")}
             fullWidth

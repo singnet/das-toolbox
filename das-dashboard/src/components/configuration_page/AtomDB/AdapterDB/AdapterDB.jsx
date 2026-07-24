@@ -237,7 +237,6 @@ export function AdapterDBOptions() {
         <TextField
           fullWidth
           label="Password"
-          type="password"
           size="small"
           required
           {...credentialPasswordField}

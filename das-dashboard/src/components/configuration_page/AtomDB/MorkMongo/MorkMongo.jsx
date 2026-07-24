@@ -111,7 +111,6 @@ export function MorkMongoOptions() {
         <TextField
           fullWidth
           label="MongoDB Password"
-          type="password"
           size="small"
           required
           {...credentialPasswordField}

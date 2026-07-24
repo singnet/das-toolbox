@@ -101,7 +101,6 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
           <TextField
             fullWidth
             label="MongoDB Password"
-            type="password"
             size="small"
             required
             {...credentialPasswordField}
@@ -247,7 +246,6 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
           <TextField
             fullWidth
             label="MongoDB Password"
-            type="password"
             size="small"
             required
             {...credentialPasswordField}
