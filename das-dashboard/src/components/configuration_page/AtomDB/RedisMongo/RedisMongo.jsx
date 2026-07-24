@@ -6,6 +6,7 @@ import { useToast } from "../../../global_providers/ToastProvider"
 import { initRedisMongoConnection, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField } from "../../formValidation"
+import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
 import {
   GridSpan9,
   GridSpan3,
@@ -97,6 +98,7 @@ export function RedisMongoOptions() {
           label="MongoDB Username"
           size="small"
           required
+          {...credentialUsernameField}
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -111,6 +113,7 @@ export function RedisMongoOptions() {
           type="password"
           size="small"
           required
+          {...credentialPasswordField}
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value

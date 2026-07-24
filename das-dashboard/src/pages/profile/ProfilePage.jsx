@@ -4,6 +4,7 @@ import { PageContainer } from "./profilepage.styled";
 import { useToast } from "../../components/global_providers/ToastProvider";
 import { createProfile, getProfile } from "../../api/ProfileAPI";
 import { extractErrorDetails } from "../../api/APIUtils";
+import { credentialUsernameField } from "../../utils/credentialFieldProps";
 
 export default function ProfilePage() {
   const { showToast } = useToast();
@@ -70,8 +71,21 @@ export default function ProfilePage() {
       <Paper elevation={2} sx={{ width: "100%", maxWidth: 520, p: 4, borderRadius: 3 }}>
         <Typography variant="h5" fontWeight={700} mb={3}>SSH Profile</Typography>
 
-        <Box display="flex" flexDirection="column" gap={3}>
-          <TextField label="SSH Username" value={form.sshUsername} onChange={handleChange("sshUsername")} fullWidth />
+        <Box
+          component="form"
+          autoComplete="off"
+          display="flex"
+          flexDirection="column"
+          gap={3}
+          onSubmit={(event) => event.preventDefault()}
+        >
+          <TextField
+            label="SSH Username"
+            value={form.sshUsername}
+            onChange={handleChange("sshUsername")}
+            fullWidth
+            {...credentialUsernameField}
+          />
           <TextField label="SSH Key File" value={form.sshKeyFile?.name || ""} fullWidth disabled />
 
           <Button variant="outlined" component="label">

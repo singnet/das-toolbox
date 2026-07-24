@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initMorkMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
+import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
@@ -89,6 +90,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="Mongo User"
           size="small"
           required
+          {...credentialUsernameField}
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -104,6 +106,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           type="password"
           required
+          {...credentialPasswordField}
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value

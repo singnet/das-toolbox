@@ -3,6 +3,7 @@ import { useState } from "react"
 import { ClusterForm } from "../ClusterForm"
 import { parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
+import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
 import {
   GridSpan9,
   GridSpan3,
@@ -86,6 +87,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Username"
             size="small"
             required
+            {...credentialUsernameField}
             defaultValue={form.current.mongo_username}
             onChange={(e) => {
               form.current.mongo_username = e.target.value
@@ -100,6 +102,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             type="password"
             size="small"
             required
+            {...credentialPasswordField}
             defaultValue={form.current.mongo_password}
             onChange={(e) => {
               form.current.mongo_password = e.target.value
@@ -228,6 +231,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Username"
             size="small"
             required
+            {...credentialUsernameField}
             defaultValue={form.current.mongo_username}
             onChange={(e) => {
               form.current.mongo_username = e.target.value
@@ -242,6 +246,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             type="password"
             size="small"
             required
+            {...credentialPasswordField}
             defaultValue={form.current.mongo_password}
             onChange={(e) => {
               form.current.mongo_password = e.target.value

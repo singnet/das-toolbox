@@ -19,6 +19,7 @@ import { MANAGED_CONTEXT_MAPPING_PATH } from "./adapterConstants"
 import { initAdapterBackend, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
 import { portField, pathField } from "../../formValidation"
+import { credentialPasswordField, credentialUsernameField } from "../../../../utils/credentialFieldProps"
 import { AdapterBackendOptions } from "./AdapterBackendOptions"
 import {
   GridSpan9,
@@ -221,6 +222,7 @@ export function AdapterDBOptions() {
           label="Username"
           size="small"
           required
+          {...credentialUsernameField}
           defaultValue={form.current.db_username}
           onChange={(e) => {
             form.current.db_username = e.target.value
@@ -235,6 +237,7 @@ export function AdapterDBOptions() {
           type="password"
           size="small"
           required
+          {...credentialPasswordField}
           defaultValue={form.current.db_password}
           onChange={(e) => {
             form.current.db_password = e.target.value
