@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
@@ -55,6 +55,9 @@ export default function QueryAllAnswersModal({
     )
   };
 
+  const answersRef = useRef(answers);
+  answersRef.current = answers;
+
   useEffect(() => {
     if (!open) {
       setPage(1);
@@ -78,15 +81,15 @@ export default function QueryAllAnswersModal({
           return;
         }
 
-        setPageData(response.total > 0 ? response : toPage(answers, page));
+        setPageData(response.total > 0 ? response : toPage(answersRef.current, page));
       })
       .catch((loadError) => {
         if (cancelled) {
           return;
         }
 
-        if (answers.length > 0) {
-          setPageData(toPage(answers, page));
+        if (answersRef.current.length > 0) {
+          setPageData(toPage(answersRef.current, page));
           return;
         }
 
@@ -102,7 +105,7 @@ export default function QueryAllAnswersModal({
     return () => {
       cancelled = true;
     };
-  }, [open, executionId, page, answers]);
+  }, [open, executionId, page]);
 
   const total = pageData?.total ?? 0;
   const totalPages = pageData?.total_pages ?? 0;
@@ -119,7 +122,7 @@ export default function QueryAllAnswersModal({
       onClose={onClose}
       fullWidth
       maxWidth="md"
-      PaperProps={{ sx: AllAnswersModalPaper }}
+      slotProps={{ paper: { sx: AllAnswersModalPaper } }}
     >
       <DialogTitle
         sx={{

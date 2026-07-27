@@ -69,8 +69,8 @@ export function useQueryExecution(parameters) {
       const nextAnswers = chunkItems.map((item, index) => {
         answerSeqRef.current += 1;
         return {
-          id: answerSeqRef.current,
           ...item,
+          id: answerSeqRef.current,
           label: formatQueryAnswer(item, displayOptions),
           importance: Number(item.importance ?? 0),
           strength: Number(item.strength ?? 0),
@@ -180,6 +180,7 @@ export function useQueryExecution(parameters) {
           throw new Error("Query execution did not return an execution id.");
         }
 
+        executionIdRef.current = nextExecutionId;
         setExecutionId(nextExecutionId);
         connectStream(nextExecutionId);
       } catch (error) {
@@ -193,15 +194,18 @@ export function useQueryExecution(parameters) {
 
   const stopQuery = useCallback(async () => {
     if (!executionIdRef.current) {
+      setIsRunning(false);
+      startedAtRef.current = null;
       return;
     }
 
     try {
       await cancelQueryExecution(executionIdRef.current);
+      finishExecution(null);
     } catch (error) {
       setStreamError(extractErrorDetails(error));
     }
-  }, []);
+  }, [finishExecution]);
 
   useEffect(() => {
     if (!isRunning || startedAtRef.current == null) {

@@ -38,7 +38,7 @@ export default function QueryAnswersPanel({
             <PanelMeta>
               {answerTotal > 0
                 ? `• Last ${Math.min(resultLimit, visibleAnswers.length)} of ${answerTotal}`
-                : "MeTTa expression"}
+                : "No answers yet"}
             </PanelMeta>
             {canShowAll ? (
               <PanelMeta

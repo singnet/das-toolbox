@@ -43,9 +43,9 @@ class WebConfiguration:
             return
 
         try:
-            with open(PROFILE_PATH, "r") as f:
-                self.user_profile = json.load(f)
-        except Exception:
+            with open(PROFILE_PATH) as profile_file:
+                self.user_profile = json.load(profile_file)
+        except (OSError, json.JSONDecodeError):
             self.user_profile = {}
 
     def load_config_dictionary(self, config: dict | None = None, *, required: bool = True) -> None:

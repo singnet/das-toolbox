@@ -45,6 +45,7 @@ def save_answers_from_chunk(execution_id: str, payload: dict) -> None:
     created_at = datetime.now(timezone.utc).isoformat()
 
     with sqlite3.connect(QUERY_DB_PATH) as connection:
+        connection.execute("BEGIN IMMEDIATE")
         next_index = _next_answer_index(connection, execution_id)
         rows = []
 
@@ -58,8 +59,8 @@ def save_answers_from_chunk(execution_id: str, payload: dict) -> None:
                     seq,
                     next_index,
                     json.dumps(item),
-                    float(item.get("strength", 0.0)),
-                    float(item.get("importance", 0.0)),
+                    float(item.get("strength") or 0.0),
+                    float(item.get("importance") or 0.0),
                     None,
                     created_at,
                 )
@@ -67,6 +68,7 @@ def save_answers_from_chunk(execution_id: str, payload: dict) -> None:
             next_index += 1
 
         if not rows:
+            connection.rollback()
             return
 
         connection.executemany(
@@ -117,8 +119,8 @@ def get_answers_page(
         "total_pages": total_pages,
         "items": [
             {
-                "id": row[0],
                 **json.loads(row[1]),
+                "id": row[0],
             }
             for row in rows
         ],

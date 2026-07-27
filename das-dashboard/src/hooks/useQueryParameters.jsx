@@ -51,6 +51,7 @@ export function QueryParametersProvider({ children }) {
       return;
     }
 
+    queryRunParametersRef.current = {};
     setAttentionUpdateState(defaults.attention_update ?? 0);
     setAttentionCorrelationState(defaults.attention_correlation ?? 0);
     setAttentionFocusStrictnessState(defaults.attention_focus_strictness ?? 0);

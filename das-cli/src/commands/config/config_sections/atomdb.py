@@ -139,7 +139,7 @@ def mongo_setup(settings: Settings, skip_cluster: bool) -> dict[str, Any]:
 
     return {
         "mongodb": {
-            "image": MONGODB_IMAGE_NAME + MONGODB_IMAGE_VERSION,
+            "image": f"{MONGODB_IMAGE_NAME}:{MONGODB_IMAGE_VERSION}",
             "endpoint": f"localhost:{mongodb_port}",
             "username": mongodb_username,
             "password": mongodb_password,

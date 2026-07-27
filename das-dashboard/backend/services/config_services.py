@@ -100,13 +100,7 @@ class ConfigServices:
                 ssh.close()
 
     async def load_config(self, nested_config: dict) -> dict:
-        if not isinstance(nested_config, dict):
-            raise ConfigurationFileLoadError("Configuration must be a JSON object.")
-
-        if "atomdb" not in nested_config or "agents" not in nested_config:
-            raise ConfigurationFileLoadError(
-                "Configuration must include 'atomdb' and 'agents' sections."
-            )
+        self.web_config._validate_nested_config(nested_config)
 
         await run_in_threadpool(self._persist_config, nested_config)
         flat = merge_flat_config(NestedConfigMapper.to_flat(nested_config), CONSTANTS)

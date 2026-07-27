@@ -1,6 +1,13 @@
 from typing import Any
 
 
+def _to_float(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def normalize_query_answer(item: Any) -> dict[str, Any] | None:
     if isinstance(item, str) and item.strip().isdigit():
         return {"count_only": True, "count": int(item.strip())}
@@ -22,8 +29,8 @@ def normalize_query_answer(item: Any) -> dict[str, Any] | None:
             "assignment": item.get("assignment", {}),
             "metta_expressions": metta_expressions or [],
             "assignment_metta": item.get("assignment_metta", {}),
-            "importance": float(item.get("importance", 0.0)),
-            "strength": float(item.get("strength", 0.0)),
+            "importance": _to_float(item.get("importance")),
+            "strength": _to_float(item.get("strength")),
         }
     )
     return normalized

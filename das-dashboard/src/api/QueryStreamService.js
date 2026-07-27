@@ -1,4 +1,6 @@
-const WS_BASE = "ws://localhost:8000";
+import { resolveWsBaseUrl } from "./apiBase";
+
+const WS_BASE = resolveWsBaseUrl();
 
 export function createQueryExecutionStream(executionId, { onEvent, onOpen, onClose, onError }) {
   const socket = new WebSocket(`${WS_BASE}/query/executions/${executionId}`);

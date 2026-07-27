@@ -5,7 +5,7 @@ export function buildQueryParameters({
   maxBundleSize,
   limitAnswersEnabled,
   maxAnswersLimit,
-  switches
+  switches = {}
 }) {
   return {
     attention_update: attentionUpdate,

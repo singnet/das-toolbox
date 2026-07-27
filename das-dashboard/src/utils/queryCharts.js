@@ -14,7 +14,11 @@ export function buildFrequencyHistogram(answers) {
     };
   }
 
-  const startTime = streamAnswers[0].receivedAt;
+  const endTime = Math.max(
+    Date.now(),
+    streamAnswers[streamAnswers.length - 1].receivedAt
+  );
+  const startTime = endTime - WINDOW_MS;
   const bucketSize = WINDOW_MS / BUCKET_COUNT;
   const counts = Array(BUCKET_COUNT).fill(0);
 

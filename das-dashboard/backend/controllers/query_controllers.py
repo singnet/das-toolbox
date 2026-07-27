@@ -1,10 +1,9 @@
 import json
+from contextlib import aclosing
+from typing import Any
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
-from fastapi.logger import logger
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-
 from requests import Response
 
 from services_init import QUERY_SERVICES
@@ -31,7 +30,7 @@ def proxy_health_check():
 
     return JSONResponse(
         status_code=response.status_code,
-        content=response.text,
+        content=_proxy_json_content(response),
     )
 
 
@@ -90,33 +89,34 @@ async def get_execution_stream(websocket: WebSocket, execution_id: str):
     await websocket.accept()
 
     try:
-        async for event in QUERY_SERVICES.stream_execution_events(execution_id):
-            await websocket.send_json(event)
+        async with aclosing(QUERY_SERVICES.stream_execution_events(execution_id)) as stream:
+            async for event in stream:
+                await websocket.send_json(event)
 
-            status = event.get("status")
-            if status in TERMINAL_STATUSES:
-                break
+                if event.get("status") in TERMINAL_STATUSES:
+                    break
     except WebSocketDisconnect:
         pass
     except CommandRouterConnectionError as error:
-        await websocket.send_json(
-            {
-                "execution_id": execution_id,
-                "status": "error",
-                "message": error.message,
-            }
-        )
+        await _safe_send_error(websocket, execution_id, error.message)
     except json.JSONDecodeError:
-        await websocket.send_json(
-            {
-                "execution_id": execution_id,
-                "status": "error",
-                "message": "Invalid JSON received from the command router stream.",
-            }
+        await _safe_send_error(
+            websocket,
+            execution_id,
+            "Invalid JSON received from the command router stream.",
         )
 
 
-def _proxy_json_content(response : Response):
+async def _safe_send_error(websocket: WebSocket, execution_id: str, message: str) -> None:
+    try:
+        await websocket.send_json(
+            {"execution_id": execution_id, "status": "error", "message": message}
+        )
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+
+
+def _proxy_json_content(response: Response) -> Any:
     try:
         return response.json()
     except ValueError:

@@ -12,7 +12,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 "nodes": [{"context": "default", "ip": "localhost", "username": "arturgontijo"}],
             },
             "mongodb": {
-                "image": "mongodb/mongodb-community-server:8.2-ubuntu2204",
+                "image": "mongodb/mongodb-community-server:8.0.4-ubuntu2204",
                 "endpoint": "localhost:40021",
                 "username": "admin",
                 "password": "admin",

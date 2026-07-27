@@ -30,11 +30,11 @@ export function formatQueryAnswer(answer, { preferMetta = false } = {}) {
   }
 
   if (preferMetta) {
-    const mettaLabel = formatMettaContent(answer);
+    const mettaLabel = formatMettaContent(answer ?? {});
     if (mettaLabel !== "(no metta)") {
       return mettaLabel;
     }
   }
 
-  return formatHandles(answer.handles);
+  return formatHandles(answer?.handles);
 }

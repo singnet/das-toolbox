@@ -6,6 +6,7 @@ import requests
 from requests import Response
 from requests.exceptions import RequestException
 from websockets.asyncio.client import connect
+from websockets.exceptions import WebSocketException
 
 from shared.db import query_db
 from shared.exceptions.custom_exceptions import CommandRouterConnectionError, CustomValueError
@@ -39,7 +40,7 @@ class QueryServices:
                     if payload.get("type") == "chunk":
                         query_db.save_answers_from_chunk(execution_id, payload)
                     yield payload
-        except RequestException as error:
+        except (WebSocketException, RequestException) as error:
             raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
         except OSError as error:
             raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
@@ -76,7 +77,11 @@ class QueryServices:
         return self._post_execution(command_type, command_text)
 
     def _set_query_parameters(self, command_type: str, command_text: str) -> Response:
-        custom_parameters_dict = json.loads(command_text)
+        try:
+            custom_parameters_dict = json.loads(command_text)
+        except json.JSONDecodeError as error:
+            raise CustomValueError(f"Invalid query parameters payload: {error}") from error
+
         if not custom_parameters_dict:
             raise CustomValueError("No query parameters were provided.")
 

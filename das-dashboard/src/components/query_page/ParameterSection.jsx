@@ -150,6 +150,7 @@ export default function ParameterSection() {
             value={maxBundleSize}
             onChange={(event) => setMaxBundleSize(Number(event.target.value))}
             fullWidth
+            inputProps={{ min: 1, step: 1 }}
             sx={fieldSx}
           />
         </ParameterFieldGrid>
