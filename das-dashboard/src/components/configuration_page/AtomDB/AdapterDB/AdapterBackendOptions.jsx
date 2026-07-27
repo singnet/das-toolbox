@@ -3,6 +3,7 @@ import { useState } from "react"
 import { ClusterForm } from "../ClusterForm"
 import { parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
+import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import {
   GridSpan9,
   GridSpan3,
@@ -30,6 +31,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="Redis Endpoint"
             size="small"
             required
+            {...disableAutofillField}
             defaultValue={form.current.redis_endpoint}
             onChange={(e) => {
               form.current.redis_endpoint = e.target.value
@@ -58,6 +60,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Endpoint"
             size="small"
             required
+            {...disableAutofillField}
             defaultValue={form.current.mongo_endpoint}
             onChange={(e) => {
               form.current.mongo_endpoint = e.target.value
@@ -86,6 +89,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Username"
             size="small"
             required
+            {...credentialUsernameField}
             defaultValue={form.current.mongo_username}
             onChange={(e) => {
               form.current.mongo_username = e.target.value
@@ -97,9 +101,9 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
           <TextField
             fullWidth
             label="MongoDB Password"
-            type="password"
             size="small"
             required
+            {...credentialPasswordField}
             defaultValue={form.current.mongo_password}
             onChange={(e) => {
               form.current.mongo_password = e.target.value
@@ -172,6 +176,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MorkDB Endpoint"
             size="small"
             required
+            {...disableAutofillField}
             defaultValue={form.current.mork_endpoint}
             onChange={(e) => {
               form.current.mork_endpoint = e.target.value
@@ -200,6 +205,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Endpoint"
             size="small"
             required
+            {...disableAutofillField}
             defaultValue={form.current.mongo_endpoint}
             onChange={(e) => {
               form.current.mongo_endpoint = e.target.value
@@ -228,6 +234,7 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
             label="MongoDB Username"
             size="small"
             required
+            {...credentialUsernameField}
             defaultValue={form.current.mongo_username}
             onChange={(e) => {
               form.current.mongo_username = e.target.value
@@ -239,9 +246,9 @@ export function AdapterBackendOptions({ backendType, backendRef }) {
           <TextField
             fullWidth
             label="MongoDB Password"
-            type="password"
             size="small"
             required
+            {...credentialPasswordField}
             defaultValue={form.current.mongo_password}
             onChange={(e) => {
               form.current.mongo_password = e.target.value

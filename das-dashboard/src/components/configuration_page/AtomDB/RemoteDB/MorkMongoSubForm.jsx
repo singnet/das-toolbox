@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initMorkMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
+import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
 export function MorkMongoSubForm({ onChange, category }) {
@@ -29,6 +30,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MorkDB Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.mork_endpoint}
           onChange={(e) => {
             form.current.mork_endpoint = e.target.value
@@ -59,6 +61,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="MongoDB Endpoint"
           size="small"
           required
+          {...disableAutofillField}
           defaultValue={form.current.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
@@ -89,6 +92,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           label="Mongo User"
           size="small"
           required
+          {...credentialUsernameField}
           defaultValue={form.current.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
@@ -102,8 +106,8 @@ export function MorkMongoSubForm({ onChange, category }) {
           fullWidth
           label="Mongo Pass"
           size="small"
-          type="password"
           required
+          {...credentialPasswordField}
           defaultValue={form.current.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value

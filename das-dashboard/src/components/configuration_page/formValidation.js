@@ -56,7 +56,18 @@ export const spreadUpperInput = {
 }
 
 export function field(rules) {
-  return { slotProps: { htmlInput: rules } }
+  return {
+    autoComplete: "off",
+    slotProps: {
+      htmlInput: {
+        autoComplete: "off",
+        "data-form-type": "other",
+        "data-lpignore": "true",
+        "data-1p-ignore": "true",
+        ...rules
+      }
+    }
+  }
 }
 
 export const ipv4Field = field(ipv4Input)
@@ -70,8 +81,13 @@ export const spreadLowerField = field(spreadLowerInput)
 export const spreadUpperField = field(spreadUpperInput)
 
 export const numberField = {
+  autoComplete: "off",
   slotProps: {
     htmlInput: {
+      autoComplete: "off",
+      "data-form-type": "other",
+      "data-lpignore": "true",
+      "data-1p-ignore": "true",
       ...nonNegativeInput,
       onWheel: (event) => event.target.blur()
     }

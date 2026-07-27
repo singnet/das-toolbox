@@ -4,6 +4,7 @@ export function ConfigForm({ onSubmit, children, sx }) {
   return (
     <Box
       component="form"
+      autoComplete="off"
       sx={{ display: "contents", ...sx }}
       onSubmit={(event) => {
         event.preventDefault()

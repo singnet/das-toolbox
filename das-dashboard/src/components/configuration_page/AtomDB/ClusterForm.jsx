@@ -2,6 +2,7 @@ import { Box, Button, TextField, Typography, IconButton } from "@mui/material"
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import { useEffect, useRef, useState } from "react"
 import { ipv4Field } from "../formValidation"
+import { credentialUsernameField } from "../../../utils/credentialFieldProps"
 
 function normalizeNodeContext(context) {
   if (!context || context === "default") {
@@ -113,6 +114,7 @@ export function ClusterForm({ type, initialNodes = [], onChange }) {
               size="small"
               margin="none"
               required
+              {...credentialUsernameField}
               defaultValue={node.username ?? ""}
               onChange={(e) => {
                 updateNode(i, "username", e.target.value)
