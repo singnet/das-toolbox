@@ -2,9 +2,10 @@ const BUCKET_COUNT = 30;
 const WINDOW_MS = 60_000;
 
 export function buildFrequencyHistogram(answers) {
+  const streamAnswers = answers.filter((answer) => !answer.count_only);
   const labels = Array.from({ length: BUCKET_COUNT }, (_, index) => String(index + 1));
 
-  if (answers.length === 0) {
+  if (streamAnswers.length === 0) {
     return {
       counts: Array(BUCKET_COUNT).fill(0),
       labels,
@@ -13,11 +14,11 @@ export function buildFrequencyHistogram(answers) {
     };
   }
 
-  const startTime = answers[0].receivedAt;
+  const startTime = streamAnswers[0].receivedAt;
   const bucketSize = WINDOW_MS / BUCKET_COUNT;
   const counts = Array(BUCKET_COUNT).fill(0);
 
-  for (const answer of answers) {
+  for (const answer of streamAnswers) {
     const offset = answer.receivedAt - startTime;
     if (offset < 0 || offset >= WINDOW_MS) {
       continue;
@@ -36,7 +37,9 @@ export function buildFrequencyHistogram(answers) {
 }
 
 export function buildStiChart(answers, maxBars = 30) {
-  if (answers.length === 0) {
+  const stiAnswers = answers.filter((answer) => !answer.count_only);
+
+  if (stiAnswers.length === 0) {
     return {
       values: [],
       labels: [],
@@ -45,9 +48,9 @@ export function buildStiChart(answers, maxBars = 30) {
     };
   }
 
-  const slice = answers.slice(-maxBars);
-  const offset = answers.length - slice.length;
-  const values = slice.map((answer) => answer.importance);
+  const slice = stiAnswers.slice(-maxBars);
+  const offset = stiAnswers.length - slice.length;
+  const values = slice.map((answer) => Number(answer.importance ?? 0));
   const labels = slice.map((_, index) => String(offset + index + 1));
   const nonZeroCount = values.filter((value) => value !== 0).length;
 

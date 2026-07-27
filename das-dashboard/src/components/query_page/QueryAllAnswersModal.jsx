@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { getQueryAnswers } from "../../api/QueryAPI";
 import { extractErrorDetails } from "../../api/APIUtils";
+import { useQueryParameters } from "../../hooks/useQueryParameters";
 import { formatQueryAnswer } from "../../utils/formatQueryAnswer";
 import {
   AllAnswersList,
@@ -47,6 +48,12 @@ export default function QueryAllAnswersModal({
   const [pageData, setPageData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { switches } = useQueryParameters();
+  const displayOptions = {
+    preferMetta: Boolean(
+      switches.populate_metta_mapping || switches.use_metta_as_query_tokens
+    )
+  };
 
   useEffect(() => {
     if (!open) {
@@ -150,7 +157,9 @@ export default function QueryAllAnswersModal({
             {items.map((answer) => (
               <ResultRow key={answer.id}>
                 <ResultAccent />
-                <ResultText>{answer.label ?? formatQueryAnswer(answer)}</ResultText>
+                <ResultText>
+                  {answer.label ?? formatQueryAnswer(answer, displayOptions)}
+                </ResultText>
               </ResultRow>
             ))}
           </AllAnswersList>

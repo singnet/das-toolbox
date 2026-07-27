@@ -98,7 +98,7 @@ def get_answers_page(
 
         rows = connection.execute(
             """
-            SELECT answer_index, answer_text, importance
+            SELECT answer_index, answer_text
             FROM query_answers
             WHERE execution_id = ?
             ORDER BY answer_index ASC
@@ -119,7 +119,6 @@ def get_answers_page(
             {
                 "id": row[0],
                 **json.loads(row[1]),
-                "importance": row[2],
             }
             for row in rows
         ],

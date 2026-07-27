@@ -49,30 +49,39 @@ export function useQueryExecution(parameters) {
     setExecutionId(null);
   }, [closeStream]);
 
-  const appendAnswersFromChunk = useCallback((chunkItems, receivedCount) => {
-    if (typeof receivedCount === "number") {
-      setAnswerCount(receivedCount);
-    }
+  const preferMettaDisplay = Boolean(
+    parameters.switches?.populate_metta_mapping ||
+      parameters.switches?.use_metta_as_query_tokens
+  );
 
-    if (!Array.isArray(chunkItems) || chunkItems.length === 0) {
-      return;
-    }
+  const appendAnswersFromChunk = useCallback(
+    (chunkItems, receivedCount) => {
+      if (typeof receivedCount === "number") {
+        setAnswerCount(receivedCount);
+      }
 
-    const receivedAt = Date.now();
-    const nextAnswers = chunkItems.map((item, index) => {
-      answerSeqRef.current += 1;
-      return {
-        id: answerSeqRef.current,
-        ...item,
-        label: formatQueryAnswer(item),
-        importance: Number(item.importance ?? 0),
-        strength: Number(item.strength ?? 0),
-        receivedAt: receivedAt + index
-      };
-    });
+      if (!Array.isArray(chunkItems) || chunkItems.length === 0) {
+        return;
+      }
 
-    setAnswers((previous) => [...previous, ...nextAnswers]);
-  }, []);
+      const receivedAt = Date.now();
+      const displayOptions = { preferMetta: preferMettaDisplay };
+      const nextAnswers = chunkItems.map((item, index) => {
+        answerSeqRef.current += 1;
+        return {
+          id: answerSeqRef.current,
+          ...item,
+          label: formatQueryAnswer(item, displayOptions),
+          importance: Number(item.importance ?? 0),
+          strength: Number(item.strength ?? 0),
+          receivedAt: receivedAt + index
+        };
+      });
+
+      setAnswers((previous) => [...previous, ...nextAnswers]);
+    },
+    [preferMettaDisplay]
+  );
 
   const showCountResult = useCallback((count) => {
     answerSeqRef.current += 1;

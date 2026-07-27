@@ -8,10 +8,25 @@ def normalize_query_answer(item: Any) -> dict[str, Any] | None:
     if not isinstance(item, dict):
         return None
 
-    if not any(key in item for key in ("handles", "metta", "assignment")):
+    if "handles" not in item or "assignment" not in item:
         return None
 
-    return item
+    metta_expressions = item.get("metta_expressions")
+    if metta_expressions is None:
+        metta_expressions = item.get("metta", [])
+
+    normalized = dict(item)
+    normalized.update(
+        {
+            "handles": item.get("handles", []),
+            "assignment": item.get("assignment", {}),
+            "metta_expressions": metta_expressions or [],
+            "assignment_metta": item.get("assignment_metta", {}),
+            "importance": float(item.get("importance", 0.0)),
+            "strength": float(item.get("strength", 0.0)),
+        }
+    )
+    return normalized
 
 
 def transform_stream_event(event: dict[str, Any]) -> dict[str, Any]:
