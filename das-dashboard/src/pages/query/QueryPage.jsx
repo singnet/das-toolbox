@@ -71,7 +71,7 @@ function QueryPageContent() {
           <SideBarEyebrow>Parameters</SideBarEyebrow>
           <SideBarTitle>Query inputs</SideBarTitle>
           <SideBarSubtitle>
-            Configure the parameters for your MeTTa query.
+            Configure the parameters for your query.
           </SideBarSubtitle>
         </SideBarTitleHeader>
 
@@ -80,12 +80,9 @@ function QueryPageContent() {
 
       <QueryContent>
         <QueryContentHeader>
-          <QueryBreadcrumb>
-            Query <span>{'>'}</span> Workspace
-          </QueryBreadcrumb>
-          <QueryPageTitle>MeTTa query</QueryPageTitle>
+          <QueryPageTitle>Query</QueryPageTitle>
           <QueryPageSubtitle>
-            Compose and run a MeTTa query against the distributed AtomSpace.
+            Compose and run a query on the Distributed AtomSpace.
           </QueryPageSubtitle>
         </QueryContentHeader>
 
@@ -95,7 +92,7 @@ function QueryPageContent() {
               <QueryToolbarLeading>
                 <QueryKindChip>Query</QueryKindChip>
                 <QueryMettaSwitch
-                  label="Use metta query"
+                  label="Use MeTTa query"
                   labelPlacement="end"
                   control={
                     <Switch
@@ -145,7 +142,7 @@ function QueryPageContent() {
               fullWidth
               value={queryText}
               onChange={(event) => setQueryText(event.target.value)}
-              placeholder="Enter a MeTTa expression…"
+              placeholder="Enter a query expression…"
             />
           </QueryCard>
 
