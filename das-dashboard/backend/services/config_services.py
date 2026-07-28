@@ -11,6 +11,7 @@ from shared.internal.web_configuration import WebConfiguration
 from shared.mappers.das_config_mapper import ConfigMapper
 from shared.mappers.nested_config_mapper import NestedConfigMapper
 from shared.builders.atom_db_builder import AtomDbBuilder
+from shared.exceptions.custom_exceptions import ConfigurationFileLoadError
 from shared.utils.adapter_context_mapping import save_context_mapping_content
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
@@ -34,7 +35,9 @@ class ConfigServices:
         AtomDbBuilder.apply_profile_usernames(nested_config, profile_username)
 
         await run_in_threadpool(self._persist_config, nested_config)
-        await run_in_threadpool(self.web_config.load_config_dictionary)
+        await run_in_threadpool(
+            lambda: self.web_config.load_config_dictionary(nested_config)
+        )
         await run_in_threadpool(
             set_das_cli_config,
             CONFIG_PATH,
@@ -56,7 +59,7 @@ class ConfigServices:
         }
 
     async def _propagate_config_to_remotes(self, nested_config: dict) -> list[str]:
-        targets = self.web_config.map_hosts_from_config(nested_config)
+        targets = self.web_config.map_remote_hosts()
         remote_hosts: list[str] = []
 
         for target in targets:
@@ -97,15 +100,13 @@ class ConfigServices:
                 ssh.close()
 
     async def load_config(self, nested_config: dict) -> dict:
-        if not isinstance(nested_config, dict):
-            raise ValueError("Configuration must be a JSON object.")
-
-        if "atomdb" not in nested_config or "agents" not in nested_config:
-            raise ValueError("Configuration must include 'atomdb' and 'agents' sections.")
+        self.web_config._validate_nested_config(nested_config)
 
         await run_in_threadpool(self._persist_config, nested_config)
         flat = merge_flat_config(NestedConfigMapper.to_flat(nested_config), CONSTANTS)
-        await run_in_threadpool(self.web_config.load_config_dictionary)
+        await run_in_threadpool(
+            lambda: self.web_config.load_config_dictionary(nested_config)
+        )
         await run_in_threadpool(
             set_das_cli_config,
             CONFIG_PATH,
@@ -131,8 +132,10 @@ class ConfigServices:
                 if isinstance(nested, dict):
                     saved_flat = NestedConfigMapper.to_flat(nested)
                     flat = merge_flat_config(saved_flat, CONSTANTS)
-            except (OSError, json.JSONDecodeError, TypeError, ValueError, IndexError):
-                pass
+            except (OSError, json.JSONDecodeError, TypeError, ValueError, IndexError) as error:
+                raise ConfigurationFileLoadError(
+                    f"Could not load saved configuration defaults: {error}"
+                ) from error
 
         return self._defaults_response(flat)
 

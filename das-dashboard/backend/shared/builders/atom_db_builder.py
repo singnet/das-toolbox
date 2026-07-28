@@ -5,7 +5,7 @@ from shared.utils.adapter_context_mapping import validate_context_mapping_path
 class AtomDbBuilder:
 
     REDIS_IMAGE = "redis:7.2.3-alpine"
-    MONGO_IMAGE = "mongodb/mongodb-community-server:8.2-ubuntu2204"
+    MONGO_IMAGE = "mongodb/mongodb-community-server:8.0.4-ubuntu2204"
     MORK_IMAGE = "trueagi/das:mork-server-1.0.4"
 
     _REDIS_MONGO_FIELDS = (

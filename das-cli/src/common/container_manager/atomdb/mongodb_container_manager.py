@@ -96,6 +96,8 @@ class MongodbContainerManager(ContainerManager):
                 "MaximumRetryCount": 5,
             },
             environment={
+                "MONGO_INITDB_ROOT_USERNAME": username,
+                "MONGO_INITDB_ROOT_PASSWORD": password,
                 "MONGODB_INITDB_ROOT_USERNAME": username,
                 "MONGODB_INITDB_ROOT_PASSWORD": password,
             },

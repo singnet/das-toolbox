@@ -57,7 +57,7 @@ async def get_config():
     return JSONResponse(
         status_code=200,
         content={
-            "content": WEB_CONFIG.config_dictionary
+            "content": WEB_CONFIG.require_config_dictionary()
         },
     )
 

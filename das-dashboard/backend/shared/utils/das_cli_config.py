@@ -2,26 +2,39 @@ import json
 import os
 import subprocess
 
-from shared.exceptions.custom_exceptions import DasCliCommandException, DasCliNotInstalledException
+from shared.exceptions.custom_exceptions import DasCliCommandException, DasCliNotInstalledException, ConfigurationFileLoadError
 from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.internal.web_configuration import WebConfiguration
 
 
 def _validate_config_file(file_path: str) -> None:
     if not os.path.isfile(file_path):
-        raise ValueError(f"Configuration file not found: {file_path}")
+        raise ConfigurationFileLoadError(f"Configuration file not found: {file_path}")
 
-    with open(file_path, "r", encoding="utf-8") as config_file:
-        data = json.load(config_file)
+    try:
+        with open(file_path, "r", encoding="utf-8") as config_file:
+            data = json.load(config_file)
+    except json.JSONDecodeError as error:
+        raise ConfigurationFileLoadError(
+            f"Invalid JSON in configuration file: {error}"
+        ) from error
+    except OSError as error:
+        raise ConfigurationFileLoadError(
+            f"Could not read configuration file: {error}"
+        ) from error
 
     if isinstance(data, list):
+        if not data:
+            raise ConfigurationFileLoadError("Configuration file is empty.")
         data = data[0]
 
     if not isinstance(data, dict):
-        raise ValueError("Configuration file must be a JSON object.")
+        raise ConfigurationFileLoadError("Configuration file must be a JSON object.")
 
     if "atomdb" not in data or "agents" not in data:
-        raise ValueError("Configuration file must include 'atomdb' and 'agents' sections.")
+        raise ConfigurationFileLoadError(
+            "Configuration file must include 'atomdb' and 'agents' sections."
+        )
 
 
 def set_das_cli_config(
