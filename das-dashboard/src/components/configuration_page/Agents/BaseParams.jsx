@@ -46,7 +46,7 @@ export default function BaseParametersPanel() {
       <ConfigForm onSubmit={handleSave}>
         {SpecificParamComponent && (
           <ConfigSection>
-            <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+            <ConfigSectionTitle>Default values for request parameters</ConfigSectionTitle>
             <SpecificParamComponent formRef={form} />
           </ConfigSection>
         )}
