@@ -9,6 +9,7 @@ export const AGENT_GROUPS = [
   {
     label: "Agents",
     items: [
+      { key: "base_query", label: "Base Query", paramsKey: "base_query" },
       { key: "query", label: "Query Agent", paramsKey: "query" },
       { key: "link_creation", label: "Link Creation Agent", paramsKey: "link_creation" },
       { key: "inference", label: "Inference Agent", paramsKey: "inference" },
@@ -22,12 +23,6 @@ export const AGENT_GROUPS = [
       { key: "attention", label: "Attention Broker", paramsKey: null },
       { key: "context", label: "Context Broker", paramsKey: "context" },
       { key: "atomdb", label: "AtomDB Broker", paramsKey: null }
-    ]
-  },
-  {
-    label: "Agent Params",
-    items: [
-      { key: "base_query", label: "Base Parameters", paramsKey: "base_query" }
     ]
   }
 ]
