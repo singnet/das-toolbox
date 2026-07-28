@@ -1,6 +1,6 @@
 import { TextField, Switch, FormControlLabel } from "@mui/material"
 import { FieldGrid, SwitchGrid } from "../Agents.styled"
-import { numberField } from "../../formValidation"
+import { numberField, selectionRateField } from "../../formValidation"
 
 export default function BaseQueryParams({ formRef }) {
   return (
@@ -48,6 +48,17 @@ export default function BaseQueryParams({ formRef }) {
           {...numberField}
           onChange={(e) => {
             formRef.current.attention_correlation = Number(e.target.value)
+          }}
+        />
+        <TextField
+          label="Attention Focus Strictness"
+          type="number"
+          size="small"
+          required
+          defaultValue={formRef.current.attention_focus_strictness}
+          {...selectionRateField}
+          onChange={(e) => {
+            formRef.current.attention_focus_strictness = Number(e.target.value)
           }}
         />
       </FieldGrid>

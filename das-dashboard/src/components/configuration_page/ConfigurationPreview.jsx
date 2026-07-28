@@ -52,6 +52,8 @@ const FIELD_LABELS = {
   context: "Context",
   attention_update: "Attention Update",
   attention_correlation: "Attention Correlation",
+  attention_focus_strictness: "Attention Focus Strictness",
+  http_api_port: "HTTP API Port",
   query_interval: "Query Interval",
   query_timeout: "Query Timeout",
   use_metta_as_query_tokens: "Use MeTTa as Query Tokens",

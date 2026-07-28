@@ -3,7 +3,7 @@ import { FieldGrid } from "./Agents.styled"
 import { parsePortValue } from "../configFormUtils"
 import { ipv4Field, portField } from "../formValidation"
 
-export function AgentConnectionFields({ form, withPortRange = true }) {
+export function AgentConnectionFields({ form, withPortRange = true, onChange }) {
   return (
     <>
       <FieldGrid>
@@ -13,7 +13,10 @@ export function AgentConnectionFields({ form, withPortRange = true }) {
           size="small"
           required
           defaultValue={form.current.endpoint_ip}
-          onChange={(e) => { form.current.endpoint_ip = e.target.value }}
+          onChange={(e) => {
+            form.current.endpoint_ip = e.target.value
+            onChange?.()
+          }}
           {...ipv4Field}
         />
         <TextField

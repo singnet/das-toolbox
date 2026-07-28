@@ -34,10 +34,10 @@ export function getAgentByKey(key) {
 }
 
 export const AGENT_COMPONENTS = {
+  base_query: BaseQueryParams,
   query: QueryParams,
   link_creation: LinkCreationParams,
   evolution: EvolutionParams,
   context: ContextParams,
-  base_query: BaseQueryParams,
   inference: InferenceParams,
 }
