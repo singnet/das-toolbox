@@ -54,6 +54,9 @@ class ConfigServices:
         return {
             "message": message,
             "content": nested_config,
+            # Pre-serialized with Python so floats like 0.0 survive browser download
+            # (JS JSON.stringify turns 0.0 into 0, which DAS rejects for doubles).
+            "content_text": json.dumps(nested_config, indent=2),
             "remote_hosts": remote_hosts,
             "hosts": self.web_config.map_dashboard_hosts(),
         }

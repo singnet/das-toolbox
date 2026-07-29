@@ -58,7 +58,7 @@ export default function BaseQueryParams({ formRef }) {
           defaultValue={formRef.current.attention_focus_strictness}
           {...selectionRateField}
           onChange={(e) => {
-            formRef.current.attention_focus_strictness = Number(e.target.value)
+            formRef.current.attention_focus_strictness = Number(e.target.value) || 0.0
           }}
         />
       </FieldGrid>

@@ -102,8 +102,8 @@ export default function SetupDasPage() {
         severity: "success"
       })
 
-      if (response?.content) {
-        setSavedConfigContent(response.content)
+      if (response?.content_text || response?.content) {
+        setSavedConfigContent(response.content_text || response.content)
         setOpenSaveCopyDialog(true)
       }
 

@@ -181,7 +181,11 @@ class AgentsBuilder:
     def _build_base_query(cls, agent: dict, label: str) -> dict:
         normalized = cls._normalize_base_query(agent)
         _require(normalized, *cls._BASE_QUERY_PARAMS, label=label)
-        return {"params": dict(normalized)}
+        params = dict(normalized)
+        params["attention_focus_strictness"] = float(
+            params.get("attention_focus_strictness", 0.0)
+        )
+        return {"params": params}
 
     @classmethod
     def _build_attention(cls, agent: dict, label: str) -> dict:
