@@ -73,8 +73,20 @@ class ConfigSet(Command):
 
     def _set_file_path(self, save_path) -> None:
         self._settings.set_path(save_path)
-
         self._settings.rewind()
+
+        load_error = getattr(self._settings._store, "_load_error", None)
+        if load_error is not None:
+            raise ValueError(
+                f"Could not load configuration from '{save_path}': {load_error}. "
+                "The file was left unchanged. Fix the JSON and try again."
+            ) from load_error
+
+        if not self._settings.exists():
+            raise ValueError(
+                f"Configuration file at '{save_path}' is empty. "
+                "The file was left unchanged."
+            )
 
         verify_populate_missing_values(self._settings, save_path)
 

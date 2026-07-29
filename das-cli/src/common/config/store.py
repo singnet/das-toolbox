@@ -87,6 +87,7 @@ class JsonConfigStore(ConfigStore):
         self._content: Dict[str, Any] = {}
         self._new_content: Dict[str, Any] = {}
         self._overwrite_mode = False
+        self._load_error: Exception | None = None
         self.rewind()
 
     def get_content(self) -> dict:
@@ -102,21 +103,41 @@ class JsonConfigStore(ConfigStore):
         self._file_path = new_file_path
 
     def save_path(self) -> None:
-        env_file = open(self._env_path, "w")
-        env_file.write(f"configpath={self._file_path}\n")
+        os.makedirs(os.path.dirname(self._env_path), exist_ok=True)
+        with open(self._env_path, "w", encoding="utf-8") as env_file:
+            env_file.write(f"configpath={self._file_path}\n")
 
     def get_dir_path(self) -> str:
         return os.path.dirname(self._file_path)
 
+    def file_exists(self) -> bool:
+        return bool(self._file_path) and os.path.isfile(self._file_path)
+
     def exists(self) -> bool:
-        return len(self.get_content().items()) > 0
+        return isinstance(self.get_content(), dict) and len(self.get_content()) > 0
 
     def rewind(self):
+        self._new_content = {}
         try:
-            with open(self._file_path, "r") as f:
-                self._content = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+            with open(self._file_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            if not isinstance(loaded, dict):
+                raise json.JSONDecodeError(
+                    "Configuration root must be a JSON object",
+                    doc=str(self._file_path),
+                    pos=0,
+                )
+            self._content = loaded
+            self._load_error = None
+        except FileNotFoundError as error:
             self._content = {}
+            self._load_error = error
+        except json.JSONDecodeError as error:
+            self._content = {}
+            self._load_error = error
+        except OSError as error:
+            self._content = {}
+            self._load_error = error
 
         return self
 

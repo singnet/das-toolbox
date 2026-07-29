@@ -81,9 +81,28 @@ class Settings:
         self.raise_on_version_mismatch()
 
     def raise_on_missing_file(self):
-        if not self.exists():
+        path = self.get_path()
+        store = self._store
+        load_error = getattr(store, "_load_error", None)
+
+        if hasattr(store, "file_exists") and not store.file_exists():
             raise FileNotFoundError(
-                "Configuration file not found. You can run the command 'config set' to create a configuration file or point to an existing file."
+                f"Configuration file not found at '{path}'. "
+                "Run 'das-cli config set --file <path>' to point to an existing file, "
+                "or 'das-cli config set' to create one."
+            )
+
+        if load_error is not None:
+            raise ValueError(
+                f"Configuration file at '{path}' could not be loaded: {load_error}. "
+                "Fix the JSON and try again."
+            ) from load_error
+
+        if not self.exists():
+            raise ValueError(
+                f"Configuration file at '{path}' is empty. "
+                "Restore a valid DAS config JSON, then run "
+                "'das-cli config set --file <path>'."
             )
 
     def raise_on_version_mismatch(self):
