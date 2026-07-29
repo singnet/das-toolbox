@@ -5,6 +5,7 @@ BASE_QUERY_DEFAULTS = {
     "unique_assignment_flag": False,
     "attention_update": 0,
     "attention_correlation": 0,
+    "attention_focus_strictness": 0.0,
     "max_bundle_size": 1000,
     "max_answers": 0,
     "use_link_template_cache": False,
@@ -80,6 +81,11 @@ def setup_base_query_params(settings: Settings):
             "Attention correlation",
             default=BASE_QUERY_DEFAULTS["attention_correlation"],
             type=int,
+        ),
+        "attention_focus_strictness": Command.prompt(
+            "Attention focus strictness",
+            default=BASE_QUERY_DEFAULTS["attention_focus_strictness"],
+            type=float,
         ),
         "max_bundle_size": Command.prompt(
             "Max bundle size",

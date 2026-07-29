@@ -47,7 +47,7 @@ export default function InferenceAgentPanel() {
 
         {ParamsComponent && (
           <ConfigSection>
-            <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+            <ConfigSectionTitle>Default values for request parameters</ConfigSectionTitle>
             <ParamsComponent formRef={form} />
           </ConfigSection>
         )}

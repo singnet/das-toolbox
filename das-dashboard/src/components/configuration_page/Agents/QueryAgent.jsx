@@ -48,7 +48,7 @@ export default function QueryAgentPanel() {
 
         {ParamsComponent && (
           <ConfigSection>
-            <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+            <ConfigSectionTitle>Default values for request parameters</ConfigSectionTitle>
             <ParamsComponent formRef={form} />
           </ConfigSection>
         )}

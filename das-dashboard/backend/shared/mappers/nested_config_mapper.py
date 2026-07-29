@@ -64,6 +64,15 @@ class NestedConfigMapper:
 
             flat[f"agents.{agent_key}"] = entry
 
+            if agent_key == "command_router":
+                http_api = section.get("http_api") or {}
+                _, http_port = split_endpoint(
+                    http_api.get("endpoint"),
+                    DEFAULT_ENDPOINT_HOST,
+                    40009,
+                )
+                entry["http_api_port"] = http_port
+
         return flat
 
     @staticmethod

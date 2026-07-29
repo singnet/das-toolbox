@@ -70,6 +70,15 @@ export function initAgentConnection(sectionDefaults, agentKey) {
   }
 }
 
+export function initCommandRouterForm(sectionDefaults, agentKey = "command_router") {
+  const defaults = sectionDefaults?.[`agents.${agentKey}`] || {}
+
+  return {
+    ...initAgentConnection(sectionDefaults, agentKey),
+    http_api_port: defaults.http_api_port ?? 40009
+  }
+}
+
 export function getAgentParam(sectionDefaults, agentKey, param, fallback) {
   const section = sectionDefaults?.[`agents.${agentKey}`]
   return section?.[param] ?? fallback

@@ -38,8 +38,18 @@ def setup_environment():
     env_path = os.path.join(home_folder, ".das", ".env")
     target_path = os.path.join(home_folder, ".das", "config.json")
     source_path = os.path.abspath("tests/integration/fixtures/config/simple.json")
-    
+
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
+    if os.path.isdir(target_path):
+        try:
+            shutil.rmtree(target_path)
+        except PermissionError as error:
+            raise RuntimeError(
+                f"{target_path} is a directory (often created by Docker when the file is missing). "
+                f"Run: sudo rm -rf {target_path}"
+            ) from error
+
     shutil.copy(source_path, target_path)
     with open(env_path, mode="w+") as f:
         f.write(f"configpath={target_path}")

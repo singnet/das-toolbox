@@ -13,7 +13,17 @@ FLAT_SECTION_ORDER = (
     "environment",
 )
 
-AGENTS_SCHEMA_VERSION = "1.0"
+AGENTS_SCHEMA_VERSION = "1.0.1"
+
+# Temporary defaults until http_api extras are dropped from the DAS schema.
+COMMAND_ROUTER_HTTP_API_DEFAULTS = {
+    "thread_pool_size": 4,
+    "max_concurrent_executions": 100,
+    "max_queued_executions": 500,
+    "max_events_per_execution": 100000,
+    "stream_items_per_chunk": 100,
+    "execution_retention_ms": 900000,
+}
 
 LOADERS = {
     "metta": {"image": "trueagi/das:1.0.0-metta-parser"},
@@ -131,6 +141,7 @@ CONSTANTS = {
         "unique_assignment_flag": False,
         "attention_update": 0,
         "attention_correlation": 0,
+        "attention_focus_strictness": 0.0,
         "max_bundle_size": 1000,
         "max_answers": 0,
         "use_link_template_cache": False,
@@ -191,6 +202,7 @@ CONSTANTS = {
     "agents.command_router": {
         "endpoint": "0.0.0.0:40008",
         "ports_range": "48000:48999",
+        "http_api_port": 40009,
     },
     "environment": {
         "jupyter_endpoint": "0.0.0.0:40019",

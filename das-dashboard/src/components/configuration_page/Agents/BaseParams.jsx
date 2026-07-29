@@ -23,6 +23,7 @@ export default function BaseParametersPanel() {
     max_bundle_size: getAgentParam(getDefaults(), "base_query", "max_bundle_size", 1000),
     attention_update: getAgentParam(getDefaults(), "base_query", "attention_update", 0),
     attention_correlation: getAgentParam(getDefaults(), "base_query", "attention_correlation", 0),
+    attention_focus_strictness: getAgentParam(getDefaults(), "base_query", "attention_focus_strictness", 0.0),
     unique_assignment_flag: getAgentParam(getDefaults(), "base_query", "unique_assignment_flag", false),
     use_link_template_cache: getAgentParam(getDefaults(), "base_query", "use_link_template_cache", false),
     populate_metta_mapping: getAgentParam(getDefaults(), "base_query", "populate_metta_mapping", false),
@@ -46,7 +47,7 @@ export default function BaseParametersPanel() {
       <ConfigForm onSubmit={handleSave}>
         {SpecificParamComponent && (
           <ConfigSection>
-            <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+            <ConfigSectionTitle>Default values for request parameters</ConfigSectionTitle>
             <SpecificParamComponent formRef={form} />
           </ConfigSection>
         )}

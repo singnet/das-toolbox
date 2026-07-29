@@ -1,5 +1,9 @@
 from shared.builders.builder_helpers import _get, _require
-from shared.internal.configuration_constants import AGENTS_SCHEMA_VERSION
+from shared.internal.configuration_constants import (
+    AGENTS_SCHEMA_VERSION,
+    COMMAND_ROUTER_HTTP_API_DEFAULTS,
+)
+from shared.utils.path_utils import replace_endpoint_port
 
 
 class AgentsBuilder:
@@ -24,6 +28,7 @@ class AgentsBuilder:
         "endpoint_port",
         "ports_range_start",
         "ports_range_end",
+        "http_api_port",
     })
 
     EXCLUDED_PARAM_KEYS = CONNECTION_KEYS | UI_CONNECTION_KEYS
@@ -33,6 +38,7 @@ class AgentsBuilder:
         "max_bundle_size",
         "attention_update",
         "attention_correlation",
+        "attention_focus_strictness",
         "unique_assignment_flag",
         "use_link_template_cache",
         "populate_metta_mapping",
@@ -103,7 +109,7 @@ class AgentsBuilder:
             return self._build_attention(agent, label)
 
         if agent_key == "command_router":
-            return self._build_connection_only(agent, label)
+            return self._build_command_router(agent, label)
 
         if agent_key == "atomdb":
             return self._build_connection_only(agent, label)
@@ -176,12 +182,34 @@ class AgentsBuilder:
     def _build_base_query(cls, agent: dict, label: str) -> dict:
         normalized = cls._normalize_base_query(agent)
         _require(normalized, *cls._BASE_QUERY_PARAMS, label=label)
-        return {"params": dict(normalized)}
+        params = dict(normalized)
+        params["attention_focus_strictness"] = float(
+            params.get("attention_focus_strictness", 0.0)
+        )
+        return {"params": params}
 
     @classmethod
     def _build_attention(cls, agent: dict, label: str) -> dict:
         _require(agent, "endpoint", label=label)
         return {"endpoint": _get(agent, "endpoint")}
+
+    @classmethod
+    def _build_command_router(cls, agent: dict, label: str) -> dict:
+        _require(agent, "endpoint", "ports_range", "http_api_port", label=label)
+
+        http_api_endpoint = replace_endpoint_port(
+            _get(agent, "endpoint"),
+            _get(agent, "http_api_port"),
+        )
+
+        return {
+            "endpoint": _get(agent, "endpoint"),
+            "ports_range": _get(agent, "ports_range"),
+            "http_api": {
+                "endpoint": http_api_endpoint,
+                **COMMAND_ROUTER_HTTP_API_DEFAULTS,
+            },
+        }
 
     @classmethod
     def _build_connection_only(cls, agent: dict, label: str) -> dict:

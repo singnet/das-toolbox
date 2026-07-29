@@ -15,6 +15,7 @@ def _is_remote_invocation(ctx) -> bool:
     params = ctx.params
     return bool(params.get("remote") or params.get("host") or params.get("user"))
 
+
 class ReachableIpAddress(ParamType):
     name = "reachable ip address"
 

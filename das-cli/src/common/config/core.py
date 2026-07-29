@@ -94,6 +94,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "unique_assignment_flag": False,
                     "attention_update": 0,
                     "attention_correlation": 0,
+                    "attention_focus_strictness": 0.0,
                     "max_bundle_size": 1000,
                     "max_answers": 0,
                     "use_link_template_cache": False,
@@ -159,7 +160,19 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                 },
             },
             "atomdb": {"endpoint": "localhost:40007", "ports_range": "47000:47999"},
-            "command_router": {"endpoint": "localhost:40008", "ports_range": "48000:48999"},
+            "command_router": {
+                "endpoint": "localhost:40008",
+                "ports_range": "48000:48999",
+                "http_api": {
+                    "endpoint": "localhost:40009",
+                    "thread_pool_size": 4,
+                    "max_concurrent_executions": 100,
+                    "max_queued_executions": 500,
+                    "max_events_per_execution": 100000,
+                    "stream_items_per_chunk": 100,
+                    "execution_retention_ms": 900000,
+                },
+            },
         },
         "environment": {"jupyter": {"endpoint": "localhost:40019"}},
     }

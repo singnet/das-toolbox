@@ -50,7 +50,7 @@ export default function ContextBrokerPanel() {
 
         {ParamsComponent && (
           <ConfigSection>
-            <ConfigSectionTitle>Parameters</ConfigSectionTitle>
+            <ConfigSectionTitle>Default values for request parameters</ConfigSectionTitle>
             <ParamsComponent formRef={form} />
           </ConfigSection>
         )}
