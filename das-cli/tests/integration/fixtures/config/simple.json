@@ -38,7 +38,7 @@
     }
   },
   "agents": {
-    "schema_version": "1.0.2",
+    "schema_version": "1.0.1",
     "attention": {
       "endpoint": "localhost:40001"
     },
