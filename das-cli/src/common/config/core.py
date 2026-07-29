@@ -170,8 +170,8 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "max_queued_executions": 500,
                     "max_events_per_execution": 100000,
                     "stream_items_per_chunk": 100,
-                    "execution_retention_ms": 900000
-                }
+                    "execution_retention_ms": 900000,
+                },
             },
         },
         "environment": {"jupyter": {"endpoint": "localhost:40019"}},

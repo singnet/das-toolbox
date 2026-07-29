@@ -84,8 +84,7 @@ class ConfigSet(Command):
 
         if not self._settings.exists():
             raise ValueError(
-                f"Configuration file at '{save_path}' is empty. "
-                "The file was left unchanged."
+                f"Configuration file at '{save_path}' is empty. " "The file was left unchanged."
             )
 
         verify_populate_missing_values(self._settings, save_path)

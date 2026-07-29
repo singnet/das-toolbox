@@ -44,9 +44,8 @@ class SystemStatus(Command):
             help="Sets how many seconds of cooldown before updating the metrics again.",
             default=2,
             required=False,
-        )
+        ),
     ]
-
 
     @inject
     def __init__(
@@ -217,7 +216,6 @@ class SystemStatus(Command):
                     with lock:
                         latest_machine.clear()
                         latest_machine.update(data)
-
 
                 except Exception as e:
                     print(f"[machine_loop] {e}")

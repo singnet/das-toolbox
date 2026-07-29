@@ -86,10 +86,7 @@ def _defaults_for_config(content: Dict[str, Any]) -> Dict[str, Any]:
         backend = adapterdb.get("atomdb_backend")
         if backend:
             backend_type = (
-                content.get("atomdb", {})
-                .get("adapterdb", {})
-                .get("atomdb_backend", {})
-                .get("type")
+                content.get("atomdb", {}).get("adapterdb", {}).get("atomdb_backend", {}).get("type")
             ) or backend.get("type")
 
             if backend_type != "redismongodb":
