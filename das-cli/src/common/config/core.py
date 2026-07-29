@@ -87,7 +87,7 @@ def get_core_defaults_dict() -> Dict[str, Any]:
             "morkdb": {"image": "rueagi/das:mork-loader-1.0.4"},
         },
         "agents": {
-            "schema_version": "1.0.2",
+            "schema_version": "1.0.1",
             "attention": {"endpoint": "localhost:40001"},
             "base_query": {
                 "params": {
