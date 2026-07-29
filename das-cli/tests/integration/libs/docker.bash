@@ -2,6 +2,21 @@
 
 openfaas_repository="trueagi/openfaas"
 
+function stop_simple_stack() {
+    das-cli query-agent stop >/dev/null 2>&1 || true
+    das-cli attention-broker stop >/dev/null 2>&1 || true
+    das-cli db stop >/dev/null 2>&1 || true
+
+    for container in \
+        das-cli-redis-40020 \
+        das-cli-mongodb-40021 \
+        das-attention-broker-40001 \
+        das-query-engine-40002
+    do
+        docker rm -f "$container" >/dev/null 2>&1 || true
+    done
+}
+
 function is_container_running() {
     local container_name="$1"
     if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}\$"; then

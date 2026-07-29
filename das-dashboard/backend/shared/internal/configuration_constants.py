@@ -13,7 +13,7 @@ FLAT_SECTION_ORDER = (
     "environment",
 )
 
-AGENTS_SCHEMA_VERSION = "1.0.1"
+AGENTS_SCHEMA_VERSION = "1.0.2"
 
 # Temporary defaults until http_api extras are dropped from the DAS schema.
 COMMAND_ROUTER_HTTP_API_DEFAULTS = {

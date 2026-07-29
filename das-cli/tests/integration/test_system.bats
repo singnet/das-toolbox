@@ -7,16 +7,11 @@ load 'libs/docker'
 
 setup() {
     use_config "simple"
-
-    das-cli db start || true
-    das-cli attention-broker start || true
-    das-cli query-agent start || true
+    stop_simple_stack
 }
 
 teardown() {
-    das-cli db stop || true
-    das-cli attention-broker stop || true
-    das-cli query-agent stop || true
+    stop_simple_stack
 }
 
 @test "Trying to show the system status with unset configuration file" {
