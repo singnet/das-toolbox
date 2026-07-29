@@ -4,6 +4,7 @@ load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 load 'libs/docker'
+load 'libs/errors'
 
 setup() {
     use_config "simple"
@@ -22,7 +23,7 @@ setup() {
     for cmd in "${cmds[@]}"; do
         run das-cli dbms-adapter das-peer $cmd
 
-        assert_output "[31m[FileNotFoundError] Configuration file not found in ${das_config_file}. You can run the command \`config set\` to create a configuration file.[39m"
+        assert_output --partial "$FILE_NOT_FOUND_ERROR"
     done
 }
 

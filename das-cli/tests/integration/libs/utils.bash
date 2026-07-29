@@ -115,7 +115,26 @@ function set_config() {
 }
 
 function unset_config() {
-    rm -f "$das_config_file" "$das_env_file"
+    if [ -d "$das_config_file" ]; then
+        rm -rf "$das_config_file" 2>/dev/null || {
+            echo "ERROR: $das_config_file is a directory (often created by Docker when the file is missing)."
+            echo "Run: sudo rm -rf $das_config_file"
+            return 1
+        }
+    else
+        rm -f "$das_config_file"
+    fi
+    rm -f "$das_env_file"
+}
+
+function _ensure_config_path_is_file() {
+    if [ -d "$das_config_file" ]; then
+        rm -rf "$das_config_file" 2>/dev/null || {
+            echo "ERROR: $das_config_file is a directory (often created by Docker when the file is missing)."
+            echo "Run: sudo rm -rf $das_config_file"
+            return 1
+        }
+    fi
 }
 
 function set_log() {
@@ -140,10 +159,17 @@ function use_config() {
     local config="$1"
     local config_source="${test_fixtures_dir}/config/${config}.json"
 
+    [ -f "${config_source}" ] || {
+        echo "Config '${config_source}' does not exist"
+        return 1
+    }
+
     mkdir -p "${das_config_dir}"
-    
+
+    _ensure_config_path_is_file || return 1
+
     cp -f "${config_source}" "${das_config_file}"
-    
+
     chmod 644 "${das_config_file}"
 
     set_env_config_path "${das_config_file}"
