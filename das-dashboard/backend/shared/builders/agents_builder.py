@@ -1,5 +1,8 @@
 from shared.builders.builder_helpers import _get, _require
-from shared.internal.configuration_constants import AGENTS_SCHEMA_VERSION
+from shared.internal.configuration_constants import (
+    AGENTS_SCHEMA_VERSION,
+    COMMAND_ROUTER_HTTP_API_DEFAULTS,
+)
 
 
 class AgentsBuilder:
@@ -197,6 +200,7 @@ class AgentsBuilder:
             "ports_range": _get(agent, "ports_range"),
             "http_api": {
                 "endpoint": http_api_endpoint,
+                **COMMAND_ROUTER_HTTP_API_DEFAULTS,
             },
         }
 

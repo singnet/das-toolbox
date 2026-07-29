@@ -15,6 +15,16 @@ FLAT_SECTION_ORDER = (
 
 AGENTS_SCHEMA_VERSION = "1.0.1"
 
+# Temporary defaults until http_api extras are dropped from the DAS schema.
+COMMAND_ROUTER_HTTP_API_DEFAULTS = {
+    "thread_pool_size": 4,
+    "max_concurrent_executions": 100,
+    "max_queued_executions": 500,
+    "max_events_per_execution": 100000,
+    "stream_items_per_chunk": 100,
+    "execution_retention_ms": 900000,
+}
+
 LOADERS = {
     "metta": {"image": "trueagi/das:1.0.0-metta-parser"},
     "morkdb": {"image": "trueagi/das:mork-loader-1.1.0"},
