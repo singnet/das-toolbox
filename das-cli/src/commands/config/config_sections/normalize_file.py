@@ -62,8 +62,9 @@ def _fill_missing_values(current: Any, defaults: Any) -> Any:
 
 def _defaults_for_config(content: Dict[str, Any]) -> Dict[str, Any]:
     """Return schema defaults trimmed to the active atomdb type (same rules as validation)."""
-    expected = get_core_defaults_dict()
-    atomdb_type = content.get("atomdb", {}).get("type")
+    expected = deepcopy(get_core_defaults_dict())
+    default_atomdb_type = expected.get("atomdb", {}).get("type", "redismongodb")
+    atomdb_type = content.get("atomdb", {}).get("type") or default_atomdb_type
     atomdb_section = expected["atomdb"]
 
     if atomdb_type != "adapterdb":
@@ -79,6 +80,27 @@ def _defaults_for_config(content: Dict[str, Any]) -> Dict[str, Any]:
     if atomdb_type != "redismongodb":
         atomdb_section.pop("mongodb", None)
         atomdb_section.pop("redis", None)
+
+    adapterdb = atomdb_section.get("adapterdb")
+    if adapterdb:
+        backend = adapterdb.get("atomdb_backend")
+        if backend:
+            backend_type = (
+                content.get("atomdb", {})
+                .get("adapterdb", {})
+                .get("atomdb_backend", {})
+                .get("type")
+            ) or backend.get("type")
+
+            if backend_type != "redismongodb":
+                backend.pop("redis", None)
+                backend.pop("mongodb", None)
+
+            if backend_type != "morkdb":
+                backend.pop("morkdb", None)
+
+            if backend_type != "inmemorydb":
+                backend.pop("inmemorydb", None)
 
     return expected
 

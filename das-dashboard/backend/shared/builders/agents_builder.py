@@ -3,6 +3,7 @@ from shared.internal.configuration_constants import (
     AGENTS_SCHEMA_VERSION,
     COMMAND_ROUTER_HTTP_API_DEFAULTS,
 )
+from shared.utils.path_utils import replace_endpoint_port
 
 
 class AgentsBuilder:
@@ -196,8 +197,10 @@ class AgentsBuilder:
     def _build_command_router(cls, agent: dict, label: str) -> dict:
         _require(agent, "endpoint", "ports_range", "http_api_port", label=label)
 
-        router_host = str(_get(agent, "endpoint")).split(":", 1)[0]
-        http_api_endpoint = f"{router_host}:{_get(agent, 'http_api_port')}"
+        http_api_endpoint = replace_endpoint_port(
+            _get(agent, "endpoint"),
+            _get(agent, "http_api_port"),
+        )
 
         return {
             "endpoint": _get(agent, "endpoint"),

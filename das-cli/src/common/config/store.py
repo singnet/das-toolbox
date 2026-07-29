@@ -132,7 +132,7 @@ class JsonConfigStore(ConfigStore):
         except FileNotFoundError as error:
             self._content = {}
             self._load_error = error
-        except json.JSONDecodeError as error:
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
             self._content = {}
             self._load_error = error
         except OSError as error:
@@ -140,6 +140,9 @@ class JsonConfigStore(ConfigStore):
             self._load_error = error
 
         return self
+
+    def get_load_error(self) -> Exception | None:
+        return self._load_error
 
     def enable_overwrite_mode(self):
         self._overwrite_mode = True

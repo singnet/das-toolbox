@@ -1,8 +1,14 @@
-import { TextField, Switch, FormControlLabel } from "@mui/material"
+import { useState } from "react"
+import { TextField, Switch, FormControlLabel, Slider, Box, Typography } from "@mui/material"
 import { FieldGrid, SwitchGrid } from "../Agents.styled"
-import { numberField, selectionRateField } from "../../formValidation"
+import { numberField } from "../../formValidation"
+import { palette } from "../../../../pages/setup_das/SetupDasStyled"
 
 export default function BaseQueryParams({ formRef }) {
+  const [focusStrictness, setFocusStrictness] = useState(
+    Number(formRef.current.attention_focus_strictness) || 0
+  )
+
   return (
     <>
       <FieldGrid>
@@ -50,17 +56,31 @@ export default function BaseQueryParams({ formRef }) {
             formRef.current.attention_correlation = Number(e.target.value)
           }}
         />
-        <TextField
-          label="Attention Focus Strictness"
-          type="number"
-          size="small"
-          required
-          defaultValue={formRef.current.attention_focus_strictness}
-          {...selectionRateField}
-          onChange={(e) => {
-            formRef.current.attention_focus_strictness = Number(e.target.value) || 0.0
-          }}
-        />
+        <Box sx={{ gridColumn: "1 / -1" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+            <Typography sx={{ fontSize: 13, color: palette.textSecondary }}>
+              Attention Focus Strictness
+            </Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.textPrimary }}>
+              {focusStrictness.toFixed(1)}
+            </Typography>
+          </Box>
+          <Slider
+            size="small"
+            value={focusStrictness}
+            min={0}
+            max={1}
+            step={0.1}
+            onChange={(_, value) => {
+              setFocusStrictness(value)
+              formRef.current.attention_focus_strictness = value
+            }}
+            sx={{
+              color: palette.accent,
+              "& .MuiSlider-rail": { opacity: 0.35 }
+            }}
+          />
+        </Box>
       </FieldGrid>
 
       <SwitchGrid sx={{ mt: 2 }}>

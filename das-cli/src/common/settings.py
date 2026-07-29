@@ -80,10 +80,16 @@ class Settings:
         self.raise_on_missing_file()
         self.raise_on_version_mismatch()
 
+    def get_load_error(self) -> Exception | None:
+        store = self._store
+        if hasattr(store, "get_load_error"):
+            return store.get_load_error()
+        return getattr(store, "_load_error", None)
+
     def raise_on_missing_file(self):
         path = self.get_path()
         store = self._store
-        load_error = getattr(store, "_load_error", None)
+        load_error = self.get_load_error()
 
         if hasattr(store, "file_exists") and not store.file_exists():
             raise FileNotFoundError(

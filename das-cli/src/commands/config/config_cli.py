@@ -75,7 +75,7 @@ class ConfigSet(Command):
         self._settings.set_path(save_path)
         self._settings.rewind()
 
-        load_error = getattr(self._settings._store, "_load_error", None)
+        load_error = self._settings.get_load_error()
         if load_error is not None:
             raise ValueError(
                 f"Could not load configuration from '{save_path}': {load_error}. "
