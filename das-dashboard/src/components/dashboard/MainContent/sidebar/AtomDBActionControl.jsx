@@ -7,9 +7,18 @@ import { useDashboardContext } from "../../../global_providers/DashboardContextP
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
+import { getConfigDefaults } from "../../../../api/ConfigAPI";
 import { extractErrorDetails } from "../../../../api/APIUtils";
 
 const LOADING_KEYS = ["start-database", "stop-database"];
+
+const ATOMDB_TYPE_LABELS = {
+  redismongodb: "Redis + MongoDB",
+  morkdb: "Mork + MongoDB",
+  inmemorydb: "In-Memory",
+  remotedb: "RemoteDB",
+  adapterdb: "AdapterDB",
+};
 
 export function AtomDBActionControl({
   atomDbOnline,
@@ -20,7 +29,7 @@ export function AtomDBActionControl({
 }) {
   const [loadingAction, setLoadingAction] = useState(null);
 
-  const { currentMachine } = useDashboardContext();
+  const { currentMachine, machines } = useDashboardContext();
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
 
@@ -50,7 +59,7 @@ export function AtomDBActionControl({
     }
   };
 
-  const handleDatabaseAction = () => {
+  const handleDatabaseAction = async () => {
     if (atomDbOnline) {
       showConfirm({
         title: "Stop AtomDB",
@@ -65,9 +74,34 @@ export function AtomDBActionControl({
       return;
     }
 
+    let atomdbType;
+    try {
+      const defaults = await getConfigDefaults();
+      atomdbType = defaults?.content?.atomdb?.atomdb_type;
+    } catch (error) {
+      console.error("Failed to load AtomDB type for confirmation:", error);
+    }
+
+    const typeLabel = ATOMDB_TYPE_LABELS[atomdbType] ?? atomdbType ?? "AtomDB";
+    const endpoints = [
+      ...new Set(
+        machines.flatMap((machine) =>
+          (machine.expectedServices ?? [])
+            .filter((service) => service.type === "atomdb" && service.host)
+            .map((service) =>
+              service.port ? `${service.host}:${service.port}` : service.host
+            )
+        )
+      ),
+    ].sort();
+    const serversList = endpoints.length ? endpoints.join(", ") : "configured servers";
+
     showConfirm({
       title: "Start AtomDB",
-      message: "Do you want to start AtomDB?",
+      message:
+        `An ${typeLabel} AtomDB will be started in the servers: ${serversList}. ` +
+        "Any AtomDB component (e.g. any DBMS) running on these machines will be re-started " +
+        "so any data they may be carrying will be lost.",
       onConfirm: () => executeAsyncAction(
         "start-database",
         () => startDatabases(currentHost),
