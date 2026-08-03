@@ -63,7 +63,7 @@ export function AtomDBActionControl({
     if (atomDbOnline) {
       showConfirm({
         title: "Stop AtomDB",
-        message: "Are you sure you want to stop the AtomDB?\n\nStopping the AtomDB will remove all stored data. This action cannot be undone.",
+        message: "Are you sure you want to stop the AtomDB?\n\nAll components will be stopped, so any data they may be carrying will be lost.",
         onConfirm: () => executeAsyncAction(
           "stop-database",
           () => stopDatabases(currentHost),
