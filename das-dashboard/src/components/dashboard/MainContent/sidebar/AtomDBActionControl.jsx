@@ -100,7 +100,7 @@ export function AtomDBActionControl({
       title: "Start AtomDB",
       message:
         `An ${typeLabel} AtomDB will be started in the servers: ${serversList}. ` +
-        "Any AtomDB component (e.g. any DBMS) running on these machines will be re-started " +
+        "Any AtomDB component running on these machines will be re-started " +
         "so any data they may be carrying will be lost.",
       onConfirm: () => executeAsyncAction(
         "start-database",
