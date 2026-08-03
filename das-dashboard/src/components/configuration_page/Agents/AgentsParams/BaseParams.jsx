@@ -56,12 +56,28 @@ export default function BaseQueryParams({ formRef }) {
             formRef.current.attention_correlation = Number(e.target.value)
           }}
         />
-        <Box sx={{ gridColumn: "1 / -1" }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-            <Typography sx={{ fontSize: 13, color: palette.textSecondary }}>
+        <Box sx={{ gridColumn: "1 / -1", maxWidth: "50%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+              mb: 0.5,
+            }}
+          >
+            <Typography sx={{ fontSize: 13, color: palette.textSecondary, minWidth: 0 }}>
               Attention Focus Strictness
             </Typography>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.textPrimary }}>
+            <Typography
+              sx={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: palette.textPrimary,
+                flexShrink: 0,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
               {focusStrictness.toFixed(1)}
             </Typography>
           </Box>
@@ -71,13 +87,14 @@ export default function BaseQueryParams({ formRef }) {
             min={0}
             max={1}
             step={0.1}
+            valueLabelDisplay="auto"
             onChange={(_, value) => {
               setFocusStrictness(value)
               formRef.current.attention_focus_strictness = value
             }}
             sx={{
               color: palette.accent,
-              "& .MuiSlider-rail": { opacity: 0.35 }
+              "& .MuiSlider-rail": { opacity: 0.35 },
             }}
           />
         </Box>

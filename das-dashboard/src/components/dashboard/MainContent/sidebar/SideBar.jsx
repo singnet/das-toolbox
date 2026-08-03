@@ -104,10 +104,13 @@ export function SideBar() {
           <SectionLabel>Actions</SectionLabel>
 
           <List disablePadding>
-            <MettaLoadActionControl
+
+            <AtomDBActionControl
+              atomDbOnline={atomDbOnline}
               isServerOffline={isServerOffline}
-              disabled={isAnyActionLoading && !busyActions.metta}
-              onBusyChange={(busy) => setActionBusy("metta", busy)}
+              disabled={isAnyActionLoading && !busyActions.atomdb}
+              onBusyChange={(busy) => setActionBusy("atomdb", busy)}
+              onActionComplete={loadInfraStatus}
             />
 
             <ArchitectureActionControl
@@ -119,13 +122,12 @@ export function SideBar() {
               onActionComplete={loadInfraStatus}
             />
 
-            <AtomDBActionControl
-              atomDbOnline={atomDbOnline}
+            <MettaLoadActionControl
               isServerOffline={isServerOffline}
-              disabled={isAnyActionLoading && !busyActions.atomdb}
-              onBusyChange={(busy) => setActionBusy("atomdb", busy)}
-              onActionComplete={loadInfraStatus}
+              disabled={isAnyActionLoading && !busyActions.metta}
+              onBusyChange={(busy) => setActionBusy("metta", busy)}
             />
+            
           </List>
         </StyledList>
       </SidebarListContainer>

@@ -92,7 +92,7 @@ export function DialogProvider({ children }) {
         </DialogTitle>
 
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ whiteSpace: "pre-line" }}>
             {dialog.message}
           </DialogContentText>
         </DialogContent>

@@ -117,9 +117,13 @@ export function ArchitectureActionControl({
       return;
     }
 
+    const serviceLabels = selectedServices
+      .map((id) => ALL_SERVICES.find((service) => service.id === id)?.label)
+      .filter(Boolean);
+
     showConfirm({
       title: "Start Architecture",
-      message: `Start ${selectedServices.length} selected service(s)?`,
+      message: `The following services will be started:\n\n${serviceLabels.map((label) => `• ${label}`).join("\n")}`,
       onConfirm: () =>
         executeAsyncAction(
           "start-architecture",
