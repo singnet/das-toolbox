@@ -32,6 +32,8 @@ class MorkDbContainerManagerFactory:
         return MorkdbContainerManager(
             container_name,
             options={
+                "service_name":"MorkDB",
+                "service_command_label": "db",
                 "morkdb_endpoint": morkdb_endpoint,
                 "morkdb_port": morkdb_port,
                 "morkdb_hostname": "0.0.0.0" if morkdb_hostname == "localhost" else morkdb_hostname,

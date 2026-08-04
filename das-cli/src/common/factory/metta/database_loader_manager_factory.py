@@ -19,5 +19,8 @@ class DatabaseLoaderContainerManagerFactory:
 
         return DatabaseLoaderContainerManager(
             container_name,
-            options={},
+            options={
+                "service_name": "Metta Loader",
+                "service_command_label": "metta",
+            },
         )

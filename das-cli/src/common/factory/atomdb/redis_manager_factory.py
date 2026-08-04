@@ -36,6 +36,8 @@ class RedisContainerManagerFactory:
         return RedisContainerManager(
             container_name,
             options={
+                "service_name": "Redis",
+                "service_command_label": "db",
                 "redis_endpoint": redis_endpoint,
                 "redis_port": redis_port,
                 "redis_nodes": redis_nodes,

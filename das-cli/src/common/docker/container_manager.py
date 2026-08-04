@@ -93,6 +93,13 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
+    @property
+    def labels(self):
+        return {
+            "agent.name": self._options["service_name"],
+            "command.label": self._options["service_command_label"]
+        }
+
     def _start_container(self, **kwargs) -> Any:
         self.raise_running_container()
 
@@ -103,6 +110,10 @@ class ContainerManager(DockerManager):
                 name=self.get_container().name,
                 detach=True,
                 network=SERVICES_NETWORK_NAME,
+                labels={
+                    "das-cli.managed": "true",
+                    **self.labels
+                }
             )
 
             return response

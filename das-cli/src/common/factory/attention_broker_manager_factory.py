@@ -24,5 +24,7 @@ class AttentionBrokerManagerFactory:
             options={
                 "attention_broker_hostname": "0.0.0.0",
                 "attention_broker_port": attention_broker_port,
+                "service_name": "Attention Broker",
+                "service_command_label": "attention-broker",
             },
         )

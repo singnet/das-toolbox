@@ -12,6 +12,18 @@ class BusNodeContainerManagerFactory:
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
+    def format_service_name(self, service_name: str) -> str:
+
+        if service_name.__contains__("-"):
+            formatted_name = service_name.replace("-", " ").title()
+
+            return formatted_name
+
+        else:
+            formatted_name = service_name.capitalize()
+            return formatted_name
+
+
     def build(self, use_settings_from: str, service_name: str) -> BusNodeContainerManager:
         service_port = extract_service_port(self._settings.get(f"{use_settings_from}.endpoint"))
 
@@ -37,6 +49,8 @@ class BusNodeContainerManagerFactory:
             default_container_name,
             options={
                 "service": service_name,
+                "service_name": self.format_service_name(service_name),
+                "service_command_label": service_name,
                 "service_port": service_port,
                 "service_endpoint": service_endpoint,
                 "attention_broker_hostname": attention_broker_hostname,
