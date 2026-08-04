@@ -23,7 +23,6 @@ class BusNodeContainerManagerFactory:
             formatted_name = service_name.capitalize()
             return formatted_name
 
-
     def build(self, use_settings_from: str, service_name: str) -> BusNodeContainerManager:
         service_port = extract_service_port(self._settings.get(f"{use_settings_from}.endpoint"))
 

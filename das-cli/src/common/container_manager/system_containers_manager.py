@@ -36,7 +36,7 @@ class SystemContainersManager(DockerManager):
 
     def _safe_get_container_stats(self, container: Container) -> dict:
         try:
-            container_labels : dict = container.labels
+            container_labels: dict = container.labels
             container_stats = container.stats(stream=False)
             cpu_memory_info = self._parse_container_stats(container_stats)
 
@@ -49,8 +49,8 @@ class SystemContainersManager(DockerManager):
 
             return {
                 "container_name": container_name,
-                "service_name": container_labels.get("agent.name", None),
-                "service_command_label": container_labels.get("command.label", None),
+                "service_name": container_labels.get("das-cli.service.name", None),
+                "service_command_label": container_labels.get("das-cli.command.label", None),
                 "image": image,
                 "port": port,
                 "age": age,
