@@ -26,5 +26,7 @@ class JupyterNotebookManagerFactory:
             options={
                 "jupyter_notebook_port": jupyter_notebook_port,
                 "jupyter_notebook_hostname": jupyter_notebook_hostname,
+                "service_name": "Jupyter Notebook",
+                "service_command_label": "jupyter-notebook",
             },
         )

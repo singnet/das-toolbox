@@ -26,5 +26,7 @@ class DatabaseAdapterFactory:
             options={
                 "context_mapping_paths": context_mapping_paths,
                 "metta_output_dir": metta_output_dir,
+                "service_name": "Database Adapter",
+                "service_command_label": "database-adapter",
             },
         )

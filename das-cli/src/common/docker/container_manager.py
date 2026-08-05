@@ -72,6 +72,7 @@ class ContainerManager(DockerManager):
         exec_context: Union[str, None] = None,
     ) -> None:
         super().__init__(exec_context)
+        self._options: dict[str, Any]
         self._container = container
 
     def get_container(self) -> Container:
@@ -93,6 +94,26 @@ class ContainerManager(DockerManager):
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
 
+    @property
+    def labels(self):
+
+        REQUIRED_LABELS = ["service_name", "service_command_label"]
+        missing = []
+
+        for label in REQUIRED_LABELS:
+            if label not in self._options:
+                missing.append(label)
+
+        if missing:
+            raise KeyError(
+                f"Internal error in das-cli, could not find required values to form container metadata.\n Missing keys {' '.join(missing)}"
+            )
+
+        return {
+            "das-cli.service.name": self._options.get("service_name"),
+            "das-cli.command.label": self._options.get("service_command_label"),
+        }
+
     def _start_container(self, **kwargs) -> Any:
         self.raise_running_container()
 
@@ -103,9 +124,11 @@ class ContainerManager(DockerManager):
                 name=self.get_container().name,
                 detach=True,
                 network=SERVICES_NETWORK_NAME,
+                labels={"das-cli.managed": "true", **self.labels},
             )
 
             return response
+
         except docker.errors.APIError as e:
             if e.response.status_code == 404:
                 raise DockerContainerNotFoundError(

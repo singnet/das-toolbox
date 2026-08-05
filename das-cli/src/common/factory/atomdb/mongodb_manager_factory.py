@@ -41,6 +41,8 @@ class MongoDbContainerManagerFactory:
         return MongodbContainerManager(
             container_name,
             options={
+                "service_name": "MongoDB",
+                "service_command_label": "db",
                 "mongodb_endpoint": mongodb_endpoint,
                 "mongodb_port": mongodb_port,
                 "mongodb_username": mongodb_username,

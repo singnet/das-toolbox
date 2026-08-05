@@ -10,6 +10,7 @@ from settings.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 class MettaSyntaxContainerManager(ContainerManager):
     def __init__(self) -> None:
+
         container = Container(
             "das-metta-parser",
             metadata=ContainerMetadata(
@@ -23,6 +24,8 @@ class MettaSyntaxContainerManager(ContainerManager):
                 }
             ),
         )
+
+        self._options = {"service_name": "Metta Syntax Check", "service_command_label": "metta"}
 
         super().__init__(container)
 

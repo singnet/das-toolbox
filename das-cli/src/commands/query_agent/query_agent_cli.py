@@ -229,7 +229,7 @@ class QueryAgentRestart(Command):
 class QueryAgentCli(CommandGroup):
     name = "query-agent"
 
-    aliases = ["qa", "query"]
+    aliases = ["qa", "query", "query-engine", "qe"]
 
     short_help = SHORT_HELP_QA
     help = HELP_QA
