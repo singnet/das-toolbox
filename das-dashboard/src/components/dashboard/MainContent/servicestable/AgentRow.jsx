@@ -4,7 +4,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { StyledRow, BodyCell, ActionsBox, ActionButton } from "./servicestable.styled";
 import { palette } from "../../../../pages/setup_das/SetupDasStyled";
-import { formatCpuCell, formatMemoryCell } from "../../../../utils/serviceInventory";
+import { formatCpuCell, formatMemoryCell } from "../../../../utils/serviceRows";
 
 export function AgentRow({
   agent,
@@ -31,7 +31,7 @@ export function AgentRow({
       return;
     }
 
-    onAction(actionType, agent.container_name, agent.service_key);
+    onAction(actionType, agent.service_key);
   };
 
   const statusLabel = agent.status === "offline" ? "Offline" : agent.status;

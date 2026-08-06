@@ -5,23 +5,49 @@ export const DEFAULT_INFRA_STATUS = {
   architectureOnline: false,
 };
 
-const ATOMDB_CONTAINER_MARKERS = ["mongodb", "redis", "morkdb"];
-const ARCHITECTURE_CONTAINER_MARKERS = [
-  "query-engine",
+const ARCHITECTURE_COMMAND_LABELS = new Set([
   "attention-broker",
-  "context-broker",
-  "link-creation",
-  "inference",
-  "evolution",
+  "query-engine",
   "command-router",
-];
+  "context-broker",
+  "link-creation-agent",
+  "evolution-agent",
+  "inference-agent",
+]);
 
 function isRunning(status) {
   return String(status ?? "").toLowerCase() === "running";
 }
 
-function containerName(entry, key) {
-  return String(entry?.container_name ?? key ?? "").toLowerCase();
+function isAtomDbEntry(entry) {
+  if (entry?.service_command_label === "db") {
+    return true;
+  }
+
+  const name = String(entry?.container_name ?? "").toLowerCase();
+  return ["mongodb", "redis", "morkdb"].some((marker) => name.includes(marker));
+}
+
+function isArchitectureEntry(entry) {
+  const label = entry?.service_command_label;
+  if (label && ARCHITECTURE_COMMAND_LABELS.has(label)) {
+    return true;
+  }
+
+  const name = String(entry?.container_name ?? "").toLowerCase();
+  if (name.includes("atomdb-broker")) {
+    return false;
+  }
+
+  return [
+    "query-engine",
+    "attention-broker",
+    "context-broker",
+    "command-router",
+    "link-creation",
+    "inference",
+    "evolution",
+  ].some((marker) => name.includes(marker));
 }
 
 export function getInfraStatusFromStaticMetrics(metrics) {
@@ -34,22 +60,16 @@ export function getInfraStatusFromStaticMetrics(metrics) {
   let atomDbOnline = false;
   let architectureOnline = false;
 
-  for (const [key, entry] of Object.entries(serviceInfo)) {
+  for (const entry of Object.values(serviceInfo)) {
     if (!isRunning(entry?.status)) {
       continue;
     }
 
-    const name = containerName(entry, key);
-
-    if (ATOMDB_CONTAINER_MARKERS.some((marker) => name.includes(marker))) {
+    if (isAtomDbEntry(entry)) {
       atomDbOnline = true;
     }
 
-    if (name.includes("atomdb-broker")) {
-      continue;
-    }
-
-    if (ARCHITECTURE_CONTAINER_MARKERS.some((marker) => name.includes(marker))) {
+    if (isArchitectureEntry(entry)) {
       architectureOnline = true;
     }
   }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CircularProgress, Collapse, Tooltip } from "@mui/material";
 import { ExpandMore, PlayArrow, Stop } from "@mui/icons-material";
 
@@ -16,29 +16,34 @@ import {
 } from "./architectureActionControl.styled";
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
+import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { startArchitecture, stopArchitecture } from "../../../../api/ServicesAPI";
 import { extractErrorDetails } from "../../../../api/APIUtils";
-
-const CORE_SERVICES = [
-  { id: "attention-broker", label: "Attention Broker" },
-  { id: "query-agent", label: "Query Agent" },
-];
-
-const AGENT_SERVICES = [
-  { id: "link-creation-agent", label: "Link Creation Agent" },
-  { id: "evolution-agent", label: "Evolution Agent" },
-  { id: "context-broker", label: "Context Broker" },
-  { id: "inference-agent", label: "Inference Agent" },
-  { id: "atomdb-broker", label: "AtomDB Broker" },
-  { id: "command-router", label: "Command Router" },
-];
 
 const CORE_TOOLTIP =
   "'Core' refers to necessary services to start/connect to other agents; disabling them can cause the architecture to be unusable or prone to failure.";
 
-const AGENTS_TOOLTIP = "DAS Agents and services"
+const AGENTS_TOOLTIP = "DAS Agents and services";
 
-const ALL_SERVICES = [...CORE_SERVICES, ...AGENT_SERVICES];
+function collectOrchestrationServices(machines = []) {
+  const byKey = new Map();
+
+  for (const machine of machines) {
+    for (const service of machine.services ?? []) {
+      if (!service.orchestration_group || byKey.has(service.service_key)) {
+        continue;
+      }
+
+      byKey.set(service.service_key, {
+        id: service.service_key,
+        label: service.display_name,
+        group: service.orchestration_group,
+      });
+    }
+  }
+
+  return Array.from(byKey.values());
+}
 
 export function ArchitectureActionControl({
   atomDbOnline,
@@ -48,19 +53,41 @@ export function ArchitectureActionControl({
   onBusyChange,
   onActionComplete,
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [selectedServices, setSelectedServices] = useState(() =>
-    ALL_SERVICES.map((service) => service.id)
+  const { machines } = useDashboardContext();
+  const orchestrationServices = useMemo(
+    () => collectOrchestrationServices(machines),
+    [machines]
   );
+
+  const coreServices = useMemo(
+    () => orchestrationServices.filter((service) => service.group === "core"),
+    [orchestrationServices]
+  );
+
+  const agentServices = useMemo(
+    () => orchestrationServices.filter((service) => service.group === "agent"),
+    [orchestrationServices]
+  );
+
+  const [expanded, setExpanded] = useState(false);
+  const [selectedServices, setSelectedServices] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
 
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
 
+  useEffect(() => {
+    setSelectedServices(orchestrationServices.map((service) => service.id));
+  }, [orchestrationServices]);
+
   const isLoading = !!loadingAction;
 
   const isActionDisabled =
-    disabled || isLoading || isServerOffline || (!atomDbOnline && !architectureOnline);
+    disabled ||
+    isLoading ||
+    isServerOffline ||
+    (!atomDbOnline && !architectureOnline) ||
+    orchestrationServices.length === 0;
 
   const setBusy = (actionKey) => {
     setLoadingAction(actionKey);
@@ -79,14 +106,18 @@ export function ArchitectureActionControl({
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);
-      showToast({ message: errorMessage, severity: "error", details: extractErrorDetails(err) });
+      const serverMessage = err?.response?.data?.message;
+      showToast({
+        message: serverMessage || errorMessage,
+        severity: "error",
+        details: extractErrorDetails(err),
+      });
     } finally {
       setBusy(null);
     }
   };
 
   const handleArchitectureAction = () => {
-
     if (architectureOnline) {
       if (!selectedServices.length) {
         showToast({ message: "Select at least one service to stop.", severity: "warning" });
@@ -118,7 +149,7 @@ export function ArchitectureActionControl({
     }
 
     const serviceLabels = selectedServices
-      .map((id) => ALL_SERVICES.find((service) => service.id === id)?.label)
+      .map((id) => orchestrationServices.find((service) => service.id === id)?.label)
       .filter(Boolean);
 
     showConfirm({
@@ -187,7 +218,7 @@ export function ArchitectureActionControl({
               Core
             </GroupLabel>
           </Tooltip>
-          {CORE_SERVICES.map((service) => (
+          {coreServices.map((service) => (
             <AgentOption key={service.id}>
               <AgentCheckbox
                 size="small"
@@ -200,9 +231,11 @@ export function ArchitectureActionControl({
           ))}
 
           <Tooltip title={AGENTS_TOOLTIP} placement="right">
-            <GroupLabel component="span" sx={{ cursor: "help" }}>Agents</GroupLabel>
+            <GroupLabel component="span" sx={{ cursor: "help" }}>
+              Agents
+            </GroupLabel>
           </Tooltip>
-          {AGENT_SERVICES.map((service) => (
+          {agentServices.map((service) => (
             <AgentOption key={service.id}>
               <AgentCheckbox
                 size="small"

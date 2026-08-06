@@ -23,6 +23,7 @@ import SaveIcon from "@mui/icons-material/Save"
 import { useState, useRef } from "react"
 
 import { loadConfig, saveConfig } from "../../api/ConfigAPI"
+import { getInitialState } from "../../api/DashboardAPI"
 import { extractErrorDetails } from "../../api/APIUtils"
 import { useToast } from "../../components/global_providers/ToastProvider"
 
@@ -70,7 +71,7 @@ export default function SetupDasPage() {
   } = useConfig()
 
   const { showToast } = useToast()
-  const { setDashboardBaseValues } = useDashboardContext()
+  const { applyInitialState } = useDashboardContext()
 
   const [section, setSection] = useState("atomdb")
   const [activeAgent, setActiveAgent] = useState("query")
@@ -84,6 +85,15 @@ export default function SetupDasPage() {
   const loadInputRef = useRef(null)
 
 
+  const refreshDashboardState = async () => {
+    try {
+      const initialState = await getInitialState()
+      applyInitialState(initialState)
+    } catch (error) {
+      console.error("Failed to refresh dashboard state after config change:", error)
+    }
+  }
+
   const handleSave = async () => {
     try {
 
@@ -93,9 +103,7 @@ export default function SetupDasPage() {
 
       const response = await saveConfig(config)
 
-      if (response?.hosts) {
-        setDashboardBaseValues(response.hosts)
-      }
+      await refreshDashboardState()
 
       showToast({
         message: response?.message || "Configuration saved successfully",
@@ -161,9 +169,7 @@ export default function SetupDasPage() {
 
       const response = await loadConfig(pendingLoadConfig.parsed)
       applyLoadedConfiguration(response.content)
-      if (response?.hosts) {
-        setDashboardBaseValues(response.hosts)
-      }
+      await refreshDashboardState()
       showToast({ message: "Configuration loaded successfully", severity: "success" })
     } catch (error) {
       console.error(error)
