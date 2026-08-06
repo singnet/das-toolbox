@@ -97,18 +97,6 @@ class EvolutionAgentStart(Command):
 
     params = [
         CommandOption(
-            ["--peer-hostname"],
-            help="The address of the node to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the node to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
-        CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the node.",
             default="45000:45999",
@@ -135,14 +123,14 @@ class EvolutionAgentStart(Command):
     def _get_container(self):
         return self._evolution_agent_bus_node_manager.get_container()
 
-    def _evolution_agent(self, port_range: str, **kwargs) -> None:
+    def _evolution_agent(self, port_range: str) -> None:
         self.stdout("Starting Evolution Agent service...")
 
         container = self._get_container()
         port = container.port
 
         try:
-            self._evolution_agent_bus_node_manager.start_container(port_range, **kwargs)
+            self._evolution_agent_bus_node_manager.start_container(port_range)
 
             success_message = f"Evolution Agent started on port {port}"
 
@@ -191,28 +179,16 @@ class EvolutionAgentStart(Command):
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(self, port_range: str, **kwargs):
+    def run(self, port_range: str):
         self._settings.validate_configuration_file()
 
-        self._evolution_agent(port_range, **kwargs)
+        self._evolution_agent(port_range)
 
 
 class EvolutionAgentRestart(Command):
     name = "restart"
 
     params = [
-        CommandOption(
-            ["--peer-hostname"],
-            help="The address of the peer to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
         CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
@@ -235,9 +211,9 @@ class EvolutionAgentRestart(Command):
         self._evolution_agent_start = evolution_agent_start
         self._evolution_agent_stop = evolution_agent_stop
 
-    def run(self, port_range: str, **kwargs):
+    def run(self, port_range: str):
         self._evolution_agent_stop.run()
-        self._evolution_agent_start.run(port_range, **kwargs)
+        self._evolution_agent_start.run(port_range)
 
 
 class EvolutionAgentCli(CommandGroup):

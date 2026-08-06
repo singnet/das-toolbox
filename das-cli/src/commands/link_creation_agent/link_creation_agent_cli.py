@@ -102,18 +102,6 @@ class LinkCreationAgentStart(Command):
 
     params = [
         CommandOption(
-            ["--peer-hostname"],
-            help="The address of the peer to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
-        CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="43000:43999",
@@ -140,14 +128,14 @@ class LinkCreationAgentStart(Command):
     def _get_container(self):
         return self._link_creation_bus_node_manager.get_container()
 
-    def _link_creation_agent(self, port_range: str, **kwargs) -> None:
+    def _link_creation_agent(self, port_range: str) -> None:
         self.stdout("Starting Link Creation Agent service...")
 
         try:
             container = self._get_container()
             port = container.port
 
-            self._link_creation_bus_node_manager.start_container(port_range, **kwargs)
+            self._link_creation_bus_node_manager.start_container(port_range)
 
             success_message = f"Link Creation Agent started listening on the ports {port}"
             self.stdout(
@@ -197,9 +185,9 @@ class LinkCreationAgentStart(Command):
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(self, port_range: str, **kwargs):
+    def run(self, port_range: str):
         self._settings.validate_configuration_file()
-        self._link_creation_agent(port_range, **kwargs)
+        self._link_creation_agent(port_range)
 
 
 class LinkCreationAgentRestart(Command):
@@ -207,20 +195,8 @@ class LinkCreationAgentRestart(Command):
 
     params = [
         CommandOption(
-            ["--peer-hostname"],
-            help="The address of the peer to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
-        CommandOption(
             ["--port-range"],
-            help="The loweer and upper bounds of the port range to be used by the command proxy.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="43000:43999",
             type=PortRangeType(),
         ),
@@ -240,9 +216,9 @@ class LinkCreationAgentRestart(Command):
         self._link_creation_agent_start = link_creation_agent_start
         self._link_creation_agent_stop = link_creation_agent_stop
 
-    def run(self, port_range: str, **kwargs):
+    def run(self, port_range: str):
         self._link_creation_agent_stop.run()
-        self._link_creation_agent_start.run(port_range, **kwargs)
+        self._link_creation_agent_start.run(port_range)
 
 
 class LinkCreationAgentCli(CommandGroup):

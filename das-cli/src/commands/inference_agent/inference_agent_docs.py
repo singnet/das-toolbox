@@ -28,19 +28,19 @@ NAME
 
 SYNOPSIS
 
-    das-cli inference-agent start [--peer-hostname <hostname>] [--peer-port <port>] [--port-range <start:end>]
+    das-cli inference-agent start [--port-range <start:end>]
 
 DESCRIPTION
 
     Starts the Inference Agent service, initializing the required containers and ports.
+    Connects to the query engine using agents.query.endpoint from the config file.
     Checks that dependent services (e.g., Attention Broker) are running before starting.
-    Shows the ports on which the service is listening.
 
 EXAMPLES
 
     To start the Inference Agent service:
 
-        das-cli inference-agent start --peer-hostname localhost --peer-port 40002 --port-range 44000:44999
+        das-cli inference-agent start --port-range 44000:44999
 """
 
 SHORT_HELP_START = "Start the Inference Agent service."
@@ -52,18 +52,17 @@ NAME
 
 SYNOPSIS
 
-    das-cli inference-agent restart [--peer-hostname <hostname>] [--peer-port <port>] [--port-range <start:end>]
+    das-cli inference-agent restart [--port-range <start:end>]
 
 DESCRIPTION
 
     Stops the running Inference Agent service and then starts it again.
-    Useful for applying changes or recovering the service state.
 
 EXAMPLES
 
     To restart the Inference Agent service:
 
-        das-cli inference-agent restart --peer-hostname localhost --peer-port 40002 --port-range 44000:44999
+        das-cli inference-agent restart --port-range 44000:44999
 """
 
 SHORT_HELP_RESTART = "Restart the Inference Agent service."

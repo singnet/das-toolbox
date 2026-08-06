@@ -32,7 +32,7 @@ class BusNodeContainerManager(ContainerManager):
 
         super().__init__(container)
 
-    def start_container(self, ports_range: str, **kwargs) -> None:
+    def start_container(self, ports_range: str) -> None:
         self.raise_running_container()
         self.raise_on_port_in_use([self._options.get("service_port")])
 
@@ -41,9 +41,11 @@ class BusNodeContainerManager(ContainerManager):
         try:
             service = self._options.get("service")
             endpoint = self._options.get("service_endpoint")
-
             bus_node_command = self._cmd_registry.build(
-                service, endpoint, ports_range, self._options, **kwargs
+                service,
+                endpoint,
+                ports_range,
+                self._options,
             )
 
             container = self._start_container(
