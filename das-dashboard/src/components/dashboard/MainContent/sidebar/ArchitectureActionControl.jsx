@@ -25,24 +25,36 @@ const CORE_TOOLTIP =
 
 const AGENTS_TOOLTIP = "DAS Agents and services";
 
+const CORE_SERVICE_KEYS = new Set(["attention-broker", "query-engine"]);
+
+const ORCHESTRATION_SERVICE_KEYS = [
+  "attention-broker",
+  "query-engine",
+  "atomdb-broker",
+  "command-router",
+  "context-broker",
+  "link-creation-agent",
+  "evolution-agent",
+  "inference-agent",
+];
+
 function collectOrchestrationServices(machines = []) {
-  const byKey = new Map();
+  const displayNames = new Map();
 
   for (const machine of machines) {
     for (const service of machine.services ?? []) {
-      if (!service.orchestration_group || byKey.has(service.service_key)) {
-        continue;
+      if (!ORCHESTRATION_SERVICE_KEYS.includes(service.service_key)) continue;
+      if (!displayNames.has(service.service_key)) {
+        displayNames.set(service.service_key, service.display_name);
       }
-
-      byKey.set(service.service_key, {
-        id: service.service_key,
-        label: service.display_name,
-        group: service.orchestration_group,
-      });
     }
   }
 
-  return Array.from(byKey.values());
+  return ORCHESTRATION_SERVICE_KEYS.filter((key) => displayNames.has(key)).map((key) => ({
+    id: key,
+    label: displayNames.get(key),
+    group: CORE_SERVICE_KEYS.has(key) ? "core" : "agent",
+  }));
 }
 
 export function ArchitectureActionControl({
