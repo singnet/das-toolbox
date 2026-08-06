@@ -14,7 +14,6 @@ from .custom_exceptions import (
     CommandRouterConnectionError,
     ConfigurationFileLoadError,
     ConfigurationValueNotFoundError,
-    
 )
 
 class AppExceptionHandlers:
@@ -49,7 +48,7 @@ class AppExceptionHandlers:
         return JSONResponse(
             status_code=500,
             content={
-                "message": "There was an error running this DAS CLI command.",
+                "message": exc.stderror or "There was an error running this DAS CLI command.",
                 "exceptionMessage": exc.stderror
             }
         )

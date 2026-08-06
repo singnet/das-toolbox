@@ -12,7 +12,6 @@ from shared.mappers.das_config_mapper import ConfigMapper
 from shared.mappers.nested_config_mapper import NestedConfigMapper
 from shared.builders.atom_db_builder import AtomDbBuilder
 from shared.exceptions.custom_exceptions import ConfigurationFileLoadError
-from shared.utils.adapter_context_mapping import save_context_mapping_content
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
 from shared.utils.remote_scp import RemoteScpService
@@ -58,7 +57,6 @@ class ConfigServices:
             # (JS JSON.stringify turns 0.0 into 0, which DAS rejects for doubles).
             "content_text": json.dumps(nested_config, indent=2),
             "remote_hosts": remote_hosts,
-            "hosts": self.web_config.map_dashboard_hosts(),
         }
 
     async def _propagate_config_to_remotes(self, nested_config: dict) -> list[str]:
