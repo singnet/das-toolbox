@@ -3,6 +3,7 @@ from typing import Callable, Dict
 
 from common import Settings
 from common.config.store import JsonConfigStore
+from common.exceptions import ConfigurationError
 from settings.config import CURRENT_CONFIGFILE_PATH
 
 
@@ -53,7 +54,7 @@ class BusNodeCommandRegistry:
         port = options.get("default_bus_port")
 
         if not hostname or not port:
-            raise ValueError(
+            raise ConfigurationError(
                 "Query engine endpoint is not configured. Set agents.query.endpoint in the config file."
             )
 

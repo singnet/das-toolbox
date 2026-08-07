@@ -86,12 +86,8 @@ export default function SetupDasPage() {
 
 
   const refreshDashboardState = async () => {
-    try {
-      const initialState = await getInitialState()
-      applyInitialState(initialState)
-    } catch (error) {
-      console.error("Failed to refresh dashboard state after config change:", error)
-    }
+    const initialState = await getInitialState()
+    applyInitialState(initialState)
   }
 
   const handleSave = async () => {
@@ -103,7 +99,16 @@ export default function SetupDasPage() {
 
       const response = await saveConfig(config)
 
-      await refreshDashboardState()
+      try {
+        await refreshDashboardState()
+      } catch (refreshError) {
+        console.error("Failed to refresh dashboard state after save:", refreshError)
+        showToast({
+          message: "Configuration saved, but dashboard state could not be refreshed.",
+          severity: "warning",
+          details: extractErrorDetails(refreshError)
+        })
+      }
 
       showToast({
         message: response?.message || "Configuration saved successfully",
@@ -169,7 +174,18 @@ export default function SetupDasPage() {
 
       const response = await loadConfig(pendingLoadConfig.parsed)
       applyLoadedConfiguration(response.content)
-      await refreshDashboardState()
+
+      try {
+        await refreshDashboardState()
+      } catch (refreshError) {
+        console.error("Failed to refresh dashboard state after load:", refreshError)
+        showToast({
+          message: "Configuration loaded, but dashboard state could not be refreshed.",
+          severity: "warning",
+          details: extractErrorDetails(refreshError)
+        })
+      }
+
       showToast({ message: "Configuration loaded successfully", severity: "success" })
     } catch (error) {
       console.error(error)

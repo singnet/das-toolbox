@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CircularProgress, Collapse, Tooltip } from "@mui/material";
 import { ExpandMore, PlayArrow, Stop } from "@mui/icons-material";
 
@@ -87,9 +87,17 @@ export function ArchitectureActionControl({
 
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
+  const hasInitializedSelection = useRef(false);
 
   useEffect(() => {
-    setSelectedServices(orchestrationServices.map((service) => service.id));
+    const availableIds = orchestrationServices.map((service) => service.id);
+    setSelectedServices((current) => {
+      if (!hasInitializedSelection.current) {
+        hasInitializedSelection.current = true;
+        return availableIds;
+      }
+      return current.filter((id) => availableIds.includes(id));
+    });
   }, [orchestrationServices]);
 
   const isLoading = !!loadingAction;

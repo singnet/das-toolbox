@@ -11,6 +11,7 @@ export function useArchitectureTabMetrics(machines = []) {
 
   const fleetStreamsRef = useRef({});
   const fleetHistoryRef = useRef({});
+  const baseServicesByHostRef = useRef({});
 
   useEffect(() => {
     const hostList = machines.map((machine) => machine.serverIp).filter(Boolean);
@@ -21,6 +22,7 @@ export function useArchitectureTabMetrics(machines = []) {
       stream.close();
       delete fleetStreamsRef.current[hostIp];
       delete fleetHistoryRef.current[hostIp];
+      delete baseServicesByHostRef.current[hostIp];
       setFleetLinkUpByHost((prev) => {
         const next = { ...prev };
         delete next[hostIp];
@@ -32,10 +34,23 @@ export function useArchitectureTabMetrics(machines = []) {
       Object.fromEntries(Object.entries(prev).filter(([hostIp]) => activeHosts.has(hostIp)))
     );
 
-    hostList.forEach((hostIp) => {
-      if (fleetStreamsRef.current[hostIp]) return;
+    setFleetHostStatsByHost((prev) =>
+      Object.fromEntries(Object.entries(prev).filter(([hostIp]) => activeHosts.has(hostIp)))
+    );
 
+    hostList.forEach((hostIp) => {
       const baseServices = machines.find((m) => m.serverIp === hostIp)?.services ?? [];
+      baseServicesByHostRef.current[hostIp] = baseServices;
+
+      if (fleetStreamsRef.current[hostIp]) {
+        setFleetServicesByHost((prev) => {
+          const next = { ...prev };
+          delete next[hostIp];
+          return next;
+        });
+        return;
+      }
+
       fleetHistoryRef.current[hostIp] = [];
 
       fleetStreamsRef.current[hostIp] = createMetricsStream({
@@ -52,9 +67,10 @@ export function useArchitectureTabMetrics(machines = []) {
 
           if (payload.serviceInfo) {
             const runtime = Object.values(payload.serviceInfo).map(normalizeService);
+            const currentBase = baseServicesByHostRef.current[hostIp] ?? [];
             setFleetServicesByHost((prev) => ({
               ...prev,
-              [hostIp]: patchServicesWithRuntime(baseServices, runtime),
+              [hostIp]: patchServicesWithRuntime(currentBase, runtime),
             }));
             fleetHistoryRef.current[hostIp].push({ data: runtime });
             if (fleetHistoryRef.current[hostIp].length > 20) fleetHistoryRef.current[hostIp].shift();
@@ -75,6 +91,7 @@ export function useArchitectureTabMetrics(machines = []) {
     Object.values(fleetStreamsRef.current).forEach((stream) => stream.close());
     fleetStreamsRef.current = {};
     fleetHistoryRef.current = {};
+    baseServicesByHostRef.current = {};
   }, []);
 
   const fleetMergedServices = useMemo(

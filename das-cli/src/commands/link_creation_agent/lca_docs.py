@@ -27,7 +27,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli link-creation-agent start [--port-range <start_port-end_port>]
+    das-cli link-creation-agent start [--port-range <start:end>]
 
 DESCRIPTION
 
@@ -50,7 +50,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli link-creation-agent restart [--port-range <start_port-end_port>]
+    das-cli link-creation-agent restart [--port-range <start:end>]
 
 DESCRIPTION
 
