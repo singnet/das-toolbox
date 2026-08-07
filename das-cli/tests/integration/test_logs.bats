@@ -9,8 +9,6 @@ load 'libs/errors'
 setup() {
     use_config "simple"
 
-    peer_port=$(extract_port "$(get_config ".agents.query.ports_range")")
-
     das-cli db stop
     das-cli attention-broker stop
     das-cli query-agent stop
@@ -126,8 +124,6 @@ teardown() {
     das-cli query-agent start --port-range 12000:12100
 
     das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     run timeout 5s das-cli logs link-creation-agent -f
@@ -150,13 +146,9 @@ teardown() {
     das-cli query-agent start --port-range 12000:12100
 
     das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     das-cli inference-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12500:12600
 
     run timeout 5s das-cli logs inference-agent -f
@@ -179,8 +171,6 @@ teardown() {
     das-cli query-agent start --port-range 12000:12100
 
     das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     run timeout 5s das-cli logs evolution-agent -f
@@ -193,8 +183,6 @@ teardown() {
     das-cli query-agent start --port-range 12000:12100
 
     das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 46000:46999
 
     run timeout 5s das-cli logs context-broker -f

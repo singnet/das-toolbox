@@ -2,6 +2,7 @@ import { Table, TableHead, TableRow, TableBody } from "@mui/material";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
 import { stopService, restartService, startService } from "../../../../api/ServicesAPI";
+import { extractErrorDetails } from "../../../../api/APIUtils";
 import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
@@ -25,36 +26,36 @@ export function AgentTable({ machine }) {
     setCurrentService((current) => (current === serviceKey ? null : serviceKey));
   }
 
-  async function handleAction(actionType, containerName, serviceKey) {
+  async function handleAction(actionType, serviceKey) {
     const host = currentMachine?.serverIp || "localhost";
-    const serviceId = serviceKey || containerName;
 
     try {
       if (actionType.toLowerCase() === "start") {
-        showToast({ message: `Starting service ${serviceId}...`, severity: "warning" });
-        await startService(serviceId, host);
-        showToast({ message: `Service ${serviceId} started successfully!`, severity: "success" });
+        showToast({ message: `Starting service ${serviceKey}...`, severity: "warning" });
+        await startService(serviceKey, host);
+        showToast({ message: `Service ${serviceKey} started successfully!`, severity: "success" });
         return;
       }
 
       if (actionType.toLowerCase() === "stop") {
-        showToast({ message: `Stopping service ${containerName}...`, severity: "warning" });
-        await stopService(containerName, host);
-        showToast({ message: `Service ${containerName} stopped successfully!`, severity: "success" });
+        showToast({ message: `Stopping service ${serviceKey}...`, severity: "warning" });
+        await stopService(serviceKey, host);
+        showToast({ message: `Service ${serviceKey} stopped successfully!`, severity: "success" });
         return;
       }
 
       if (actionType.toLowerCase() === "restart") {
-        showToast({ message: `Restarting service ${containerName}...`, severity: "info" });
-        await restartService(containerName, host);
-        showToast({ message: `Service ${containerName} restarted successfully!`, severity: "success" });
+        showToast({ message: `Restarting service ${serviceKey}...`, severity: "info" });
+        await restartService(serviceKey, host);
+        showToast({ message: `Service ${serviceKey} restarted successfully!`, severity: "success" });
       }
     } catch (error) {
       console.error("Error while executing action:", error);
+      const serverMessage = error?.response?.data?.message;
       showToast({
-        message: `Failed to ${actionType.toLowerCase()} container ${containerName}.`,
+        message: serverMessage || `Failed to ${actionType.toLowerCase()} service ${serviceKey}.`,
         severity: "error",
-        details: error.message || String(error)
+        details: extractErrorDetails(error),
       });
     }
   }

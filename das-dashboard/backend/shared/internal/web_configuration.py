@@ -16,7 +16,7 @@ from shared.utils.service_inventory import build_service_row
 # Agent section keys mapped to das-cli service command names.
 AGENT_SERVICE_COMMANDS = {
     "attention": "attention-broker",
-    "query": "query-agent",
+    "query": "query-engine",
     "link_creation": "link-creation-agent",
     "inference": "inference-agent",
     "evolution": "evolution-agent",
@@ -49,6 +49,7 @@ class WebConfiguration:
             self.user_profile = {}
 
     def load_config_dictionary(self, config: dict | None = None, *, required: bool = True) -> None:
+        
         if config is not None:
             self._validate_nested_config(config)
             self.config_dictionary = self._build_service_map(config)

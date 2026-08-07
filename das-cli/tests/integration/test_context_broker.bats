@@ -27,7 +27,6 @@ safe_stop_attention_broker() {
 setup() {
     use_config "simple"
 
-    peer_port=$(extract_port "$(get_config ".agents.query.ports_range")")
     context_broker_port=$(extract_port "$(get_config ".agents.context.endpoint")")
 
     service_name="das-context-broker-${context_broker_port}"
@@ -56,8 +55,6 @@ teardown() {
 
     run das-cli context-broker start \
         --port-range 12700:12800 \
-        --peer-hostname localhost \
-        --peer-port "$peer_port"
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
@@ -77,8 +74,6 @@ teardown() {
 
     run das-cli context-broker restart \
         --port-range 12700:12800 \
-        --peer-hostname localhost \
-        --peer-port "$peer_port"
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
@@ -89,8 +84,6 @@ teardown() {
 
     run das-cli context-broker start \
         --port-range 12700:12800 \
-        --peer-hostname localhost \
-        --peer-port "$peer_port"
 
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
     assert_output --partial "Please start the required services"
@@ -110,8 +103,6 @@ teardown() {
     safe_stop_context_broker
 
     run das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     assert_output --partial "[PortBindingError]"
@@ -128,13 +119,9 @@ teardown() {
 
 @test "Starting the Context Broker when it's already up" {
     das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     run das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     assert_output --partial "Starting Context Broker service"
@@ -148,8 +135,6 @@ teardown() {
 
 @test "Starting the Context Broker" {
     run das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     assert_output --partial "Context Broker started on port"
@@ -162,8 +147,6 @@ teardown() {
 
 @test "Stopping the Context Broker when it's up-and-running" {
     das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     run das-cli context-broker stop
@@ -187,13 +170,9 @@ teardown() {
 
 @test "Restarting the Context Broker when it's up-and-running" {
     das-cli context-broker start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     run das-cli context-broker restart \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     assert_output --partial "Stopping Context Broker service"
@@ -207,8 +186,6 @@ teardown() {
 
 @test "Restarting the Context Broker when it's not up" {
     run das-cli context-broker restart \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12700:12800
 
     assert_output --partial "already stopped"

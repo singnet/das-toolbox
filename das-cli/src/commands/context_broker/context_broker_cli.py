@@ -95,18 +95,6 @@ class ContextBrokerStart(Command):
 
     params = [
         CommandOption(
-            ["--peer-hostname"],
-            help="The address of the node to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the node to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
-        CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="46000:46999",
@@ -133,14 +121,14 @@ class ContextBrokerStart(Command):
     def _get_container(self):
         return self._context_broker_bus_node_manager.get_container()
 
-    def _context_broker(self, port_range: str, **kwargs) -> None:
+    def _context_broker(self, port_range: str) -> None:
         self.stdout("Starting Context Broker service...")
 
         container = self._get_container()
         context_broker_port = container.port
 
         try:
-            self._context_broker_bus_node_manager.start_container(port_range, **kwargs)
+            self._context_broker_bus_node_manager.start_container(port_range)
 
             success_message = f"Context Broker started on port {context_broker_port}"
             self.stdout(
@@ -193,27 +181,15 @@ class ContextBrokerStart(Command):
         "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
-    def run(self, port_range: str, **kwargs) -> None:
+    def run(self, port_range: str) -> None:
         self._settings.validate_configuration_file()
-        self._context_broker(port_range, **kwargs)
+        self._context_broker(port_range)
 
 
 class ContextBrokerRestart(Command):
     name = "restart"
 
     params = [
-        CommandOption(
-            ["--peer-hostname"],
-            help="The address of the peer to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the peer to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
         CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
@@ -236,9 +212,9 @@ class ContextBrokerRestart(Command):
         self._context_broker_start = context_broker_start
         self._context_broker_stop = context_broker_stop
 
-    def run(self, port_range: str, **kwargs) -> None:
+    def run(self, port_range: str) -> None:
         self._context_broker_stop.run()
-        self._context_broker_start.run(port_range, **kwargs)
+        self._context_broker_start.run(port_range)
 
 
 class ContextBrokerCli(CommandGroup):

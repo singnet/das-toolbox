@@ -6,57 +6,69 @@ import {
   useEffect,
 } from "react";
 
-import { getConfigHosts } from "../../api/ConfigAPI";
-import { hostsToMachines } from "../../utils/serviceInventory";
+import { getInitialState } from "../../api/DashboardAPI";
 
 const DashboardContext = createContext(null);
 
 export default function DashboardContextProvider({ children }) {
   const [machines, setMachines] = useState([]);
+  const [serviceServerMap, setServiceServerMap] = useState({});
   const [currentMachine, setCurrentMachine] = useState(null);
   const [currentService, setCurrentService] = useState(null);
   const [currentContext, setCurrentContext] = useState("servers");
 
-  const setDashboardBaseValues = useCallback((hosts) => {
-    if (!Array.isArray(hosts)) {
-      return;
-    }
+  const applyInitialState = useCallback((initialState) => {
+    if (!initialState) return;
 
-    const machineList = hostsToMachines(hosts);
+    const machineList = (initialState.hosts ?? []).map(({ ip, services = [] }) => ({
+      serverIp: ip,
+      services,
+    }));
+
     setMachines(machineList);
-    setCurrentMachine(machineList[0] ?? null);
+    setServiceServerMap(initialState.serviceServerMap ?? {});
+    setCurrentMachine((current) => {
+      if (!machineList.length) {
+        return null;
+      }
+      if (!current) {
+        return machineList[0];
+      }
+      return machineList.find((machine) => machine.serverIp === current.serverIp) ?? machineList[0];
+    });
   }, []);
 
   useEffect(() => {
     let active = true;
 
-    getConfigHosts()
-      .then(({ hosts }) => {
+    getInitialState()
+      .then((initialState) => {
         if (active) {
-          setDashboardBaseValues(hosts ?? []);
+          applyInitialState(initialState);
         }
       })
       .catch((error) => {
-        console.error("Failed to load dashboard hosts:", error);
+        console.error("Failed to load dashboard initial state:", error);
       });
 
     return () => {
       active = false;
     };
-  }, [setDashboardBaseValues]);
+  }, [applyInitialState]);
 
   return (
     <DashboardContext.Provider
       value={{
         machines,
         setMachines,
+        serviceServerMap,
         currentMachine,
         setCurrentMachine,
         currentService,
         setCurrentService,
         currentContext,
         setCurrentContext,
-        setDashboardBaseValues,
+        applyInitialState,
       }}
     >
       {children}

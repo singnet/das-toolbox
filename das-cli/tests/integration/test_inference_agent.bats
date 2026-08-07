@@ -32,8 +32,6 @@ teardown() {
     unset_config
 
     run das-cli inference-agent start \
-        --peer-hostname 0.0.0.0 \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
@@ -51,8 +49,6 @@ teardown() {
     unset_config
 
     run das-cli inference-agent restart \
-        --peer-hostname 0.0.0.0 \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
@@ -62,8 +58,6 @@ teardown() {
     das-cli attention-broker stop
 
     run das-cli inference-agent start \
-        --peer-hostname 0.0.0.0 \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
@@ -81,8 +75,6 @@ teardown() {
     assert_success
 
     run das-cli inference-agent start \
-        --peer-hostname 0.0.0.0 \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "[PortBindingError]"
@@ -98,14 +90,10 @@ teardown() {
 @test "Starting the Inference Agent when it's already up" {
     # garante que subiu
     run das-cli inference-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
     assert_success
 
     run das-cli inference-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "already running"
@@ -116,8 +104,6 @@ teardown() {
 
 @test "Starting the Inference Agent" {
     run das-cli inference-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_success
@@ -130,8 +116,6 @@ teardown() {
 
 @test "Stopping the Inference Agent when it's up-and-running" {
     das-cli inference-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     run das-cli inference-agent stop
@@ -153,13 +137,9 @@ teardown() {
 
 @test "Restarting the Inference Agent when it's up-and-running" {
     das-cli inference-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     run das-cli inference-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "Stopping Inference Agent service"
@@ -172,8 +152,6 @@ teardown() {
 
 @test "Restarting the Inference Agent when it's not up" {
     run das-cli inference-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12500:12600
 
     assert_output --partial "already stopped"

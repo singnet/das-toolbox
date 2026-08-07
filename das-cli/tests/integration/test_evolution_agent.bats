@@ -31,8 +31,6 @@ teardown() {
 
     run das-cli evolution-agent start \
         --port-range 12700:12800 \
-        --peer-hostname localhost \
-        --peer-port 12000
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
@@ -50,8 +48,6 @@ teardown() {
 
     run das-cli evolution-agent restart \
         --port-range 12700:12800 \
-        --peer-hostname localhost \
-        --peer-port 42000
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
@@ -64,8 +60,6 @@ teardown() {
 
     run das-cli evolution-agent start \
         --port-range 12700:12800 \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port"
 
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
     assert_output --partial "Please start the required services"
@@ -88,8 +82,6 @@ teardown() {
     assert_success
 
     run das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     assert_output --partial "[PortBindingError]"
@@ -108,14 +100,10 @@ teardown() {
 
     # garante que subiu
     run das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
     assert_success
 
     run das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     assert_output --partial "already running"
@@ -132,8 +120,6 @@ teardown() {
     query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     run das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     assert_success
@@ -149,8 +135,6 @@ teardown() {
     query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     run das-cli evolution-agent stop
@@ -178,13 +162,9 @@ teardown() {
     query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     das-cli evolution-agent start \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     run das-cli evolution-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     assert_output --partial "Stopping Evolution Agent service"
@@ -203,8 +183,6 @@ teardown() {
     query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
 
     run das-cli evolution-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$query_agent_port" \
         --port-range 12700:12800
 
     assert_output --partial "already stopped"

@@ -101,20 +101,8 @@ class InferenceAgentStart(Command):
 
     params = [
         CommandOption(
-            ["--peer-hostname"],
-            help="The address of the node to connect to.",
-            prompt="Enter node hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the node to connect to.",
-            prompt="Enter node port (e.g., 40002)",
-            type=int,
-        ),
-        CommandOption(
             ["--port-range"],
-            help="The lower and upper bounds of the port range to be used by the node.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="44000:44999",
             type=PortRangeType(),
         ),
@@ -139,7 +127,7 @@ class InferenceAgentStart(Command):
     def _get_container(self):
         return self._inference_agent_bus_node_manager.get_container()
 
-    def _inference_agent(self, port_range: str, **kwargs) -> None:
+    def _inference_agent(self, port_range: str) -> None:
         container = self._get_container()
 
         self.stdout("Starting Inference Agent service...")
@@ -147,7 +135,7 @@ class InferenceAgentStart(Command):
         inf_a_port = container.port
 
         try:
-            self._inference_agent_bus_node_manager.start_container(port_range, **kwargs)
+            self._inference_agent_bus_node_manager.start_container(port_range)
 
             success_message = f"Inference Agent started listening on the ports {inf_a_port}"
 
@@ -199,28 +187,16 @@ class InferenceAgentStart(Command):
         "Run 'attention-broker start' to start the Attention Broker.",
         verbose=False,
     )
-    def run(self, port_range: str, **kwargs):
+    def run(self, port_range: str):
         self._settings.validate_configuration_file()
 
-        self._inference_agent(port_range, **kwargs)
+        self._inference_agent(port_range)
 
 
 class InferenceAgentRestart(Command):
     name = "restart"
 
     params = [
-        CommandOption(
-            ["--peer-hostname"],
-            help="The address of the node to connect to.",
-            prompt="Enter peer hostname (e.g., 192.168.1.100)",
-            type=str,
-        ),
-        CommandOption(
-            ["--peer-port"],
-            help="The port of the node to connect to.",
-            prompt="Enter peer port (e.g., 40002)",
-            type=int,
-        ),
         CommandOption(
             ["--port-range"],
             help="The lower and upper bounds of the port range to be used by the command proxy.",
@@ -243,9 +219,9 @@ class InferenceAgentRestart(Command):
         self._inference_agent_start = inference_agent_start
         self._inference_agent_stop = inference_agent_stop
 
-    def run(self, port_range: str, **kwargs):
+    def run(self, port_range: str):
         self._inference_agent_stop.run()
-        self._inference_agent_start.run(port_range, **kwargs)
+        self._inference_agent_start.run(port_range)
 
 
 class InferenceAgentCli(CommandGroup):

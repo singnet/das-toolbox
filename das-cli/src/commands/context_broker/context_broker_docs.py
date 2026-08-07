@@ -27,17 +27,18 @@ NAME
 
 SYNOPSIS
 
-    das-cli context-broker start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
+    das-cli context-broker start [--port-range <start:end>]
 
 DESCRIPTION
 
     Initializes and runs the Context Broker service.
+    Connects to the query engine using agents.query.endpoint from the config file.
 
 EXAMPLES
 
     To start the Context Broker service:
 
-        $ das-cli context-broker start --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
+        $ das-cli context-broker start --port-range 46000:46999
 """
 
 SHORT_HELP_START = "Start the Context Broker service."
@@ -49,20 +50,17 @@ NAME
 
 SYNOPSIS
 
-    das-cli context-broker restart [--peer-hostname <hostname>] [--peer-port <port>]  [--port-range <start:end>]
+    das-cli context-broker restart [--port-range <start:end>]
 
 DESCRIPTION
 
     Stops and then starts the Context Broker service.
 
-    This command ensures a instance of the Context Broker is running.
-
 EXAMPLES
 
     To restart the Context Broker service:
 
-        $ das-cli context-broker restart --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
-
+        $ das-cli context-broker restart --port-range 46000:46999
 """
 
 SHORT_HELP_RESTART = "Restart the Context Broker service."
@@ -80,27 +78,17 @@ DESCRIPTION
 
     Provides commands to control the Context Broker service.
 
-    Use this command group to start, stop, or restart the service.
-
 COMMANDS
 
-    start
-
-        Start the Context Broker service.
-
-    stop
-
-        Stop the Context Broker service.
-
-    restart
-
-        Restart the Context Broker service.
+    start       Start the Context Broker service.
+    stop        Stop the Context Broker service.
+    restart     Restart the Context Broker service.
 
 EXAMPLES
 
     Start the Context Broker service:
 
-        $ das-cli context-broker start --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
+        $ das-cli context-broker start --port-range 46000:46999
 
     Stop the Context Broker service:
 
@@ -108,7 +96,7 @@ EXAMPLES
 
     Restart the Context Broker service:
 
-        $ das-cli context-broker restart --port-range 46000:46999 --peer-hostname localhost --peer-port 42000
+        $ das-cli context-broker restart --port-range 46000:46999
 """
 
 SHORT_HELP_CONTEXT_BROKER = "Manage the Context Broker service."

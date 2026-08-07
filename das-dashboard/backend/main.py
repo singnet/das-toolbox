@@ -19,6 +19,7 @@ from controllers.profile_controllers import router as profile_router
 from controllers.config_controllers import router as config_router
 from controllers.metrics_controllers import router as metrics_router
 from controllers.query_controllers import router as query_router
+from controllers.dashboard_controllers import router as dashboard_router
 
 
 @asynccontextmanager
@@ -64,3 +65,4 @@ dashboard_app.include_router(profile_router)
 dashboard_app.include_router(config_router)
 dashboard_app.include_router(metrics_router)
 dashboard_app.include_router(query_router)
+dashboard_app.include_router(dashboard_router)

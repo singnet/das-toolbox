@@ -86,7 +86,7 @@ export function AtomDBActionControl({
     const endpoints = [
       ...new Set(
         machines.flatMap((machine) =>
-          (machine.expectedServices ?? [])
+          (machine.services ?? [])
             .filter((service) => service.type === "atomdb" && service.host)
             .map((service) =>
               service.port ? `${service.host}:${service.port}` : service.host

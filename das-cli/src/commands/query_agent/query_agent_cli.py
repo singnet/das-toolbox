@@ -176,7 +176,7 @@ class QueryAgentStart(Command):
 
         except DockerError as e:
             error_message = (
-                f"Error occurred while trying to start Attention Broker on port {container_port}"
+                f"Error occurred while trying to start Query Agent on port {container_port}"
             )
             raise DockerError(f"{error_message}\nOriginal error: {e}")
 

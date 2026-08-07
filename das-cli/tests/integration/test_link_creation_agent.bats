@@ -16,7 +16,6 @@ setup() {
     das-cli db start || true
     das-cli attention-broker start || true
 
-    peer_port=$(extract_port "$(get_config ".agents.query.ports_range")")
     link_creation_agent_port=$(extract_port "$(get_config ".agents.link_creation.endpoint")")
 
     service_name="das-link-creation-agent-40003"
@@ -39,8 +38,6 @@ teardown() {
     unset_config
 
     run das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
@@ -58,8 +55,6 @@ teardown() {
     unset_config
 
     run das-cli link-creation-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
@@ -69,8 +64,6 @@ teardown() {
     das-cli query-agent stop || true
 
     run das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
@@ -88,8 +81,6 @@ teardown() {
     assert_success
 
     run das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "[PortBindingError]"
@@ -105,13 +96,9 @@ teardown() {
 
 @test "Starting the Link Creation Agent when it's already up" {
     das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     run das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "Starting Link Creation Agent service"
@@ -123,8 +110,6 @@ teardown() {
 
 @test "Starting the Link Creation Agent" {
     run das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "Link Creation Agent started listening on the ports"
@@ -136,8 +121,6 @@ teardown() {
 
 @test "Stopping the Link Creation Agent when it's up-and-running" {
     das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     run das-cli link-creation-agent stop
@@ -159,13 +142,9 @@ teardown() {
 
 @test "Restarting the Link Creation Agent when it's up-and-running" {
     das-cli link-creation-agent start \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     run das-cli link-creation-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "Stopping Link Creation Agent service"
@@ -178,8 +157,6 @@ teardown() {
 
 @test "Restarting the Link Creation Agent when it's not up" {
     run das-cli link-creation-agent restart \
-        --peer-hostname localhost \
-        --peer-port "$peer_port" \
         --port-range 12300:12400
 
     assert_output --partial "already stopped"
