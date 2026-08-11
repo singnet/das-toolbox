@@ -4,7 +4,7 @@ import time
 
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.system_containers_manager import (
     SystemContainersManager,
 )
@@ -79,12 +79,11 @@ class SystemStatus(Command):
 
         # Solo snapshot
         system_info = self._collect_snapshot()
-        self.stdout(
-            system_info,
-            stdout_type=StdoutType.MACHINE_READABLE,
-        )
 
-        self._format_info_for_display(system_info)
+        if self.output_format != "plain":
+            self.stdout(system_info)
+        else:
+            self._format_info_for_display(system_info)
 
     def _collect_snapshot(self) -> dict:
 
@@ -101,6 +100,9 @@ class SystemStatus(Command):
             "serviceInfo": service_output,
         }
 
+    def _log_line(self, message: str) -> None:
+        self.log(message, severity=StdoutSeverity.INFO)
+
     def _format_info_for_display(
         self,
         system_info: dict,
@@ -113,7 +115,7 @@ class SystemStatus(Command):
         memory_info = machines.get("MemoryInfo", {})
         disks_info = machines.get("DisksInfo", [])
 
-        self.stdout("MACHINE INFO:\n")
+        self._log_line("MACHINE INFO:\n")
 
         machine_rows = [
             {
@@ -132,10 +134,10 @@ class SystemStatus(Command):
                 "MEM USED (GB)",
                 "MEM TOTAL (GB)",
             ],
-            stdout=self.stdout,
+            stdout=self._log_line,
         )
 
-        self.stdout("\nDISKS:\n")
+        self._log_line("\nDISKS:\n")
 
         disk_rows = []
 
@@ -158,10 +160,10 @@ class SystemStatus(Command):
                 "USED (GB)",
                 "TOTAL (GB)",
             ],
-            stdout=self.stdout,
+            stdout=self._log_line,
         )
 
-        self.stdout("\nSERVICES:\n")
+        self._log_line("\nSERVICES:\n")
 
         container_rows = []
 
@@ -192,7 +194,7 @@ class SystemStatus(Command):
                 "CONTAINER STATUS",
                 "SERVICE HEALTH",
             ],
-            stdout=self.stdout,
+            stdout=self._log_line,
         )
 
     def _run_stream(self, cooldown) -> None:
@@ -253,8 +255,10 @@ class SystemStatus(Command):
 
                 os.system("clear")
 
-                self.stdout(system_info, stdout_type=StdoutType.MACHINE_READABLE, stream_mode=True)
-                self._format_info_for_display(system_info)
+                if self.output_format != "plain":
+                    self.stdout(system_info)
+                else:
+                    self._format_info_for_display(system_info)
                 time.sleep(cooldown)
 
         except KeyboardInterrupt:
