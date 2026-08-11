@@ -62,7 +62,7 @@ class AtomDbBrokerStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.log("Starting AtomDB Broker service...")
+        self.log("Starting AtomDB Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._atomdb_broker_bus_manager.start_container(port_range, **kwargs)
@@ -76,8 +76,9 @@ class AtomDbBrokerStart(Command):
                         status=StdoutStatus.SUCCESS,
                         message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError as e:
@@ -91,7 +92,7 @@ class AtomDbBrokerStart(Command):
                     message=message,
                     container=self._get_container(),
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -105,7 +106,8 @@ class AtomDbBrokerStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=self._get_container(),
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     @ensure_container_running(
@@ -140,7 +142,7 @@ class AtomDbBrokerStop(Command):
     def _stop_container(self):
         container = self._get_container()
 
-        self.log("Stopping AtomDB Broker service...")
+        self.log("Stopping AtomDB Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._atomdb_broker_bus_manager.stop()
@@ -154,8 +156,9 @@ class AtomDbBrokerStop(Command):
                         status=StdoutStatus.SUCCESS,
                         message=exec_message,
                         container=container,
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
@@ -170,8 +173,9 @@ class AtomDbBrokerStop(Command):
                         status=StdoutStatus.INFO,
                         message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):

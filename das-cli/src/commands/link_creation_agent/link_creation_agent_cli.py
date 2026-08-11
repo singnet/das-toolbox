@@ -50,7 +50,7 @@ class LinkCreationAgentStop(Command):
     def _link_creation_agent(self):
         container = self._get_container()
 
-        self.log("Stopping Link Creation Agent service...")
+        self.log("Stopping Link Creation Agent service...", severity=StdoutSeverity.INFO)
 
         try:
             self._link_creation_agent_manager.stop()
@@ -66,6 +66,7 @@ class LinkCreationAgentStop(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -81,6 +82,7 @@ class LinkCreationAgentStop(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -123,7 +125,7 @@ class LinkCreationAgentStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.log("Starting Link Creation Agent service...")
+        self.log("Starting Link Creation Agent service...", severity=StdoutSeverity.INFO)
 
         try:
             self._link_creation_bus_node_manager.start_container(port_range)
@@ -139,6 +141,7 @@ class LinkCreationAgentStart(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -152,7 +155,7 @@ class LinkCreationAgentStart(Command):
                     message=message,
                     container=container,
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -164,7 +167,8 @@ class LinkCreationAgentStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=container,
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     @ensure_container_running(

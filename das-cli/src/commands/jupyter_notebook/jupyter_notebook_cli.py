@@ -68,7 +68,7 @@ class JupyterNotebookStart(Command):
 
         container = self._get_container()
 
-        self.log("Starting Jupyter Notebook...")
+        self.log("Starting Jupyter Notebook...", severity=StdoutSeverity.INFO)
 
         try:
             self._jupyter_notebook_container_manager.start_container(working_dir)
@@ -85,6 +85,7 @@ class JupyterNotebookStart(Command):
                         working_dir=working_dir,
                     ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -101,7 +102,7 @@ class JupyterNotebookStart(Command):
                     container=container,
                     working_dir=working_dir,
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -114,7 +115,8 @@ class JupyterNotebookStart(Command):
                     error=e,
                     container=container,
                     working_dir=working_dir,
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
 
@@ -143,7 +145,7 @@ class JupyterNotebookStop(Command):
 
         container = self._get_container()
 
-        self.log("Stopping jupyter notebook...")
+        self.log("Stopping jupyter notebook...", severity=StdoutSeverity.INFO)
 
         try:
             self._jupyter_notebook_container_manager.stop()
@@ -159,6 +161,7 @@ class JupyterNotebookStop(Command):
                         container=container,
                     ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -174,6 +177,7 @@ class JupyterNotebookStop(Command):
                         container=container,
                     ),
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
 

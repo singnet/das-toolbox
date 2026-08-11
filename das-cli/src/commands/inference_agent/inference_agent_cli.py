@@ -50,7 +50,7 @@ class InferenceAgentStop(Command):
     def _inference_agent(self):
         container = self._get_container()
 
-        self.log("Stopping Inference Agent service...")
+        self.log("Stopping Inference Agent service...", severity=StdoutSeverity.INFO)
 
         try:
             self._inference_agent_manager.stop()
@@ -66,6 +66,7 @@ class InferenceAgentStop(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -81,6 +82,7 @@ class InferenceAgentStop(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -123,7 +125,7 @@ class InferenceAgentStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.log("Starting Inference Agent service...")
+        self.log("Starting Inference Agent service...", severity=StdoutSeverity.INFO)
 
         try:
             self._inference_agent_bus_node_manager.start_container(port_range)
@@ -139,6 +141,7 @@ class InferenceAgentStart(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -152,7 +155,7 @@ class InferenceAgentStart(Command):
                     message=message,
                     container=container,
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -164,7 +167,8 @@ class InferenceAgentStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=container,
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     @ensure_container_running(

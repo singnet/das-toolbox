@@ -53,7 +53,7 @@ class QueryAgentStop(Command):
     def _query_agent(self):
         container = self._get_container()
 
-        self.log("Stopping Query Agent service...")
+        self.log("Stopping Query Agent service...", severity=StdoutSeverity.INFO)
 
         try:
             self._query_agent_bus_manager.stop()
@@ -69,6 +69,7 @@ class QueryAgentStop(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -84,6 +85,7 @@ class QueryAgentStop(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -128,7 +130,7 @@ class QueryAgentStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.log("Starting Query Agent service...")
+        self.log("Starting Query Agent service...", severity=StdoutSeverity.INFO)
 
         try:
             self._bus_node_container_manager.start_container(port_range, **kwargs)
@@ -144,6 +146,7 @@ class QueryAgentStart(Command):
                         container=container,
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -157,7 +160,7 @@ class QueryAgentStart(Command):
                     message=message,
                     container=container,
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -169,7 +172,8 @@ class QueryAgentStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=container,
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     @ensure_container_running(
