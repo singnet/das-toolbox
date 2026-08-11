@@ -9,6 +9,7 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.exceptions import PortBindingError
 from common.service_response import ServiceResponse, StdoutStatus
 
 from .attention_broker_docs import (
@@ -141,7 +142,7 @@ class AttentionBrokerStart(Command):
                 StdoutSeverity.INFO,
             )
 
-        except DockerError as e:
+        except (DockerError, PortBindingError) as e:
             self.stdout(
                 ServiceResponse(
                     service=CLI_SERVICE_NAME,
