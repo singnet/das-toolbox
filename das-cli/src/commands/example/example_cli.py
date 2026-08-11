@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, StdoutType
+from common import Command, CommandGroup, StdoutSeverity
 
 from .example_docs import HELP_EX_LOCAL, HELP_EXAMPLE, SHORT_HELP_EX_LOCAL, SHORT_HELP_EXAMPLE
 
@@ -30,7 +30,11 @@ class ExampleLocal(Command):
 # Load Metta files
 {self._script_name} metta load <metta file path>
 """
-        self.stdout(output)
+        self.log(output.strip(), severity=StdoutSeverity.INFO)
+
+        if self.output_format == "plain":
+            return
+
         self.stdout(
             {
                 "configuration": {
@@ -47,10 +51,9 @@ class ExampleLocal(Command):
                 },
                 "metta_load": {
                     "description": "Load Metta files",
-                    "command": f"{self._script_name} metta load <metta file path",
+                    "command": f"{self._script_name} metta load <metta file path>",
                 },
-            },
-            stdout_type=StdoutType.MACHINE_READABLE,
+            }
         )
 
 
