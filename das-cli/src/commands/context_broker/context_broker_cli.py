@@ -46,7 +46,7 @@ class ContextBrokerStop(Command):
         return self._context_broker_bus_node_manager.get_container()
 
     def _context_broker(self):
-        self.log("Stopping Context Broker service...")
+        self.log("Stopping Context Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._context_broker_bus_node_manager.stop()
@@ -62,6 +62,7 @@ class ContextBrokerStop(Command):
                         container=self._get_container(),
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -78,6 +79,7 @@ class ContextBrokerStop(Command):
                         container=self._get_container(),
                     )
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -120,7 +122,7 @@ class ContextBrokerStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.log("Starting Context Broker service...")
+        self.log("Starting Context Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._context_broker_bus_node_manager.start_container(port_range)
@@ -136,6 +138,7 @@ class ContextBrokerStart(Command):
                         container=self._get_container(),
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -149,7 +152,7 @@ class ContextBrokerStart(Command):
                     message=message,
                     container=self._get_container(),
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -161,7 +164,8 @@ class ContextBrokerStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=self._get_container(),
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     @ensure_container_running(

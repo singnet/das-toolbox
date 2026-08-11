@@ -47,7 +47,7 @@ class AttentionBrokerStop(Command):
         return self._attention_broker_manager.get_container()
 
     def _attention_broker(self):
-        self.log("Stopping Attention Broker service...")
+        self.log("Stopping Attention Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._attention_broker_manager.stop()
@@ -61,8 +61,9 @@ class AttentionBrokerStop(Command):
                         status=StdoutStatus.SUCCESS,
                         message=exec_message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -77,8 +78,9 @@ class AttentionBrokerStop(Command):
                         status=StdoutStatus.INFO,
                         message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -110,7 +112,7 @@ class AttentionBrokerStart(Command):
         container = self._attention_broker_container_manager.get_container()
         port = container.port
 
-        self.log("Starting Attention Broker service...")
+        self.log("Starting Attention Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._attention_broker_container_manager.start_container()
@@ -124,8 +126,9 @@ class AttentionBrokerStart(Command):
                         status=StdoutStatus.SUCCESS,
                         message=message,
                         container=container,
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -139,7 +142,7 @@ class AttentionBrokerStart(Command):
                     message=message,
                     container=container,
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -151,7 +154,8 @@ class AttentionBrokerStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=container,
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     def run(self):

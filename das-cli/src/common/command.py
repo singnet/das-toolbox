@@ -420,8 +420,8 @@ class Command:
             click.echo(yaml.dump(payload, sort_keys=False), nl=False)
             sys.stdout.flush()
 
-    def log(self, message):
-        click.secho(message=message, nl=True)
+    def log(self, message: str, severity: StdoutSeverity = StdoutSeverity.INFO) -> None:
+        self._print_colored(message, severity, new_line=True, err=True)
 
     def stdout(
         self,
@@ -444,18 +444,24 @@ class Command:
             f"The 'run' method from the command '{self.name}' should be implemented."
         )
 
-    def _print_colored(self, text: str, severity: StdoutSeverity, new_line: bool = True) -> None:
+    def _print_colored(
+        self,
+        text: str,
+        severity: StdoutSeverity,
+        new_line: bool = True,
+        *,
+        err: bool = False,
+    ) -> None:
         fg_map = {
             StdoutSeverity.SUCCESS: "green",
             StdoutSeverity.ERROR: "red",
             StdoutSeverity.WARNING: "yellow",
-            StdoutSeverity.INFO: None,
         }
         fg = fg_map.get(severity)
         if fg:
-            click.secho(text, fg=fg, nl=new_line)
+            click.secho(text, fg=fg, nl=new_line, err=err)
         else:
-            click.echo(text, nl=new_line)
+            click.echo(text, nl=new_line, err=err)
 
 
 class CommandGroup(Command):

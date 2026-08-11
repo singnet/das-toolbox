@@ -63,7 +63,7 @@ class CommandRouterStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.log("Starting Command Router service...")
+        self.log("Starting Command Router service...", severity=StdoutSeverity.INFO)
 
         try:
             self._command_router_container_manager.start_container(ports_range=port_range)
@@ -79,6 +79,7 @@ class CommandRouterStart(Command):
                         container=self._get_container(),
                     )
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
@@ -92,7 +93,7 @@ class CommandRouterStart(Command):
                     message=message,
                     container=self._get_container(),
                 ),
-                StdoutSeverity.INFO,
+                severity=StdoutSeverity.WARNING,
             )
 
         except (DockerError, PortBindingError) as e:
@@ -104,7 +105,8 @@ class CommandRouterStart(Command):
                     message="DAS-CLI failed to instanciate a container of this service.",
                     error=e,
                     container=self._get_container(),
-                )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     @ensure_container_running(
@@ -141,7 +143,7 @@ class CommandRouterStop(Command):
     def _stop_container(self):
         container = self._get_container()
 
-        self.log("Stopping Command Router service...")
+        self.log("Stopping Command Router service...", severity=StdoutSeverity.INFO)
 
         try:
             self._command_router_container_manager.stop()
@@ -155,8 +157,9 @@ class CommandRouterStop(Command):
                         status=StdoutStatus.SUCCESS,
                         message=exec_message,
                         container=container,
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
@@ -171,8 +174,9 @@ class CommandRouterStop(Command):
                         status=StdoutStatus.INFO,
                         message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
