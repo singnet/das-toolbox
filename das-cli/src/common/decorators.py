@@ -5,7 +5,8 @@ from typing import Callable, List, Union
 from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
-from .command import StdoutSeverity, StdoutType
+from .command import StdoutSeverity
+from .service_response import ServiceResponse, StdoutStatus
 from .docker.exceptions import DockerContainerNotFoundError
 from .settings import Settings
 
@@ -124,14 +125,15 @@ def _check_container(
             )
 
             self.stdout(
-                {
-                    "service": name,
-                    "action": "check",
-                    "status": "not_running",
-                    "image": image,
-                    "port": port,
-                },
-                stdout_type=StdoutType.MACHINE_READABLE,
+                ServiceResponse(
+                    service=name,
+                    action="check",
+                    status=StdoutStatus.ERROR,
+                    message=f"{name} is not running on port {port}",
+                    image=image,
+                    port=port,
+                ),
+                severity=StdoutSeverity.ERROR,
             )
 
     return is_ok
