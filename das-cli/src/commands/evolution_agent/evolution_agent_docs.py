@@ -9,10 +9,7 @@ SYNOPSIS
 
 DESCRIPTION
 
-    Stops the currently running Evolution Agent container. This halts the processing of messages
-    and deactivates the agent until it is explicitly started again.
-
-    If the service is already stopped, a warning message is displayed.
+    Stops the currently running Evolution Agent container.
 
 EXAMPLES
 
@@ -30,20 +27,18 @@ NAME
 
 SYNOPSIS
 
-    das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
+    das-cli evolution-agent start [--port-range <start:end>]
 
 DESCRIPTION
 
-    Starts the Evolution Agent service in a Docker container. If the service is already running,
-    a warning will be shown.
-
-    The agent begins listening on the configured port and processes messages accordingly.
+    Starts the Evolution Agent service in a Docker container.
+    Connects to the query engine using agents.query.endpoint from the config file.
 
 EXAMPLES
 
     Start the Evolution Agent service:
 
-        $ das-cli evolution-agent start --port-range 45000:45999 --peer-hostname localhost --peer-port 40002
+        $ das-cli evolution-agent start --port-range 45000:45999
 """
 
 SHORT_HELP_START = "Start the Evolution Agent service."
@@ -55,20 +50,17 @@ NAME
 
 SYNOPSIS
 
-    das-cli evolution-agent restart [--peer-hostname <hostname>] [--peer-port <port>]  [--port-range <start:end>]
+    das-cli evolution-agent restart [--port-range <start:end>]
 
 DESCRIPTION
 
-    This command combines a stop and a start operation to ensure that the
-    Evolution Agent is restarted cleanly.
-
-    Useful for refreshing configurations or recovering from faults.
+    Stops and then starts the Evolution Agent service.
 
 EXAMPLES
 
     Restart the Evolution Agent service:
 
-        $ das-cli evolution-agent restart --port-range 45000:45999 --peer-hostname localhost --peer-port 40002
+        $ das-cli evolution-agent restart --port-range 45000:45999
 """
 
 SHORT_HELP_RESTART = "Restart the Evolution Agent service."
@@ -84,23 +76,19 @@ SYNOPSIS
 
 DESCRIPTION
 
-    This command group allows you to manage the lifecycle of the Evolution Agent service,
-    which is responsible for  tracks atom importance values in different contexts and updates those values based on user queries using context-specific Hebbian networks.
+    Manage the lifecycle of the Evolution Agent service.
 
 COMMANDS
-    start
-        Start the Evolution Agent service and begin message processing.
 
-    stop
-        Stop the currently running Evolution Agent container.
-
-    restart
-        Restart the Evolution Agent container (stop followed by start).
+    start       Start the Evolution Agent service.
+    stop        Stop the Evolution Agent service.
+    restart     Restart the Evolution Agent service.
 
 EXAMPLES
+
     Start the agent:
 
-        $ das-cli evolution-agent start [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
+        $ das-cli evolution-agent start --port-range 45000:45999
 
     Stop the agent:
 
@@ -108,7 +96,7 @@ EXAMPLES
 
     Restart the agent:
 
-        $ das-cli evolution-agent restart [--port-range <start:end>] [--peer-hostname <hostname>] [--peer-port <port>]
+        $ das-cli evolution-agent restart --port-range 45000:45999
 """
 
 SHORT_HELP_EVOLUTION_AGENT = "Control the lifecycle of the Evolution Agent service."

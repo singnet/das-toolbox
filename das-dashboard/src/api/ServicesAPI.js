@@ -1,25 +1,20 @@
 import api from "./AxiosBaseClient";
 
-function normalizeContainerName(fullContainerName) {
-    return fullContainerName.replace(/-[0-9]{5}$/, "");
-}
-
-async function serviceAction(containerName, action, host = "localhost") {
-  const response = await api.post(`/services/${containerName}/${action}`, null, {
+async function serviceAction(serviceCommand, action, host = "localhost") {
+  const response = await api.post(`/services/${serviceCommand}/${action}`, null, {
     params: { host }
   });
   return response.data;
 }
 
-export const startService = (containerName, host) => 
-    serviceAction(normalizeContainerName(containerName), "start", host);
+export const startService = (serviceCommand, host) =>
+  serviceAction(serviceCommand, "start", host);
 
-export const stopService = (containerName, host) => 
-    serviceAction(normalizeContainerName(containerName), "stop", host);
+export const stopService = (serviceCommand, host) =>
+  serviceAction(serviceCommand, "stop", host);
 
-export const restartService = (containerName, host) => 
-    serviceAction(normalizeContainerName(containerName), "restart", host);
-
+export const restartService = (serviceCommand, host) =>
+  serviceAction(serviceCommand, "restart", host);
 
 async function orchestrationAction(action, services) {
   const response = await api.post(`/services/orchestration/${action}`, services);
@@ -29,7 +24,6 @@ async function orchestrationAction(action, services) {
 export const startArchitecture = (services) => orchestrationAction("start", services);
 
 export const stopArchitecture = (services) => orchestrationAction("stop", services);
-
 
 async function atomDbAction(action, host = "localhost") {
   const response = await api.post(`/services/atomdb/${action}`, null, {

@@ -1,39 +1,25 @@
 import subprocess
-import docker
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from shared.enums.action_types import ActionTypes
-from shared.enums.das_services import DASServices
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.exceptions.custom_exceptions import (
-    ConfigurationFileLoadError,
     ConfigurationValueNotFoundError,
     DasCliCommandException,
     DASCLIResponseDecodeError,
 )
+from shared.utils.service_inventory import ORCHESTRATION_ORDER
 
 
 class ContainerServices:
-
-    ORCHESTRATION_ORDER = (
-        "attention-broker",
-        "query-agent",
-        "atomdb-broker",
-        "command-router",
-        "context-broker",
-        "link-creation-agent",
-        "evolution-agent",
-        "inference-agent",
-    )
 
     _SKIP_ERROR_MARKERS = ("No such command",)
     _ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
     def __init__(self, web_config: WebConfiguration):
-        self.local_docker = docker.from_env()
         self.web_config = web_config
 
     def manage_container(
@@ -42,45 +28,34 @@ class ContainerServices:
         container_name: str = None,
         command: str = None,
     ):
-        
-        if command is None:
-            try:
-                service = DASServices.from_container(container_name)
-            except ValueError:
-                service = DASServices.from_command(container_name)
-            host = self._resolve_service_host(service)
-        else:
-            service = DASServices.from_command(command)
-            host = self._resolve_service_host(service)
-
-        try:
-            generated_command = self.build_das_cli_command(host=host, service=service, action=action.value)
-            return self.run_das_cli_command(generated_command)
-        
-        except DasCliCommandException as e:
-            raise e
+        service_command = command or container_name
+        host = self._resolve_service_host(service_command)
+        generated_command = self.build_das_cli_command(
+            host=host,
+            service_command=service_command,
+            action=action.value,
+        )
+        return self.run_das_cli_command(generated_command)
 
     def orchestrate_architecture(self, action: ActionTypes, services: list[str]):
         ordered_services = self._order_services(services, action)
         commands_to_run = {}
         has_local_command = False
 
-        for cmd_name in ordered_services:
+        for service_command in ordered_services:
             try:
-                service = DASServices.from_command(cmd_name)
-                host = self._resolve_service_host(service)
+                host = self._resolve_service_host(service_command)
             except ConfigurationValueNotFoundError:
                 continue
 
-            try:
-                if not self._is_remote(host):
-                    has_local_command = True
+            if not self._is_remote(host):
+                has_local_command = True
 
-                commands_to_run[cmd_name] = self.build_das_cli_command(
-                    host=host, service=service, action=action.value
-                )
-            except ValueError as exc:
-                raise ValueError(f"Unknown service: '{cmd_name}'") from exc
+            commands_to_run[service_command] = self.build_das_cli_command(
+                host=host,
+                service_command=service_command,
+                action=action.value,
+            )
 
         if not commands_to_run:
             raise ValueError("No valid services to orchestrate.")
@@ -92,15 +67,15 @@ class ContainerServices:
 
     def _order_services(self, services: list[str], action: ActionTypes) -> list[str]:
         requested = set(services)
-        unknown = requested - set(self.ORCHESTRATION_ORDER)
+        unknown = requested - set(ORCHESTRATION_ORDER)
 
         if unknown:
             raise ValueError(f"Unsupported service(s): {', '.join(sorted(unknown))}")
 
         order = (
-            self.ORCHESTRATION_ORDER
+            ORCHESTRATION_ORDER
             if action == ActionTypes.START
-            else tuple(reversed(self.ORCHESTRATION_ORDER))
+            else tuple(reversed(ORCHESTRATION_ORDER))
         )
         return [name for name in order if name in requested]
 
@@ -168,15 +143,13 @@ class ContainerServices:
     def _should_skip_error(self, detail: str) -> bool:
         return any(marker in detail for marker in self._SKIP_ERROR_MARKERS)
 
-    def build_das_cli_command(self, host: str, service: DASServices, action: str):
-        cmd = ["das-cli", service.value["command"], action]
-        peer = self._resolve_query_peer()
-
-        if service.value["requires_peer"] and peer and action != "stop":
-            cmd.extend([
-                "--peer-hostname", peer["host"],
-                "--peer-port", str(peer["port"])
-            ])
+    def build_das_cli_command(
+        self,
+        host: str,
+        service_command: str,
+        action: str,
+    ):
+        cmd = ["das-cli", service_command, action]
 
         if self._is_remote(host):
             profile = self.web_config.user_profile
@@ -185,7 +158,7 @@ class ContainerServices:
                 "--remote",
                 "--host", host,
                 "-u", profile.get("profile_username", "root"),
-                "-k", ssh_key
+                "-k", ssh_key,
             ])
 
         cmd.extend(["-o", "json"])
@@ -223,7 +196,7 @@ class ContainerServices:
                     "stderr": result.stderr,
                     "command": command,
                 }
-            
+
             raise DasCliCommandException(
                 f"Could not parse das-cli output as JSON: {output or '(empty)'}"
             ) from e
@@ -266,19 +239,9 @@ class ContainerServices:
     def _clean_cli_output(self, output: str) -> str:
         return self._ANSI_ESCAPE.sub("", output.strip())
 
-    def _resolve_service_host(self, service: DASServices) -> str:
-        command = service.value["command"]
-        service_config = self.web_config.get_service_config(command)
+    def _resolve_service_host(self, service_command: str) -> str:
+        service_config = self.web_config.get_service_config(service_command)
         return service_config["host"]
-
-    def _resolve_query_peer(self):
-        query = self.web_config.get_service_config("query-agent", required=False)
-        if not query:
-            return None
-        return {
-            "host": query["host"],
-            "port": query["port"],
-        }
 
     def _is_remote(self, host: str) -> bool:
         return host not in LOCAL_HOSTS

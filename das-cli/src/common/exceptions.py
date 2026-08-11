@@ -14,3 +14,7 @@ class InvalidRemoteConfiguration(Exception):
 
     def __init__(self, *args):
         super().__init__(*args)
+
+
+class ConfigurationError(Exception):
+    """Raised when required configuration is missing or invalid."""

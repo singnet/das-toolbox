@@ -4,7 +4,7 @@ import { Container, Grid } from "./architectureview.styled";
 import { ServiceChart } from "./ServiceChart";
 import { ServerCard } from "./ServerCard";
 import { StyledTab, StyledTabs } from "../MainContent/servertab/servertab.styled";
-import { formatCpuCell, formatMemoryCell } from "../../../utils/serviceInventory";
+import { formatCpuCell, formatMemoryCell } from "../../../utils/serviceRows";
 
 const TAB_CATEGORIES = ["Agents", "AtomDB"];
 

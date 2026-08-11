@@ -26,7 +26,7 @@ export function extractErrorDetails(err) {
   }
 
   if (err.request) {
-    return `Unable to connect to the server. Server might be offline or container crashed.`;
+    return "Unable to connect to the server. Server might be offline or container crashed.";
   }
 
   if (err.message) {

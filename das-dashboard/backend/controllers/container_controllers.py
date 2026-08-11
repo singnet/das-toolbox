@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from shared.enums.action_types import ActionTypes
-from shared.exceptions.custom_exceptions import DasCliCommandException
 from services_init import CONTAINER_SERVICES
 
 router = APIRouter(prefix="/services", tags=["Orchestration & Services"])
@@ -78,48 +77,48 @@ def stop_databases():
         }
     )
 
-@router.post("/{container_name}/start")
-def start_service(container_name: str):
+@router.post("/{service_command}/start")
+def start_service(service_command: str):
 
     result = CONTAINER_SERVICES.manage_container(
-        container_name=container_name,
+        container_name=service_command,
         action=ActionTypes.START,
     )
 
     return JSONResponse(
         status_code=200,
         content={
-            "message": f"Service {result} started successfully.",
+            "message": f"Service {service_command} started successfully.",
             "result": result,
         }
     )
 
-@router.post("/{container_name}/stop")
-def stop_service(container_name: str):
+@router.post("/{service_command}/stop")
+def stop_service(service_command: str):
     
     result = CONTAINER_SERVICES.manage_container(
-        container_name=container_name,
+        container_name=service_command,
         action=ActionTypes.STOP,
     )
 
     return JSONResponse(
         status_code=200,
         content={
-            "message": f"Service {container_name} stopped successfully.",
+            "message": f"Service {service_command} stopped successfully.",
             "result": result,
         }
     )
 
-@router.post("/{container_name}/restart")
-def restart_service(container_name: str):
+@router.post("/{service_command}/restart")
+def restart_service(service_command: str):
     result = CONTAINER_SERVICES.manage_container(
-        container_name=container_name,
+        container_name=service_command,
         action=ActionTypes.RESTART,
     )
     return JSONResponse(
         status_code=200,
         content={
-            "message": f"Service {container_name} restarted successfully.",
+            "message": f"Service {service_command} restarted successfully.",
             "result": result,
         }
     )

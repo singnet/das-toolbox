@@ -15,7 +15,6 @@ import {
 
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
-import { getConfigHosts } from "../../../../api/ConfigAPI";
 import { fetchInfraStatusForAllHosts } from "../../../../utils/infraStatus";
 
 import { ArchitectureActionControl } from "./ArchitectureActionControl";
@@ -33,12 +32,11 @@ export function SideBar() {
   const [atomDbOnline, setAtomDbOnline] = useState(false);
   const [architectureOnline, setArchitectureOnline] = useState(false);
 
-  const { setCurrentContext, currentMachine, currentContext } = useDashboardContext();
+  const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
   const { hostStreamSwitching } = useServerTabMetricsContext();
 
   const loadInfraStatus = useCallback(async () => {
-    const { hosts } = await getConfigHosts();
-    const serverIps = (hosts ?? []).map((host) => host.ip).filter(Boolean);
+    const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
     const statusByHost = await fetchInfraStatusForAllHosts(serverIps);
 
     setAtomDbOnline(
@@ -47,7 +45,7 @@ export function SideBar() {
     setArchitectureOnline(
       Object.values(statusByHost).some((status) => status.architectureOnline)
     );
-  }, []);
+  }, [machines]);
 
   useEffect(() => {
     loadInfraStatus().catch((error) => {

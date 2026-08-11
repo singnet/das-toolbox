@@ -10,7 +10,7 @@ export function ServerTabMetricsProvider({ children }) {
 
   const metrics = useServerTabMetrics(
     isServersView ? currentMachine?.serverIp : null,
-    isServersView ? currentMachine?.expectedServices ?? [] : []
+    isServersView ? currentMachine?.services ?? [] : []
   );
 
   return (

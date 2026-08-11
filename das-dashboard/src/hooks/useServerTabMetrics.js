@@ -1,28 +1,11 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { normalizeService } from "../utils/NormalizeMetrics";
-import { mergeHostServices } from "../utils/serviceInventory";
+import { patchServicesWithRuntime, rollupMetricsHistory } from "../utils/serviceRows";
 import { createMetricsStream } from "../api/MetricsStreamService";
 
-function rollupServiceHistory(snapshots = []) {
-  const byContainer = {};
-
-  snapshots.forEach((snapshot) => {
-    snapshot.data.forEach((service) => {
-      const name = service.container_name;
-      if (!byContainer[name]) {
-        byContainer[name] = { name, cpu: [], memory: [] };
-      }
-      byContainer[name].cpu.push(service.cpu_percent || 0);
-      byContainer[name].memory.push(service.memory_mb || 0);
-    });
-  });
-
-  return { agents: Object.values(byContainer) };
-}
-
-export function useServerTabMetrics(host, expectedServices = []) {
+export function useServerTabMetrics(host, baseServices = []) {
   const [hostMachineStats, setHostMachineStats] = useState(null);
-  const [hostRuntimeServices, setHostRuntimeServices] = useState([]);
+  const [hostServices, setHostServices] = useState([]);
   const [hostStreamTick, setHostStreamTick] = useState(Date.now());
   const [hostStreamConnected, setHostStreamConnected] = useState(false);
   const [hostStreamSwitching, setHostStreamSwitching] = useState(false);
@@ -35,9 +18,7 @@ export function useServerTabMetrics(host, expectedServices = []) {
 
   const appendSnapshot = useCallback((servicesData) => {
     snapshotHistoryRef.current.push({ data: servicesData });
-    if (snapshotHistoryRef.current.length > 20) {
-      snapshotHistoryRef.current.shift();
-    }
+    if (snapshotHistoryRef.current.length > 20) snapshotHistoryRef.current.shift();
   }, []);
 
   useEffect(() => {
@@ -45,17 +26,16 @@ export function useServerTabMetrics(host, expectedServices = []) {
       setHostStreamSwitching(false);
       setHostStreamConnected(false);
       setHostStreamError(null);
-      setHostRuntimeServices([]);
+      setHostServices([]);
       setHostMachineStats(null);
       return;
     }
 
     setHostStreamSwitching(true);
     snapshotHistoryRef.current = [];
-    setHostRuntimeServices([]);
+    setHostServices(baseServices);
     setHostMachineStats(null);
     setHostStreamTick(Date.now());
-
     fatalErrorRef.current = false;
     intentionalCloseRef.current = false;
     setHostStreamError(null);
@@ -76,10 +56,7 @@ export function useServerTabMetrics(host, expectedServices = []) {
           fatalErrorRef.current = true;
           setHostStreamConnected(false);
           setHostStreamSwitching(false);
-          setHostStreamError({
-            title: "DAS CLI Error",
-            description: payload.message,
-          });
+          setHostStreamError({ title: "DAS CLI Error", description: payload.message });
           stream.close();
           return;
         }
@@ -87,19 +64,13 @@ export function useServerTabMetrics(host, expectedServices = []) {
         if (fatalErrorRef.current) return;
 
         if (payload.serviceInfo) {
-          const parsed = Object.values(payload.serviceInfo).map(normalizeService);
-          setHostRuntimeServices(parsed);
-          appendSnapshot(parsed);
+          const runtime = Object.values(payload.serviceInfo).map(normalizeService);
+          setHostServices(patchServicesWithRuntime(baseServices, runtime));
+          appendSnapshot(runtime);
         }
 
-        if (payload.machineInfo) {
-          setHostMachineStats(payload.machineInfo);
-        }
-
-        if (payload.serviceInfo || payload.machineInfo) {
-          setHostStreamSwitching(false);
-        }
-
+        if (payload.machineInfo) setHostMachineStats(payload.machineInfo);
+        if (payload.serviceInfo || payload.machineInfo) setHostStreamSwitching(false);
         setHostStreamTick(Date.now());
       },
       onOpen: () => {
@@ -113,23 +84,19 @@ export function useServerTabMetrics(host, expectedServices = []) {
           setHostStreamConnected(false);
           return;
         }
-
         setHostStreamConnected(false);
         snapshotHistoryRef.current = [];
-        setHostRuntimeServices([]);
+        setHostServices(baseServices);
         setHostMachineStats(null);
         setHostStreamTick(Date.now());
         setHostStreamError({
           title: "Connection closed",
-          description:
-            event.reason ||
-            `Metrics stream closed unexpectedly (Code: ${event.code}). Try refreshing the page and retry the connection.`,
+          description: event.reason || `Metrics stream closed unexpectedly (Code: ${event.code}).`,
         });
       },
       onError: (err) => {
         setHostStreamSwitching(false);
         if (intentionalCloseRef.current || fatalErrorRef.current) return;
-
         setHostStreamConnected(false);
         setHostStreamError({
           title: "Server connection error",
@@ -139,27 +106,20 @@ export function useServerTabMetrics(host, expectedServices = []) {
     });
 
     streamRef.current = stream;
-
     return () => {
       intentionalCloseRef.current = true;
       stream.close();
     };
-  }, [host, appendSnapshot]);
+  }, [host, baseServices, appendSnapshot]);
 
   const hostMetricsRollup = useMemo(
-    () => rollupServiceHistory(snapshotHistoryRef.current),
+    () => rollupMetricsHistory(snapshotHistoryRef.current),
     [hostStreamTick]
-  );
-
-  const hostMergedServices = useMemo(
-    () => mergeHostServices(expectedServices, hostRuntimeServices),
-    [expectedServices, hostRuntimeServices]
   );
 
   return {
     hostMachineStats,
-    hostRuntimeServices,
-    hostMergedServices,
+    hostMergedServices: hostServices,
     hostStreamTick,
     hostStreamConnected,
     hostStreamSwitching,
