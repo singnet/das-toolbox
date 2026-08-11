@@ -9,6 +9,7 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.exceptions import PortBindingError
 from common.prompt_types import PortRangeType
 from common.service_response import ServiceResponse, StdoutStatus
 
@@ -154,7 +155,7 @@ class InferenceAgentStart(Command):
                 StdoutSeverity.INFO,
             )
 
-        except DockerError as e:
+        except (DockerError, PortBindingError) as e:
             self.stdout(
                 ServiceResponse(
                     service=CLI_SERVICE_NAME,
