@@ -3,11 +3,13 @@ import os
 from common import Module
 from common.config.store import JsonConfigStore
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
+from common.factory.busnode_manager_factory import BusNodeContainerManager
 from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
+from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager, ContainerTypes
+from common.factory.container_manager_factory import ContainerManagerFactory
 from settings.config import SECRETS_PATH
 
-from .inference_agent_cli import AttentionBrokerManager, InferenceAgentCli, Settings
+from .inference_agent_cli import InferenceAgentCli, Settings
 
 
 class InferenceAgentModule(Module):
@@ -18,6 +20,7 @@ class InferenceAgentModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._bus_node_factory = BusNodeContainerManagerFactory()
+        self._container_manager_factory = ContainerManagerFactory()
 
         self._dependency_list = [
             (
@@ -27,8 +30,8 @@ class InferenceAgentModule(Module):
                 ),
             ),
             (
-                AttentionBrokerManager,
-                AttentionBrokerManagerFactory().build(),
+                QueryAgentContainerManager,
+                self._container_manager_factory.build(ContainerTypes.QUERY_ENGINE)
             ),
             (
                 Settings,

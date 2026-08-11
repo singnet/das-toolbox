@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -21,8 +21,10 @@ from .atomdb_broker_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
 
+from common.service_response import ServiceResponse, StdoutStatus
+
+CLI_SERVICE_NAME = "atomdb_broker"
 
 class AtomDbBrokerStart(Command):
     name = "start"
@@ -59,46 +61,51 @@ class AtomDbBrokerStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.stdout("Starting AtomDB Broker service...")
+        self.log("Starting AtomDB Broker service...")
 
         try:
             self._atomdb_broker_bus_manager.start_container(port_range, **kwargs)
             message = f"AtomDB Broker started on port {port}"
 
-            self.stdout(message, severity=StdoutSeverity.SUCCESS)
-
             self.stdout(
                 dict(
-                    AtomDbBrokerServiceReponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="success",
+                        status=StdoutStatus.SUCCESS,
                         message=message,
                         container=self._get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
-        except DockerContainerDuplicateError:
+        except DockerContainerDuplicateError as e:
             message = f"AtomDB Broker is already running. It's listening on port {port}"
 
-            self.stdout(message, severity=StdoutSeverity.WARNING)
-
             self.stdout(
-                dict(
-                    AtomDbBrokerServiceReponse(
-                        action="start",
-                        status="already_running",
-                        message=message,
-                        container=self._get_container(),
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=self._get_container(),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                StdoutSeverity.INFO,
             )
 
         except DockerError as e:
-            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
+            message = "DAS-CLI failed to instanciate a container of this service."
+            
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to instanciate a container of this service.",
+                    error=e,
+                    container=self._get_container(),
+                )
+            )
 
     @ensure_container_running(
         [
@@ -132,42 +139,38 @@ class AtomDbBrokerStop(Command):
     def _stop_container(self):
         container = self._get_container()
 
-        self.stdout("Stopping AtomDB Broker service...")
+        self.log("Stopping AtomDB Broker service...")
 
         try:
             self._atomdb_broker_bus_manager.stop()
             exec_message = "AtomDB Broker service stopped"
 
-            self.stdout(exec_message, severity=StdoutSeverity.SUCCESS)
-
             self.stdout(
                 dict(
-                    AtomDbBrokerServiceReponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
+                        status=StdoutStatus.SUCCESS,
                         message=exec_message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
 
             message = f"The AtomDB Broker service named {container_name} is already stopped."
 
-            self.stdout(message, severity=StdoutSeverity.WARNING)
-
             self.stdout(
                 dict(
-                    AtomDbBrokerServiceReponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
+                        status=StdoutStatus.INFO,
                         message=message,
                         container=self._get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
@@ -187,7 +190,7 @@ class AtomDbBrokerRestart(Command):
         ),
     ]
 
-    short_help = HELP_RESTART
+    short_help = SHORT_HELP_RESTART
 
     help = SHORT_HELP_RESTART
 

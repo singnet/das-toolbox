@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
@@ -10,6 +10,7 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.prompt_types import PortRangeType
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .evolution_agent_docs import (
     HELP_EVOLUTION_AGENT,
@@ -21,7 +22,8 @@ from .evolution_agent_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .evolution_agent_service_response import EvolutionAgentServiceResponse
+
+CLI_SERVICE_NAME = "evolution_agent"
 
 
 class EvolutionAgentStop(Command):
@@ -35,56 +37,49 @@ class EvolutionAgentStop(Command):
     def __init__(
         self,
         settings: Settings,
-        bus_node_container_manager: BusNodeContainerManager,
+        evolution_agent_bus_node_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._evolution_agent_bus_node_manager = bus_node_container_manager
+        self._evolution_agent_manager = evolution_agent_bus_node_manager
 
     def _get_container(self):
-        return self._evolution_agent_bus_node_manager.get_container()
+        return self._evolution_agent_manager.get_container()
 
     def _evolution_agent(self):
+        container = self._get_container()
+
+        self.log("Stopping Evolution Agent service...")
+
         try:
-            self.stdout("Stopping Evolution Agent service...")
-            self._evolution_agent_bus_node_manager.stop()
+            self._evolution_agent_manager.stop()
+            exec_message = "Evolution Agent service stopped"
 
-            success_message = "Evolution Agent service stopped"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
             self.stdout(
                 dict(
-                    EvolutionAgentServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="success",
-                        message=success_message,
-                        container=self._get_container(),
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
+                        container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerNotFoundError:
-            container_name = self._evolution_agent_bus_node_manager.get_container().name
-            warning_message = (
-                f"The Evolution Agent service named {container_name} is already stopped."
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Evolution Agent service named {container.name} is already stopped."
+
             self.stdout(
                 dict(
-                    EvolutionAgentServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
-                        container=self._get_container(),
+                        status=StdoutStatus.INFO,
+                        message=message,
+                        container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
@@ -98,7 +93,7 @@ class EvolutionAgentStart(Command):
     params = [
         CommandOption(
             ["--port-range"],
-            help="The lower and upper bounds of the port range to be used by the node.",
+            help="The lower and upper bounds of the port range to be used by the command proxy.",
             default="45000:45999",
             type=PortRangeType(),
         ),
@@ -112,64 +107,64 @@ class EvolutionAgentStart(Command):
     def __init__(
         self,
         settings: Settings,
+        evolution_agent_bus_node_manager: BusNodeContainerManager,
         query_agent_container_manager: QueryAgentContainerManager,
-        bus_node_container_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
+        self._evolution_agent_bus_node_manager = evolution_agent_bus_node_manager
         self._query_agent_container_manager = query_agent_container_manager
-        self._evolution_agent_bus_node_manager = bus_node_container_manager
 
     def _get_container(self):
         return self._evolution_agent_bus_node_manager.get_container()
 
     def _evolution_agent(self, port_range: str) -> None:
-        self.stdout("Starting Evolution Agent service...")
-
         container = self._get_container()
         port = container.port
 
+        self.log("Starting Evolution Agent service...")
+
         try:
             self._evolution_agent_bus_node_manager.start_container(port_range)
+            message = f"Evolution Agent started listening on the ports {port}"
 
-            success_message = f"Evolution Agent started on port {port}"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
             self.stdout(
                 dict(
-                    EvolutionAgentServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerDuplicateError:
-            warning_message = f"Evolution Agent is already running. It's listening on port {port}"
+            message = f"Evolution Agent is already running. It's listening on the ports {port}"
 
             self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    EvolutionAgentServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=container,
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=container,
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                StdoutSeverity.INFO,
             )
+
         except DockerError as e:
-            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to instanciate a container of this service.",
+                    error=e,
+                    container=container,
+                )
+            )
 
     @ensure_container_running(
         [
@@ -181,7 +176,6 @@ class EvolutionAgentStart(Command):
     )
     def run(self, port_range: str):
         self._settings.validate_configuration_file()
-
         self._evolution_agent(port_range)
 
 
@@ -219,7 +213,7 @@ class EvolutionAgentRestart(Command):
 class EvolutionAgentCli(CommandGroup):
     name = "evolution-agent"
 
-    aliases = ["evolution"]
+    aliases = ["ea"]
 
     short_help = SHORT_HELP_EVOLUTION_AGENT
 

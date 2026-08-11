@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.jupyter_notebook_container_manager import (
     JupyterNotebookContainerManager,
 )
@@ -10,6 +10,7 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.prompt_types import AbsolutePath
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .jupyter_docs import (
     HELP_JUPYTER,
@@ -21,9 +22,8 @@ from .jupyter_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .jupyter_notebook_agent_container_service_response import (
-    JupyterNotebookContainerServiceResponse,
-)
+
+CLI_SERVICE_NAME = "jupyter_notebook"
 
 
 class JupyterNotebookStart(Command):
@@ -65,56 +65,55 @@ class JupyterNotebookStart(Command):
     def run(self, working_dir: str | None = None):
         self._settings.validate_configuration_file()
 
-        self.stdout("Starting Jupyter Notebook...")
-
         container = self._get_container()
+
+        self.log("Starting Jupyter Notebook...")
 
         try:
             self._jupyter_notebook_container_manager.start_container(working_dir)
-            success_message = f"Jupyter Notebook started on port {container.port}"
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
+            message = f"Jupyter Notebook started on port {container.port}"
+
             self.stdout(
                 dict(
-                    JupyterNotebookContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
                         container=container,
-                        extra_details={
-                            "working_dir": working_dir,
-                        },
+                        working_dir=working_dir,
                     ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerDuplicateError:
-            warning_message = (
+            message = (
                 f"Jupyter Notebook is already running. It's listening on port {container.port}"
             )
+
             self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    JupyterNotebookContainerServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=container,
-                        extra_details={
-                            "working_dir": working_dir,
-                        },
-                    ),
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=container,
+                    working_dir=working_dir,
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                StdoutSeverity.INFO,
             )
-        except DockerError:
-            raise DockerError(
-                f"\nError occurred while trying to start Jupyter Notebook on port {container.port}\n"
+
+        except DockerError as e:
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to instanciate a container of this service.",
+                    error=e,
+                    container=container,
+                    working_dir=working_dir,
+                )
             )
 
 
@@ -143,47 +142,37 @@ class JupyterNotebookStop(Command):
 
         container = self._get_container()
 
-        self.stdout("Stopping jupyter notebook...")
+        self.log("Stopping jupyter notebook...")
 
         try:
             self._jupyter_notebook_container_manager.stop()
-
-            success_message = "Jupyter Notebook service stopped"
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
+            exec_message = "Jupyter Notebook service stopped"
 
             self.stdout(
                 dict(
-                    JupyterNotebookContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
                         container=container,
                     ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerNotFoundError:
-            warning_message = (
-                f"The Jupyter Notebook service named {container.name} is already stopped."
-            )
+            message = f"The Jupyter Notebook service named {container.name} is already stopped."
 
             self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
                 dict(
-                    JupyterNotebookContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
+                        status=StdoutStatus.INFO,
+                        message=message,
                         container=container,
                     ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
 

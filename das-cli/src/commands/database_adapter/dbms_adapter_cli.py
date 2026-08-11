@@ -4,7 +4,6 @@ from common import (
     Command,
     CommandGroup,
     Settings,
-    StdoutSeverity,
 )
 from common.container_manager.dbms.database_adapter_container_manager import (
     DatabaseAdapterContainerManager,
@@ -50,15 +49,12 @@ class DatabaseAdapterRun(Command):
     def run(self):
         self._settings.validate_configuration_file()
 
-        self.stdout("Starting Database Adapter...")
+        self.log("Starting Database Adapter...")
 
         try:
             self._database_adapter_container_manager.start_container()
 
-            self.stdout(
-                "Database Adapter started successfully.",
-                severity=StdoutSeverity.SUCCESS,
-            )
+            self.log("Database Adapter started successfully.")
 
         except Exception as e:
             raise RuntimeError(f"Failed to start Database Adapter.\n" f"Original error: {e}")
@@ -84,22 +80,18 @@ class DatabaseAdapterStop(Command):
     def run(self):
         self._settings.validate_configuration_file()
 
-        self.stdout("Stopping Database Adapter...")
+        self.log("Stopping Database Adapter...")
 
         try:
             self._database_adapter_container_manager.stop()
 
-            self.stdout(
-                "Database Adapter stopped successfully.",
-                severity=StdoutSeverity.SUCCESS,
-            )
+            self.log("Database Adapter stopped successfully.")
 
         except DockerContainerNotFoundError:
             container_name = self._database_adapter_container_manager.get_container().name
 
-            self.stdout(
-                f"The Database Adapter service named {container_name} is already stopped.",
-                severity=StdoutSeverity.WARNING,
+            self.log(
+                f"The Database Adapter service named {container_name} is already stopped."
             )
 
 
