@@ -1,9 +1,8 @@
 import json
 import sys
 from contextlib import suppress
-from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import Any, List, Optional, TypedDict, Union
 
 import click
 import yaml
@@ -16,6 +15,7 @@ from common import Choice
 from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
 from common.prompt_types import ValidUsername
+from common.service_response import ServiceResponse
 from common.utils import log_exception
 from settings.config import SECRETS_PATH
 
@@ -25,11 +25,6 @@ from .utils import env_to_dict
 class SelectOption(TypedDict):
     name: str
     value: str
-
-
-class StdoutType(Enum):
-    DEFAULT = "default"
-    MACHINE_READABLE = "machine_readable"
 
 
 class StdoutSeverity(Enum):
@@ -51,24 +46,12 @@ class CommandArgument(click.Argument):
         super().__init__(*args, **kwargs)
 
 
-@dataclass
-class OutputBufferEntry:
-    message: Any
-    stdout_type: StdoutType = StdoutType.DEFAULT
-    severity: StdoutSeverity = StdoutSeverity.INFO
-    new_line: bool = True
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
 class Command:
     name = "unknown"
     help = ""
     short_help = ""
     params: List = []
     aliases: List[str] = []
-    _output_buffer: List[OutputBufferEntry] = []
 
     exclude_params = [
         "output_format",
@@ -339,25 +322,12 @@ class Command:
             Connection(**remote_kwargs).run(command, pty=False)
 
         except Exception as e:
-
-            self.stdout(
-                str(e),
-                stdout_type=StdoutType.MACHINE_READABLE,
-                severity=StdoutSeverity.ERROR,
-            )
-
             if isinstance(e, UnexpectedExit):
                 print(e)
-
                 msg_missing = (
                     "[ERROR] das-cli is missing on the remote machine. Verify the installation."
                 )
                 self.stdout(msg_missing, severity=StdoutSeverity.ERROR)
-                self.stdout(
-                    msg_missing,
-                    stdout_type=StdoutType.MACHINE_READABLE,
-                    severity=StdoutSeverity.ERROR,
-                )
             else:
                 self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
 
@@ -431,84 +401,48 @@ class Command:
     def confirm(text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
-    def _handle_default_output(self, entry: OutputBufferEntry, stream_mode=False) -> None:
-        if self.output_format == "plain":
-            self._print_colored(entry.message, entry.severity, entry.new_line)
+    def _handle_output(self, output_object, severity, new_line):
+        if isinstance(output_object, dict):
+            payload = output_object
+            message = payload.get("message", str(payload))
+        else:
+            payload = dict(output_object)
+            message = output_object.message
 
-    def _handle_machine_readable_output(
-        self,
-        entry: OutputBufferEntry,
-        stream_mode: bool = False,
-    ) -> None:
         if self.output_format == "plain":
-            return
+            self._print_colored(message, severity, new_line)
 
-        if stream_mode:
-            if self.output_format == "json":
-                click.echo(json.dumps(entry.message), nl=True)
-                sys.stdout.flush()
-            elif self.output_format == "yaml":
-                click.echo(
-                    yaml.dump(entry.message, sort_keys=False),
-                    nl=True,
-                )
-                sys.stdout.flush()
-            return
-        self._output_buffer.append(entry)
+        elif self.output_format == "json":
+            click.echo(json.dumps(payload), nl=True)
+            sys.stdout.flush()
+
+        elif self.output_format == "yaml":
+            click.echo(yaml.dump(payload, sort_keys=False), nl=False)
+            sys.stdout.flush()
+
+    def log(self, message):
+        click.secho(message=message, nl=True)
 
     def stdout(
         self,
-        content: Any,
-        stdout_type: StdoutType = StdoutType.DEFAULT,
+        content: Union[str, ServiceResponse, dict],
         severity: StdoutSeverity = StdoutSeverity.INFO,
         new_line: bool = True,
-        stream_mode: bool = False,
     ) -> None:
-        entry = OutputBufferEntry(
-            message=content,
-            stdout_type=stdout_type,
-            severity=severity,
-            new_line=new_line,
-        )
+        if isinstance(content, str):
+            if self.output_format == "plain":
+                self._print_colored(content, severity, new_line)
+            return
 
-        handlers: Dict[StdoutType, Callable[[OutputBufferEntry, bool], None]] = {
-            StdoutType.DEFAULT: self._handle_default_output,
-            StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
-        }
+        self._handle_output(content, severity, new_line)
 
-        handler = handlers.get(stdout_type, self._handle_default_output)
-        handler(entry, stream_mode)
+    def flush_stdout(self):
+        pass
 
     def run(self, *args, **kwargs):
         raise NotImplementedError(
             f"The 'run' method from the command '{self.name}' should be implemented."
         )
-
-    def _flush_default_output(self):
-        for entry in self._output_buffer:
-            if entry.stdout_type == StdoutType.DEFAULT:
-                self._print_colored(entry.message, entry.severity)
-
-    def flush_stdout(self):
-        if self.output_format == "plain":
-            self._flush_default_output()
-        elif self.output_format in {"json", "yaml"}:
-            self._flush_machine_readable_output()
-        self._output_buffer.clear()
-
-    def _flush_machine_readable_output(self):
-        results = [
-            entry.message
-            for entry in self._output_buffer
-            if entry.stdout_type == StdoutType.MACHINE_READABLE
-        ]
-        if not results:
-            return
-
-        if self.output_format == "json":
-            click.echo(json.dumps(results, indent=2))
-        elif self.output_format == "yaml":
-            click.echo(yaml.dump(results, sort_keys=False))
 
     def _print_colored(self, text: str, severity: StdoutSeverity, new_line: bool = True) -> None:
         fg_map = {
