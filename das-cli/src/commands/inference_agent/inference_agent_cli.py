@@ -1,9 +1,7 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
-from common.container_manager.agents.attention_broker_container_manager import (
-    AttentionBrokerManager,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -12,8 +10,8 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.prompt_types import PortRangeType
+from common.service_response import ServiceResponse, StdoutStatus
 
-from .inference_agent_container_service_response import InferenceAgentContainerServiceResponse
 from .inference_agent_docs import (
     HELP_INFERENCE,
     HELP_RESTART,
@@ -24,6 +22,8 @@ from .inference_agent_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
+
+CLI_SERVICE_NAME = "inference_agent"
 
 
 class InferenceAgentStop(Command):
@@ -37,58 +37,49 @@ class InferenceAgentStop(Command):
     def __init__(
         self,
         settings: Settings,
-        bus_node_manager: BusNodeContainerManager,
+        inference_agent_bus_node_manager: BusNodeContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._inference_agent_bus_node_manager = bus_node_manager
+        self._inference_agent_manager = inference_agent_bus_node_manager
 
     def _get_container(self):
-        return self._inference_agent_bus_node_manager.get_container()
+        return self._inference_agent_manager.get_container()
 
     def _inference_agent(self):
         container = self._get_container()
 
+        self.log("Stopping Inference Agent service...")
+
         try:
-            self.stdout("Stopping Inference Agent service...")
-            self._inference_agent_bus_node_manager.stop()
+            self._inference_agent_manager.stop()
+            exec_message = "Inference Agent service stopped"
 
-            success_message = "Inference Agent service stopped"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
             self.stdout(
                 dict(
-                    InferenceAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerContainerNotFoundError:
-            warning_message = (
-                f"The Inference Agent service named {container.name} is already stopped."
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Inference Agent service named {container.name} is already stopped."
+
             self.stdout(
                 dict(
-                    InferenceAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
+                        status=StdoutStatus.INFO,
+                        message=message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
@@ -116,80 +107,75 @@ class InferenceAgentStart(Command):
     def __init__(
         self,
         settings: Settings,
-        bus_node_container_manager: BusNodeContainerManager,
-        attention_broker_container_manager: AttentionBrokerManager,
+        inference_agent_bus_node_manager: BusNodeContainerManager,
+        query_agent_container_manager: QueryAgentContainerManager,
     ) -> None:
         super().__init__()
         self._settings = settings
-        self._inference_agent_bus_node_manager = bus_node_container_manager
-        self._attention_broker_container_manager = attention_broker_container_manager
+        self._inference_agent_bus_node_manager = inference_agent_bus_node_manager
+        self._query_agent_container_manager = query_agent_container_manager
 
     def _get_container(self):
         return self._inference_agent_bus_node_manager.get_container()
 
     def _inference_agent(self, port_range: str) -> None:
         container = self._get_container()
+        port = container.port
 
-        self.stdout("Starting Inference Agent service...")
-
-        inf_a_port = container.port
+        self.log("Starting Inference Agent service...")
 
         try:
             self._inference_agent_bus_node_manager.start_container(port_range)
+            message = f"Inference Agent started listening on the ports {port}"
 
-            success_message = f"Inference Agent started listening on the ports {inf_a_port}"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
             self.stdout(
                 dict(
-                    InferenceAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
+
         except DockerContainerDuplicateError:
-            warning_message = (
-                f"Inference Agent is already running. It's listening on the ports {container.port}"
-            )
+            message = f"Inference Agent is already running. It's listening on the ports {port}"
+
             self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
-                dict(
-                    InferenceAgentContainerServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=container,
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=container,
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                StdoutSeverity.INFO,
             )
+
         except DockerError as e:
-            error_message = (
-                f"Error occurred while trying to start Attention Broker on port {inf_a_port}"
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to instanciate a container of this service.",
+                    error=e,
+                    container=container,
+                )
             )
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
         [
-            "_attention_broker_container_manager",
+            "_query_agent_container_manager",
         ],
         exception_text="\nPlease start the required services before running 'inference-agent start'.\n"
-        "Run 'attention-broker start' to start the Attention Broker.",
+        "Run 'query-agent start' to start the Query Agent.",
         verbose=False,
     )
     def run(self, port_range: str):
         self._settings.validate_configuration_file()
-
         self._inference_agent(port_range)
 
 
@@ -227,7 +213,7 @@ class InferenceAgentRestart(Command):
 class InferenceAgentCli(CommandGroup):
     name = "inference-agent"
 
-    aliases = ["inference"]
+    aliases = ["ia"]
 
     short_help = SHORT_HELP_INFERENCE
 

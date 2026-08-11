@@ -7,8 +7,8 @@ from .command import (
     CommandGroup,
     CommandOption,
     StdoutSeverity,
-    StdoutType,
 )
+from .service_response import ServiceResponse, StdoutStatus
 from .docker import Container, ContainerManager, ImageManager, RemoteContextManager
 from .docker.container_manager import ContainerImageMetadata, ContainerMetadata
 from .logger import logger
@@ -35,7 +35,8 @@ __all__ = [
     "CommandGroup",
     "CommandOption",
     "StdoutSeverity",
-    "StdoutType",
+    "StdoutStatus",
+    "ServiceResponse",
     "Container",
     "ContainerManager",
     "ImageManager",

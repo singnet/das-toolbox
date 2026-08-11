@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
@@ -10,6 +10,7 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.prompt_types import PortRangeType
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .lca_docs import (
     HELP_LCA,
@@ -21,9 +22,8 @@ from .lca_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .link_creation_agent_container_service_response import (
-    LinkCreationAgentContainerServiceResponse,
-)
+
+CLI_SERVICE_NAME = "link_creation_agent"
 
 
 class LinkCreationAgentStop(Command):
@@ -49,51 +49,41 @@ class LinkCreationAgentStop(Command):
     def _link_creation_agent(self):
         container = self._get_container()
 
+        self.log("Stopping Link Creation Agent service...")
+
         try:
-            self.stdout("Stopping Link Creation Agent service...")
             self._link_creation_agent_manager.stop()
+            exec_message = "Link Creation Agent service stopped"
 
-            success_message = "Link Creation Agent service stopped"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
             self.stdout(
                 dict(
-                    LinkCreationAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerContainerNotFoundError:
-            warning_message = (
-                f"The Link Creation Agent service named {container.name} is already stopped."
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Link Creation Agent service named {container.name} is already stopped."
+
             self.stdout(
                 dict(
-                    LinkCreationAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
+                        status=StdoutStatus.INFO,
+                        message=message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
         self._settings.validate_configuration_file()
-
         self._link_creation_agent()
 
 
@@ -129,53 +119,52 @@ class LinkCreationAgentStart(Command):
         return self._link_creation_bus_node_manager.get_container()
 
     def _link_creation_agent(self, port_range: str) -> None:
-        self.stdout("Starting Link Creation Agent service...")
+        container = self._get_container()
+        port = container.port
+
+        self.log("Starting Link Creation Agent service...")
 
         try:
-            container = self._get_container()
-            port = container.port
-
             self._link_creation_bus_node_manager.start_container(port_range)
-
-            success_message = f"Link Creation Agent started listening on the ports {port}"
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
-            self.stdout(
-                dict(
-                    LinkCreationAgentContainerServiceResponse(
-                        action="start",
-                        status="success",
-                        message=success_message,
-                        container=container,
-                    ),
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
-        except DockerContainerDuplicateError:
-            warning_message = (
-                f"Link Creation Agent is already running. It's listening on the ports {port}"
-            )
+            message = f"Link Creation Agent started listening on the ports {port}"
 
             self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
-            self.stdout(
                 dict(
-                    LinkCreationAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="already_running",
-                        message=warning_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
+
+        except DockerContainerDuplicateError:
+            message = f"Link Creation Agent is already running. It's listening on the ports {port}"
+
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=container,
+                ),
+                StdoutSeverity.INFO,
+            )
+
         except DockerError as e:
-            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to instanciate a container of this service.",
+                    error=e,
+                    container=container,
+                )
+            )
 
     @ensure_container_running(
         [

@@ -11,7 +11,6 @@ from common import (
     RemoteContextManager,
     Settings,
     StdoutSeverity,
-    StdoutType,
 )
 from common.prompt_types import AbsolutePath
 from settings.config import CURRENT_CONFIGFILE_PATH

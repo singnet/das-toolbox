@@ -1,13 +1,6 @@
 from injector import inject
 
-from common import (
-    Command,
-    CommandGroup,
-    CommandOption,
-    Settings,
-    StdoutSeverity,
-    StdoutType,
-)
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.busnode_container_manager import (
     BusNodeContainerManager,
 )
@@ -19,6 +12,7 @@ from common.docker.exceptions import (
 )
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .command_router_docs import (
     HELP_COMMAND_ROUTER,
@@ -30,7 +24,8 @@ from .command_router_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .command_router_service_response import CommandRouterServiceResponse
+
+CLI_SERVICE_NAME = "command_router"
 
 
 class CommandRouterStart(Command):
@@ -67,49 +62,48 @@ class CommandRouterStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.stdout("Starting Command Router service...")
+        self.log("Starting Command Router service...")
 
         try:
             self._command_router_container_manager.start_container(ports_range=port_range)
-
             message = f"Command Router started on port {port}"
-
-            self.stdout(message, severity=StdoutSeverity.SUCCESS)
 
             self.stdout(
                 dict(
-                    CommandRouterServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="success",
+                        status=StdoutStatus.SUCCESS,
                         message=message,
                         container=self._get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerContainerDuplicateError:
-            message = f"Command Router is already running. " f"It's listening on port {port}"
-
-            self.stdout(message, severity=StdoutSeverity.WARNING)
+            message = f"Command Router is already running. It's listening on port {port}"
 
             self.stdout(
-                dict(
-                    CommandRouterServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=message,
-                        container=self._get_container(),
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=self._get_container(),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                StdoutSeverity.INFO,
             )
 
         except DockerError as e:
-            raise DockerError(
-                f"Error occurred while trying to start "
-                f"Command Router on port {port}\n"
-                f"Original error: {e}"
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to instanciate a container of this service.",
+                    error=e,
+                    container=self._get_container(),
+                )
             )
 
     @ensure_container_running(
@@ -146,50 +140,38 @@ class CommandRouterStop(Command):
     def _stop_container(self):
         container = self._get_container()
 
-        self.stdout("Stopping Command Router service...")
+        self.log("Stopping Command Router service...")
 
         try:
             self._command_router_container_manager.stop()
-
-            message = "Command Router service stopped"
-
-            self.stdout(
-                message,
-                severity=StdoutSeverity.SUCCESS,
-            )
+            exec_message = "Command Router service stopped"
 
             self.stdout(
                 dict(
-                    CommandRouterServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="success",
-                        message=message,
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
                         container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
-
-            message = f"The Command Router service named " f"{container_name} is already stopped."
-
-            self.stdout(
-                message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Command Router service named {container_name} is already stopped."
 
             self.stdout(
                 dict(
-                    CommandRouterServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
+                        status=StdoutStatus.INFO,
                         message=message,
                         container=self._get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
             )
 
     def run(self):
