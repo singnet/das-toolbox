@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from .custom_exceptions import (
     DasCliCommandException,
     DasCliNotInstalledException,
+    DasCliResponseDecodeException,
     FileSaveException,
     FileAlreadyExistsException,
     DASServiceInstantiationError,
@@ -23,6 +24,7 @@ class AppExceptionHandlers:
         CUSTOM_EXCEPTIONS = [
             (Exception, self.handle_general_exception),
             (DasCliCommandException, self.handle_das_cli_command_error),
+            (DasCliResponseDecodeException, self.handle_das_cli_response_decode_error),
             (DasCliNotInstalledException, self.handle_das_cli_not_installed_error),
             (FileSaveException, self.handle_file_save_exception),
             (FileAlreadyExistsException, self.handle_file_already_exists_error),
@@ -45,12 +47,32 @@ class AppExceptionHandlers:
         request: Request,
         exc: DasCliCommandException
     ):
+        content = {
+            "message": exc.message or DasCliCommandException.DEFAULT_MESSAGE,
+        }
+        if exc.detail:
+            content["exceptionMessage"] = exc.detail
+
         return JSONResponse(
             status_code=500,
-            content={
-                "message": exc.stderror or "There was an error running this DAS CLI command.",
-                "exceptionMessage": exc.stderror
-            }
+            content=content,
+        )
+
+    async def handle_das_cli_response_decode_error(
+        self,
+        request: Request,
+        exc: DasCliResponseDecodeException,
+    ):
+        content = {
+            "status": "notice",
+            "message": exc.message or DasCliResponseDecodeException.DEFAULT_MESSAGE,
+        }
+        if exc.detail:
+            content["exceptionMessage"] = exc.detail
+
+        return JSONResponse(
+            status_code=422,
+            content=content,
         )
 
     async def handle_das_cli_not_installed_error(
@@ -153,19 +175,6 @@ class AppExceptionHandlers:
             status_code=500,
             content={
                 "message": error_message
-            }
-        )
-    
-    async def das_cli_decode_error(
-        self,
-        request: Request,
-        exc: DASCLIResponseDecodeError
-    ):
-        
-        return JSONResponse(
-            status_code=500,
-            content={
-                "message": exc.message
             }
         )
     
