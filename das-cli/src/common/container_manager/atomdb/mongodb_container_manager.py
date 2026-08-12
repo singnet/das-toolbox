@@ -35,11 +35,11 @@ class MongodbContainerManager(ContainerManager):
         self._options = options
 
     def _upload_key_to_server(self, cluster_node, mongodb_cluster_secret_key):
+        host = cluster_node.get("host") or cluster_node.get("ip")
+        username = cluster_node["username"]
         keyfile_server_path = f"/tmp/{get_rand_token(num_bytes=5)}.txt"
 
         try:
-            host = cluster_node.get("host") or cluster_node.get("ip")
-            username = cluster_node["username"]
             with ssh.open(host, username) as (
                 ssh_conn,
                 sftp_conn,

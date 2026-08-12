@@ -18,8 +18,8 @@ UNEXPECTED_EXIT_BLOCK = re.compile(
     re.IGNORECASE,
 )
 DEFAULT_CLI_ERROR_MESSAGE = "There was an error while running das-cli."
-SUCCESS_STATUSES = {"success", "info"}
 ERROR_STATUSES = {"error"}
+DEFAULT_CLI_TIMEOUT_SECONDS = 120.0
 
 
 def clean_cli_output(output: str) -> str:
@@ -66,6 +66,10 @@ def parse_das_cli_stdout(stdout: str) -> dict[str, Any]:
             payload = parse(cleaned)
             if isinstance(payload, dict):
                 return payload
+            if isinstance(payload, list):
+                for item in payload:
+                    if isinstance(item, dict):
+                        return item
         except json.JSONDecodeError:
             continue
 
@@ -153,9 +157,7 @@ def is_cli_success(payload: dict[str, Any]) -> bool:
     status = extract_cli_status(payload)
     if status is None:
         return True
-    if status in ERROR_STATUSES:
-        return False
-    return status in SUCCESS_STATUSES or status not in ERROR_STATUSES
+    return status not in ERROR_STATUSES
 
 
 def raise_cli_error_from_payload(
@@ -220,30 +222,15 @@ def raise_cli_command_failure(
     stderr: str,
     default_message: str = DEFAULT_CLI_ERROR_MESSAGE,
 ) -> None:
-    output = stderr or stdout
-    cleaned = clean_cli_output(output)
+    for candidate in (stdout, stderr):
+        cleaned = clean_cli_output(candidate)
+        if not cleaned:
+            continue
 
-    if cleaned:
         try:
             payload = parse_das_cli_stdout(cleaned)
         except json.JSONDecodeError:
-            logger.error(
-                "das-cli failed without JSON: exit=%s cmd=%s stderr=%r stdout=%r",
-                exit_code,
-                cmd,
-                stderr[:500],
-                stdout[:500],
-            )
-            raise DasCliCommandException(
-                message=default_message,
-                detail=_format_manual_recovery_detail(
-                    exit_code=exit_code,
-                    cmd=cmd,
-                    stdout=stdout,
-                    stderr=stderr,
-                    raw_output=cleaned,
-                ),
-            ) from None
+            continue
 
         if not is_cli_success(payload):
             raise_cli_error_from_payload(payload, default_message=default_message)
@@ -254,8 +241,9 @@ def raise_cli_command_failure(
             detail=sanitize_cli_output_for_user(cleaned) or cleaned,
         )
 
+    raw_output = clean_cli_output(stdout or stderr)
     logger.error(
-        "das-cli failed without output: exit=%s cmd=%s stderr=%r stdout=%r",
+        "das-cli failed without JSON: exit=%s cmd=%s stderr=%r stdout=%r",
         exit_code,
         cmd,
         stderr[:500],
@@ -268,6 +256,7 @@ def raise_cli_command_failure(
             cmd=cmd,
             stdout=stdout,
             stderr=stderr,
+            raw_output=raw_output,
         ),
     )
 
@@ -330,7 +319,7 @@ def run_das_cli_json_command(
     cmd: list[str],
     *,
     default_message: str = DEFAULT_CLI_ERROR_MESSAGE,
-    timeout: float | None = None,
+    timeout: float | None = DEFAULT_CLI_TIMEOUT_SECONDS,
 ) -> dict[str, Any]:
     try:
         result = subprocess.run(

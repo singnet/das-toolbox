@@ -120,11 +120,6 @@ def _check_container(
 
         else:
             self.stdout(
-                f"{name} is not running on port {port}",
-                severity=StdoutSeverity.ERROR,
-            )
-
-            self.stdout(
                 ServiceResponse(
                     service=name,
                     action="check",

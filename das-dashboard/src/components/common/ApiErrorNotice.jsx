@@ -22,11 +22,16 @@ export function ApiErrorNotice({ error, sx }) {
     ? { message: error, details: null, severity: "error" }
     : error;
 
-  const { message, details, severity = "error" } = normalized;
+  const message = normalized?.message == null ? "" : String(normalized.message);
+  const details = normalized?.details == null
+    ? null
+    : String(normalized.details);
+  const severity = normalized?.severity ?? "error";
   const palette = stylesBySeverity[severity] || stylesBySeverity.error;
 
   return (
     <Box
+      role="alert"
       sx={{
         fontSize: 13,
         lineHeight: 1.45,

@@ -11,7 +11,7 @@ from common.docker.exceptions import (
 )
 from common.exceptions import PortBindingError
 from common.prompt_types import PortRangeType
-from common.service_response import ServiceResponse, StdoutStatus
+from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
 
 from .context_broker_docs import (
     HELP_CONTEXT_BROKER,
@@ -161,7 +161,7 @@ class ContextBrokerStart(Command):
                     service=CLI_SERVICE_NAME,
                     action="start",
                     status=StdoutStatus.ERROR,
-                    message="DAS-CLI failed to instanciate a container of this service.",
+                    message=CONTAINER_START_FAILURE_MESSAGE,
                     error=e,
                     container=self._get_container(),
                 ),

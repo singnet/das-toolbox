@@ -9,18 +9,24 @@ class DasCliCommandException(Exception):
         stderror: str | None = None,
     ):
         if stderror is not None:
-            message = (message or "").strip() or self.DEFAULT_MESSAGE
-            detail = (detail or stderror).strip()
-        elif detail is None and message is not None:
-            detail = str(message).strip()
-            message = self.DEFAULT_MESSAGE
+            resolved_message = (message or "").strip() or self.DEFAULT_MESSAGE
+            resolved_detail = (detail or stderror).strip()
+        elif message is not None and detail is not None:
+            resolved_message = message.strip() or self.DEFAULT_MESSAGE
+            resolved_detail = detail.strip()
+        elif detail is not None:
+            resolved_message = self.DEFAULT_MESSAGE
+            resolved_detail = detail.strip()
+        elif message is not None:
+            resolved_message = message.strip() or self.DEFAULT_MESSAGE
+            resolved_detail = ""
         else:
-            message = (message or "").strip() or self.DEFAULT_MESSAGE
-            detail = (detail or "").strip()
+            resolved_message = self.DEFAULT_MESSAGE
+            resolved_detail = ""
 
-        self.message = message
-        self.detail = detail
-        self.stderror = detail or message
+        self.message = resolved_message
+        self.detail = resolved_detail
+        self.stderror = resolved_detail or resolved_message
         super().__init__(self.detail or self.message)
 
     def __str__(self) -> str:

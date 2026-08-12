@@ -1,19 +1,40 @@
-const ATOMDB_MARKERS = { db: "mongodb", redis: "redis", morkdb: "morkdb", "adapter-backend": "adapter" };
+const ATOMDB_MARKERS = {
+  db: "mongodb",
+  redis: "redis",
+  morkdb: "morkdb",
+  adapterdb: "database-adapter",
+  "adapter-backend": "adapter",
+};
+
+const ATOMDB_RUNTIME_LABELS = new Set(["db", "database-adapter", "database"]);
 
 function matchesRuntime(serviceKey, runtime) {
-  if (runtime?.service_command_label === serviceKey) return true;
+  const label = String(runtime?.service_command_label ?? "").toLowerCase();
+  const normalizedKey = String(serviceKey).toLowerCase();
 
-  const name = String(runtime?.container_name ?? "").toLowerCase();
-  if (!name) return false;
-
-  const marker = ATOMDB_MARKERS[serviceKey];
-  if (marker) {
-    if (!name.includes(marker)) return false;
-    const label = runtime?.service_command_label;
-    return !label || label === "db" || label === serviceKey;
+  if (label === normalizedKey) {
+    return true;
   }
 
-  return name.includes(String(serviceKey).toLowerCase());
+  const name = String(runtime?.container_name ?? "").toLowerCase();
+  if (!name) {
+    return false;
+  }
+
+  const marker = ATOMDB_MARKERS[normalizedKey];
+  if (marker) {
+    if (!name.includes(marker)) {
+      return false;
+    }
+
+    if (!label) {
+      return true;
+    }
+
+    return ATOMDB_RUNTIME_LABELS.has(label) || label === normalizedKey;
+  }
+
+  return name.includes(normalizedKey);
 }
 
 export function patchServicesWithRuntime(baseServices = [], runtimeServices = []) {

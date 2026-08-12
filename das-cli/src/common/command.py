@@ -329,6 +329,9 @@ class Command:
                 if not result.stderr.endswith("\n"):
                     click.echo(err=True)
 
+            if result.failed:
+                raise UnexpectedExit(result)
+
         except Exception as e:
             if isinstance(e, UnexpectedExit):
                 remote_result = getattr(e, "result", None)

@@ -13,7 +13,7 @@ from common.docker.exceptions import (
 from common.exceptions import PortBindingError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
-from common.service_response import ServiceResponse, StdoutStatus
+from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
 
 from .command_router_docs import (
     HELP_COMMAND_ROUTER,
@@ -102,7 +102,7 @@ class CommandRouterStart(Command):
                     service=CLI_SERVICE_NAME,
                     action="start",
                     status=StdoutStatus.ERROR,
-                    message="DAS-CLI failed to instanciate a container of this service.",
+                    message=CONTAINER_START_FAILURE_MESSAGE,
                     error=e,
                     container=self._get_container(),
                 ),

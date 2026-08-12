@@ -1,5 +1,7 @@
 from injector import inject
 
+import click
+
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
@@ -14,7 +16,7 @@ from common.docker.exceptions import (
 from common.exceptions import PortBindingError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
-from common.service_response import ServiceResponse, StdoutStatus
+from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
 
 from .query_agent_docs import (
     HELP_QA,
@@ -169,12 +171,13 @@ class QueryAgentStart(Command):
                     service=CLI_SERVICE_NAME,
                     action="start",
                     status=StdoutStatus.ERROR,
-                    message="DAS-CLI failed to instanciate a container of this service.",
+                    message=CONTAINER_START_FAILURE_MESSAGE,
                     error=e,
                     container=container,
                 ),
                 severity=StdoutSeverity.ERROR,
             )
+            raise click.exceptions.Exit(1)
 
     @ensure_container_running(
         [

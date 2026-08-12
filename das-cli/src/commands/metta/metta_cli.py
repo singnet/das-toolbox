@@ -77,7 +77,12 @@ class MettaLoad(Command):
         if self._check_if_file_or_directory(path):
             loaded_files, errors = self._load_metta_from_directory(path)
         else:
-            loaded_files, errors = self._load_metta_from_file(path)
+            loaded_files = []
+            errors = []
+            try:
+                loaded_files.append(self._load_metta_from_file(path))
+            except Exception as error:
+                errors.append(str(error))
 
         self._finish_load(path, loaded_files, errors)
 
@@ -147,7 +152,7 @@ class MettaLoad(Command):
                 "The file contains invalid MeTTa syntax."
             ) from error
 
-    def _load_metta_from_file(self, file_path: str) -> tuple[list[str], list[str]]:
+    def _load_metta_from_file(self, file_path: str) -> str:
         self.log(f"Loading metta file {file_path}...", severity=StdoutSeverity.INFO)
 
         self._check_file_and_permissions(file_path)
@@ -159,7 +164,7 @@ class MettaLoad(Command):
         self._database_loader_container_manager.start_container(file_path)
         self.log(f"Done loading {file_path}.", severity=StdoutSeverity.SUCCESS)
 
-        return [file_path], []
+        return file_path
 
     def _load_metta_from_directory(self, directory_path: str) -> tuple[list[str], list[str]]:
         self._check_if_directory_has_permissions(directory_path)
@@ -169,8 +174,7 @@ class MettaLoad(Command):
 
         for file_path in glob.glob(f"{directory_path}/*"):
             try:
-                file_loaded, _ = self._load_metta_from_file(file_path)
-                loaded_files.extend(file_loaded)
+                loaded_files.append(self._load_metta_from_file(file_path))
             except Exception as error:
                 message = f"Failed loading '{file_path}': {error}"
                 errors.append(message)
@@ -272,7 +276,12 @@ class MettaCheck(Command):
         errors: list[str] = []
 
         for file_path in glob.glob(f"{directory_path}/*"):
-            file_checked, file_errors = self._validate_file(file_path)
+            try:
+                file_checked, file_errors = self._validate_file(file_path)
+            except (IsADirectoryError, FileNotFoundError) as error:
+                errors.append(str(error))
+                continue
+
             checked_files.extend(file_checked)
             errors.extend(file_errors)
 

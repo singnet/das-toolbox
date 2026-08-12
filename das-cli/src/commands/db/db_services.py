@@ -1,3 +1,5 @@
+import click
+
 from common import Command, StdoutSeverity
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
@@ -58,7 +60,7 @@ class DbOperations:
                 ),
                 severity=StdoutSeverity.ERROR,
             )
-            return
+            raise click.exceptions.Exit(1)
 
         self.stdout(
             dict(
@@ -82,6 +84,7 @@ class DbOperations:
         port = options["redis_port"]
         nodes = options["redis_nodes"]
         cluster = options["redis_cluster"]
+        redis_errors: list[str] = []
 
         for node in nodes:
             context = node.get("context", "")
@@ -106,13 +109,15 @@ class DbOperations:
                         severity=StdoutSeverity.WARNING,
                     )
                 except (DockerError, PortBindingError) as error:
-                    self._record_error(
+                    msg = (
                         f"Failed to start Redis at {public_ip} under {node_username}: {error}"
                     )
+                    redis_errors.append(msg)
+                    self._record_error(msg)
             finally:
                 manager.unset_exec_context()
 
-        if cluster and not self.errors:
+        if cluster and not redis_errors:
             try:
                 manager.start_cluster(nodes, port)
             except Exception as error:
@@ -132,6 +137,7 @@ class DbOperations:
         username = options["mongodb_username"]
         password = options["mongodb_password"]
         cluster_key = options.get("mongodb_cluster_secret_key")
+        mongo_errors: list[str] = []
 
         for node in nodes:
             context = node.get("context", "")
@@ -157,13 +163,15 @@ class DbOperations:
                         severity=StdoutSeverity.WARNING,
                     )
                 except (DockerError, PortBindingError) as error:
-                    self._record_error(
+                    msg = (
                         f"Failed to start MongoDB at {public_ip} under {node_username}: {error}"
                     )
+                    mongo_errors.append(msg)
+                    self._record_error(msg)
             finally:
                 manager.unset_exec_context()
 
-        if cluster and not self.errors:
+        if cluster and not mongo_errors:
             try:
                 manager.start_cluster(nodes, port, username, password)
             except Exception as error:

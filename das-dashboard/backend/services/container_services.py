@@ -9,7 +9,6 @@ from shared.exceptions.custom_exceptions import (
 )
 from shared.utils.das_cli_response import (
     DEFAULT_CLI_ERROR_MESSAGE,
-    clean_cli_output,
     run_das_cli_json_command,
 )
 from shared.utils.service_inventory import ORCHESTRATION_ORDER
@@ -27,11 +26,12 @@ class ContainerServices:
         action: ActionTypes,
         container_name: str = None,
         command: str = None,
+        host: str | None = None,
     ):
         service_command = command or container_name
-        host = self._resolve_service_host(service_command)
+        resolved_host = host or self._resolve_service_host(service_command)
         generated_command = self.build_das_cli_command(
-            host=host,
+            host=resolved_host,
             service_command=service_command,
             action=action.value,
         )
@@ -196,9 +196,6 @@ class ContainerServices:
                 message=DEFAULT_CLI_ERROR_MESSAGE,
                 detail=str(e) or e.__class__.__name__,
             )
-
-    def _clean_cli_output(self, output: str) -> str:
-        return clean_cli_output(output)
 
     def _resolve_service_host(self, service_command: str) -> str:
         service_config = self.web_config.get_service_config(service_command)

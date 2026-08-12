@@ -10,7 +10,7 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.exceptions import PortBindingError
-from common.service_response import ServiceResponse, StdoutStatus
+from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
 
 from .attention_broker_docs import (
     HELP_ATTENTION_BROKER,
@@ -151,7 +151,7 @@ class AttentionBrokerStart(Command):
                     service=CLI_SERVICE_NAME,
                     action="start",
                     status=StdoutStatus.ERROR,
-                    message="DAS-CLI failed to instanciate a container of this service.",
+                    message=CONTAINER_START_FAILURE_MESSAGE,
                     error=e,
                     container=container,
                 ),

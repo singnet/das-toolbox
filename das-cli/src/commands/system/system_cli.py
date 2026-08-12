@@ -253,12 +253,11 @@ class SystemStatus(Command):
                         "serviceInfo": dict(latest_services),
                     }
 
-                os.system("clear")
-
-                if self.output_format != "plain":
-                    self.stdout(system_info)
-                else:
+                if self.output_format == "plain":
+                    os.system("clear")
                     self._format_info_for_display(system_info)
+                else:
+                    self.stdout(system_info)
                 time.sleep(cooldown)
 
         except KeyboardInterrupt:

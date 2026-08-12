@@ -15,17 +15,32 @@ const ARCHITECTURE_COMMAND_LABELS = new Set([
   "inference-agent",
 ]);
 
+const ATOMDB_NAME_MARKERS = [
+  "mongodb",
+  "redis",
+  "morkdb",
+  "database-adapter",
+  "das-database-adapter",
+];
+
+const ATOMDB_COMMAND_LABELS = new Set(["db", "database-adapter", "database"]);
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function isRunning(status) {
   return String(status ?? "").toLowerCase() === "running";
 }
 
 function isAtomDbEntry(entry) {
-  if (entry?.service_command_label === "db") {
+  const label = String(entry?.service_command_label ?? "").toLowerCase();
+  if (ATOMDB_COMMAND_LABELS.has(label)) {
     return true;
   }
 
   const name = String(entry?.container_name ?? "").toLowerCase();
-  return ["mongodb", "redis", "morkdb"].some((marker) => name.includes(marker));
+  return ATOMDB_NAME_MARKERS.some((marker) => name.includes(marker));
 }
 
 function isArchitectureEntry(entry) {
@@ -97,4 +112,20 @@ export async function fetchInfraStatusForAllHosts(hosts = []) {
   );
 
   return Object.fromEntries(entries);
+}
+
+export async function pollInfraStatusForAllHosts(
+  hosts = [],
+  { attempts = 5, delayMs = 2000 } = {}
+) {
+  let latest = {};
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (attempt > 0) {
+      await sleep(delayMs);
+    }
+    latest = await fetchInfraStatusForAllHosts(hosts);
+  }
+
+  return latest;
 }

@@ -15,7 +15,10 @@ import {
 
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
-import { fetchInfraStatusForAllHosts } from "../../../../utils/infraStatus";
+import {
+  fetchInfraStatusForAllHosts,
+  pollInfraStatusForAllHosts,
+} from "../../../../utils/infraStatus";
 
 import { ArchitectureActionControl } from "./ArchitectureActionControl";
 import { AtomDBActionControl } from "./AtomDBActionControl";
@@ -35,9 +38,11 @@ export function SideBar() {
   const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
   const { hostStreamSwitching } = useServerTabMetricsContext();
 
-  const loadInfraStatus = useCallback(async () => {
+  const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
     const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
-    const statusByHost = await fetchInfraStatusForAllHosts(serverIps);
+    const statusByHost = poll
+      ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000 })
+      : await fetchInfraStatusForAllHosts(serverIps);
 
     setAtomDbOnline(
       Object.values(statusByHost).some((status) => status.atomDbOnline)
@@ -108,7 +113,7 @@ export function SideBar() {
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.atomdb}
               onBusyChange={(busy) => setActionBusy("atomdb", busy)}
-              onActionComplete={loadInfraStatus}
+              onActionComplete={() => loadInfraStatus({ poll: true })}
             />
 
             <ArchitectureActionControl
@@ -117,7 +122,7 @@ export function SideBar() {
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.architecture}
               onBusyChange={(busy) => setActionBusy("architecture", busy)}
-              onActionComplete={loadInfraStatus}
+              onActionComplete={() => loadInfraStatus({ poll: true })}
             />
 
             <MettaLoadActionControl

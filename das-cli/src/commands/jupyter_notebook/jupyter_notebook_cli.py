@@ -1,5 +1,7 @@
 from injector import inject
 
+import click
+
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.jupyter_notebook_container_manager import (
     JupyterNotebookContainerManager,
@@ -11,7 +13,7 @@ from common.docker.exceptions import (
 )
 from common.exceptions import PortBindingError
 from common.prompt_types import AbsolutePath
-from common.service_response import ServiceResponse, StdoutStatus
+from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
 
 from .jupyter_docs import (
     HELP_JUPYTER,
@@ -111,13 +113,14 @@ class JupyterNotebookStart(Command):
                     service=CLI_SERVICE_NAME,
                     action="start",
                     status=StdoutStatus.ERROR,
-                    message="DAS-CLI failed to instanciate a container of this service.",
+                    message=CONTAINER_START_FAILURE_MESSAGE,
                     error=e,
                     container=container,
                     working_dir=working_dir,
                 ),
                 severity=StdoutSeverity.ERROR,
             )
+            raise click.exceptions.Exit(1)
 
 
 class JupyterNotebookStop(Command):

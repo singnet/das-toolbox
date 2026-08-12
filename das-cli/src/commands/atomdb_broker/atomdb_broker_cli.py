@@ -11,7 +11,7 @@ from common.docker.exceptions import (
 from common.exceptions import PortBindingError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
-from common.service_response import ServiceResponse, StdoutStatus
+from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
 
 from .atomdb_broker_docs import (
     HELP_ATOMDB_BROKER,
@@ -95,16 +95,14 @@ class AtomDbBrokerStart(Command):
                 severity=StdoutSeverity.WARNING,
             )
 
-        except (DockerError, PortBindingError) as e:
-            message = "DAS-CLI failed to instanciate a container of this service."
-
+        except (DockerError, PortBindingError) as error:
             self.stdout(
                 ServiceResponse(
                     service=CLI_SERVICE_NAME,
                     action="start",
                     status=StdoutStatus.ERROR,
-                    message="DAS-CLI failed to instanciate a container of this service.",
-                    error=e,
+                    message=CONTAINER_START_FAILURE_MESSAGE,
+                    error=error,
                     container=self._get_container(),
                 ),
                 severity=StdoutSeverity.ERROR,

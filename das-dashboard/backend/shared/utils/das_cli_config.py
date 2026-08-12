@@ -1,4 +1,5 @@
 import os
+import json
 
 from shared.exceptions.custom_exceptions import (
     DasCliCommandException,
@@ -13,8 +14,6 @@ from shared.utils.das_cli_response import (
 
 
 def _validate_config_file(file_path: str) -> None:
-    import json
-
     if not os.path.isfile(file_path):
         raise ConfigurationFileLoadError(f"Configuration file not found: {file_path}")
 
