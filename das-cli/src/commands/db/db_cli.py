@@ -144,7 +144,7 @@ class DbStop(Command):
                 self._db.stop_morkdb(self._morkdb_container_manager, prune=prune)
 
             else:
-                self.stdout(
+                self.log(
                     "InMemoryDB and RemoteDB are not supported on the 'db stop' command",
                     severity=StdoutSeverity.WARNING,
                 )
@@ -188,7 +188,7 @@ class DbStart(Command):
                 self._db.start_morkdb(self._morkdb_container_manager)
 
             else:
-                self.stdout(
+                self.log(
                     "InMemoryDB and RemoteDB are not supported on the 'db start' command",
                     severity=StdoutSeverity.WARNING,
                 )

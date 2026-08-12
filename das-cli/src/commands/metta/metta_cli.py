@@ -14,6 +14,7 @@ from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import AbsolutePath
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .metta_docs import (
     HELP_CHECK,
@@ -23,6 +24,8 @@ from .metta_docs import (
     SHORT_HELP_LOAD,
     SHORT_HELP_METTA,
 )
+
+CLI_SERVICE_NAME = "metta"
 
 
 class MettaLoad(Command):
@@ -69,21 +72,47 @@ class MettaLoad(Command):
     )
     def run(self, path: str):
         self._settings.validate_configuration_file()
-
         self._check_path_exists(path)
 
-        self._load_metta(path)
-
-    def _load_metta(self, path: str):
         if self._check_if_file_or_directory(path):
-            self._load_metta_from_directory(path)
+            loaded_files, errors = self._load_metta_from_directory(path)
         else:
-            self._load_metta_from_file(path)
+            loaded_files, errors = self._load_metta_from_file(path)
 
+        self._finish_load(path, loaded_files, errors)
+
+    def _finish_load(self, path: str, loaded_files: list[str], errors: list[str]) -> None:
+        if errors:
+            error_lines = "\n".join(f"- {error}" for error in errors)
             self.stdout(
-                "Done loading.",
-                severity=StdoutSeverity.SUCCESS,
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="load",
+                        status=StdoutStatus.ERROR,
+                        message=f"MeTTa load failed for '{path}'.\n{error_lines}",
+                        path=path,
+                        loaded_files=loaded_files,
+                        errors=errors,
+                    )
+                ),
+                severity=StdoutSeverity.ERROR,
             )
+            return
+
+        self.stdout(
+            dict(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="load",
+                    status=StdoutStatus.SUCCESS,
+                    message=f"MeTTa loaded successfully from '{path}'.",
+                    path=path,
+                    loaded_files=loaded_files,
+                )
+            ),
+            severity=StdoutSeverity.SUCCESS,
+        )
 
     def _check_path_exists(self, file_path: str):
         if not os.path.exists(file_path):
@@ -112,47 +141,42 @@ class MettaLoad(Command):
     def _validate_metta_syntax(self, file_path: str):
         try:
             self._metta_syntax_container_manager.start_container(file_path)
-        except DockerError:
+        except DockerError as error:
             raise DockerError(
                 f"Syntax validation failed for '{file_path}'. "
                 "The file contains invalid MeTTa syntax."
-            )
+            ) from error
 
-    def _load_metta_from_file(self, file_path: str):
-        self.stdout(f"Loading metta file {file_path}...")
+    def _load_metta_from_file(self, file_path: str) -> tuple[list[str], list[str]]:
+        self.log(f"Loading metta file {file_path}...", severity=StdoutSeverity.INFO)
 
         self._check_file_and_permissions(file_path)
 
-        self.stdout("Validating syntax...")
-
+        self.log("Validating syntax...", severity=StdoutSeverity.INFO)
         self._validate_metta_syntax(file_path)
-
-        self.stdout(
-            "Syntax validation passed.",
-            severity=StdoutSeverity.SUCCESS,
-        )
+        self.log("Syntax validation passed.", severity=StdoutSeverity.SUCCESS)
 
         self._database_loader_container_manager.start_container(file_path)
+        self.log(f"Done loading {file_path}.", severity=StdoutSeverity.SUCCESS)
 
-    def _load_metta_from_directory(self, directory_path: str):
+        return [file_path], []
+
+    def _load_metta_from_directory(self, directory_path: str) -> tuple[list[str], list[str]]:
         self._check_if_directory_has_permissions(directory_path)
 
-        files = glob.glob(f"{directory_path}/*")
+        loaded_files: list[str] = []
+        errors: list[str] = []
 
-        for file_path in files:
+        for file_path in glob.glob(f"{directory_path}/*"):
             try:
-                self._load_metta_from_file(file_path)
+                file_loaded, _ = self._load_metta_from_file(file_path)
+                loaded_files.extend(file_loaded)
+            except Exception as error:
+                message = f"Failed loading '{file_path}': {error}"
+                errors.append(message)
+                self.log(message, severity=StdoutSeverity.ERROR)
 
-                self.stdout(
-                    "Done loading.",
-                    severity=StdoutSeverity.SUCCESS,
-                )
-
-            except Exception as e:
-                self.stdout(
-                    f"Failed loading file.\nReason: {e}",
-                    severity=StdoutSeverity.ERROR,
-                )
+        return loaded_files, errors
 
 
 class MettaCheck(Command):
@@ -179,41 +203,82 @@ class MettaCheck(Command):
         self._metta_syntax_container_manager = metta_syntax_container_manager
         self._settings = settings
 
-    def check_syntax(self, file_path):
-        self._metta_syntax_container_manager.start_container(file_path)
-
-        self.stdout(
-            "Checking syntax... OK",
-            severity=StdoutSeverity.SUCCESS,
-        )
-
-    def validate_file(self, file_path):
-        self.stdout(f"Checking file {file_path}:")
-        try:
-            self.check_syntax(file_path)
-        except IsADirectoryError:
-            raise IsADirectoryError(f"The specified path '{file_path}' is a directory.")
-        except FileNotFoundError:
-            raise FileNotFoundError(f"The specified file path '{file_path}' does not exist.")
-        except DockerError:
-            self.stdout(
-                "Checking syntax... FAILED",
-                severity=StdoutSeverity.ERROR,
-            )
-
-    def validate_directory(self, directory_path):
-        files = glob.glob(f"{directory_path}/*")
-
-        for file_path in files:
-            self.validate_file(file_path)
-
     def run(self, path: str):
         self._settings.validate_configuration_file()
 
         if os.path.isdir(path):
-            self.validate_directory(path)
+            checked_files, errors = self._validate_directory(path)
         else:
-            self.validate_file(path)
+            checked_files, errors = self._validate_file(path)
+
+        self._finish_check(path, checked_files, errors)
+
+    def _finish_check(self, path: str, checked_files: list[str], errors: list[str]) -> None:
+        if errors:
+            error_lines = "\n".join(f"- {error}" for error in errors)
+            self.stdout(
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="check",
+                        status=StdoutStatus.ERROR,
+                        message=f"MeTTa syntax check failed for '{path}'.\n{error_lines}",
+                        path=path,
+                        checked_files=checked_files,
+                        errors=errors,
+                    )
+                ),
+                severity=StdoutSeverity.ERROR,
+            )
+            return
+
+        self.stdout(
+            dict(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="check",
+                    status=StdoutStatus.SUCCESS,
+                    message=f"MeTTa syntax check passed for '{path}'.",
+                    path=path,
+                    checked_files=checked_files,
+                )
+            ),
+            severity=StdoutSeverity.SUCCESS,
+        )
+
+    def _check_syntax(self, file_path: str) -> None:
+        self._metta_syntax_container_manager.start_container(file_path)
+        self.log(f"Checking syntax for {file_path}... OK", severity=StdoutSeverity.SUCCESS)
+
+    def _validate_file(self, file_path: str) -> tuple[list[str], list[str]]:
+        self.log(f"Checking file {file_path}:", severity=StdoutSeverity.INFO)
+
+        try:
+            self._check_syntax(file_path)
+            return [file_path], []
+        except IsADirectoryError as error:
+            raise IsADirectoryError(
+                f"The specified path '{file_path}' is a directory."
+            ) from error
+        except FileNotFoundError as error:
+            raise FileNotFoundError(
+                f"The specified file path '{file_path}' does not exist."
+            ) from error
+        except DockerError as error:
+            message = f"Checking syntax for {file_path}... FAILED: {error}"
+            self.log(message, severity=StdoutSeverity.ERROR)
+            return [], [message]
+
+    def _validate_directory(self, directory_path: str) -> tuple[list[str], list[str]]:
+        checked_files: list[str] = []
+        errors: list[str] = []
+
+        for file_path in glob.glob(f"{directory_path}/*"):
+            file_checked, file_errors = self._validate_file(file_path)
+            checked_files.extend(file_checked)
+            errors.extend(file_errors)
+
+        return checked_files, errors
 
 
 class MettaCli(CommandGroup):

@@ -99,16 +99,28 @@ class DatabaseServices:
                 check=True,
             )
 
-            stdout_content = result.stdout
-            try:
-                stdout_content = json.loads(result.stdout)
-            except Exception:
-                stdout_content = result.stdout.replace("\n", "").strip()
+            stdout = (result.stdout or "").strip()
+            if not stdout:
+                raise DasCliCommandException("das-cli metta load returned empty output.")
 
-            return stdout_content
+            try:
+                payload = json.loads(stdout)
+            except json.JSONDecodeError as error:
+                raise DasCliCommandException(
+                    f"Could not parse das-cli metta output as JSON: {stdout or '(empty)'}"
+                ) from error
+
+            if payload.get("status") == "error":
+                raise DasCliCommandException(
+                    payload.get("message") or "das-cli metta load failed."
+                )
+
+            return payload
 
         except subprocess.CalledProcessError as e:
             error_output = (e.stderr or e.stdout or "Unknown Subprocess Error").strip()
             raise DasCliCommandException(error_output)
+        except DasCliCommandException:
+            raise
         except Exception as e:
             raise DasCliCommandException(str(e))
