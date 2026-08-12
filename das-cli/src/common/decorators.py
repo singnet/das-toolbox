@@ -6,8 +6,8 @@ from common.config.store import JsonConfigStore
 from settings.config import SECRETS_PATH
 
 from .command import StdoutSeverity
-from .service_response import ServiceResponse, StdoutStatus
 from .docker.exceptions import DockerContainerNotFoundError
+from .service_response import ServiceResponse, StdoutStatus
 from .settings import Settings
 
 LOCAL_HOSTS = {
@@ -103,7 +103,7 @@ def _check_container(
     verbose: bool,
 ) -> bool:
 
-    name = container_status.get("container_name")
+    name = container_status.get("container_name", "")
     image = container_status.get("image")
     running = container_status.get("running", False)
     healthy = container_status.get("healthy", False)

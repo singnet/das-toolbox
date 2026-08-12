@@ -2,7 +2,7 @@ import json
 import sys
 from contextlib import suppress
 from enum import Enum
-from typing import Any, List, Optional, TypedDict, Union
+from typing import List, Optional, TypedDict, Union
 
 import click
 import yaml

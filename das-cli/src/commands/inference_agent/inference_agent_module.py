@@ -2,10 +2,14 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
+from common.container_manager.agents.generic_agent_containers import (
+    ContainerTypes,
+    QueryAgentContainerManager,
+)
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
-from common.factory.busnode_manager_factory import BusNodeContainerManager
-from common.factory.busnode_manager_factory import BusNodeContainerManagerFactory
-from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager, ContainerTypes
+from common.factory.busnode_manager_factory import (
+    BusNodeContainerManagerFactory,
+)
 from common.factory.container_manager_factory import ContainerManagerFactory
 from settings.config import SECRETS_PATH
 
@@ -31,7 +35,7 @@ class InferenceAgentModule(Module):
             ),
             (
                 QueryAgentContainerManager,
-                self._container_manager_factory.build(ContainerTypes.QUERY_ENGINE)
+                self._container_manager_factory.build(ContainerTypes.QUERY_ENGINE),
             ),
             (
                 Settings,

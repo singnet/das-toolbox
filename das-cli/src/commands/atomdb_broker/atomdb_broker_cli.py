@@ -11,6 +11,7 @@ from common.docker.exceptions import (
 from common.exceptions import PortBindingError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .atomdb_broker_docs import (
     HELP_ATOMDB_BROKER,
@@ -23,9 +24,8 @@ from .atomdb_broker_docs import (
     SHORT_HELP_STOP,
 )
 
-from common.service_response import ServiceResponse, StdoutStatus
-
 CLI_SERVICE_NAME = "atomdb_broker"
+
 
 class AtomDbBrokerStart(Command):
     name = "start"
@@ -81,7 +81,7 @@ class AtomDbBrokerStart(Command):
                 severity=StdoutSeverity.SUCCESS,
             )
 
-        except DockerContainerDuplicateError as e:
+        except DockerContainerDuplicateError:
             message = f"AtomDB Broker is already running. It's listening on port {port}"
 
             self.stdout(
@@ -97,7 +97,7 @@ class AtomDbBrokerStart(Command):
 
         except (DockerError, PortBindingError) as e:
             message = "DAS-CLI failed to instanciate a container of this service."
-            
+
             self.stdout(
                 ServiceResponse(
                     service=CLI_SERVICE_NAME,
@@ -197,7 +197,7 @@ class AtomDbBrokerRestart(Command):
 
     short_help = SHORT_HELP_RESTART
 
-    help = SHORT_HELP_RESTART
+    help = HELP_RESTART
 
     @inject
     def __init__(

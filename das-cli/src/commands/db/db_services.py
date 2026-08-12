@@ -2,7 +2,11 @@ from common import Command, StdoutSeverity
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
 from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
-from common.docker.exceptions import DockerContainerDuplicateError, DockerContainerNotFoundError, DockerError
+from common.docker.exceptions import (
+    DockerContainerDuplicateError,
+    DockerContainerNotFoundError,
+    DockerError,
+)
 from common.exceptions import PortBindingError
 from common.service_response import ServiceResponse, StdoutStatus
 

@@ -257,9 +257,7 @@ class MettaCheck(Command):
             self._check_syntax(file_path)
             return [file_path], []
         except IsADirectoryError as error:
-            raise IsADirectoryError(
-                f"The specified path '{file_path}' is a directory."
-            ) from error
+            raise IsADirectoryError(f"The specified path '{file_path}' is a directory.") from error
         except FileNotFoundError as error:
             raise FileNotFoundError(
                 f"The specified file path '{file_path}' does not exist."
