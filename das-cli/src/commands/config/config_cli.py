@@ -9,8 +9,10 @@ from common import (
     CommandOption,
     KeyValueType,
     RemoteContextManager,
+    ServiceResponse,
     Settings,
     StdoutSeverity,
+    StdoutStatus,
 )
 from common.prompt_types import AbsolutePath
 from settings.config import CURRENT_CONFIGFILE_PATH
@@ -25,6 +27,8 @@ from .config_docs import (
 )
 from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
 from .config_sections.normalize_file import verify_populate_missing_values
+
+CLI_SERVICE_NAME = "config"
 
 
 class ConfigSet(Command):
@@ -70,6 +74,21 @@ class ConfigSet(Command):
         self._non_interactive_config_provider = non_interactive_config_provider
         self._interactive_config_provider = interactive_config_provider
 
+    def _finish_set(self, message: str) -> None:
+        self.stdout(
+            dict(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="set",
+                    status=StdoutStatus.SUCCESS,
+                    message=message,
+                    path=self._settings.get_path(),
+                    content=self._settings.get_content(),
+                )
+            ),
+            severity=StdoutSeverity.SUCCESS,
+        )
+
     def _set_file_path(self, save_path) -> None:
         self._settings.set_path(save_path)
         self._settings.rewind()
@@ -88,17 +107,19 @@ class ConfigSet(Command):
 
         verify_populate_missing_values(self._settings, save_path)
 
-        self.stdout(
+        self.log(
             "Formatting file and setting up incorrect/incomplete values.",
             severity=StdoutSeverity.WARNING,
         )
 
         self._settings.save_path()
 
-        self.stdout(
-            f"Configuration file set to -> {self._settings.get_path()}",
+        config_path = self._settings.get_path()
+        self.log(
+            f"Configuration file set to -> {config_path}",
             severity=StdoutSeverity.SUCCESS,
         )
+        self._finish_set(f"Configuration file set to {config_path}.")
 
     def _save(self, save_path: str) -> None:
         self._remote_context_manager.commit()
@@ -106,10 +127,12 @@ class ConfigSet(Command):
         self._settings.save()
         self._settings.save_path()
 
-        self.stdout(
-            f"Configuration file saved -> {self._settings.get_path()}",
+        config_path = self._settings.get_path()
+        self.log(
+            f"Configuration file saved -> {config_path}",
             severity=StdoutSeverity.SUCCESS,
         )
+        self._finish_set(f"Configuration file saved to {config_path}.")
 
     def interactive_mode(self) -> None:
         config_mappings = self._interactive_config_provider.setup_settings()
@@ -171,21 +194,52 @@ class ConfigList(Command):
         value = self._settings.get(key, None)
         if value is None:
             self.stdout(
-                f"The key '{key}' does not exist in the configuration file.",
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="list",
+                        status=StdoutStatus.ERROR,
+                        message=f"The key '{key}' does not exist in the configuration file.",
+                        key=key,
+                    )
+                ),
                 severity=StdoutSeverity.ERROR,
             )
-        else:
-            self.stdout(value)
-            self.stdout(
-                value,
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
+            return
+
+        self.log(str(value), severity=StdoutSeverity.INFO)
+        self.stdout(
+            dict(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="list",
+                    status=StdoutStatus.SUCCESS,
+                    message=f"Configuration key '{key}' listed successfully.",
+                    path=self._settings.get_path(),
+                    key=key,
+                    value=value,
+                )
+            ),
+            severity=StdoutSeverity.SUCCESS,
+        )
 
     def _show_config(self) -> None:
-        self.stdout(self._settings.pretty())
+        content = self._settings.get_content()
+        config_path = self._settings.get_path()
+
+        self.log(self._settings.pretty(), severity=StdoutSeverity.INFO)
         self.stdout(
-            self._settings.get_content(),
-            stdout_type=StdoutType.MACHINE_READABLE,
+            dict(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="list",
+                    status=StdoutStatus.SUCCESS,
+                    message="Configuration listed successfully.",
+                    path=config_path,
+                    content=content,
+                )
+            ),
+            severity=StdoutSeverity.SUCCESS,
         )
 
     def run(self, key: Optional[str] = None):
