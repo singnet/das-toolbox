@@ -4,7 +4,7 @@ import {
   setQueryParameters,
   startQueryExecution
 } from "../api/QueryAPI";
-import { extractErrorDetails } from "../api/APIUtils";
+import { extractApiError } from "../api/APIUtils";
 import { createQueryExecutionStream } from "../api/QueryStreamService";
 import { buildFrequencyHistogram, buildStiChart } from "../utils/queryCharts";
 import { formatQueryAnswer } from "../utils/formatQueryAnswer";
@@ -104,7 +104,7 @@ export function useQueryExecution(parameters) {
     setIsRunning(false);
 
     if (event?.message) {
-      setStreamError(event.message);
+      setStreamError({ message: event.message, details: null, severity: "error" });
     }
 
     if (typeof event?.received_count === "number" && !isCountOnlyRef.current) {
@@ -145,7 +145,11 @@ export function useQueryExecution(parameters) {
       streamRef.current = createQueryExecutionStream(nextExecutionId, {
         onEvent: handleStreamEvent,
         onError: (error) => {
-          setStreamError(error.message);
+          setStreamError({
+            message: error?.message || "Query stream connection error.",
+            details: null,
+            severity: "error"
+          });
           setIsRunning(false);
         },
         onClose: () => {
@@ -186,7 +190,7 @@ export function useQueryExecution(parameters) {
       } catch (error) {
         startedAtRef.current = null;
         setIsRunning(false);
-        setStreamError(extractErrorDetails(error));
+        setStreamError(extractApiError(error, "Failed to start query execution."));
       }
     },
     [connectStream, parameters, resetSession]
@@ -203,7 +207,7 @@ export function useQueryExecution(parameters) {
       await cancelQueryExecution(executionIdRef.current);
       finishExecution(null);
     } catch (error) {
-      setStreamError(extractErrorDetails(error));
+      setStreamError(extractApiError(error, "Failed to stop query execution."));
     }
   }, [finishExecution]);
 

@@ -18,7 +18,7 @@ import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { startArchitecture, stopArchitecture } from "../../../../api/ServicesAPI";
-import { extractErrorDetails } from "../../../../api/APIUtils";
+import { extractApiError } from "../../../../api/APIUtils";
 
 const CORE_TOOLTIP =
   "'Core' refers to necessary services to start/connect to other agents; disabling them can cause the architecture to be unusable or prone to failure.";
@@ -126,12 +126,8 @@ export function ArchitectureActionControl({
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);
-      const serverMessage = err?.response?.data?.message;
-      showToast({
-        message: serverMessage || errorMessage,
-        severity: "error",
-        details: extractErrorDetails(err),
-      });
+      const { message, details, severity } = extractApiError(err, errorMessage);
+      showToast({ message, severity, details });
     } finally {
       setBusy(null);
     }

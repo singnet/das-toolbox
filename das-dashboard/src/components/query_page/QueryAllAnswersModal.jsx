@@ -11,7 +11,8 @@ import {
   Typography
 } from "@mui/material";
 import { getQueryAnswers } from "../../api/QueryAPI";
-import { extractErrorDetails } from "../../api/APIUtils";
+import { extractApiError } from "../../api/APIUtils";
+import { ApiErrorNotice } from "../common/ApiErrorNotice";
 import { useQueryParameters } from "../../hooks/useQueryParameters";
 import { formatQueryAnswer } from "../../utils/formatQueryAnswer";
 import {
@@ -93,7 +94,7 @@ export default function QueryAllAnswersModal({
           return;
         }
 
-        setError(extractErrorDetails(loadError));
+        setError(extractApiError(loadError, "Failed to load answers."));
         setPageData(null);
       })
       .finally(() => {
@@ -152,9 +153,7 @@ export default function QueryAllAnswersModal({
             <CircularProgress size={24} />
           </Box>
         ) : error ? (
-          <Typography sx={{ fontSize: 13, color: paletteQuery.danger, py: 4 }}>
-            {error}
-          </Typography>
+          <ApiErrorNotice error={error} sx={{ py: 2 }} />
         ) : items.length > 0 ? (
           <AllAnswersList>
             {items.map((answer) => (

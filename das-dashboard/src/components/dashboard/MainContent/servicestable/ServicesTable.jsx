@@ -2,7 +2,7 @@ import { Table, TableHead, TableRow, TableBody } from "@mui/material";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { useServerTabMetricsContext } from "../../../global_providers/ServerTabMetricsProvider";
 import { stopService, restartService, startService } from "../../../../api/ServicesAPI";
-import { extractErrorDetails } from "../../../../api/APIUtils";
+import { extractApiError } from "../../../../api/APIUtils";
 import { AgentRow } from "./AgentRow";
 import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
@@ -51,12 +51,11 @@ export function AgentTable({ machine }) {
       }
     } catch (error) {
       console.error("Error while executing action:", error);
-      const serverMessage = error?.response?.data?.message;
-      showToast({
-        message: serverMessage || `Failed to ${actionType.toLowerCase()} service ${serviceKey}.`,
-        severity: "error",
-        details: extractErrorDetails(error),
-      });
+      const { message, details, severity } = extractApiError(
+        error,
+        `Failed to ${actionType.toLowerCase()} service ${serviceKey}.`
+      );
+      showToast({ message, severity, details });
     }
   }
 

@@ -7,7 +7,7 @@ import { useDashboardContext } from "../../../global_providers/DashboardContextP
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
-import { extractErrorDetails } from "../../../../api/APIUtils";
+import { extractApiError } from "../../../../api/APIUtils";
 
 const LOADING_KEYS = ["load-metta", "overwrite-metta", "load-existing-metta", "upload-metta"];
 
@@ -38,7 +38,8 @@ export function MettaLoadActionControl({
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);
-      showToast({ message: errorMessage, severity: "error", details: extractErrorDetails(err) });
+      const { message, details, severity } = extractApiError(err, errorMessage);
+      showToast({ message, severity, details });
     } finally {
       setBusy(null);
     }
@@ -89,7 +90,8 @@ export function MettaLoadActionControl({
           }
         });
       } else {
-        showToast({ message: "Failed to upload MeTTa database.", severity: "error", details: extractErrorDetails(err) });
+        const { message, details, severity } = extractApiError(err, "Failed to upload MeTTa database.");
+        showToast({ message, severity, details });
       }
     } finally {
       setBusy(null);

@@ -15,6 +15,7 @@ import { useRef, useState } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { useToast } from "../../../global_providers/ToastProvider"
 import { saveContextMapping } from "../../../../api/ConfigAPI"
+import { extractApiError } from "../../../../api/APIUtils"
 import { MANAGED_CONTEXT_MAPPING_PATH } from "./adapterConstants"
 import { initAdapterBackend, parsePortValue } from "../../configFormUtils"
 import { ConfigForm } from "../../ConfigForm"
@@ -104,7 +105,8 @@ export function AdapterDBOptions() {
       showToast({ message: "Context mapping saved", severity: "success" })
     } catch (error) {
       console.error(error)
-      showToast({ message: "Failed to save context mapping", severity: "error" })
+      const { message, details, severity } = extractApiError(error, "Failed to save context mapping")
+      showToast({ message, severity, details })
     }
   }
 
