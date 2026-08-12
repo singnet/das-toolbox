@@ -1,6 +1,3 @@
-import subprocess
-import json
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from shared.enums.action_types import ActionTypes
@@ -9,7 +6,12 @@ from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.exceptions.custom_exceptions import (
     ConfigurationValueNotFoundError,
     DasCliCommandException,
-    DASCLIResponseDecodeError,
+    DasCliResponseDecodeException,
+)
+from shared.utils.das_cli_response import (
+    DEFAULT_CLI_ERROR_MESSAGE,
+    clean_cli_output,
+    run_das_cli_json_command,
 )
 from shared.utils.service_inventory import ORCHESTRATION_ORDER
 
@@ -17,7 +19,6 @@ from shared.utils.service_inventory import ORCHESTRATION_ORDER
 class ContainerServices:
 
     _SKIP_ERROR_MARKERS = ("No such command",)
-    _ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
     def __init__(self, web_config: WebConfiguration):
         self.web_config = web_config
@@ -94,7 +95,10 @@ class ContainerServices:
             errors.append(outcome["error"])
 
         if errors:
-            raise DasCliCommandException(" | ".join(errors))
+            raise DasCliCommandException(
+                message="One or more services failed.",
+                detail="\n".join(errors),
+            )
 
         return results
 
@@ -116,7 +120,10 @@ class ContainerServices:
                 errors.append(outcome["error"])
 
         if errors:
-            raise DasCliCommandException(" | ".join(errors))
+            raise DasCliCommandException(
+                message="One or more services failed.",
+                detail="\n".join(errors),
+            )
 
         return results
 
@@ -124,6 +131,8 @@ class ContainerServices:
         try:
             data = self.run_das_cli_command(cmd)
             return {"success": True, "service": service_name, **data}
+        except DasCliResponseDecodeException:
+            raise
         except DasCliCommandException as exc:
             detail = str(exc)
             if self._should_skip_error(detail):
@@ -133,9 +142,13 @@ class ContainerServices:
                     "service": service_name,
                     "reason": detail,
                 }
-            return {"success": False, "error": f"Service {service_name} failed: {detail}"}
-        except DASCLIResponseDecodeError as exc:
-            return {"success": False, "error": f"Service {service_name} failed: {exc}"}
+            error_message = exc.message or DEFAULT_CLI_ERROR_MESSAGE
+            error_detail = exc.detail or detail
+            if error_detail and error_detail != error_message:
+                error_text = f"Service {service_name} failed: {error_message}\n{error_detail}"
+            else:
+                error_text = f"Service {service_name} failed: {error_message}"
+            return {"success": False, "error": error_text}
         except Exception as exc:
             detail = str(exc) or exc.__class__.__name__
             return {"success": False, "error": f"Service {service_name} failed: {detail}"}
@@ -165,79 +178,33 @@ class ContainerServices:
         return cmd
 
     def run_das_cli_command(self, command: list):
-        result = None
         try:
-            result = subprocess.run(
+            stdout_json = run_das_cli_json_command(
                 command,
-                capture_output=True,
-                text=True,
-                check=True,
+                default_message=DEFAULT_CLI_ERROR_MESSAGE,
             )
-
-            stdout_json = self._parse_das_cli_stdout(result.stdout)
 
             return {
                 "success": True,
                 "stdout": stdout_json,
-                "stderr": result.stderr,
+                "stderr": "",
                 "command": command,
             }
-
-        except subprocess.CalledProcessError as e:
-            error_output = self._clean_cli_output(e.stderr or e.stdout or "Unknown Subprocess Error")
-            raise DasCliCommandException(error_output)
-
-        except json.JSONDecodeError as e:
-            output = self._clean_cli_output(result.stdout if result else "")
-            if result is not None and not output:
-                return {
-                    "success": True,
-                    "stdout": None,
-                    "stderr": result.stderr,
-                    "command": command,
-                }
-
-            raise DasCliCommandException(
-                f"Could not parse das-cli output as JSON: {output or '(empty)'}"
-            ) from e
 
         except DasCliCommandException:
             raise
 
+        except DasCliResponseDecodeException:
+            raise
+
         except Exception as e:
-            details = str(e) or e.__class__.__name__
-
-            raise DasCliCommandException(details)
-
-    def _parse_das_cli_stdout(self, stdout: str):
-        cleaned = self._ANSI_ESCAPE.sub("", stdout.strip())
-        if not cleaned:
-            raise json.JSONDecodeError("Empty das-cli output", "", 0)
-
-        parsers = (
-            lambda text: json.loads(text),
-            lambda text: json.loads(text.replace("\n", "")),
-        )
-
-        for parse in parsers:
-            try:
-                return parse(cleaned)
-            except json.JSONDecodeError:
-                continue
-
-        for line in reversed(cleaned.splitlines()):
-            candidate = line.strip()
-            if not candidate.startswith(("{", "[")):
-                continue
-            try:
-                return json.loads(candidate)
-            except json.JSONDecodeError:
-                continue
-
-        raise json.JSONDecodeError("No JSON payload in das-cli output", cleaned, 0)
+            raise DasCliCommandException(
+                message=DEFAULT_CLI_ERROR_MESSAGE,
+                detail=str(e) or e.__class__.__name__,
+            )
 
     def _clean_cli_output(self, output: str) -> str:
-        return self._ANSI_ESCAPE.sub("", output.strip())
+        return clean_cli_output(output)
 
     def _resolve_service_host(self, service_command: str) -> str:
         service_config = self.web_config.get_service_config(service_command)

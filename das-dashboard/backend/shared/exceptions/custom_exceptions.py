@@ -1,12 +1,32 @@
 class DasCliCommandException(Exception):
+    DEFAULT_MESSAGE = "There was an error while running das-cli."
 
-    def __init__(self, stderror: str):
-        self.message = "There was an error while running das-cli."
-        self.stderror = stderror
-        super().__init__(stderror)
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        detail: str | None = None,
+        stderror: str | None = None,
+    ):
+        if stderror is not None:
+            message = (message or "").strip() or self.DEFAULT_MESSAGE
+            detail = (detail or stderror).strip()
+        elif detail is None and message is not None:
+            detail = str(message).strip()
+            message = self.DEFAULT_MESSAGE
+        else:
+            message = (message or "").strip() or self.DEFAULT_MESSAGE
+            detail = (detail or "").strip()
+
+        self.message = message
+        self.detail = detail
+        self.stderror = detail or message
+        super().__init__(self.detail or self.message)
 
     def __str__(self) -> str:
-        return self.stderror
+        if self.detail and self.detail != self.message:
+            return f"{self.message}\n{self.detail}"
+        return self.message
 
 class DasCliNotInstalledException(Exception):
 
@@ -96,18 +116,25 @@ class DASServiceInstantiationError(Exception):
     def __init__(self):
         self.message = "There was an error while trying to resolve this service. Command cannot be executed."
 
-class DASCLIResponseDecodeError(Exception):
+class DasCliResponseDecodeException(Exception):
+    DEFAULT_MESSAGE = (
+        "DAS-CLI returned a response in a format the server could not read. "
+        "The command may have completed, but the dashboard could not confirm the result."
+    )
 
-    def __init__(self, detail: str = ""):
-        self.message = (
-            "DAS-CLI returned a message in a format the server could not read. "
-            "Try running the command manually to check the results."
-        )
-        self.detail = detail
+    def __init__(self, message: str | None = None, *, detail: str | None = None):
+        self.message = (message or "").strip() or self.DEFAULT_MESSAGE
+        self.detail = (detail or "").strip()
         super().__init__(self.detail or self.message)
 
     def __str__(self) -> str:
-        return self.detail or self.message
+        if self.detail and self.detail != self.message:
+            return f"{self.message}\n{self.detail}"
+        return self.message
+
+
+# Backward-compatible alias
+DASCLIResponseDecodeError = DasCliResponseDecodeException
 
 class ConfigurationFileLoadError(Exception):
 
