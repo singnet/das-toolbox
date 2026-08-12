@@ -104,7 +104,11 @@ export function useQueryExecution(parameters) {
     setIsRunning(false);
 
     if (event?.message) {
-      setStreamError({ message: event.message, details: null, severity: "error" });
+      setStreamError({
+        message: event.message,
+        details: event.details ?? null,
+        severity: "error"
+      });
     }
 
     if (typeof event?.received_count === "number" && !isCountOnlyRef.current) {
@@ -144,10 +148,11 @@ export function useQueryExecution(parameters) {
 
       streamRef.current = createQueryExecutionStream(nextExecutionId, {
         onEvent: handleStreamEvent,
-        onError: (error) => {
+        onError: () => {
           setStreamError({
-            message: error?.message || "Query stream connection error.",
-            details: null,
+            message: "Lost connection to the query stream.",
+            details:
+              "Check that the Command Router is still running in your architecture.",
             severity: "error"
           });
           setIsRunning(false);

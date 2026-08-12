@@ -6,7 +6,6 @@ from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.exceptions.custom_exceptions import (
     ConfigurationValueNotFoundError,
     DasCliCommandException,
-    DasCliResponseDecodeException,
 )
 from shared.utils.das_cli_response import (
     DEFAULT_CLI_ERROR_MESSAGE,
@@ -131,8 +130,6 @@ class ContainerServices:
         try:
             data = self.run_das_cli_command(cmd)
             return {"success": True, "service": service_name, **data}
-        except DasCliResponseDecodeException:
-            raise
         except DasCliCommandException as exc:
             detail = str(exc)
             if self._should_skip_error(detail):
@@ -192,9 +189,6 @@ class ContainerServices:
             }
 
         except DasCliCommandException:
-            raise
-
-        except DasCliResponseDecodeException:
             raise
 
         except Exception as e:

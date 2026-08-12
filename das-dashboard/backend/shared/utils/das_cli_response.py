@@ -1,15 +1,22 @@
 import json
+import logging
 import re
+import shlex
 import subprocess
 from typing import Any
 
 from shared.exceptions.custom_exceptions import (
     DasCliCommandException,
     DasCliNotInstalledException,
-    DasCliResponseDecodeException,
 )
 
+logger = logging.getLogger(__name__)
+
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
+UNEXPECTED_EXIT_BLOCK = re.compile(
+    r"\[UnexpectedExit\][\s\S]*?(?:Stderr:\s*already printed\s*|Stdout:\s*already printed\s*)",
+    re.IGNORECASE,
+)
 DEFAULT_CLI_ERROR_MESSAGE = "There was an error while running das-cli."
 SUCCESS_STATUSES = {"success", "info"}
 ERROR_STATUSES = {"error"}
@@ -17,6 +24,31 @@ ERROR_STATUSES = {"error"}
 
 def clean_cli_output(output: str) -> str:
     return ANSI_ESCAPE.sub("", (output or "").strip())
+
+
+def sanitize_cli_output_for_user(output: str) -> str:
+    cleaned = clean_cli_output(output)
+    if not cleaned:
+        return ""
+
+    trimmed = UNEXPECTED_EXIT_BLOCK.sub("", cleaned).strip()
+    kept_lines: list[str] = []
+    for line in trimmed.splitlines():
+        stripped = line.strip()
+        if stripped in {"Stdout: already printed", "Stderr: already printed"}:
+            continue
+        kept_lines.append(line.rstrip())
+
+    compact: list[str] = []
+    previous_blank = False
+    for line in kept_lines:
+        is_blank = not line.strip()
+        if is_blank and previous_blank:
+            continue
+        compact.append(line)
+        previous_blank = is_blank
+
+    return "\n".join(compact).strip()
 
 
 def parse_das_cli_stdout(stdout: str) -> dict[str, Any]:
@@ -147,25 +179,142 @@ def ensure_cli_success(
     return payload
 
 
+def _format_manual_recovery_detail(
+    *,
+    exit_code: int | None,
+    cmd: list[str] | None = None,
+    stdout: str = "",
+    stderr: str = "",
+    raw_output: str = "",
+) -> str:
+    lines: list[str] = []
+
+    if exit_code is not None:
+        lines.append(
+            f"das-cli exited with status {exit_code} without a formatted JSON response."
+        )
+    else:
+        lines.append("das-cli returned output without a formatted JSON response.")
+
+    if cmd:
+        lines.append(f"Command: {' '.join(shlex.quote(part) for part in cmd)}")
+
+    lines.append(
+        "Check the server logs or run the command manually in a terminal for details."
+    )
+
+    cli_output = sanitize_cli_output_for_user(raw_output or stderr or stdout)
+    if cli_output:
+        lines.extend(["", "CLI output:", cli_output])
+    elif exit_code is not None:
+        lines.extend(["", "CLI output: (empty)"])
+
+    return "\n".join(lines)
+
+
+def raise_cli_command_failure(
+    *,
+    cmd: list[str],
+    exit_code: int,
+    stdout: str,
+    stderr: str,
+    default_message: str = DEFAULT_CLI_ERROR_MESSAGE,
+) -> None:
+    output = stderr or stdout
+    cleaned = clean_cli_output(output)
+
+    if cleaned:
+        try:
+            payload = parse_das_cli_stdout(cleaned)
+        except json.JSONDecodeError:
+            logger.error(
+                "das-cli failed without JSON: exit=%s cmd=%s stderr=%r stdout=%r",
+                exit_code,
+                cmd,
+                stderr[:500],
+                stdout[:500],
+            )
+            raise DasCliCommandException(
+                message=default_message,
+                detail=_format_manual_recovery_detail(
+                    exit_code=exit_code,
+                    cmd=cmd,
+                    stdout=stdout,
+                    stderr=stderr,
+                    raw_output=cleaned,
+                ),
+            ) from None
+
+        if not is_cli_success(payload):
+            raise_cli_error_from_payload(payload, default_message=default_message)
+
+        message = extract_cli_message(payload) or default_message
+        raise DasCliCommandException(
+            message=message,
+            detail=sanitize_cli_output_for_user(cleaned) or cleaned,
+        )
+
+    logger.error(
+        "das-cli failed without output: exit=%s cmd=%s stderr=%r stdout=%r",
+        exit_code,
+        cmd,
+        stderr[:500],
+        stdout[:500],
+    )
+    raise DasCliCommandException(
+        message=default_message,
+        detail=_format_manual_recovery_detail(
+            exit_code=exit_code,
+            cmd=cmd,
+            stdout=stdout,
+            stderr=stderr,
+        ),
+    )
+
+
 def raise_from_cli_output(
     output: str,
     *,
     default_message: str = DEFAULT_CLI_ERROR_MESSAGE,
+    exit_code: int | None = None,
+    cmd: list[str] | None = None,
+    stdout: str = "",
+    stderr: str = "",
 ) -> None:
     cleaned = clean_cli_output(output)
     if not cleaned:
-        raise DasCliCommandException(message=default_message)
+        raise DasCliCommandException(
+            message=default_message,
+            detail=_format_manual_recovery_detail(
+                exit_code=exit_code,
+                cmd=cmd,
+                stdout=stdout,
+                stderr=stderr,
+            ),
+        )
 
     try:
         payload = parse_das_cli_stdout(cleaned)
     except json.JSONDecodeError:
-        raise DasCliCommandException(message=default_message, detail=cleaned) from None
+        raise DasCliCommandException(
+            message=default_message,
+            detail=_format_manual_recovery_detail(
+                exit_code=exit_code,
+                cmd=cmd,
+                stdout=stdout or output,
+                stderr=stderr,
+                raw_output=cleaned,
+            ),
+        ) from None
 
     if not is_cli_success(payload):
         raise_cli_error_from_payload(payload, default_message=default_message)
 
     message = extract_cli_message(payload) or default_message
-    raise DasCliCommandException(message=message, detail=cleaned)
+    raise DasCliCommandException(
+        message=message,
+        detail=sanitize_cli_output_for_user(cleaned) or cleaned,
+    )
 
 
 def parse_and_validate_cli_stdout(
@@ -203,20 +352,20 @@ def run_das_cli_json_command(
     stderr = result.stderr or ""
 
     if result.returncode != 0:
-        raise_from_cli_output(stderr or stdout, default_message=default_message)
+        raise_cli_command_failure(
+            cmd=cmd,
+            exit_code=result.returncode,
+            stdout=stdout,
+            stderr=stderr,
+            default_message=default_message,
+        )
 
     try:
         return parse_and_validate_cli_stdout(stdout, default_message=default_message)
     except json.JSONDecodeError:
-        cleaned = clean_cli_output(stdout)
-        if not cleaned:
-            raise DasCliResponseDecodeException(
-                detail=(
-                    "The command finished successfully but returned no JSON output. "
-                    "Expected a structured response because '-o json' was requested."
-                ),
-            )
-
-        raise DasCliResponseDecodeException(
-            detail=f"Could not parse das-cli output as JSON: {cleaned}",
+        logger.warning(
+            "das-cli exited 0 but returned no parseable JSON: cmd=%s stdout=%r",
+            cmd,
+            clean_cli_output(stdout)[:500],
         )
+        return {}

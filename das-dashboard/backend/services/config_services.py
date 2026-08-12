@@ -11,7 +11,7 @@ from shared.internal.web_configuration import WebConfiguration
 from shared.mappers.das_config_mapper import ConfigMapper
 from shared.mappers.nested_config_mapper import NestedConfigMapper
 from shared.builders.atom_db_builder import AtomDbBuilder
-from shared.exceptions.custom_exceptions import ConfigurationFileLoadError
+from shared.exceptions.custom_exceptions import ConfigurationFileLoadError, RemoteSshTransferError
 from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.flat_config_utils import merge_flat_config
 from shared.utils.remote_scp import RemoteScpService
@@ -47,8 +47,9 @@ class ConfigServices:
 
         message = "Configuration saved successfully."
         if remote_hosts:
-            hosts_label = ", ".join(remote_hosts)
-            message = f"{message} Propagated to remote host(s): {hosts_label}."
+            username, _ = self.remote_scp.ensure_profile()
+            destinations = ", ".join(f"{username}@{host}" for host in remote_hosts)
+            message = f"{message} Copied to remote host(s): {destinations}."
 
         return {
             "message": message,
@@ -95,6 +96,13 @@ class ConfigServices:
                 remote_dir=remote_dir,
                 ssh=ssh,
             )
+
+            if not self.remote_scp.remote_file_exists(ssh, remote_path):
+                raise RemoteSshTransferError(
+                    f"Configuration file was not found on {ip} after transfer.",
+                    detail=f"Expected path: {remote_path}",
+                )
+
             return remote_path
         finally:
             if ssh is not None:

@@ -1,8 +1,3 @@
-export function isCliResponseDecodeError(err) {
-  const data = err?.response?.data;
-  return err?.response?.status === 422 && data?.status === "notice";
-}
-
 export function extractErrorMessage(err, fallback = "An unexpected error occurred.") {
   if (!err) {
     return fallback;
@@ -61,14 +56,10 @@ export function extractErrorDetails(err) {
   return null;
 }
 
-export function getApiErrorSeverity(err) {
-  return isCliResponseDecodeError(err) ? "warning" : "error";
-}
-
 export function extractApiError(err, fallbackMessage = "An unexpected error occurred.") {
   return {
     message: extractErrorMessage(err, fallbackMessage),
     details: extractErrorDetails(err),
-    severity: getApiErrorSeverity(err),
+    severity: "error",
   };
 }

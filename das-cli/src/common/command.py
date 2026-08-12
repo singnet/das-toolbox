@@ -319,11 +319,29 @@ class Command:
                 self._check_remote_config(remote_kwargs)
 
             # Ignores this check when a config command is called, prevents command from breaking when user is setting up configuration across multiple remote machines.
-            Connection(**remote_kwargs).run(command, pty=False)
+            result = Connection(**remote_kwargs).run(command, hide=True, warn=True)
+            if result.stdout:
+                click.echo(result.stdout, nl=False)
+                if not result.stdout.endswith("\n"):
+                    click.echo()
+            if result.stderr:
+                click.echo(result.stderr, nl=False, err=True)
+                if not result.stderr.endswith("\n"):
+                    click.echo(err=True)
 
         except Exception as e:
             if isinstance(e, UnexpectedExit):
-                print(e)
+                remote_result = getattr(e, "result", None)
+                if remote_result is not None:
+                    if remote_result.stdout:
+                        click.echo(remote_result.stdout, nl=False)
+                        if not remote_result.stdout.endswith("\n"):
+                            click.echo()
+                    if remote_result.stderr:
+                        click.echo(remote_result.stderr, nl=False, err=True)
+                        if not remote_result.stderr.endswith("\n"):
+                            click.echo(err=True)
+
                 msg_missing = (
                     "[ERROR] das-cli is missing on the remote machine. Verify the installation."
                 )

@@ -84,6 +84,7 @@ class MetricsServices:
             raise_from_cli_output(
                 cleaned_stdout,
                 default_message="Failed to load server metrics.",
+                exit_code=process.returncode,
             )
 
         try:

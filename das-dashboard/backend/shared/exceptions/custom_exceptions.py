@@ -116,26 +116,6 @@ class DASServiceInstantiationError(Exception):
     def __init__(self):
         self.message = "There was an error while trying to resolve this service. Command cannot be executed."
 
-class DasCliResponseDecodeException(Exception):
-    DEFAULT_MESSAGE = (
-        "DAS-CLI returned a response in a format the server could not read. "
-        "The command may have completed, but the dashboard could not confirm the result."
-    )
-
-    def __init__(self, message: str | None = None, *, detail: str | None = None):
-        self.message = (message or "").strip() or self.DEFAULT_MESSAGE
-        self.detail = (detail or "").strip()
-        super().__init__(self.detail or self.message)
-
-    def __str__(self) -> str:
-        if self.detail and self.detail != self.message:
-            return f"{self.message}\n{self.detail}"
-        return self.message
-
-
-# Backward-compatible alias
-DASCLIResponseDecodeError = DasCliResponseDecodeException
-
 class ConfigurationFileLoadError(Exception):
 
     def __init__(self, detail: str = ""):
@@ -170,12 +150,23 @@ class ConfigurationValueNotFoundError(Exception):
         return self.message
 
 class CommandRouterConnectionError(Exception):
+    MESSAGE = (
+        "Could not reach the Command Router. "
+        "Check that the Command Router is running in your architecture "
+        "(start it from the Dashboard under Architecture or Services)."
+    )
+    HINT = (
+        "If it should already be running, verify the configured host and that port 40009 is reachable."
+    )
 
     def __init__(self, endpoint: str, detail: str = ""):
         self.endpoint = endpoint
-        self.message = f"Could not reach the Command Router HTTP API at {endpoint}."
-        self.detail = detail
-        super().__init__(self.detail or self.message)
+        self.technical_detail = (detail or "").strip()
+        self.message = self.MESSAGE
+        self.detail = self.HINT
+        super().__init__(self.message)
 
     def __str__(self) -> str:
-        return self.detail or self.message
+        if self.technical_detail:
+            return f"{self.message}\n{self.technical_detail}"
+        return self.message
