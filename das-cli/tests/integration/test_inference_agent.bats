@@ -77,8 +77,9 @@ teardown() {
     run das-cli inference-agent start \
         --port-range 12500:12600
 
-    assert_output --partial "[PortBindingError]"
-    assert_output --partial "already in use"
+    assert_failure 1
+    assert_output --partial "Starting Inference Agent service"
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
     run stop_listen_port "$inference_agent_port"
     assert_success

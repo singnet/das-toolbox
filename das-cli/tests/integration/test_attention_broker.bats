@@ -32,8 +32,10 @@ setup() {
     assert_success
 
     run das-cli attention-broker start
-    assert_output "Starting Attention Broker service...
-[31m[PortBindingError] Port ${attention_broker_port} on localhost are already in use.[39m"
+
+    assert_failure 1
+    assert_output --partial "Starting Attention Broker service..."
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
     run stop_listen_port "${attention_broker_port}"
     assert_success

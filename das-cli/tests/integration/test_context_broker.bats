@@ -105,9 +105,9 @@ teardown() {
     run das-cli context-broker start \
         --port-range 12700:12800
 
-    assert_output --partial "[PortBindingError]"
-    assert_output --partial "Port ${context_broker_port}"
-    assert_output --partial "already in use"
+    assert_failure 1
+    assert_output --partial "Starting Context Broker service"
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
     run stop_listen_port "${context_broker_port}"
     assert_success

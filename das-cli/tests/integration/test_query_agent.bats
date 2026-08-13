@@ -89,9 +89,9 @@ teardown() {
 
     run das-cli query-agent start --port-range 12000:12100
 
-    assert_output --partial "[PortBindingError]"
-    assert_output --partial "Port ${query_agent_port}"
-    assert_output --partial "already in use"
+    assert_failure 1
+    assert_output --partial "Starting Query Agent service"
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
     run stop_listen_port "${query_agent_port}"
     assert_success
