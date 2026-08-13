@@ -356,6 +356,12 @@ class Command:
             self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
             raise
 
+    def run_subcommand(self, subcommand: "Command", *args, **kwargs) -> None:
+        subcommand._structured_error_emitted = False
+        subcommand.run(*args, **kwargs)
+        if subcommand._structured_error_emitted:
+            self._structured_error_emitted = True
+
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
         self._structured_error_emitted = False

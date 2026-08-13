@@ -211,8 +211,8 @@ class InferenceAgentRestart(Command):
         self._inference_agent_stop = inference_agent_stop
 
     def run(self, port_range: str):
-        self._inference_agent_stop.run()
-        self._inference_agent_start.run(port_range)
+        self.run_subcommand(self._inference_agent_stop)
+        self.run_subcommand(self._inference_agent_start, port_range)
 
 
 class InferenceAgentCli(CommandGroup):

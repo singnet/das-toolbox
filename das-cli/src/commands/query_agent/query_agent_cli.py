@@ -217,8 +217,8 @@ class QueryAgentRestart(Command):
         self._query_agent_stop = query_agent_stop
 
     def run(self, port_range: str):
-        self._query_agent_stop.run()
-        self._query_agent_start.run(port_range=port_range)
+        self.run_subcommand(self._query_agent_stop)
+        self.run_subcommand(self._query_agent_start, port_range=port_range)
 
 
 class QueryAgentCli(CommandGroup):

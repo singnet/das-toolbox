@@ -215,8 +215,8 @@ class JupyterNotebookRestart(Command):
         self._jupyter_notebook_stop = jupyter_notebook_stop
 
     def run(self, working_dir: str | None = None):
-        self._jupyter_notebook_stop.run()
-        self._jupyter_notebook_start.run(working_dir)
+        self.run_subcommand(self._jupyter_notebook_stop)
+        self.run_subcommand(self._jupyter_notebook_start, working_dir)
 
 
 class JupyterNotebookCli(CommandGroup):

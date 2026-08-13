@@ -207,8 +207,8 @@ class CommandRouterRestart(Command):
         super().__init__()
 
     def run(self, port_range):
-        self.command_router_stop.run()
-        self.command_router_start.run(port_range=port_range)
+        self.run_subcommand(self.command_router_stop)
+        self.run_subcommand(self.command_router_start, port_range=port_range)
 
 
 class CommandRouterCli(CommandGroup):

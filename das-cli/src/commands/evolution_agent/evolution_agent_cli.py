@@ -211,8 +211,8 @@ class EvolutionAgentRestart(Command):
         self._evolution_agent_stop = evolution_agent_stop
 
     def run(self, port_range: str):
-        self._evolution_agent_stop.run()
-        self._evolution_agent_start.run(port_range)
+        self.run_subcommand(self._evolution_agent_stop)
+        self.run_subcommand(self._evolution_agent_start, port_range)
 
 
 class EvolutionAgentCli(CommandGroup):

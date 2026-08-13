@@ -208,8 +208,8 @@ class ContextBrokerRestart(Command):
         self._context_broker_stop = context_broker_stop
 
     def run(self, port_range: str) -> None:
-        self._context_broker_stop.run()
-        self._context_broker_start.run(port_range)
+        self.run_subcommand(self._context_broker_stop)
+        self.run_subcommand(self._context_broker_start, port_range)
 
 
 class ContextBrokerCli(CommandGroup):

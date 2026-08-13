@@ -181,8 +181,8 @@ class AttentionBrokerRestart(Command):
         self._attention_broker_stop = attention_broker_stop
 
     def run(self):
-        self._attention_broker_stop.run()
-        self._attention_broker_start.run()
+        self.run_subcommand(self._attention_broker_stop)
+        self.run_subcommand(self._attention_broker_start)
 
 
 class AttentionBrokerCli(CommandGroup):

@@ -206,8 +206,8 @@ class AtomDbBrokerRestart(Command):
         super().__init__()
 
     def run(self, port_range, **kwargs):
-        self._atomdb_broker_stop.run()
-        self._atomdb_broker_start.run(port_range, **kwargs)
+        self.run_subcommand(self._atomdb_broker_stop)
+        self.run_subcommand(self._atomdb_broker_start, port_range, **kwargs)
 
 
 class AtomDbBrokerCli(CommandGroup):

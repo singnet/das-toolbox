@@ -220,8 +220,8 @@ class DbRestart(Command):
         self._db_stop = db_stop
 
     def run(self, prune: bool = False):
-        self._db_stop.run(prune)
-        self._db_start.run()
+        self.run_subcommand(self._db_stop, prune)
+        self.run_subcommand(self._db_start)
 
 
 class DbCli(CommandGroup):
