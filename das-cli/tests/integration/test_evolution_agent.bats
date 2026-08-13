@@ -9,15 +9,16 @@ load 'libs/errors'
 setup() {
     use_config "simple"
 
-    das-cli db start
-    das-cli attention-broker start
-    das-cli query-agent start --port-range 12000:12100
+    das-cli db start || true
+    das-cli attention-broker start || true
+    das-cli query-agent start --port-range 12000:12100 || true
 
     das-cli evolution-agent stop &>/dev/null || true
 
-    local evolution_agent_port
     evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
     stop_listen_port "$evolution_agent_port" &>/dev/null || true
+
+    service_name="das-evolution-agent-40005"
 }
 
 teardown() {
@@ -64,10 +65,10 @@ teardown() {
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
     assert_output --partial "Please start the required services"
 
-    run is_service_up query_agent
+    run is_service_up das-query-engine-40002
     assert_failure
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_failure
 }
 
@@ -91,7 +92,7 @@ teardown() {
     run stop_listen_port "$evolution_agent_port"
     assert_success
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_failure
 }
 
@@ -109,32 +110,23 @@ teardown() {
 
     assert_output --partial "already running"
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_success
 }
 
 @test "Starting the Evolution Agent" {
-    local evolution_agent_port
-    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
-
-    local query_agent_port
-    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
-
     run das-cli evolution-agent start \
         --port-range 12700:12800
 
     assert_success
-    assert_output --partial "started on port"
+    assert_output --partial "started listening on the ports"
     assert_output --partial "$evolution_agent_port"
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_success
 }
 
 @test "Stopping the Evolution Agent when it's up-and-running" {
-    local query_agent_port
-    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
-
     das-cli evolution-agent start \
         --port-range 12700:12800
 
@@ -142,7 +134,7 @@ teardown() {
 
     assert_output --partial "service stopped"
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_failure
 }
 
@@ -151,17 +143,11 @@ teardown() {
 
     assert_output --partial "already stopped"
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_failure
 }
 
 @test "Restarting the Evolution Agent when it's up-and-running" {
-    local evolution_agent_port
-    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
-
-    local query_agent_port
-    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
-
     das-cli evolution-agent start \
         --port-range 12700:12800
 
@@ -172,24 +158,18 @@ teardown() {
     assert_output --partial "Starting Evolution Agent service"
     assert_output --partial "$evolution_agent_port"
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_success
 }
 
 @test "Restarting the Evolution Agent when it's not up" {
-    local evolution_agent_port
-    evolution_agent_port="$(extract_port "$(get_config .agents.evolution.endpoint)")"
-
-    local query_agent_port
-    query_agent_port="$(extract_port "$(get_config ".agents.query.endpoint")")"
-
     run das-cli evolution-agent restart \
         --port-range 12700:12800
 
     assert_output --partial "already stopped"
-    assert_output --partial "started on port"
+    assert_output --partial "started listening on the ports"
     assert_output --partial "$evolution_agent_port"
 
-    run is_service_up das-evolution-agent-40005
+    run is_service_up "$service_name"
     assert_success
 }

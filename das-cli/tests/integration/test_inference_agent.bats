@@ -9,15 +9,13 @@ load 'libs/errors'
 setup() {
     use_config "simple"
 
-    das-cli attention-broker start
-    das-cli db start
+    das-cli db start || true
+    das-cli attention-broker start || true
+    das-cli query-agent start --port-range 12000:12100 || true
 
     das-cli inference-agent stop &>/dev/null || true
 
     inference_agent_port="$(extract_port "$(get_config .agents.inference.endpoint)")"
-    query_agent_port="$(extract_port "$(get_config .agents.query.endpoint)")"
-
-
     stop_listen_port "$inference_agent_port" &>/dev/null || true
 
     service_name="das-inference-agent-40004"
@@ -25,6 +23,7 @@ setup() {
 
 teardown() {
     das-cli inference-agent stop &>/dev/null || true
+    das-cli query-agent stop &>/dev/null || true
     das-cli attention-broker stop &>/dev/null || true
 }
 
@@ -54,8 +53,8 @@ teardown() {
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
-@test "Start Inference Agent when Attention Broker is not up" {
-    das-cli attention-broker stop
+@test "Start Inference Agent when Query Agent is not up" {
+    das-cli query-agent stop
 
     run das-cli inference-agent start \
         --port-range 12500:12600
@@ -63,7 +62,7 @@ teardown() {
     assert_output --partial "$DOCKER_CONTAINER_MISSING"
     assert_output --partial "Please start the required services"
 
-    run is_service_up das-attention-broker-40001
+    run is_service_up das-query-engine-40002
     assert_failure
 
     run is_service_up "$service_name"
@@ -89,7 +88,6 @@ teardown() {
 }
 
 @test "Starting the Inference Agent when it's already up" {
-    # garante que subiu
     run das-cli inference-agent start \
         --port-range 12500:12600
     assert_success
