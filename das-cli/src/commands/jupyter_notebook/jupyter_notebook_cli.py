@@ -11,7 +11,7 @@ from common.docker.exceptions import (
 )
 from common.exceptions import PortBindingError
 from common.prompt_types import AbsolutePath
-from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
+from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
 
 from .jupyter_docs import (
     HELP_JUPYTER,

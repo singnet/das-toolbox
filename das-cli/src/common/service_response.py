@@ -11,9 +11,7 @@ class StdoutStatus(Enum):
     INFO = "info"
 
 
-CONTAINER_START_FAILURE_MESSAGE = (
-    "DAS-CLI failed to instantiate a container of this service."
-)
+CONTAINER_START_FAILURE_MESSAGE = "DAS-CLI failed to instantiate a container of this service."
 
 
 class ServiceResponse:

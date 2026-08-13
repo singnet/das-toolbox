@@ -10,7 +10,7 @@ from common.container_manager.dbms.database_adapter_container_manager import (
     DatabaseAdapterContainerManager,
 )
 from common.decorators import ensure_container_running
-from common.docker.exceptions import DockerContainerNotFoundError, DockerError
+from common.docker.exceptions import DockerContainerNotFoundError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.service_response import ServiceResponse, StdoutStatus
 

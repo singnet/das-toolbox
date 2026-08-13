@@ -10,7 +10,7 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.exceptions import PortBindingError
-from common.service_response import ServiceResponse, StdoutStatus, CONTAINER_START_FAILURE_MESSAGE
+from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
 
 from .attention_broker_docs import (
     HELP_ATTENTION_BROKER,

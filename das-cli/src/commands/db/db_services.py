@@ -107,9 +107,7 @@ class DbOperations:
                         severity=StdoutSeverity.WARNING,
                     )
                 except (DockerError, PortBindingError) as error:
-                    msg = (
-                        f"Failed to start Redis at {public_ip} under {node_username}: {error}"
-                    )
+                    msg = f"Failed to start Redis at {public_ip} under {node_username}: {error}"
                     redis_errors.append(msg)
                     self._record_error(msg)
             finally:
@@ -161,9 +159,7 @@ class DbOperations:
                         severity=StdoutSeverity.WARNING,
                     )
                 except (DockerError, PortBindingError) as error:
-                    msg = (
-                        f"Failed to start MongoDB at {public_ip} under {node_username}: {error}"
-                    )
+                    msg = f"Failed to start MongoDB at {public_ip} under {node_username}: {error}"
                     mongo_errors.append(msg)
                     self._record_error(msg)
             finally:
