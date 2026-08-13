@@ -308,15 +308,14 @@ class Command:
 
     @staticmethod
     def _remote_das_cli_missing(result) -> bool:
-        exit_code = getattr(result, "exited", None)
-        if exit_code == 127:
-            return True
-
         combined = f"{result.stdout or ''}\n{result.stderr or ''}".lower()
-        if "command not found" not in combined:
+        if "das-cli" not in combined and "das_cli" not in combined:
             return False
 
-        return "das-cli" in combined or "das_cli" in combined
+        return (
+            "command not found" in combined
+            or "no such file or directory" in combined
+        )
 
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
