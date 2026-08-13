@@ -1,10 +1,16 @@
-import json
 import os
-import subprocess
+import json
 
-from shared.exceptions.custom_exceptions import DasCliCommandException, DasCliNotInstalledException, ConfigurationFileLoadError
+from shared.exceptions.custom_exceptions import (
+    DasCliCommandException,
+    ConfigurationFileLoadError,
+)
 from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.internal.web_configuration import WebConfiguration
+from shared.utils.das_cli_response import (
+    DEFAULT_CLI_ERROR_MESSAGE,
+    run_das_cli_json_command,
+)
 
 
 def _validate_config_file(file_path: str) -> None:
@@ -52,7 +58,7 @@ def set_das_cli_config(
     if remote_host is None:
         _validate_config_file(cleaned_path)
 
-    cmd = ["das-cli", "config", "set", "--file", cleaned_path]
+    cmd = ["das-cli", "config", "set", "--file", cleaned_path, "-o", "json"]
 
     if remote_host is not None:
         profile = web_config.user_profile
@@ -64,20 +70,15 @@ def set_das_cli_config(
 
         cmd.extend(["--remote", "--host", remote_host, "-u", ssh_username, "-k", ssh_key])
 
-    try:
-        subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=30,
+    payload = run_das_cli_json_command(
+        cmd,
+        default_message=DEFAULT_CLI_ERROR_MESSAGE,
+        timeout=30,
+    )
+
+    details = payload.get("details") or {}
+    content = details.get("content")
+    if content is not None and not isinstance(content, dict):
+        raise DasCliCommandException(
+            message="The das-cli config response did not include a valid config object.",
         )
-    except subprocess.TimeoutExpired as error:
-        raise DasCliCommandException("das-cli command timed out.") from error
-    except FileNotFoundError as error:
-        raise DasCliNotInstalledException("das-cli not found.") from error
-    except subprocess.CalledProcessError as error:
-        error_output = (error.stderr or error.stdout or "Unknown Subprocess Error").strip()
-        raise DasCliCommandException(error_output) from error
-    except Exception as error:
-        raise DasCliCommandException(str(error)) from error

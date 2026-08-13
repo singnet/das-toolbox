@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
 )
@@ -11,10 +11,11 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.exceptions import PortBindingError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
+from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
 
-from .query_agent_container_service_response import QueryAgentContainerServiceResponse
 from .query_agent_docs import (
     HELP_QA,
     HELP_RESTART,
@@ -25,6 +26,8 @@ from .query_agent_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
+
+CLI_SERVICE_NAME = "query_agent"
 
 
 class QueryAgentStop(Command):
@@ -48,49 +51,45 @@ class QueryAgentStop(Command):
         return self._query_agent_bus_manager.get_container()
 
     def _query_agent(self):
-        try:
-            self.stdout("Stopping Query Agent service...")
-            self._query_agent_bus_manager.stop()
+        container = self._get_container()
 
-            success_message = "Query Agent service stopped"
+        self.log("Stopping Query Agent service...", severity=StdoutSeverity.INFO)
+
+        try:
+            self._query_agent_bus_manager.stop()
+            exec_message = "Query Agent service stopped"
+
             self.stdout(
-                success_message,
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="stop",
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
+                        container=container,
+                    )
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
-            self.stdout(
-                dict(
-                    QueryAgentContainerServiceResponse(
-                        action="stop",
-                        status="success",
-                        message=success_message,
-                        container=self._get_container(),
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
+
         except DockerContainerNotFoundError:
-            container_name = self._get_container().name
-            warning_message = f"The Query Agent service named {container_name} is already stopped."
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Query Agent service named {container.name} is already stopped."
+
             self.stdout(
                 dict(
-                    QueryAgentContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
-                        container=self._get_container(),
+                        status=StdoutStatus.INFO,
+                        message=message,
+                        container=container,
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
                 severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
         self._settings.validate_configuration_file()
-
         self._query_agent()
 
 
@@ -128,57 +127,54 @@ class QueryAgentStart(Command):
         return self._bus_node_container_manager.get_container()
 
     def _query_engine_node(self, port_range: str, **kwargs) -> None:
-        self.stdout("Starting Query Agent service...")
+        container = self._get_container()
+        port = container.port
+
+        self.log("Starting Query Agent service...", severity=StdoutSeverity.INFO)
 
         try:
-            container_port = self._get_container().port
-
             self._bus_node_container_manager.start_container(port_range, **kwargs)
+            message = f"Query Agent started on port {port}"
 
-            success_message = f"Query Agent started on port {container_port}"
             self.stdout(
-                success_message,
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="start",
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
+                        container=container,
+                    )
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
 
-            self.stdout(
-                dict(
-                    QueryAgentContainerServiceResponse(
-                        action="start",
-                        status="success",
-                        message=success_message,
-                        container=self._get_container(),
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
         except DockerContainerDuplicateError:
-            warning_message = (
-                f"Query Agent is already running. It's listening on port {container_port}"
-            )
+            message = f"Query Agent is already running. It's listening on port {port}"
 
             self.stdout(
-                warning_message,
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=container,
+                ),
                 severity=StdoutSeverity.WARNING,
             )
 
+        except (DockerError, PortBindingError) as e:
             self.stdout(
-                dict(
-                    QueryAgentContainerServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=self._get_container(),
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message=CONTAINER_START_FAILURE_MESSAGE,
+                    error=e,
+                    container=container,
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.ERROR,
             )
-
-        except DockerError as e:
-            error_message = (
-                f"Error occurred while trying to start Query Agent on port {container_port}"
-            )
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
         [
@@ -191,7 +187,6 @@ class QueryAgentStart(Command):
     )
     def run(self, port_range: str, **kwargs) -> None:
         self._settings.validate_configuration_file()
-
         self._query_engine_node(port_range, **kwargs)
 
 
@@ -222,8 +217,8 @@ class QueryAgentRestart(Command):
         self._query_agent_stop = query_agent_stop
 
     def run(self, port_range: str):
-        self._query_agent_stop.run()
-        self._query_agent_start.run(port_range=port_range)
+        self.run_subcommand(self._query_agent_stop)
+        self.run_subcommand(self._query_agent_start, port_range=port_range)
 
 
 class QueryAgentCli(CommandGroup):

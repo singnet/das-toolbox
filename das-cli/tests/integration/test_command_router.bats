@@ -51,8 +51,9 @@ teardown() {
 
     run das-cli command-router start
 
-    assert_output "Starting Command Router service...
-[31m[PortBindingError] Port ${port} on localhost are already in use.[39m"
+    assert_failure 1
+    assert_output --partial "Starting Command Router service..."
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
     run stop_listen_port "${port}"
     assert_success

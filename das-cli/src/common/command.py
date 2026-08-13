@@ -1,9 +1,8 @@
 import json
 import sys
 from contextlib import suppress
-from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypedDict
+from typing import List, Optional, TypedDict, Union
 
 import click
 import yaml
@@ -16,6 +15,7 @@ from common import Choice
 from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
 from common.prompt_types import ValidUsername
+from common.service_response import ServiceResponse, StdoutStatus
 from common.utils import log_exception
 from settings.config import SECRETS_PATH
 
@@ -25,11 +25,6 @@ from .utils import env_to_dict
 class SelectOption(TypedDict):
     name: str
     value: str
-
-
-class StdoutType(Enum):
-    DEFAULT = "default"
-    MACHINE_READABLE = "machine_readable"
 
 
 class StdoutSeverity(Enum):
@@ -51,24 +46,12 @@ class CommandArgument(click.Argument):
         super().__init__(*args, **kwargs)
 
 
-@dataclass
-class OutputBufferEntry:
-    message: Any
-    stdout_type: StdoutType = StdoutType.DEFAULT
-    severity: StdoutSeverity = StdoutSeverity.INFO
-    new_line: bool = True
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
 class Command:
     name = "unknown"
     help = ""
     short_help = ""
     params: List = []
     aliases: List[str] = []
-    _output_buffer: List[OutputBufferEntry] = []
 
     exclude_params = [
         "output_format",
@@ -166,6 +149,7 @@ class Command:
 
     def __init__(self) -> None:
         self._execution_context: Optional[ExecutionContext] = None
+        self._structured_error_emitted = False
         self.command = click.Command(
             name=self.name,
             callback=self.safe_run,
@@ -312,6 +296,27 @@ class Command:
                 "Remote configuration file does not match the local configuration file."
             )
 
+    def _echo_remote_streams(self, result) -> None:
+        if result.stdout:
+            click.echo(result.stdout, nl=False)
+            if not result.stdout.endswith("\n"):
+                click.echo()
+        if result.stderr:
+            click.echo(result.stderr, nl=False, err=True)
+            if not result.stderr.endswith("\n"):
+                click.echo(err=True)
+
+    @staticmethod
+    def _remote_das_cli_missing(result) -> bool:
+        combined = f"{result.stdout or ''}\n{result.stderr or ''}".lower()
+        if "das-cli" not in combined and "das_cli" not in combined:
+            return False
+
+        return (
+            "command not found" in combined
+            or "no such file or directory" in combined
+        )
+
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
 
@@ -331,40 +336,35 @@ class Command:
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
 
         try:
-
             if "config" not in command_path:
                 self._check_remote_config(remote_kwargs)
 
-            # Ignores this check when a config command is called, prevents command from breaking when user is setting up configuration across multiple remote machines.
-            Connection(**remote_kwargs).run(command, pty=False)
+            result = Connection(**remote_kwargs).run(command, hide=True, warn=True)
+            self._echo_remote_streams(result)
 
+            if result.failed:
+                if self._remote_das_cli_missing(result):
+                    self.stdout(
+                        "[ERROR] das-cli is missing on the remote machine. Verify the installation.",
+                        severity=StdoutSeverity.ERROR,
+                    )
+                raise UnexpectedExit(result)
+
+        except UnexpectedExit:
+            raise
         except Exception as e:
+            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
+            raise
 
-            self.stdout(
-                str(e),
-                stdout_type=StdoutType.MACHINE_READABLE,
-                severity=StdoutSeverity.ERROR,
-            )
-
-            if isinstance(e, UnexpectedExit):
-                print(e)
-
-                msg_missing = (
-                    "[ERROR] das-cli is missing on the remote machine. Verify the installation."
-                )
-                self.stdout(msg_missing, severity=StdoutSeverity.ERROR)
-                self.stdout(
-                    msg_missing,
-                    stdout_type=StdoutType.MACHINE_READABLE,
-                    severity=StdoutSeverity.ERROR,
-                )
-            else:
-                self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
-
-            raise e
+    def run_subcommand(self, subcommand: "Command", *args, **kwargs) -> None:
+        subcommand._structured_error_emitted = False
+        subcommand.run(*args, **kwargs)
+        if subcommand._structured_error_emitted:
+            self._structured_error_emitted = True
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
+        self._structured_error_emitted = False
         for param in getattr(self, "exclude_params", []):
             setattr(self, f"_{param}", kwargs.pop(param, None))
 
@@ -380,6 +380,8 @@ class Command:
 
         if not remote:
             self.flush_stdout()
+            if self._structured_error_emitted:
+                raise click.exceptions.Exit(1)
 
     @staticmethod
     def select(text: str, options: dict[str, str], default: Optional[str] = None) -> str:
@@ -431,97 +433,79 @@ class Command:
     def confirm(text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
-    def _handle_default_output(self, entry: OutputBufferEntry, stream_mode=False) -> None:
-        if self.output_format == "plain":
-            self._print_colored(entry.message, entry.severity, entry.new_line)
+    @staticmethod
+    def _payload_indicates_error(payload: dict) -> bool:
+        status = payload.get("status")
+        if isinstance(status, StdoutStatus):
+            return status == StdoutStatus.ERROR
+        if status is None:
+            return False
+        return str(status).lower() == StdoutStatus.ERROR.value
 
-    def _handle_machine_readable_output(
-        self,
-        entry: OutputBufferEntry,
-        stream_mode: bool = False,
-    ) -> None:
-        if self.output_format == "plain":
-            return
+    def _handle_output(self, output_object, severity, new_line):
+        if isinstance(output_object, dict):
+            payload = output_object
+            message = payload.get("message", str(payload))
+        else:
+            payload = dict(output_object)
+            message = output_object.message
 
-        if stream_mode:
-            if self.output_format == "json":
-                click.echo(json.dumps(entry.message), nl=True)
-                sys.stdout.flush()
-            elif self.output_format == "yaml":
-                click.echo(
-                    yaml.dump(entry.message, sort_keys=False),
-                    nl=True,
-                )
-                sys.stdout.flush()
-            return
-        self._output_buffer.append(entry)
+        if self._payload_indicates_error(payload):
+            self._structured_error_emitted = True
+
+        if self.output_format == "plain":
+            self._print_colored(message, severity, new_line)
+
+        elif self.output_format == "json":
+            click.echo(json.dumps(payload), nl=True)
+            sys.stdout.flush()
+
+        elif self.output_format == "yaml":
+            click.echo(yaml.dump(payload, sort_keys=False), nl=False)
+            sys.stdout.flush()
+
+    def log(self, message: str, severity: StdoutSeverity = StdoutSeverity.INFO) -> None:
+        self._print_colored(message, severity, new_line=True, err=True)
 
     def stdout(
         self,
-        content: Any,
-        stdout_type: StdoutType = StdoutType.DEFAULT,
+        content: Union[str, ServiceResponse, dict],
         severity: StdoutSeverity = StdoutSeverity.INFO,
         new_line: bool = True,
-        stream_mode: bool = False,
     ) -> None:
-        entry = OutputBufferEntry(
-            message=content,
-            stdout_type=stdout_type,
-            severity=severity,
-            new_line=new_line,
-        )
+        if isinstance(content, str):
+            if self.output_format == "plain":
+                self._print_colored(content, severity, new_line)
+            return
 
-        handlers: Dict[StdoutType, Callable[[OutputBufferEntry, bool], None]] = {
-            StdoutType.DEFAULT: self._handle_default_output,
-            StdoutType.MACHINE_READABLE: self._handle_machine_readable_output,
-        }
+        self._handle_output(content, severity, new_line)
 
-        handler = handlers.get(stdout_type, self._handle_default_output)
-        handler(entry, stream_mode)
+    def flush_stdout(self):
+        pass
 
     def run(self, *args, **kwargs):
         raise NotImplementedError(
             f"The 'run' method from the command '{self.name}' should be implemented."
         )
 
-    def _flush_default_output(self):
-        for entry in self._output_buffer:
-            if entry.stdout_type == StdoutType.DEFAULT:
-                self._print_colored(entry.message, entry.severity)
-
-    def flush_stdout(self):
-        if self.output_format == "plain":
-            self._flush_default_output()
-        elif self.output_format in {"json", "yaml"}:
-            self._flush_machine_readable_output()
-        self._output_buffer.clear()
-
-    def _flush_machine_readable_output(self):
-        results = [
-            entry.message
-            for entry in self._output_buffer
-            if entry.stdout_type == StdoutType.MACHINE_READABLE
-        ]
-        if not results:
-            return
-
-        if self.output_format == "json":
-            click.echo(json.dumps(results, indent=2))
-        elif self.output_format == "yaml":
-            click.echo(yaml.dump(results, sort_keys=False))
-
-    def _print_colored(self, text: str, severity: StdoutSeverity, new_line: bool = True) -> None:
+    def _print_colored(
+        self,
+        text: str,
+        severity: StdoutSeverity,
+        new_line: bool = True,
+        *,
+        err: bool = False,
+    ) -> None:
         fg_map = {
             StdoutSeverity.SUCCESS: "green",
             StdoutSeverity.ERROR: "red",
             StdoutSeverity.WARNING: "yellow",
-            StdoutSeverity.INFO: None,
         }
         fg = fg_map.get(severity)
         if fg:
-            click.secho(text, fg=fg, nl=new_line)
+            click.secho(text, fg=fg, nl=new_line, err=err)
         else:
-            click.echo(text, nl=new_line)
+            click.echo(text, nl=new_line, err=err)
 
 
 class CommandGroup(Command):

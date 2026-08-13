@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, Settings, StdoutSeverity
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
 )
@@ -9,6 +9,8 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.exceptions import PortBindingError
+from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
 
 from .attention_broker_docs import (
     HELP_ATTENTION_BROKER,
@@ -20,7 +22,8 @@ from .attention_broker_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .attention_broker_service_response import AttentionBrokerServiceResponse
+
+CLI_SERVICE_NAME = "attention_broker"
 
 
 class AttentionBrokerStop(Command):
@@ -44,47 +47,40 @@ class AttentionBrokerStop(Command):
         return self._attention_broker_manager.get_container()
 
     def _attention_broker(self):
+        self.log("Stopping Attention Broker service...", severity=StdoutSeverity.INFO)
+
         try:
-            self.stdout("Stopping Attention Broker service...")
             self._attention_broker_manager.stop()
+            exec_message = "Attention Broker service stopped"
 
-            success_message = "Attention Broker service stopped"
-
-            self.stdout(
-                success_message,
-                severity=StdoutSeverity.SUCCESS,
-            )
             self.stdout(
                 dict(
-                    AttentionBrokerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="success",
-                        message=success_message,
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerNotFoundError:
             container_name = self._attention_broker_manager.get_container().name
-            warning_message = (
-                f"The Attention Broker service named {container_name} is already stopped."
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Attention Broker service named {container_name} is already stopped."
+
             self.stdout(
                 dict(
-                    AttentionBrokerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
+                        status=StdoutStatus.INFO,
+                        message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -113,52 +109,54 @@ class AttentionBrokerStart(Command):
         return self._attention_broker_container_manager.get_container()
 
     def _attention_broker(self) -> None:
-        self.stdout("Starting Attention Broker service...")
-
         container = self._attention_broker_container_manager.get_container()
         port = container.port
 
+        self.log("Starting Attention Broker service...", severity=StdoutSeverity.INFO)
+
         try:
             self._attention_broker_container_manager.start_container()
-
-            success_message = f"Attention Broker started on port {port}"
+            message = f"Attention Broker started on port {port}"
 
             self.stdout(
-                success_message,
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="start",
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
+                        container=container,
+                    ),
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
-            self.stdout(
-                dict(
-                    AttentionBrokerServiceResponse(
-                        action="start",
-                        status="success",
-                        message=success_message,
-                        container=container,
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
+
         except DockerContainerDuplicateError:
-            warning_message = f"Attention Broker is already running. It's listening on port {port}"
+            message = f"Attention Broker is already running. It's listening on port {port}"
 
             self.stdout(
-                warning_message,
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=container,
+                ),
                 severity=StdoutSeverity.WARNING,
             )
+
+        except (DockerError, PortBindingError) as e:
             self.stdout(
-                dict(
-                    AttentionBrokerServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=container,
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message=CONTAINER_START_FAILURE_MESSAGE,
+                    error=e,
+                    container=container,
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.ERROR,
             )
-        except DockerError as e:
-            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     def run(self):
         self._settings.validate_configuration_file()
@@ -183,8 +181,8 @@ class AttentionBrokerRestart(Command):
         self._attention_broker_stop = attention_broker_stop
 
     def run(self):
-        self._attention_broker_stop.run()
-        self._attention_broker_start.run()
+        self.run_subcommand(self._attention_broker_stop)
+        self.run_subcommand(self._attention_broker_start)
 
 
 class AttentionBrokerCli(CommandGroup):

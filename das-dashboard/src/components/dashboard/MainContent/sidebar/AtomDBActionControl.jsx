@@ -8,7 +8,7 @@ import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
 import { getConfigDefaults } from "../../../../api/ConfigAPI";
-import { extractErrorDetails } from "../../../../api/APIUtils";
+import { extractApiError } from "../../../../api/APIUtils";
 
 const LOADING_KEYS = ["start-database", "stop-database"];
 
@@ -53,7 +53,8 @@ export function AtomDBActionControl({
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);
-      showToast({ message: errorMessage, severity: "error", details: extractErrorDetails(err) });
+      const { message, details, severity } = extractApiError(err, errorMessage);
+      showToast({ message, severity, details });
     } finally {
       setBusy(null);
     }

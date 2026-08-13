@@ -98,7 +98,12 @@ async def get_execution_stream(websocket: WebSocket, execution_id: str):
     except WebSocketDisconnect:
         pass
     except CommandRouterConnectionError as error:
-        await _safe_send_error(websocket, execution_id, error.message)
+        await _safe_send_error(
+            websocket,
+            execution_id,
+            error.message,
+            details=getattr(error, "detail", None),
+        )
     except json.JSONDecodeError:
         await _safe_send_error(
             websocket,
@@ -107,11 +112,22 @@ async def get_execution_stream(websocket: WebSocket, execution_id: str):
         )
 
 
-async def _safe_send_error(websocket: WebSocket, execution_id: str, message: str) -> None:
+async def _safe_send_error(
+    websocket: WebSocket,
+    execution_id: str,
+    message: str,
+    *,
+    details: str | None = None,
+) -> None:
     try:
-        await websocket.send_json(
-            {"execution_id": execution_id, "status": "error", "message": message}
-        )
+        payload = {
+            "execution_id": execution_id,
+            "status": "error",
+            "message": message,
+        }
+        if details:
+            payload["details"] = details
+        await websocket.send_json(payload)
     except (WebSocketDisconnect, RuntimeError):
         pass
 

@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
 from common.docker.exceptions import (
@@ -8,8 +8,10 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.exceptions import PortBindingError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.prompt_types import PortRangeType
+from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
 
 from .atomdb_broker_docs import (
     HELP_ATOMDB_BROKER,
@@ -21,7 +23,8 @@ from .atomdb_broker_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
-from .atomdb_broker_service_response import AtomDbBrokerServiceReponse
+
+CLI_SERVICE_NAME = "atomdb_broker"
 
 
 class AtomDbBrokerStart(Command):
@@ -59,46 +62,51 @@ class AtomDbBrokerStart(Command):
         container = self._get_container()
         port = container.port
 
-        self.stdout("Starting AtomDB Broker service...")
+        self.log("Starting AtomDB Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._atomdb_broker_bus_manager.start_container(port_range, **kwargs)
             message = f"AtomDB Broker started on port {port}"
 
-            self.stdout(message, severity=StdoutSeverity.SUCCESS)
-
             self.stdout(
                 dict(
-                    AtomDbBrokerServiceReponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="start",
-                        status="success",
+                        status=StdoutStatus.SUCCESS,
                         message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.SUCCESS,
             )
 
         except DockerContainerDuplicateError:
             message = f"AtomDB Broker is already running. It's listening on port {port}"
 
-            self.stdout(message, severity=StdoutSeverity.WARNING)
-
             self.stdout(
-                dict(
-                    AtomDbBrokerServiceReponse(
-                        action="start",
-                        status="already_running",
-                        message=message,
-                        container=self._get_container(),
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=self._get_container(),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.WARNING,
             )
 
-        except DockerError as e:
-            error_message = f"Error occurred while trying to start Attention Broker on port {port}"
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
+        except (DockerError, PortBindingError) as error:
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message=CONTAINER_START_FAILURE_MESSAGE,
+                    error=error,
+                    container=self._get_container(),
+                ),
+                severity=StdoutSeverity.ERROR,
+            )
 
     @ensure_container_running(
         [
@@ -132,42 +140,40 @@ class AtomDbBrokerStop(Command):
     def _stop_container(self):
         container = self._get_container()
 
-        self.stdout("Stopping AtomDB Broker service...")
+        self.log("Stopping AtomDB Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._atomdb_broker_bus_manager.stop()
             exec_message = "AtomDB Broker service stopped"
 
-            self.stdout(exec_message, severity=StdoutSeverity.SUCCESS)
-
             self.stdout(
                 dict(
-                    AtomDbBrokerServiceReponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
+                        status=StdoutStatus.SUCCESS,
                         message=exec_message,
                         container=container,
-                    )
+                    ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.SUCCESS,
             )
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
 
             message = f"The AtomDB Broker service named {container_name} is already stopped."
 
-            self.stdout(message, severity=StdoutSeverity.WARNING)
-
             self.stdout(
                 dict(
-                    AtomDbBrokerServiceReponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
+                        status=StdoutStatus.INFO,
                         message=message,
                         container=self._get_container(),
-                    )
+                    ),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.WARNING,
             )
 
     def run(self):
@@ -187,9 +193,9 @@ class AtomDbBrokerRestart(Command):
         ),
     ]
 
-    short_help = HELP_RESTART
+    short_help = SHORT_HELP_RESTART
 
-    help = SHORT_HELP_RESTART
+    help = HELP_RESTART
 
     @inject
     def __init__(
@@ -200,8 +206,8 @@ class AtomDbBrokerRestart(Command):
         super().__init__()
 
     def run(self, port_range, **kwargs):
-        self._atomdb_broker_stop.run()
-        self._atomdb_broker_start.run(port_range, **kwargs)
+        self.run_subcommand(self._atomdb_broker_stop)
+        self.run_subcommand(self._atomdb_broker_start, port_range, **kwargs)
 
 
 class AtomDbBrokerCli(CommandGroup):

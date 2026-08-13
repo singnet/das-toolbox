@@ -1,6 +1,30 @@
+export function extractErrorMessage(err, fallback = "An unexpected error occurred.") {
+  if (!err) {
+    return fallback;
+  }
+
+  if (err.response) {
+    const data = err.response.data;
+
+    if (typeof data === "string") {
+      return fallback;
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+  }
+
+  if (err.message) {
+    return err.message;
+  }
+
+  return fallback;
+}
+
 export function extractErrorDetails(err) {
   if (!err) {
-    return "Unknown error.";
+    return null;
   }
 
   if (err.response) {
@@ -10,19 +34,15 @@ export function extractErrorDetails(err) {
       return data;
     }
 
+    if (data?.exceptionMessage) {
+      return data.exceptionMessage;
+    }
+
     if (data?.detail) {
       return typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
     }
 
-    if (data?.exceptionMessage) {
-      return `${data.message} Details: ${data.exceptionMessage}`;
-    }
-
-    if (data?.message) {
-      return data.message;
-    }
-
-    return JSON.stringify(data, null, 2);
+    return null;
   }
 
   if (err.request) {
@@ -33,5 +53,13 @@ export function extractErrorDetails(err) {
     return err.message;
   }
 
-  return "Unexpected error.";
+  return null;
+}
+
+export function extractApiError(err, fallbackMessage = "An unexpected error occurred.") {
+  return {
+    message: extractErrorMessage(err, fallbackMessage),
+    details: extractErrorDetails(err),
+    severity: "error",
+  };
 }

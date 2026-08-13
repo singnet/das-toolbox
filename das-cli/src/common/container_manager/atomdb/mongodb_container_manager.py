@@ -35,10 +35,12 @@ class MongodbContainerManager(ContainerManager):
         self._options = options
 
     def _upload_key_to_server(self, cluster_node, mongodb_cluster_secret_key):
+        host = cluster_node.get("host") or cluster_node.get("ip")
+        username = cluster_node["username"]
         keyfile_server_path = f"/tmp/{get_rand_token(num_bytes=5)}.txt"
 
         try:
-            with ssh.open(cluster_node["host"], cluster_node["username"]) as (
+            with ssh.open(host, username) as (
                 ssh_conn,
                 sftp_conn,
             ):
@@ -55,7 +57,7 @@ class MongodbContainerManager(ContainerManager):
 
         except Exception as e:
             raise RuntimeError(
-                f"Failed to upload key to server at {cluster_node['host']} (username: {cluster_node['username']}): {e}"
+                f"Failed to upload key to server at {host} (username: {username}): {e}"
             )
 
     def _get_cluster_node_config(self, cluster_node, mongodb_cluster_secret_key):

@@ -43,12 +43,13 @@ def stop_orchestration(services: list[str]):
     )
 
 @router.post("/atomdb/start")
-def start_databases():
+def start_databases(host: str | None = None):
 
     result = CONTAINER_SERVICES.manage_container(
         container_name=None,
         command="db",
         action=ActionTypes.START,
+        host=host,
     )
 
 
@@ -61,12 +62,13 @@ def start_databases():
     )
 
 @router.post("/atomdb/stop")
-def stop_databases():
+def stop_databases(host: str | None = None):
 
     result = CONTAINER_SERVICES.manage_container(
         container_name=None,
         command="db",
         action=ActionTypes.STOP,
+        host=host,
     )
 
     return JSONResponse(

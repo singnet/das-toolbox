@@ -9,6 +9,12 @@ from shared.exceptions.custom_exceptions import (
     DasCliNotInstalledException,
     DasCliCommandException
 )
+from shared.utils.das_cli_response import (
+    DEFAULT_CLI_ERROR_MESSAGE,
+    clean_cli_output,
+    parse_das_cli_stdout,
+    raise_from_cli_output,
+)
 
 
 class MetricsServices:
@@ -72,25 +78,26 @@ class MetricsServices:
         process = await self._run_async_process(host, stream=False)
         stdout, _ = await process.communicate()
         stdout_str = stdout.decode().strip()
-        cleaned_stdout = self.ansi_escape.sub("", stdout_str)
+        cleaned_stdout = clean_cli_output(stdout_str)
 
         if process.returncode and process.returncode != 0:
-            try:
-                parsed_err = json.loads(cleaned_stdout)
-                if isinstance(parsed_err, list) and parsed_err:
-                    cleaned_stdout = parsed_err[0]
-            except Exception:
-                pass
-            raise DasCliCommandException(cleaned_stdout or "Unknown Remote Connection Error")
+            raise_from_cli_output(
+                cleaned_stdout,
+                default_message="Failed to load server metrics.",
+                exit_code=process.returncode,
+            )
 
         try:
-            parsed_json = json.loads(cleaned_stdout)
+            parsed_json = parse_das_cli_stdout(cleaned_stdout)
             if isinstance(parsed_json, list) and parsed_json and isinstance(parsed_json[0], str):
-                raise DasCliCommandException(parsed_json[0])
+                raise DasCliCommandException(
+                    message=DEFAULT_CLI_ERROR_MESSAGE,
+                    detail=parsed_json[0],
+                )
         except json.JSONDecodeError:
             if "\n" in cleaned_stdout:
                 cleaned_stdout = cleaned_stdout.split("\n")[-1]
-            parsed_json = json.loads(cleaned_stdout)
+            parsed_json = parse_das_cli_stdout(cleaned_stdout)
 
         return self._define_response_scope(metric_scope, parsed_json, host)
 

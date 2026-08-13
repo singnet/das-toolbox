@@ -2,3 +2,4 @@ export FILE_NOT_FOUND_ERROR="[FileNotFoundError] Configuration file not found at
 export VALUE_ERROR_MSG="[ValueError] Your configuration file doesn't have all the entries this version of das-cli requires. You can call 'das-cli config set' and hit <ENTER> to every prompt in order to re-use the configuration you currently have in your config file and set the new ones to safe default values."
 export DOCKER_CONTAINER_MISSING="[DockerContainerNotFoundError]"
 export PORT_IN_USE_ERROR="[PortBindingError] Port on localhost are already in use."
+export CONTAINER_START_FAILURE_MESSAGE="DAS-CLI failed to instantiate a container of this service."

@@ -24,7 +24,7 @@ import { useState, useRef } from "react"
 
 import { loadConfig, saveConfig } from "../../api/ConfigAPI"
 import { getInitialState } from "../../api/DashboardAPI"
-import { extractErrorDetails } from "../../api/APIUtils"
+import { extractApiError } from "../../api/APIUtils"
 import { useToast } from "../../components/global_providers/ToastProvider"
 
 import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
@@ -103,10 +103,14 @@ export default function SetupDasPage() {
         await refreshDashboardState()
       } catch (refreshError) {
         console.error("Failed to refresh dashboard state after save:", refreshError)
+        const { message, details } = extractApiError(
+          refreshError,
+          "Configuration saved, but dashboard state could not be refreshed."
+        )
         showToast({
-          message: "Configuration saved, but dashboard state could not be refreshed.",
+          message,
           severity: "warning",
-          details: extractErrorDetails(refreshError)
+          details
         })
       }
 
@@ -122,11 +126,8 @@ export default function SetupDasPage() {
 
     } catch (error) {
       console.error(error)
-      showToast({
-        message: "Failed to save configuration",
-        severity: "error",
-        details: extractErrorDetails(error)
-      })
+      const { message, details, severity } = extractApiError(error, "Failed to save configuration")
+      showToast({ message, severity, details })
     }
 
     // Sets back to normal after action is completed.
@@ -179,21 +180,22 @@ export default function SetupDasPage() {
         await refreshDashboardState()
       } catch (refreshError) {
         console.error("Failed to refresh dashboard state after load:", refreshError)
+        const { message, details } = extractApiError(
+          refreshError,
+          "Configuration loaded, but dashboard state could not be refreshed."
+        )
         showToast({
-          message: "Configuration loaded, but dashboard state could not be refreshed.",
+          message,
           severity: "warning",
-          details: extractErrorDetails(refreshError)
+          details
         })
       }
 
       showToast({ message: "Configuration loaded successfully", severity: "success" })
     } catch (error) {
       console.error(error)
-      showToast({
-        message: "Failed to load configuration",
-        severity: "error",
-        details: extractErrorDetails(error)
-      })
+      const { message, details, severity } = extractApiError(error, "Failed to load configuration")
+      showToast({ message, severity, details })
     } finally {
       setDisableActions(false)
       document.body.style.cursor = "default"
@@ -216,11 +218,8 @@ export default function SetupDasPage() {
       await saveFile(savedConfigContent)
     } catch (error) {
       console.error(error)
-      showToast({
-        message: "Failed to save local copy",
-        severity: "error",
-        details: extractErrorDetails(error)
-      })
+      const { message, details, severity } = extractApiError(error, "Failed to save local copy")
+      showToast({ message, severity, details })
     } finally {
       closeSaveCopyDialog()
     }
@@ -413,11 +412,8 @@ export default function SetupDasPage() {
                 showToast({ message: "Configuration reset", severity: "success" })
               } catch (error) {
                 console.error(error)
-                showToast({
-                  message: "Failed to reset configuration",
-                  severity: "error",
-                  details: extractErrorDetails(error)
-                })
+                const { message, details, severity } = extractApiError(error, "Failed to reset configuration")
+                showToast({ message, severity, details })
               }
             }}
           >

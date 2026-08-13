@@ -1,12 +1,38 @@
 class DasCliCommandException(Exception):
+    DEFAULT_MESSAGE = "There was an error while running das-cli."
 
-    def __init__(self, stderror: str):
-        self.message = "There was an error while running das-cli."
-        self.stderror = stderror
-        super().__init__(stderror)
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        detail: str | None = None,
+        stderror: str | None = None,
+    ):
+        if stderror is not None:
+            resolved_message = (message or "").strip() or self.DEFAULT_MESSAGE
+            resolved_detail = (detail or stderror).strip()
+        elif message is not None and detail is not None:
+            resolved_message = message.strip() or self.DEFAULT_MESSAGE
+            resolved_detail = detail.strip()
+        elif detail is not None:
+            resolved_message = self.DEFAULT_MESSAGE
+            resolved_detail = detail.strip()
+        elif message is not None:
+            resolved_message = message.strip() or self.DEFAULT_MESSAGE
+            resolved_detail = ""
+        else:
+            resolved_message = self.DEFAULT_MESSAGE
+            resolved_detail = ""
+
+        self.message = resolved_message
+        self.detail = resolved_detail
+        self.stderror = resolved_detail or resolved_message
+        super().__init__(self.detail or self.message)
 
     def __str__(self) -> str:
-        return self.stderror
+        if self.detail and self.detail != self.message:
+            return f"{self.message}\n{self.detail}"
+        return self.message
 
 class DasCliNotInstalledException(Exception):
 
@@ -96,19 +122,6 @@ class DASServiceInstantiationError(Exception):
     def __init__(self):
         self.message = "There was an error while trying to resolve this service. Command cannot be executed."
 
-class DASCLIResponseDecodeError(Exception):
-
-    def __init__(self, detail: str = ""):
-        self.message = (
-            "DAS-CLI returned a message in a format the server could not read. "
-            "Try running the command manually to check the results."
-        )
-        self.detail = detail
-        super().__init__(self.detail or self.message)
-
-    def __str__(self) -> str:
-        return self.detail or self.message
-
 class ConfigurationFileLoadError(Exception):
 
     def __init__(self, detail: str = ""):
@@ -143,12 +156,23 @@ class ConfigurationValueNotFoundError(Exception):
         return self.message
 
 class CommandRouterConnectionError(Exception):
+    MESSAGE = (
+        "Could not reach the Command Router. "
+        "Check that the Command Router is running in your architecture "
+        "(start it from the Dashboard under Architecture or Services)."
+    )
+    HINT = (
+        "If it should already be running, verify the configured host and that port 40009 is reachable."
+    )
 
     def __init__(self, endpoint: str, detail: str = ""):
         self.endpoint = endpoint
-        self.message = f"Could not reach the Command Router HTTP API at {endpoint}."
-        self.detail = detail
-        super().__init__(self.detail or self.message)
+        self.technical_detail = (detail or "").strip()
+        self.message = self.MESSAGE
+        self.detail = self.HINT
+        super().__init__(self.message)
 
     def __str__(self) -> str:
-        return self.detail or self.message
+        if self.technical_detail:
+            return f"{self.message}\n{self.technical_detail}"
+        return self.message

@@ -34,7 +34,9 @@ setup() {
 
     run das-cli metta check "$metta_file_path"
 
+    assert_failure 1
     assert_line --partial "Checking syntax... FAILED"
+    assert_output --partial "MeTTa syntax check failed"
 }
 
 @test "Checking syntax of multiple MeTTa files" {
@@ -42,9 +44,11 @@ setup() {
 
     run das-cli metta check "$metta_file_path"
 
+    assert_failure 1
     assert_line --partial "$metta_file_path"
     assert_line --partial "Checking syntax... OK"
     assert_line --partial "Checking syntax... FAILED"
+    assert_output --partial "MeTTa syntax check failed"
 }
 
 @test "Checking MeTTa file with invalid path" {
@@ -79,9 +83,11 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
+    assert_failure 1
     assert_line --partial "Loading metta file"
     assert_line --partial "$metta_file_path"
-    assert_line --partial "contains invalid MeTTa syntax."
+    assert_output --partial "MeTTa load failed"
+    assert_output --partial "contains invalid MeTTa syntax."
 }
 
 @test "Loading a valid MeTTa file" {
@@ -102,11 +108,12 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
+    assert_failure 1
     assert_line --partial "Loading metta file"
     assert_line --partial "animals.metta"
     assert_line --partial "invalid.metta"
-    assert_line --partial "Failed loading file."
-    assert_line --partial "The file contains invalid MeTTa syntax."
+    assert_output --partial "MeTTa load failed"
+    assert_output --partial "contains invalid MeTTa syntax."
 }
 
 @test "Trying to load a MeTTa file with an invalid path" {
@@ -126,6 +133,7 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
+    assert_failure 1
     assert_line --partial "is not running on port"
     assert_line --partial "Please use 'db start'"
 }
@@ -137,6 +145,7 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
+    assert_failure 1
     assert_line --partial "does not have correct permissions."
 
     chmod +r "$metta_file_path"

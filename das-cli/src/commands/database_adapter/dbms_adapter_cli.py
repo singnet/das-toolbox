@@ -12,6 +12,7 @@ from common.container_manager.dbms.database_adapter_container_manager import (
 from common.decorators import ensure_container_running
 from common.docker.exceptions import DockerContainerNotFoundError
 from common.factory.atomdb.atomdb_backend import AtomdbBackend
+from common.service_response import ServiceResponse, StdoutStatus
 
 from .database_adapter_docs import (
     HELP_DATABASE_ADAPTER,
@@ -50,18 +51,37 @@ class DatabaseAdapterRun(Command):
     def run(self):
         self._settings.validate_configuration_file()
 
-        self.stdout("Starting Database Adapter...")
+        self.log("Starting Database Adapter...", severity=StdoutSeverity.INFO)
 
         try:
             self._database_adapter_container_manager.start_container()
 
             self.stdout(
-                "Database Adapter started successfully.",
+                dict(
+                    ServiceResponse(
+                        service="database-adapter",
+                        action="run",
+                        status=StdoutStatus.SUCCESS,
+                        message="Database Adapter started successfully.",
+                    )
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to start Database Adapter.\n" f"Original error: {e}")
+        except Exception as error:
+            self.stdout(
+                dict(
+                    ServiceResponse(
+                        service="database-adapter",
+                        action="run",
+                        status=StdoutStatus.ERROR,
+                        message="Failed to start Database Adapter.",
+                        error=str(error),
+                    )
+                ),
+                severity=StdoutSeverity.ERROR,
+            )
+            raise
 
 
 class DatabaseAdapterStop(Command):
@@ -84,13 +104,20 @@ class DatabaseAdapterStop(Command):
     def run(self):
         self._settings.validate_configuration_file()
 
-        self.stdout("Stopping Database Adapter...")
+        self.log("Stopping Database Adapter...", severity=StdoutSeverity.INFO)
 
         try:
             self._database_adapter_container_manager.stop()
 
             self.stdout(
-                "Database Adapter stopped successfully.",
+                dict(
+                    ServiceResponse(
+                        service="database-adapter",
+                        action="stop",
+                        status=StdoutStatus.SUCCESS,
+                        message="Database Adapter stopped successfully.",
+                    )
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
 
@@ -98,7 +125,17 @@ class DatabaseAdapterStop(Command):
             container_name = self._database_adapter_container_manager.get_container().name
 
             self.stdout(
-                f"The Database Adapter service named {container_name} is already stopped.",
+                dict(
+                    ServiceResponse(
+                        service="database-adapter",
+                        action="stop",
+                        status=StdoutStatus.INFO,
+                        message=(
+                            f"The Database Adapter service named {container_name} "
+                            "is already stopped."
+                        ),
+                    )
+                ),
                 severity=StdoutSeverity.WARNING,
             )
 

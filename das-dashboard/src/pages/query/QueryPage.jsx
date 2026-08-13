@@ -11,6 +11,7 @@ import {
   QueryExecutionProvider,
   useQueryExecutionContext
 } from "../../components/global_providers/QueryExecutionProvider";
+import { ApiErrorNotice } from "../../components/common/ApiErrorNotice";
 import { useQueryParameters } from "../../hooks/useQueryParameters";
 import {
   PageContainer,
@@ -36,8 +37,7 @@ import {
   SideBarSubtitle,
   SideBarTitle,
   SideBarTitleHeader,
-  StopButton,
-  QueryStreamError
+  StopButton
 } from "./querypage.styled";
 
 function QueryPageContent() {
@@ -155,7 +155,7 @@ function QueryPageContent() {
           />
 
           {streamError ? (
-            <QueryStreamError>{streamError}</QueryStreamError>
+            <ApiErrorNotice error={streamError} sx={{ borderRadius: 2 }} />
           ) : null}
 
           <ResultsSection>

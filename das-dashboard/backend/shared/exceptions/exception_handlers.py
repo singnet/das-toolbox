@@ -7,7 +7,6 @@ from .custom_exceptions import (
     FileSaveException,
     FileAlreadyExistsException,
     DASServiceInstantiationError,
-    DASCLIResponseDecodeError,
     RemoteSshConnectionError,
     RemoteSshTransferError,
     CustomValueError,
@@ -45,12 +44,15 @@ class AppExceptionHandlers:
         request: Request,
         exc: DasCliCommandException
     ):
+        content = {
+            "message": exc.message or DasCliCommandException.DEFAULT_MESSAGE,
+        }
+        if exc.detail:
+            content["exceptionMessage"] = exc.detail
+
         return JSONResponse(
             status_code=500,
-            content={
-                "message": exc.stderror or "There was an error running this DAS CLI command.",
-                "exceptionMessage": exc.stderror
-            }
+            content=content,
         )
 
     async def handle_das_cli_not_installed_error(
@@ -130,7 +132,7 @@ class AppExceptionHandlers:
         request: Request,
         exc: CommandRouterConnectionError,
     ):
-        content = {"message": exc.message, "endpoint": exc.endpoint}
+        content = {"message": exc.message}
         if exc.detail:
             content["exceptionMessage"] = exc.detail
 
@@ -153,19 +155,6 @@ class AppExceptionHandlers:
             status_code=500,
             content={
                 "message": error_message
-            }
-        )
-    
-    async def das_cli_decode_error(
-        self,
-        request: Request,
-        exc: DASCLIResponseDecodeError
-    ):
-        
-        return JSONResponse(
-            status_code=500,
-            content={
-                "message": exc.message
             }
         )
     

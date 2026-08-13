@@ -1,6 +1,6 @@
 from injector import inject
 
-from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity, StdoutType
+from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.generic_agent_containers import QueryAgentContainerManager
 from common.container_manager.busnode_container_manager import BusNodeContainerManager
 from common.decorators import ensure_container_running
@@ -9,9 +9,10 @@ from common.docker.exceptions import (
     DockerContainerNotFoundError,
     DockerError,
 )
+from common.exceptions import PortBindingError
 from common.prompt_types import PortRangeType
+from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
 
-from .context_broker_container_service_response import ContextBrokerContainerServiceResponse
 from .context_broker_docs import (
     HELP_CONTEXT_BROKER,
     HELP_RESTART,
@@ -22,6 +23,8 @@ from .context_broker_docs import (
     SHORT_HELP_START,
     SHORT_HELP_STOP,
 )
+
+CLI_SERVICE_NAME = "context_broker"
 
 
 class ContextBrokerStop(Command):
@@ -43,45 +46,39 @@ class ContextBrokerStop(Command):
         return self._context_broker_bus_node_manager.get_container()
 
     def _context_broker(self):
-        try:
-            self.stdout("Stopping Context Broker service...")
-            self._context_broker_bus_node_manager.stop()
+        self.log("Stopping Context Broker service...", severity=StdoutSeverity.INFO)
 
-            success_message = "Context Broker service stopped"
+        try:
+            self._context_broker_bus_node_manager.stop()
+            exec_message = "Context Broker service stopped"
+
             self.stdout(
-                success_message,
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="stop",
+                        status=StdoutStatus.SUCCESS,
+                        message=exec_message,
+                        container=self._get_container(),
+                    )
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
-            self.stdout(
-                dict(
-                    ContextBrokerContainerServiceResponse(
-                        action="stop",
-                        status="success",
-                        message=success_message,
-                        container=self._get_container(),
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
+
         except DockerContainerNotFoundError:
             container_name = self._get_container().name
-            warning_message = (
-                f"The Context Broker service named {container_name} is already stopped."
-            )
-            self.stdout(
-                warning_message,
-                severity=StdoutSeverity.WARNING,
-            )
+            message = f"The Context Broker service named {container_name} is already stopped."
+
             self.stdout(
                 dict(
-                    ContextBrokerContainerServiceResponse(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
                         action="stop",
-                        status="already_stopped",
-                        message=warning_message,
+                        status=StdoutStatus.INFO,
+                        message=message,
                         container=self._get_container(),
                     )
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
                 severity=StdoutSeverity.WARNING,
             )
 
@@ -122,56 +119,54 @@ class ContextBrokerStart(Command):
         return self._context_broker_bus_node_manager.get_container()
 
     def _context_broker(self, port_range: str) -> None:
-        self.stdout("Starting Context Broker service...")
-
         container = self._get_container()
-        context_broker_port = container.port
+        port = container.port
+
+        self.log("Starting Context Broker service...", severity=StdoutSeverity.INFO)
 
         try:
             self._context_broker_bus_node_manager.start_container(port_range)
+            message = f"Context Broker started on port {port}"
 
-            success_message = f"Context Broker started on port {context_broker_port}"
             self.stdout(
-                success_message,
+                dict(
+                    ServiceResponse(
+                        service=CLI_SERVICE_NAME,
+                        action="start",
+                        status=StdoutStatus.SUCCESS,
+                        message=message,
+                        container=self._get_container(),
+                    )
+                ),
                 severity=StdoutSeverity.SUCCESS,
             )
 
-            self.stdout(
-                dict(
-                    ContextBrokerContainerServiceResponse(
-                        action="start",
-                        status="success",
-                        message=success_message,
-                        container=self._get_container(),
-                    )
-                ),
-                stdout_type=StdoutType.MACHINE_READABLE,
-            )
         except DockerContainerDuplicateError:
-            warning_message = (
-                f"Context Broker is already running. It's listening on port {context_broker_port}"
-            )
+            message = f"Context Broker is already running. It's listening on port {port}"
 
             self.stdout(
-                warning_message,
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.INFO,
+                    message=message,
+                    container=self._get_container(),
+                ),
                 severity=StdoutSeverity.WARNING,
             )
 
+        except (DockerError, PortBindingError) as e:
             self.stdout(
-                dict(
-                    ContextBrokerContainerServiceResponse(
-                        action="start",
-                        status="already_running",
-                        message=warning_message,
-                        container=self._get_container(),
-                    )
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="start",
+                    status=StdoutStatus.ERROR,
+                    message=CONTAINER_START_FAILURE_MESSAGE,
+                    error=e,
+                    container=self._get_container(),
                 ),
-                stdout_type=StdoutType.MACHINE_READABLE,
+                severity=StdoutSeverity.ERROR,
             )
-
-        except DockerError as e:
-            error_message = f"Error occurred while trying to start Attention Broker on port {context_broker_port}"
-            raise DockerError(f"{error_message}\nOriginal error: {e}")
 
     @ensure_container_running(
         [
@@ -213,8 +208,8 @@ class ContextBrokerRestart(Command):
         self._context_broker_stop = context_broker_stop
 
     def run(self, port_range: str) -> None:
-        self._context_broker_stop.run()
-        self._context_broker_start.run(port_range)
+        self.run_subcommand(self._context_broker_stop)
+        self.run_subcommand(self._context_broker_start, port_range)
 
 
 class ContextBrokerCli(CommandGroup):

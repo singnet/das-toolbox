@@ -1,4 +1,5 @@
 import json
+import logging
 from collections.abc import AsyncIterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -16,6 +17,8 @@ from shared.utils.parse_query_answer import transform_stream_event
 
 VALID_COMMAND_TYPES = ("get", "set", "query")  # Evolution will be disconsidered for now.
 ROUTE_PREFIX = "/command-router"
+
+logger = logging.getLogger(__name__)
 
 class QueryServices:
 
@@ -41,8 +44,10 @@ class QueryServices:
                         query_db.save_answers_from_chunk(execution_id, payload)
                     yield payload
         except (WebSocketException, RequestException) as error:
+            self._log_command_router_failure(websocket_url, error)
             raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
         except OSError as error:
+            self._log_command_router_failure(websocket_url, error)
             raise CommandRouterConnectionError(endpoint=websocket_url, detail=str(error)) from error
 
     def get_query_status(self, execution_id: str) -> Response:
@@ -149,7 +154,15 @@ class QueryServices:
         try:
             return requests.request(method, url, timeout=5, **request_kwargs)
         except RequestException as error:
+            self._log_command_router_failure(url, error)
             raise CommandRouterConnectionError(endpoint=url, detail=str(error)) from error
+
+    def _log_command_router_failure(self, endpoint: str, error: Exception) -> None:
+        logger.warning(
+            "Command Router connection failed: endpoint=%s error=%s",
+            endpoint,
+            error,
+        )
 
     def _find_command_router_http_url(self) -> str:
         HTTP_PROXY_PORT = 40009

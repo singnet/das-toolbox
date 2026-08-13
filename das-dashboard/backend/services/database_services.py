@@ -1,6 +1,4 @@
-import json
 import os
-import subprocess
 from fastapi import UploadFile
 from scp import SCPClient, SCPException
 
@@ -13,11 +11,11 @@ from shared.internal.constants import (
 )
 from shared.exceptions.custom_exceptions import (
     FileAlreadyExistsException,
-    DasCliCommandException,
     RemoteSshTransferError,
 )
 from shared.utils.remote_scp import RemoteScpService
 from shared.utils.upload_utils import safe_upload_filename
+from shared.utils.das_cli_response import run_das_cli_json_command
 
 
 class DatabaseServices:
@@ -91,24 +89,7 @@ class DatabaseServices:
 
         cmd.extend(["-o", "json"])
 
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-
-            stdout_content = result.stdout
-            try:
-                stdout_content = json.loads(result.stdout)
-            except Exception:
-                stdout_content = result.stdout.replace("\n", "").strip()
-
-            return stdout_content
-
-        except subprocess.CalledProcessError as e:
-            error_output = (e.stderr or e.stdout or "Unknown Subprocess Error").strip()
-            raise DasCliCommandException(error_output)
-        except Exception as e:
-            raise DasCliCommandException(str(e))
+        return run_das_cli_json_command(
+            cmd,
+            default_message="The das-cli metta load command failed.",
+        )

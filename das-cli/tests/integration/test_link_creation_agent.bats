@@ -83,9 +83,9 @@ teardown() {
     run das-cli link-creation-agent start \
         --port-range 12300:12400
 
-    assert_output --partial "[PortBindingError]"
-    assert_output --partial "already in use"
-    assert_output --partial "${link_creation_agent_port}"
+    assert_failure 1
+    assert_output --partial "Starting Link Creation Agent service"
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
     run stop_listen_port "${link_creation_agent_port}"
     assert_success
