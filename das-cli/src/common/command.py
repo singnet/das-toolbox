@@ -15,7 +15,7 @@ from common import Choice
 from common.exceptions import InvalidRemoteConfiguration
 from common.execution_context import ExecutionContext, SSHParams
 from common.prompt_types import ValidUsername
-from common.service_response import ServiceResponse
+from common.service_response import ServiceResponse, StdoutStatus
 from common.utils import log_exception
 from settings.config import SECRETS_PATH
 
@@ -149,6 +149,7 @@ class Command:
 
     def __init__(self) -> None:
         self._execution_context: Optional[ExecutionContext] = None
+        self._structured_error_emitted = False
         self.command = click.Command(
             name=self.name,
             callback=self.safe_run,
@@ -356,6 +357,7 @@ class Command:
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
+        self._structured_error_emitted = False
         for param in getattr(self, "exclude_params", []):
             setattr(self, f"_{param}", kwargs.pop(param, None))
 
@@ -371,6 +373,8 @@ class Command:
 
         if not remote:
             self.flush_stdout()
+            if self._structured_error_emitted:
+                raise click.exceptions.Exit(1)
 
     @staticmethod
     def select(text: str, options: dict[str, str], default: Optional[str] = None) -> str:
@@ -422,6 +426,15 @@ class Command:
     def confirm(text: str, **kwarg):
         return click.confirm(text=text, **kwarg)
 
+    @staticmethod
+    def _payload_indicates_error(payload: dict) -> bool:
+        status = payload.get("status")
+        if isinstance(status, StdoutStatus):
+            return status == StdoutStatus.ERROR
+        if status is None:
+            return False
+        return str(status).lower() == StdoutStatus.ERROR.value
+
     def _handle_output(self, output_object, severity, new_line):
         if isinstance(output_object, dict):
             payload = output_object
@@ -429,6 +442,9 @@ class Command:
         else:
             payload = dict(output_object)
             message = output_object.message
+
+        if self._payload_indicates_error(payload):
+            self._structured_error_emitted = True
 
         if self.output_format == "plain":
             self._print_colored(message, severity, new_line)

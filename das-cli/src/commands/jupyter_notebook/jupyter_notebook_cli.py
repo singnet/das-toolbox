@@ -1,7 +1,5 @@
 from injector import inject
 
-import click
-
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.jupyter_notebook_container_manager import (
     JupyterNotebookContainerManager,
@@ -120,7 +118,6 @@ class JupyterNotebookStart(Command):
                 ),
                 severity=StdoutSeverity.ERROR,
             )
-            raise click.exceptions.Exit(1)
 
 
 class JupyterNotebookStop(Command):

@@ -1,7 +1,5 @@
 from injector import inject
 
-import click
-
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.agents.attention_broker_container_manager import (
     AttentionBrokerManager,
@@ -177,7 +175,6 @@ class QueryAgentStart(Command):
                 ),
                 severity=StdoutSeverity.ERROR,
             )
-            raise click.exceptions.Exit(1)
 
     @ensure_container_running(
         [

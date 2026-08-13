@@ -1,5 +1,3 @@
-import click
-
 from common import Command, StdoutSeverity
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
 from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
@@ -60,7 +58,7 @@ class DbOperations:
                 ),
                 severity=StdoutSeverity.ERROR,
             )
-            raise click.exceptions.Exit(1)
+            return
 
         self.stdout(
             dict(
