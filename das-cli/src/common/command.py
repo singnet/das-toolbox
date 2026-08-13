@@ -296,6 +296,28 @@ class Command:
                 "Remote configuration file does not match the local configuration file."
             )
 
+    def _echo_remote_streams(self, result) -> None:
+        if result.stdout:
+            click.echo(result.stdout, nl=False)
+            if not result.stdout.endswith("\n"):
+                click.echo()
+        if result.stderr:
+            click.echo(result.stderr, nl=False, err=True)
+            if not result.stderr.endswith("\n"):
+                click.echo(err=True)
+
+    @staticmethod
+    def _remote_das_cli_missing(result) -> bool:
+        exit_code = getattr(result, "exited", None)
+        if exit_code == 127:
+            return True
+
+        combined = f"{result.stdout or ''}\n{result.stderr or ''}".lower()
+        if "command not found" not in combined:
+            return False
+
+        return "das-cli" in combined or "das_cli" in combined
+
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
 
@@ -315,45 +337,25 @@ class Command:
         command = f"{prefix} {command_path} {extra_args} {remote_context}".strip()
 
         try:
-
             if "config" not in command_path:
                 self._check_remote_config(remote_kwargs)
 
-            # Ignores this check when a config command is called, prevents command from breaking when user is setting up configuration across multiple remote machines.
             result = Connection(**remote_kwargs).run(command, hide=True, warn=True)
-            if result.stdout:
-                click.echo(result.stdout, nl=False)
-                if not result.stdout.endswith("\n"):
-                    click.echo()
-            if result.stderr:
-                click.echo(result.stderr, nl=False, err=True)
-                if not result.stderr.endswith("\n"):
-                    click.echo(err=True)
+            self._echo_remote_streams(result)
 
             if result.failed:
+                if self._remote_das_cli_missing(result):
+                    self.stdout(
+                        "[ERROR] das-cli is missing on the remote machine. Verify the installation.",
+                        severity=StdoutSeverity.ERROR,
+                    )
                 raise UnexpectedExit(result)
 
+        except UnexpectedExit:
+            raise
         except Exception as e:
-            if isinstance(e, UnexpectedExit):
-                remote_result = getattr(e, "result", None)
-                if remote_result is not None:
-                    if remote_result.stdout:
-                        click.echo(remote_result.stdout, nl=False)
-                        if not remote_result.stdout.endswith("\n"):
-                            click.echo()
-                    if remote_result.stderr:
-                        click.echo(remote_result.stderr, nl=False, err=True)
-                        if not remote_result.stderr.endswith("\n"):
-                            click.echo(err=True)
-
-                msg_missing = (
-                    "[ERROR] das-cli is missing on the remote machine. Verify the installation."
-                )
-                self.stdout(msg_missing, severity=StdoutSeverity.ERROR)
-            else:
-                self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
-
-            raise e
+            self.stdout(f"[ERROR] {e}", severity=StdoutSeverity.ERROR)
+            raise
 
     def safe_run(self, **kwargs):
         remote, remote_kwargs = self._get_remote_kwargs_from_context()
