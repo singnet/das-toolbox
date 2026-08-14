@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   cancelQueryExecution,
-  setQueryParameters,
   startQueryExecution
 } from "../api/QueryAPI";
 import { extractApiError } from "../api/APIUtils";
@@ -179,12 +178,11 @@ export function useQueryExecution(parameters) {
       startedAtRef.current = Date.now();
 
       try {
-        const pendingParams = parameters.consumeQueryRunParameters();
-        if (Object.keys(pendingParams).length > 0) {
-          await setQueryParameters(pendingParams);
-        }
-
-        const { execution_id: nextExecutionId } = await startQueryExecution(trimmedQuery);
+        const runParameters = parameters.collectParameters();
+        const { execution_id: nextExecutionId } = await startQueryExecution(
+          trimmedQuery,
+          runParameters
+        );
         if (!nextExecutionId) {
           throw new Error("Query execution did not return an execution id.");
         }
