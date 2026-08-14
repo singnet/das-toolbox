@@ -39,6 +39,7 @@ def create_execution_on_proxy(body: QueryExecutionDto):
     response = QUERY_SERVICES.execute_proxy_command(
         body.command_type,
         body.command_text,
+        body.parameters,
     )
 
     return JSONResponse(
@@ -134,6 +135,11 @@ async def _safe_send_error(
 
 def _proxy_json_content(response: Response) -> Any:
     try:
-        return response.json()
+        content = response.json()
     except ValueError:
         return {"content": response.text}
+
+    if isinstance(content, dict) and "error" in content and "message" not in content:
+        content = {**content, "message": content["error"]}
+
+    return content
