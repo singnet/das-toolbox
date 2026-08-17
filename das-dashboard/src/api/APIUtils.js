@@ -3,7 +3,7 @@ export function extractErrorMessage(err, fallback = "An unexpected error occurre
     return fallback;
   }
 
-    if (err.response) {
+  if (err.response) {
     const data = err.response.data;
 
     if (typeof data === "string") {
@@ -11,11 +11,13 @@ export function extractErrorMessage(err, fallback = "An unexpected error occurre
     }
 
     if (data?.message) {
-      return data.message;
+      return typeof data.message === "string"
+        ? data.message
+        : JSON.stringify(data.message);
     }
 
     if (data?.error) {
-      return data.error;
+      return typeof data.error === "string" ? data.error : JSON.stringify(data.error);
     }
   }
 

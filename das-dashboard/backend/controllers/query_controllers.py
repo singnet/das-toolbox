@@ -133,6 +133,12 @@ async def _safe_send_error(
         pass
 
 
+def _stringify_proxy_error(error_value: Any) -> str:
+    if isinstance(error_value, str):
+        return error_value
+    return json.dumps(error_value)
+
+
 def _proxy_json_content(response: Response) -> Any:
     try:
         content = response.json()
@@ -140,6 +146,9 @@ def _proxy_json_content(response: Response) -> Any:
         return {"content": response.text}
 
     if isinstance(content, dict) and "error" in content and "message" not in content:
-        content = {**content, "message": content["error"]}
+        error_value = content["error"]
+        content = {**content, "message": _stringify_proxy_error(error_value)}
+        if not isinstance(error_value, str) and "details" not in content:
+            content["details"] = error_value
 
     return content
