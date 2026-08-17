@@ -63,18 +63,21 @@ class QueryServices:
     def cancel_query_execution(self, execution_id: str) -> Response:
         return self._call_http_proxy("POST", f"{ROUTE_PREFIX}/executions/{execution_id}/cancel")
 
-    def execute_proxy_command(
+    def create_query_execution(
         self,
-        command_type: str,
-        command_text: str,
+        query_text: str,
         parameters: dict | None = None,
     ) -> Response:
-        if command_type != "query":
-            raise CustomValueError(
-                "Only query executions are allowed for this method."
-            )
+        try:
+            payload = build_query_execution_payload(query_text, parameters)
+        except ValueError as error:
+            raise CustomValueError(str(error)) from error
 
-        return self._create_query_execution(command_text, parameters)
+        return self._call_http_proxy(
+            "POST",
+            f"{ROUTE_PREFIX}/executions",
+            json=payload,
+        )
 
     def get_default_params_from_config(self) -> dict:
         config = self.web_config.load_raw_configuration()
@@ -91,22 +94,6 @@ class QueryServices:
             defaults.update(query_params)
 
         return defaults
-
-    def _create_query_execution(
-        self,
-        command_text: str,
-        parameters: dict | None = None,
-    ) -> Response:
-        try:
-            payload = build_query_execution_payload(command_text, parameters)
-        except ValueError as error:
-            raise CustomValueError(str(error)) from error
-
-        return self._call_http_proxy(
-            "POST",
-            f"{ROUTE_PREFIX}/executions",
-            json=payload,
-        )
 
     def _call_http_proxy(self, method: str, path: str, **request_kwargs) -> Response:
         command_proxy_url = self._find_command_router_http_url()

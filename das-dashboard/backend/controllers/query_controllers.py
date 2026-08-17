@@ -36,9 +36,8 @@ def proxy_health_check():
 
 @router.post("/executions")
 def create_execution_on_proxy(body: QueryExecutionDto):
-    response = QUERY_SERVICES.execute_proxy_command(
-        body.command_type,
-        body.command_text,
+    response = QUERY_SERVICES.create_query_execution(
+        body.query_text,
         body.parameters,
     )
 

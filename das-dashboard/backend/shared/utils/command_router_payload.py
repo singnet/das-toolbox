@@ -4,10 +4,10 @@ RESERVED_ROUTER_PARAM_KEYS = frozenset({"query"})
 
 
 def build_query_execution_payload(
-    command_text: str,
+    query_text: str,
     parameters: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    trimmed = command_text.strip()
+    trimmed = query_text.strip()
     if not trimmed:
         raise ValueError("Query text must not be empty.")
 

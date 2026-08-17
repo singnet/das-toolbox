@@ -7,8 +7,7 @@ export async function getQueryParamDefaults() {
 
 export async function startQueryExecution(queryText, parameters = null) {
   const payload = {
-    command_type: "query",
-    command_text: queryText
+    query_text: queryText
   };
 
   if (parameters && Object.keys(parameters).length > 0) {

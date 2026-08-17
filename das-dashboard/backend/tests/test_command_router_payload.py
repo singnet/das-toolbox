@@ -3,7 +3,7 @@ import pytest
 from shared.utils.command_router_payload import build_query_execution_payload
 
 
-def test_build_payload_uses_command_text_for_query_tokens():
+def test_build_payload_uses_query_text_for_query_tokens():
     payload = build_query_execution_payload(
         '(Similarity "human" %C)',
         {"max_answers": 1, "populate_metta_mapping": True},
