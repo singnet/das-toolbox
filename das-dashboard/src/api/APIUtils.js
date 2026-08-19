@@ -11,7 +11,13 @@ export function extractErrorMessage(err, fallback = "An unexpected error occurre
     }
 
     if (data?.message) {
-      return data.message;
+      return typeof data.message === "string"
+        ? data.message
+        : JSON.stringify(data.message);
+    }
+
+    if (data?.error) {
+      return typeof data.error === "string" ? data.error : JSON.stringify(data.error);
     }
   }
 
@@ -36,6 +42,10 @@ export function extractErrorDetails(err) {
 
     if (data?.exceptionMessage) {
       return data.exceptionMessage;
+    }
+
+    if (data?.error) {
+      return typeof data.error === "string" ? data.error : JSON.stringify(data.error);
     }
 
     if (data?.detail) {

@@ -1,7 +1,6 @@
 import json
 import logging
 from collections.abc import AsyncIterator
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from requests import Response
@@ -13,9 +12,9 @@ from shared.db import query_db
 from shared.exceptions.custom_exceptions import CommandRouterConnectionError, CustomValueError
 from shared.internal.constants import LOCAL_HOSTS
 from shared.internal.web_configuration import WebConfiguration
+from shared.utils.command_router_payload import build_query_execution_payload
 from shared.utils.parse_query_answer import transform_stream_event
 
-VALID_COMMAND_TYPES = ("get", "set", "query")  # Evolution will be disconsidered for now.
 ROUTE_PREFIX = "/command-router"
 
 logger = logging.getLogger(__name__)
@@ -64,56 +63,21 @@ class QueryServices:
     def cancel_query_execution(self, execution_id: str) -> Response:
         return self._call_http_proxy("POST", f"{ROUTE_PREFIX}/executions/{execution_id}/cancel")
 
-    def execute_proxy_command(self, command_type: str, command_text: str) -> Response:
-        handlers = {
-            "get": self._get_query_parameters,
-            "set": self._set_query_parameters,
-            "query": self._create_query_execution,
-        }
-
-        if command_type not in VALID_COMMAND_TYPES:
-            raise CustomValueError(
-                "This proxy command does not exist/is not permitted in the current context."
-            )
-
-        return handlers[command_type](command_type, command_text)
-
-    def _get_query_parameters(self, command_type: str, command_text: str) -> Response:
-        return self._post_execution(command_type, command_text)
-
-    def _set_query_parameters(self, command_type: str, command_text: str) -> Response:
+    def create_query_execution(
+        self,
+        query_text: str,
+        parameters: dict | None = None,
+    ) -> Response:
         try:
-            custom_parameters_dict = json.loads(command_text)
-        except json.JSONDecodeError as error:
-            raise CustomValueError(f"Invalid query parameters payload: {error}") from error
+            payload = build_query_execution_payload(query_text, parameters)
+        except ValueError as error:
+            raise CustomValueError(str(error)) from error
 
-        if not custom_parameters_dict:
-            raise CustomValueError("No query parameters were provided.")
-
-        responses = []
-        max_workers = min(len(custom_parameters_dict), 8)
-
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [
-                executor.submit(
-                    self._post_execution,
-                    command_type,
-                    f"param {key} {self._format_param_value(value)}",
-                )
-                for key, value in custom_parameters_dict.items()
-            ]
-
-            for future in as_completed(futures):
-                responses.append(future.result())
-
-        failed_response = next(
-            (response for response in responses if response.status_code >= 400),
-            None,
+        return self._call_http_proxy(
+            "POST",
+            f"{ROUTE_PREFIX}/executions",
+            json=payload,
         )
-        if failed_response is not None:
-            return failed_response
-
-        return responses[-1]
 
     def get_default_params_from_config(self) -> dict:
         config = self.web_config.load_raw_configuration()
@@ -130,22 +94,6 @@ class QueryServices:
             defaults.update(query_params)
 
         return defaults
-
-    @staticmethod
-    def _format_param_value(value) -> str:
-        if isinstance(value, bool):
-            return "true" if value else "false"
-        return str(value)
-
-    def _create_query_execution(self, command_type: str, command_text: str) -> Response:
-        return self._post_execution(command_type, command_text)
-
-    def _post_execution(self, command_type: str, command_text: str) -> Response:
-        return self._call_http_proxy(
-            "POST",
-            f"{ROUTE_PREFIX}/executions",
-            json={"command_type": command_type, "command_text": command_text},
-        )
 
     def _call_http_proxy(self, method: str, path: str, **request_kwargs) -> Response:
         command_proxy_url = self._find_command_router_http_url()

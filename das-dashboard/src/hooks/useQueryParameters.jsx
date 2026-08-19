@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getQueryParamDefaults } from "../api/QueryAPI";
 import { buildQueryParameters } from "../utils/queryParameters";
 
@@ -31,27 +31,12 @@ export function QueryParametersProvider({ children }) {
   const [limitAnswersEnabled, setLimitAnswersEnabledState] = useState(false);
   const [maxAnswersLimit, setMaxAnswersLimitState] = useState(1);
   const [switches, setSwitchesState] = useState(() => switchesFromDefaults({}));
-  const queryRunParametersRef = useRef({});
-
-  const setQueryRunParameter = useCallback((key, value) => {
-    queryRunParametersRef.current = {
-      ...queryRunParametersRef.current,
-      [key]: value
-    };
-  }, []);
-
-  const consumeQueryRunParameters = useCallback(() => {
-    const pending = { ...queryRunParametersRef.current };
-    queryRunParametersRef.current = {};
-    return pending;
-  }, []);
 
   const applyParameterDefaults = useCallback((defaults) => {
     if (!defaults || typeof defaults !== "object") {
       return;
     }
 
-    queryRunParametersRef.current = {};
     setAttentionUpdateState(defaults.attention_update ?? 0);
     setAttentionCorrelationState(defaults.attention_correlation ?? 0);
     setAttentionFocusStrictnessState(defaults.attention_focus_strictness ?? 0);
@@ -79,66 +64,33 @@ export function QueryParametersProvider({ children }) {
     };
   }, [applyParameterDefaults]);
 
-  const setAttentionUpdate = useCallback(
-    (value) => {
-      const normalized = Number(value);
-      setAttentionUpdateState(normalized);
-      setQueryRunParameter("attention_update", normalized);
-    },
-    [setQueryRunParameter]
-  );
+  const setAttentionUpdate = useCallback((value) => {
+    setAttentionUpdateState(Number(value));
+  }, []);
 
-  const setAttentionCorrelation = useCallback(
-    (value) => {
-      const normalized = Number(value);
-      setAttentionCorrelationState(normalized);
-      setQueryRunParameter("attention_correlation", normalized);
-    },
-    [setQueryRunParameter]
-  );
+  const setAttentionCorrelation = useCallback((value) => {
+    setAttentionCorrelationState(Number(value));
+  }, []);
 
-  const setAttentionFocusStrictness = useCallback(
-    (value) => {
-      setAttentionFocusStrictnessState(value);
-      setQueryRunParameter("attention_focus_strictness", value);
-    },
-    [setQueryRunParameter]
-  );
+  const setAttentionFocusStrictness = useCallback((value) => {
+    setAttentionFocusStrictnessState(value);
+  }, []);
 
-  const setMaxBundleSize = useCallback(
-    (value) => {
-      const normalized = Number(value);
-      setMaxBundleSizeState(normalized);
-      setQueryRunParameter("max_bundle_size", normalized);
-    },
-    [setQueryRunParameter]
-  );
+  const setMaxBundleSize = useCallback((value) => {
+    setMaxBundleSizeState(Number(value));
+  }, []);
 
-  const setLimitAnswersEnabled = useCallback(
-    (enabled) => {
-      setLimitAnswersEnabledState(enabled);
-      setQueryRunParameter("max_answers", enabled ? maxAnswersLimit : 0);
-    },
-    [maxAnswersLimit, setQueryRunParameter]
-  );
+  const setLimitAnswersEnabled = useCallback((enabled) => {
+    setLimitAnswersEnabledState(enabled);
+  }, []);
 
-  const setMaxAnswersLimit = useCallback(
-    (value) => {
-      setMaxAnswersLimitState(value);
-      if (limitAnswersEnabled) {
-        setQueryRunParameter("max_answers", value);
-      }
-    },
-    [limitAnswersEnabled, setQueryRunParameter]
-  );
+  const setMaxAnswersLimit = useCallback((value) => {
+    setMaxAnswersLimitState(value);
+  }, []);
 
-  const updateSwitch = useCallback(
-    (key, checked) => {
-      setSwitchesState((previous) => ({ ...previous, [key]: checked }));
-      setQueryRunParameter(key, checked);
-    },
-    [setQueryRunParameter]
-  );
+  const updateSwitch = useCallback((key, checked) => {
+    setSwitchesState((previous) => ({ ...previous, [key]: checked }));
+  }, []);
 
   const collectParameters = useCallback(
     () =>
@@ -177,7 +129,6 @@ export function QueryParametersProvider({ children }) {
     setMaxAnswersLimit,
     switches,
     updateSwitch,
-    consumeQueryRunParameters,
     collectParameters,
     isCountOnly: switches.count_flag
   };

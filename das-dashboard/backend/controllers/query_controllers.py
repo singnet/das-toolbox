@@ -36,9 +36,9 @@ def proxy_health_check():
 
 @router.post("/executions")
 def create_execution_on_proxy(body: QueryExecutionDto):
-    response = QUERY_SERVICES.execute_proxy_command(
-        body.command_type,
-        body.command_text,
+    response = QUERY_SERVICES.create_query_execution(
+        body.query_text,
+        body.parameters,
     )
 
     return JSONResponse(
@@ -132,8 +132,22 @@ async def _safe_send_error(
         pass
 
 
+def _stringify_proxy_error(error_value: Any) -> str:
+    if isinstance(error_value, str):
+        return error_value
+    return json.dumps(error_value)
+
+
 def _proxy_json_content(response: Response) -> Any:
     try:
-        return response.json()
+        content = response.json()
     except ValueError:
         return {"content": response.text}
+
+    if isinstance(content, dict) and "error" in content and "message" not in content:
+        error_value = content["error"]
+        content = {**content, "message": _stringify_proxy_error(error_value)}
+        if not isinstance(error_value, str) and "details" not in content:
+            content["details"] = error_value
+
+    return content

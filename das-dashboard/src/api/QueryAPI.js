@@ -5,19 +5,16 @@ export async function getQueryParamDefaults() {
   return response.data;
 }
 
-export async function setQueryParameters(params) {
-  const response = await api.post("/query/executions", {
-    command_type: "set",
-    command_text: JSON.stringify(params)
-  });
-  return response.data;
-}
+export async function startQueryExecution(queryText, parameters = null) {
+  const payload = {
+    query_text: queryText
+  };
 
-export async function startQueryExecution(queryText) {
-  const response = await api.post("/query/executions", {
-    command_type: "query",
-    command_text: queryText
-  });
+  if (parameters && Object.keys(parameters).length > 0) {
+    payload.parameters = parameters;
+  }
+
+  const response = await api.post("/query/executions", payload);
   return response.data;
 }
 
