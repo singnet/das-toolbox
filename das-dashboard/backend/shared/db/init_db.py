@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from shared.internal.constants import QUERY_DB_PATH
+from shared.internal.constants import DATABASE_PATH
 
 QUERY_EVENT_SCHEMA = """
 CREATE TABLE IF NOT EXISTS query_events (
@@ -36,15 +36,27 @@ CREATE INDEX IF NOT EXISTS idx_query_answers_execution_id
     ON query_answers(execution_id);
 """
 
+SERVICE_METRICS_SCHEMA = """
+    CREATE TABLE IF NOT EXISTS service_metrics (
+        snapshot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        machine_ip TEXT NOT NULL,
+        service_name TEXT NOT NULL,
+        cpu_usage TEXT NOT NULL,
+        memory_usage TEXT NOT NULL,
+        timestamp TEXT,
+    )
+"""
+
 SCHEMAS = (
     QUERY_EVENT_SCHEMA,
     QUERY_ANSWER_SCHEMA,
+    SERVICE_METRICS_SCHEMA,
 )
 
 
 def init_db() -> None:
-    os.makedirs(os.path.dirname(QUERY_DB_PATH), exist_ok=True)
+    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
 
-    with sqlite3.connect(QUERY_DB_PATH) as connection:
+    with sqlite3.connect(DATABASE_PATH) as connection:
         for schema in SCHEMAS:
             connection.executescript(schema)

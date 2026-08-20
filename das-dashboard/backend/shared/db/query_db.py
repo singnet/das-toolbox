@@ -2,7 +2,7 @@ import json
 import sqlite3
 from datetime import datetime, timezone
 
-from shared.internal.constants import QUERY_DB_PATH
+from shared.internal.constants import DATABASE_PATH
 
 
 def _next_answer_index(connection: sqlite3.Connection, execution_id: str) -> int:
@@ -16,7 +16,7 @@ def _next_answer_index(connection: sqlite3.Connection, execution_id: str) -> int
 def save_event(execution_id: str, payload: dict) -> None:
     created_at = datetime.now(timezone.utc).isoformat()
 
-    with sqlite3.connect(QUERY_DB_PATH) as connection:
+    with sqlite3.connect(DATABASE_PATH) as connection:
         connection.execute(
             """
             INSERT INTO query_events (
@@ -44,7 +44,7 @@ def save_answers_from_chunk(execution_id: str, payload: dict) -> None:
     seq = payload.get("seq")
     created_at = datetime.now(timezone.utc).isoformat()
 
-    with sqlite3.connect(QUERY_DB_PATH) as connection:
+    with sqlite3.connect(DATABASE_PATH) as connection:
         connection.execute("BEGIN IMMEDIATE")
         next_index = _next_answer_index(connection, execution_id)
         rows = []
@@ -92,7 +92,7 @@ def get_answers_page(
     page_size = min(max(1, page_size), 100)
     offset = (page - 1) * page_size
 
-    with sqlite3.connect(QUERY_DB_PATH) as connection:
+    with sqlite3.connect(DATABASE_PATH) as connection:
         total = connection.execute(
             "SELECT COUNT(*) FROM query_answers WHERE execution_id = ?",
             (execution_id,),
