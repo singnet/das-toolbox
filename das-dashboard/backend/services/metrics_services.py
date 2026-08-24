@@ -1,7 +1,10 @@
 import asyncio
 import json
+from collections import defaultdict
+from datetime import datetime, timezone
 
 from shared.enums.metric_scope import MetricScope
+from shared.enums.metrics_period import MetricsPeriod
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.internal.background_services_control import BackgroundServicesControl
@@ -11,6 +14,9 @@ from shared.db.metrics_db import (
     delete_metrics_by_ip,
     delete_unused_metrics,
     delete_all_metrics,
+    get_service_metrics_averages,
+    HISTORY_CHUNK_COUNT,
+    PERIOD_SECONDS,
 )
 from shared.utils.das_cli_response import (
     clean_cli_output,
@@ -202,3 +208,38 @@ class MetricsServices:
     def delete_all_server_metrics(self) -> dict:
         deleted = delete_all_metrics()
         return {"deleted": deleted}
+
+    # Metrics history fetching services
+
+    def get_service_metrics_history(self, server_ip: str, period: MetricsPeriod) -> dict:
+        period_value = period.value
+        window_seconds = PERIOD_SECONDS[period_value]
+        chunk_seconds = window_seconds // HISTORY_CHUNK_COUNT
+        window_start = datetime.now(timezone.utc).timestamp() - window_seconds
+
+        rows = get_service_metrics_averages(
+            server_ip,
+            start=window_start,
+            chunk_seconds=chunk_seconds,
+        )
+
+        services = defaultdict(list)
+        for service_name, bucket, avg_cpu, avg_memory in rows:
+            bucket_time = datetime.fromtimestamp(
+                window_start + (bucket * chunk_seconds),
+                tz=timezone.utc,
+            )
+            services[service_name].append(
+                {
+                    "timestamp": bucket_time.isoformat(),
+                    "cpu": round(avg_cpu, 2),
+                    "memory": round(avg_memory, 2),
+                }
+            )
+
+        return {
+            "server_ip": server_ip,
+            "period": period_value,
+            "chunk_seconds": chunk_seconds,
+            "services": dict(services),
+        }

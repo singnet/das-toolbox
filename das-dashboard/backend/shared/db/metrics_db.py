@@ -83,6 +83,57 @@ def delete_unused_metrics(keep_ips: list[str]) -> int:
         raise SQLitePersistenceException(str(error)) from error
 
 
+HISTORY_CHUNK_COUNT = 30
+PERIOD_SECONDS = {
+    "hour": 3600,
+    "day": 86400,
+    "week": 604800,
+}
+
+
+def get_service_metrics_averages(
+    machine_ip: str,
+    *,
+    start: float,
+    chunk_seconds: int,
+    chunk_count: int = HISTORY_CHUNK_COUNT,
+) -> list[tuple[str, int, float, float]]:
+    """Averages CPU/memory per service into a fixed number of time chunks."""
+    try:
+        with sqlite3.connect(DATABASE_PATH) as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    service_name,
+                    CAST(
+                        (strftime('%s', substr(timestamp, 1, 19)) - ?) / ? AS INTEGER
+                    ) AS bucket,
+                    AVG(CAST(cpu_usage AS REAL)) AS avg_cpu,
+                    AVG(CAST(memory_usage AS REAL)) AS avg_memory
+                FROM service_metrics
+                WHERE machine_ip = ?
+                  AND strftime('%s', substr(timestamp, 1, 19)) >= ?
+                GROUP BY service_name, bucket
+                HAVING bucket >= 0 AND bucket < ?
+                ORDER BY service_name, bucket
+                """,
+                (
+                    start,
+                    chunk_seconds,
+                    machine_ip,
+                    start,
+                    chunk_count,
+                ),
+            ).fetchall()
+    except sqlite3.Error as error:
+        raise SQLitePersistenceException(str(error)) from error
+
+    return [
+        (service_name, int(bucket), float(avg_cpu or 0), float(avg_memory or 0))
+        for service_name, bucket, avg_cpu, avg_memory in rows
+    ]
+
+
 def delete_all_metrics() -> int:
     """Purges metrics for every server."""
     try:

@@ -45,6 +45,9 @@ SERVICE_METRICS_SCHEMA = """
         memory_usage TEXT NOT NULL,
         timestamp TEXT
     );
+
+    CREATE INDEX IF NOT EXISTS idx_service_metrics_host_time
+        ON service_metrics(machine_ip, timestamp);
 """
 
 SCHEMAS = (

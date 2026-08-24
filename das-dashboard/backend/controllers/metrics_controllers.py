@@ -2,6 +2,7 @@ import asyncio
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from shared.enums.metric_scope import MetricScope
+from shared.enums.metrics_period import MetricsPeriod
 from services_init import METRICS_SERVICES
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
@@ -28,6 +29,17 @@ async def set_collection_enabled(
     enabled: bool = Query(...),
 ):
     result = METRICS_SERVICES.set_collection_enabled(server_ip, enabled)
+    return JSONResponse(
+        status_code=200,
+        content={"content": result}
+    )
+
+@router.get("/history")
+async def get_service_metrics_history(
+    server_ip: str = Query(...),
+    period: MetricsPeriod = Query(...),
+):
+    result = METRICS_SERVICES.get_service_metrics_history(server_ip, period)
     return JSONResponse(
         status_code=200,
         content={"content": result}
