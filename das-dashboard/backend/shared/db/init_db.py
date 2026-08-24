@@ -43,8 +43,8 @@ SERVICE_METRICS_SCHEMA = """
         service_name TEXT NOT NULL,
         cpu_usage TEXT NOT NULL,
         memory_usage TEXT NOT NULL,
-        timestamp TEXT,
-    )
+        timestamp TEXT
+    );
 """
 
 SCHEMAS = (
