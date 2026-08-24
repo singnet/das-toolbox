@@ -176,3 +176,16 @@ class CommandRouterConnectionError(Exception):
         if self.technical_detail:
             return f"{self.message}\n{self.technical_detail}"
         return self.message
+
+class SQLitePersistenceException(Exception):
+    MESSAGE = (
+        "Could not persist data into the SQLite database."
+        "Check if database file exists on /opt/web-das/.das and check the file's permissions."
+    )
+
+    def __init__(self, exc_details: str = ""):
+        self.message = self.MESSAGE
+        self.detail = (exc_details or "No details provided for this error.")
+
+    def __str__(self) -> str:
+        return f"{self.message}\n{self.detail}"

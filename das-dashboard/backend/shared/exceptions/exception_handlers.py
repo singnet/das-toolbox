@@ -13,6 +13,7 @@ from .custom_exceptions import (
     CommandRouterConnectionError,
     ConfigurationFileLoadError,
     ConfigurationValueNotFoundError,
+    SQLitePersistenceException
 )
 
 class AppExceptionHandlers:
@@ -31,7 +32,8 @@ class AppExceptionHandlers:
             (CustomValueError, self.handle_custom_value_error),
             (CommandRouterConnectionError, self.handle_command_router_connection_error),
             (ConfigurationFileLoadError, self.handle_config_load_error),
-            (ConfigurationValueNotFoundError, self.handle_config_value_not_found)
+            (ConfigurationValueNotFoundError, self.handle_config_value_not_found),
+            (SQLitePersistenceException, self.handle_sql_persistence_error),
         ]
 
         for exception, handler in CUSTOM_EXCEPTIONS:
@@ -172,9 +174,9 @@ class AppExceptionHandlers:
         )
 
     async def handle_config_value_not_found(
-            self,
-            request: Request,
-            exc: ConfigurationValueNotFoundError
+        self,
+        request: Request,
+        exc: ConfigurationValueNotFoundError
     ):
 
         return JSONResponse(
@@ -185,13 +187,26 @@ class AppExceptionHandlers:
         )
 
     async def handle_config_load_error(
-            self,
-            request: Request,
-            exc: ConfigurationFileLoadError
+        self,
+        request: Request,
+        exc: ConfigurationFileLoadError
     ):
         return JSONResponse(
             status_code=500,
             content={
                 "message": exc.message
+            }
+        )
+
+    async def handle_sql_persistence_error(
+        self,
+        request: Request,
+        exc: SQLitePersistenceException
+    ):
+        return JSONResponse(
+            status_code=500,
+            content={
+                "message": exc.message,
+                "details": exc.detail,
             }
         )
