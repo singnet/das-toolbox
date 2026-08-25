@@ -10,7 +10,6 @@ FLAT_SECTION_ORDER = (
     "agents.context",
     "agents.atomdb",
     "agents.command_router",
-    "vault",
     "environment",
 )
 
@@ -204,9 +203,6 @@ CONSTANTS = {
         "endpoint": "0.0.0.0:40008",
         "ports_range": "48000:48999",
         "http_api_port": 40009,
-    },
-    "vault": {
-        "endpoint": "0.0.0.0:8200",
     },
     "environment": {
         "jupyter_endpoint": "0.0.0.0:40019",

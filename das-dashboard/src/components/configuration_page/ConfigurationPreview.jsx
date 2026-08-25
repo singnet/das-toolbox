@@ -349,30 +349,11 @@ function EnvironmentPreview({ environment }) {
   )
 }
 
-function VaultPreview({ vault }) {
-  if (!vault || Object.keys(vault).length === 0) {
-    return (
-      <PreviewSection>
-        <PreviewSectionTitle>Vault</PreviewSectionTitle>
-        <PreviewEmpty>No vault settings applied yet.</PreviewEmpty>
-      </PreviewSection>
-    )
-  }
-
-  return (
-    <PreviewSection>
-      <PreviewSectionTitle>Vault</PreviewSectionTitle>
-      <PreviewFields data={vault} />
-    </PreviewSection>
-  )
-}
-
 export default function ConfigurationPreview({ config = {} }) {
   const hasAgents = AGENT_CONFIG_KEYS.some((key) => config[key] && Object.keys(config[key]).length > 0)
   const isEmpty =
     !config.atomdb &&
     !config.environment &&
-    !config.vault &&
     !hasAgents
 
   if (isEmpty) {
@@ -393,7 +374,6 @@ export default function ConfigurationPreview({ config = {} }) {
         <AgentPreview key={key} configKey={key} data={config[key]} />
       ))}
 
-      <VaultPreview vault={config.vault} />
       <EnvironmentPreview environment={config.environment} />
     </PreviewContainer>
   )

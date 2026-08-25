@@ -21,20 +21,12 @@ class NestedConfigMapper:
         if environment:
             flat["environment"] = NestedConfigMapper._environment_to_flat(environment)
 
-        vault = nested.get("vault")
-        if vault:
-            flat["vault"] = NestedConfigMapper._vault_to_flat(vault)
-
         return flat
 
     @staticmethod
     def _environment_to_flat(environment: dict) -> dict:
         jupyter = environment.get("jupyter", {})
         return {"jupyter_endpoint": jupyter.get("endpoint", f"{DEFAULT_ENDPOINT_HOST}:40019")}
-
-    @staticmethod
-    def _vault_to_flat(vault: dict) -> dict:
-        return {"endpoint": vault.get("endpoint", f"{DEFAULT_ENDPOINT_HOST}:8200")}
 
     @staticmethod
     def _agents_to_flat(agents: dict) -> dict:

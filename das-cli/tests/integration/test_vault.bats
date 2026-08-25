@@ -6,18 +6,22 @@ load 'libs/utils'
 load 'libs/docker'
 load 'libs/errors'
 
+vault_start() {
+    printf 'y\n' | das-cli vault start "$@"
+}
+
 setup() {
     use_config "simple"
 
     vault_port="$(extract_port "$(get_config .vault.endpoint)")"
     vault_container="das-cli-vault-8200"
 
-    das-cli vault stop &>/dev/null || true
+    das-cli vault stop --prune &>/dev/null || true
     stop_listen_port "$vault_port" &>/dev/null || true
 }
 
 teardown() {
-    das-cli vault stop &>/dev/null || true
+    das-cli vault stop --prune &>/dev/null || true
 }
 
 @test "Trying to start and stop Vault with unset configuration file" {
@@ -32,14 +36,15 @@ teardown() {
 }
 
 @test "Starting Vault" {
-    run das-cli vault start
+    run vault_start
 
     assert_success
     assert_output --partial "Starting Vault"
     assert_output --partial "started on port"
     assert_output --partial "$vault_port"
     assert_output --partial "http://localhost:${vault_port}/ui"
-    assert_output --partial "admin password:"
+    assert_output --partial "Unseal Key 1:"
+    assert_output --partial "Root Token:"
 
     run is_service_up "$vault_container"
     assert_success
@@ -50,7 +55,7 @@ teardown() {
 }
 
 @test "Trying to start Vault after it has been started" {
-    run das-cli vault start
+    run vault_start
     assert_success
 
     run das-cli vault start
@@ -63,7 +68,7 @@ teardown() {
 }
 
 @test "Stopping Vault" {
-    das-cli vault start
+    vault_start
 
     run das-cli vault stop
 
