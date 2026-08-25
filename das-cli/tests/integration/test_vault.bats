@@ -150,3 +150,8 @@ teardown() {
     run is_service_up "$vault_container"
     assert_success
 }
+
+@test "Vault API body-read timeout is translated to DockerError" {
+    run env PYTHONPATH="${BATS_TEST_DIRNAME}/../../src" python3 "${BATS_TEST_DIRNAME}/vault_body_timeout.py"
+    assert_success
+}

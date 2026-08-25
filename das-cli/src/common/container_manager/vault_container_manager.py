@@ -204,13 +204,19 @@ class VaultContainerManager(ContainerManager):
             with urllib.request.urlopen(request, timeout=5) as response:
                 return response.status, self._read_json(response.read())
         except urllib.error.HTTPError as error:
-            payload = self._read_json(error.read())
+            try:
+                raw = error.read()
+            except TimeoutError as timeout_error:
+                raise DockerError(str(timeout_error)) from timeout_error
+            payload = self._read_json(raw)
             errors = payload.get("errors")
             if errors:
                 raise DockerError("; ".join(str(item) for item in errors))
             raise DockerError(str(error))
         except urllib.error.URLError as error:
-            raise DockerError(str(error.reason))
+            raise DockerError(str(error.reason)) from error
+        except TimeoutError as timeout_error:
+            raise DockerError(str(timeout_error)) from timeout_error
 
     @staticmethod
     def _read_json(raw: bytes) -> dict[str, Any]:
