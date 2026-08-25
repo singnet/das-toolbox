@@ -15,7 +15,7 @@ import { palette } from "../../../../pages/setup_das/SetupDasStyled";
 const MAX_VISIBLE_TABS = 8;
 
 export function ServerTab() {
-  const { machines, currentMachine, setCurrentMachine } = useDashboardContext();
+  const { machines, currentMachine, setCurrentMachine, setCurrentService } = useDashboardContext();
   const { hostStreamConnected, hostStreamError } = useServerTabMetricsContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -37,6 +37,7 @@ export function ServerTab() {
     const selectedMachine = machines.find((m) => m.serverIp === serverIp);
     if (selectedMachine) {
       setCurrentMachine(selectedMachine);
+      setCurrentService(null);
       setDrawerOpen(false);
     }
   };

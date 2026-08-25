@@ -13,7 +13,7 @@ export function AgentTable({ machine }) {
   const { showToast } = useToast();
 
   const { currentMachine, currentService, setCurrentService } = useDashboardContext();
-  const { hostMergedServices } = useServerTabMetricsContext();
+  const { hostServices } = useServerTabMetricsContext();
 
   const getStatusColor = (status) => {
     if (status === "running") return "success";
@@ -80,14 +80,14 @@ export function AgentTable({ machine }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {hostMergedServices.length === 0 ? (
+            {hostServices.length === 0 ? (
               <EmptyContent />
             ) : (
-              hostMergedServices.map((service) => (
+              hostServices.map((service) => (
                 <AgentRow
-                  key={service.service_key}
+                  key={service.container_name || service.service_command_label}
                   agent={service}
-                  selected={currentService === service.service_key}
+                  selected={currentService === service.container_name}
                   handleSelect={handleSelect}
                   onAction={handleAction}
                   getStatusColor={getStatusColor}

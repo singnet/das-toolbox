@@ -16,7 +16,6 @@ import {
 } from "./architectureActionControl.styled";
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
-import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
 import { startArchitecture, stopArchitecture } from "../../../../api/ServicesAPI";
 import { extractApiError } from "../../../../api/APIUtils";
 
@@ -25,37 +24,16 @@ const CORE_TOOLTIP =
 
 const AGENTS_TOOLTIP = "DAS Agents and services";
 
-const CORE_SERVICE_KEYS = new Set(["attention-broker", "query-engine"]);
-
-const ORCHESTRATION_SERVICE_KEYS = [
-  "attention-broker",
-  "query-engine",
-  "atomdb-broker",
-  "command-router",
-  "context-broker",
-  "link-creation-agent",
-  "evolution-agent",
-  "inference-agent",
+const ORCHESTRATION_SERVICES = [
+  { id: "attention-broker", label: "Attention Broker", group: "core" },
+  { id: "query-engine", label: "Query Agent", group: "core" },
+  { id: "atomdb-broker", label: "AtomDB Broker", group: "agent" },
+  { id: "command-router", label: "Command Router", group: "agent" },
+  { id: "context-broker", label: "Context Broker", group: "agent" },
+  { id: "link-creation-agent", label: "Link Creation Agent", group: "agent" },
+  { id: "evolution-agent", label: "Evolution Agent", group: "agent" },
+  { id: "inference-agent", label: "Inference Agent", group: "agent" },
 ];
-
-function collectOrchestrationServices(machines = []) {
-  const displayNames = new Map();
-
-  for (const machine of machines) {
-    for (const service of machine.services ?? []) {
-      if (!ORCHESTRATION_SERVICE_KEYS.includes(service.service_key)) continue;
-      if (!displayNames.has(service.service_key)) {
-        displayNames.set(service.service_key, service.display_name);
-      }
-    }
-  }
-
-  return ORCHESTRATION_SERVICE_KEYS.filter((key) => displayNames.has(key)).map((key) => ({
-    id: key,
-    label: displayNames.get(key),
-    group: CORE_SERVICE_KEYS.has(key) ? "core" : "agent",
-  }));
-}
 
 export function ArchitectureActionControl({
   atomDbOnline,
@@ -65,11 +43,7 @@ export function ArchitectureActionControl({
   onBusyChange,
   onActionComplete,
 }) {
-  const { machines } = useDashboardContext();
-  const orchestrationServices = useMemo(
-    () => collectOrchestrationServices(machines),
-    [machines]
-  );
+  const orchestrationServices = ORCHESTRATION_SERVICES;
 
   const coreServices = useMemo(
     () => orchestrationServices.filter((service) => service.group === "core"),

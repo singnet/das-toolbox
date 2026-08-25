@@ -12,7 +12,6 @@ const DashboardContext = createContext(null);
 
 export default function DashboardContextProvider({ children }) {
   const [machines, setMachines] = useState([]);
-  const [serviceServerMap, setServiceServerMap] = useState({});
   const [currentMachine, setCurrentMachine] = useState(null);
   const [currentService, setCurrentService] = useState(null);
   const [currentContext, setCurrentContext] = useState("servers");
@@ -20,13 +19,17 @@ export default function DashboardContextProvider({ children }) {
   const applyInitialState = useCallback((initialState) => {
     if (!initialState) return;
 
-    const machineList = (initialState.hosts ?? []).map(({ ip, services = [] }) => ({
-      serverIp: ip,
-      services,
-    }));
+    const machineList = (initialState.hosts ?? [])
+      .map((entry) => {
+        if (typeof entry === "string") {
+          return { serverIp: entry };
+        }
+        const ip = entry?.ip || entry?.serverIp;
+        return ip ? { serverIp: ip } : null;
+      })
+      .filter(Boolean);
 
     setMachines(machineList);
-    setServiceServerMap(initialState.serviceServerMap ?? {});
     setCurrentMachine((current) => {
       if (!machineList.length) {
         return null;
@@ -61,7 +64,6 @@ export default function DashboardContextProvider({ children }) {
       value={{
         machines,
         setMachines,
-        serviceServerMap,
         currentMachine,
         setCurrentMachine,
         currentService,

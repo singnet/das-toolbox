@@ -4,7 +4,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { StyledRow, BodyCell, ActionsBox, ActionButton } from "./servicestable.styled";
 import { palette } from "../../../../pages/setup_das/SetupDasStyled";
-import { formatCpuCell, formatMemoryCell } from "../../../../utils/serviceRows";
+import { formatCpuCell, formatMemoryCell, serviceDisplayName, serviceRowKey } from "../../../../utils/serviceRows";
 
 export function AgentRow({
   agent,
@@ -15,11 +15,12 @@ export function AgentRow({
   onAction,
 }) {
   const isRunning = agent.is_running;
-  const rowKey = agent.service_key ?? agent.container_name;
+  const rowKey = serviceRowKey(agent);
+  const command = agent.service_command_label;
 
   const executeAction = (e, actionType) => {
     e.stopPropagation();
-    if (!onAction) {
+    if (!onAction || !command) {
       return;
     }
 
@@ -31,7 +32,7 @@ export function AgentRow({
       return;
     }
 
-    onAction(actionType, agent.service_key);
+    onAction(actionType, command);
   };
 
   const statusLabel = agent.status === "offline" ? "Offline" : agent.status;
@@ -51,7 +52,7 @@ export function AgentRow({
         },
       }}
     >
-      <BodyCell sx={{ fontWeight: 500 }}>{agent.display_name ?? agent.container_name}</BodyCell>
+      <BodyCell sx={{ fontWeight: 500 }}>{serviceDisplayName(agent)}</BodyCell>
       <BodyCell color="textSecondary">{agent.image}</BodyCell>
       <BodyCell>{agent.port}</BodyCell>
       <BodyCell>{agent.age}</BodyCell>

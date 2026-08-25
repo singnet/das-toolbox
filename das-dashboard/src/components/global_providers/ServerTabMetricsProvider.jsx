@@ -5,12 +5,13 @@ import { useDashboardContext } from "./DashboardContextProvider";
 const ServerTabMetricsContext = createContext(null);
 
 export function ServerTabMetricsProvider({ children }) {
+  /* Provides individual metrics separated by server on this tab */
+
   const { currentMachine, currentContext } = useDashboardContext();
   const isServersView = currentContext === "servers";
 
   const metrics = useServerTabMetrics(
-    isServersView ? currentMachine?.serverIp : null,
-    isServersView ? currentMachine?.services ?? [] : []
+    isServersView ? currentMachine?.serverIp : null
   );
 
   return (

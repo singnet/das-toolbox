@@ -84,18 +84,8 @@ export function AtomDBActionControl({
     }
 
     const typeLabel = ATOMDB_TYPE_LABELS[atomdbType] ?? atomdbType ?? "AtomDB";
-    const endpoints = [
-      ...new Set(
-        machines.flatMap((machine) =>
-          (machine.services ?? [])
-            .filter((service) => service.type === "atomdb" && service.host)
-            .map((service) =>
-              service.port ? `${service.host}:${service.port}` : service.host
-            )
-        )
-      ),
-    ].sort();
-    const serversList = endpoints.length ? endpoints.join(", ") : "configured servers";
+    const serversList = machines.map((machine) => machine.serverIp).filter(Boolean).join(", ")
+      || "configured servers";
 
     showConfirm({
       title: "Start AtomDB",

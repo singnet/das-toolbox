@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createMetricsStream } from "../api/MetricsStreamService";
 import { normalizeService } from "../utils/NormalizeMetrics";
-import { patchServicesWithRuntime, rollupMetricsHistory } from "../utils/serviceRows";
+import { rollupMetricsHistory } from "../utils/serviceRows";
 
 export function useArchitectureTabMetrics(machines = []) {
   const [fleetServicesByHost, setFleetServicesByHost] = useState({});
@@ -11,10 +11,10 @@ export function useArchitectureTabMetrics(machines = []) {
 
   const fleetStreamsRef = useRef({});
   const fleetHistoryRef = useRef({});
-  const baseServicesByHostRef = useRef({});
+  const hostKey = machines.map((machine) => machine.serverIp).filter(Boolean).join(",");
 
   useEffect(() => {
-    const hostList = machines.map((machine) => machine.serverIp).filter(Boolean);
+    const hostList = hostKey ? hostKey.split(",") : [];
     const activeHosts = new Set(hostList);
 
     Object.entries(fleetStreamsRef.current).forEach(([hostIp, stream]) => {
@@ -22,7 +22,6 @@ export function useArchitectureTabMetrics(machines = []) {
       stream.close();
       delete fleetStreamsRef.current[hostIp];
       delete fleetHistoryRef.current[hostIp];
-      delete baseServicesByHostRef.current[hostIp];
       setFleetLinkUpByHost((prev) => {
         const next = { ...prev };
         delete next[hostIp];
@@ -39,20 +38,9 @@ export function useArchitectureTabMetrics(machines = []) {
     );
 
     hostList.forEach((hostIp) => {
-      const baseServices = machines.find((m) => m.serverIp === hostIp)?.services ?? [];
-      baseServicesByHostRef.current[hostIp] = baseServices;
-
-      if (fleetStreamsRef.current[hostIp]) {
-        setFleetServicesByHost((prev) => {
-          const next = { ...prev };
-          delete next[hostIp];
-          return next;
-        });
-        return;
-      }
+      if (fleetStreamsRef.current[hostIp]) return;
 
       fleetHistoryRef.current[hostIp] = [];
-
       fleetStreamsRef.current[hostIp] = createMetricsStream({
         host: hostIp,
         onOpen: () => setFleetLinkUpByHost((prev) => ({ ...prev, [hostIp]: true })),
@@ -67,11 +55,7 @@ export function useArchitectureTabMetrics(machines = []) {
 
           if (payload.serviceInfo) {
             const runtime = Object.values(payload.serviceInfo).map(normalizeService);
-            const currentBase = baseServicesByHostRef.current[hostIp] ?? [];
-            setFleetServicesByHost((prev) => ({
-              ...prev,
-              [hostIp]: patchServicesWithRuntime(currentBase, runtime),
-            }));
+            setFleetServicesByHost((prev) => ({ ...prev, [hostIp]: runtime }));
             fleetHistoryRef.current[hostIp].push({ data: runtime });
             if (fleetHistoryRef.current[hostIp].length > 20) fleetHistoryRef.current[hostIp].shift();
           }
@@ -85,22 +69,20 @@ export function useArchitectureTabMetrics(machines = []) {
         onError: () => setFleetLinkUpByHost((prev) => ({ ...prev, [hostIp]: false })),
       });
     });
-  }, [machines]);
+  }, [hostKey]);
 
   useEffect(() => () => {
     Object.values(fleetStreamsRef.current).forEach((stream) => stream.close());
     fleetStreamsRef.current = {};
     fleetHistoryRef.current = {};
-    baseServicesByHostRef.current = {};
   }, []);
 
-  const fleetMergedServices = useMemo(
+  const fleetServices = useMemo(
     () =>
-      machines.flatMap((machine) => {
-        const services = fleetServicesByHost[machine.serverIp] ?? machine.services ?? [];
-        return services.map((service) => ({ ...service, serverIp: machine.serverIp }));
-      }),
-    [machines, fleetServicesByHost]
+      Object.entries(fleetServicesByHost).flatMap(([serverIp, services]) =>
+        (services ?? []).map((service) => ({ ...service, serverIp }))
+      ),
+    [fleetServicesByHost]
   );
 
   const fleetMetricsByHost = useMemo(() => {
@@ -112,7 +94,7 @@ export function useArchitectureTabMetrics(machines = []) {
   }, [fleetStreamTick, fleetServicesByHost]);
 
   return {
-    fleetMergedServices,
+    fleetServices,
     fleetMetricsByHost,
     fleetServicesByHost,
     fleetHostStatsByHost,
