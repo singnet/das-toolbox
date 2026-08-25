@@ -19,10 +19,11 @@ SECTIONS
     │ 1. Schema Version  │
     │ 2. AtomDB Backend  │
     │ 3. Loaders         │
-    │ 4. Brokers         │
-    │ 5. Agents          │
-    │ 6. Parameters      │
-    │ 7. Environment     │
+    │ 4. Vault           │
+    │ 5. Brokers         │
+    │ 6. Agents          │
+    │ 7. Parameters      │
+    │ 8. Environment     │
     └────────────────────┘
 
 
@@ -191,6 +192,12 @@ PARAMETERS (params)
     params.context.initial_spreading_rate_upperbound
 
         Controls context management behavior.
+
+
+VAULT (vault)
+
+    vault.endpoint
+        Endpoint where the Vault (OpenBao) server is exposed.
 
 
 ENVIRONMENT (environment)

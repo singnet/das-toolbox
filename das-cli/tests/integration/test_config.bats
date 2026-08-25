@@ -27,6 +27,9 @@ assert_config_core_endpoints() {
     run get_config ".environment.jupyter.endpoint"
     assert_output "localhost:40019"
 
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+
     run get_config ".agents.context.endpoint"
     assert_output "localhost:40006"
 

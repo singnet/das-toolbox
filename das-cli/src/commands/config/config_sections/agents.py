@@ -240,6 +240,7 @@ def setup_command_router(settings: Settings):
     return {
         "endpoint": endpoint,
         "ports_range": ports_range,
+        "http_api": get_default_value(settings, "agents.command_router.http_api"),
     }
 
 

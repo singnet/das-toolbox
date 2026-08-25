@@ -15,6 +15,7 @@ import SettingsIcon from "@mui/icons-material/Settings"
 import StorageIcon from "@mui/icons-material/Storage"
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import PublicIcon from "@mui/icons-material/Public"
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined"
 import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import UploadFileIcon from "@mui/icons-material/UploadFile"
 import PreviewIcon from "@mui/icons-material/Preview"
@@ -30,6 +31,7 @@ import { useToast } from "../../components/global_providers/ToastProvider"
 import AtomDBForm from "../../components/configuration_page/AtomDB/AtomDB"
 import { AgentsForm } from "../../components/configuration_page/Agents/Agents"
 import { EnvironmentForm } from "../../components/configuration_page/Environment/Environment"
+import { VaultForm } from "../../components/configuration_page/Vault/Vault"
 import { getAgentByKey } from "../../components/configuration_page/Agents/agentRegistry"
 import ConfigurationPreview from "../../components/configuration_page/ConfigurationPreview"
 
@@ -59,6 +61,7 @@ import {
 const sections = [
   { key: "atomdb", label: "AtomDB", icon: StorageIcon },
   { key: "agents", label: "Agents", icon: DeveloperBoardIcon },
+  { key: "vault", label: "Vault", icon: LockOutlinedIcon },
   { key: "environment", label: "Environment", icon: PublicIcon }
 ]
 
@@ -340,6 +343,7 @@ export default function SetupDasPage() {
               />
             )}
             {section === "environment" && <EnvironmentForm key={configSeed} />}
+            {section === "vault" && <VaultForm key={configSeed} />}
 
           </ContentBody>
 

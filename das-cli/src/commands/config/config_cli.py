@@ -139,6 +139,8 @@ class ConfigSet(Command):
         save_path = config_mappings.pop("file_path")
 
         self._interactive_config_provider.apply_values_to_settings(config_mappings)
+        self._settings.set_path(save_path)
+        verify_populate_missing_values(self._settings, save_path)
         self._save(save_path)
 
     def non_interactive_mode(self, config_key_value: tuple, config_path=str) -> None:
