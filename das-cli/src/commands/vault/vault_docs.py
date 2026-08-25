@@ -39,17 +39,18 @@ NAME
 
 SYNOPSIS
 
-    das-cli vault stop [--prune]
+    das-cli vault stop [--prune|-p]
 
 DESCRIPTION
 
     Stops and removes the Vault container. Stored Vault data is kept so the
     next start can unseal the existing instance.
 
-    Use --prune to also delete the Vault data volume. After that, the next
-    start will initialize a new Vault.
+    Use --prune (or -p) to also delete the Vault data volume. After that,
+    the next start will initialize a new Vault.
 
-    If the service is already stopped, a warning message is displayed.
+    If the service is already stopped, a warning message is displayed. With
+    --prune, the data volume is still removed.
 
 EXAMPLES
 
@@ -60,6 +61,7 @@ EXAMPLES
     Stop Vault and delete stored data:
 
         $ das-cli vault stop --prune
+        $ das-cli vault stop -p
 """
 
 SHORT_HELP_STOP = "Stop the running Vault (OpenBao) service."

@@ -10,11 +10,15 @@ vault_start() {
     printf 'y\n' | das-cli vault start "$@"
 }
 
+unseal_key_1_from_output() {
+    echo "$output" | grep 'Unseal Key 1:' | tail -n 1
+}
+
 setup() {
     use_config "simple"
 
     vault_port="$(extract_port "$(get_config .vault.endpoint)")"
-    vault_container="das-cli-vault-8200"
+    vault_container="das-cli-vault-${vault_port}"
 
     das-cli vault stop --prune &>/dev/null || true
     stop_listen_port "$vault_port" &>/dev/null || true
@@ -31,6 +35,7 @@ teardown() {
 
     for cmd in "${cmds[@]}"; do
         run das-cli vault "$cmd"
+        assert_failure
         assert_output --partial "$FILE_NOT_FOUND_ERROR"
     done
 }
@@ -59,6 +64,7 @@ teardown() {
     assert_success
 
     run das-cli vault start
+    assert_success
 
     assert_output --partial "already running"
     assert_output --partial "$vault_port"
@@ -71,6 +77,7 @@ teardown() {
     vault_start
 
     run das-cli vault stop
+    assert_success
 
     assert_output --partial "service stopped"
 
@@ -80,9 +87,34 @@ teardown() {
 
 @test "Trying to stop Vault after already stopped" {
     run das-cli vault stop
+    assert_success
 
     assert_output --partial "already stopped"
 
     run is_service_up "$vault_container"
     assert_failure
+
+    run das-cli vault stop --prune
+    assert_success
+    assert_output --partial "already stopped"
+    assert_output --partial "Data volume removed"
+}
+
+@test "Pruning Vault forces a fresh initialization" {
+    run vault_start
+    assert_success
+    first_key="$(unseal_key_1_from_output)"
+
+    run das-cli vault stop --prune
+    assert_success
+    assert_output --partial "data volume removed"
+
+    run vault_start
+    assert_success
+    assert_output --partial "Unseal Key 1:"
+    second_key="$(unseal_key_1_from_output)"
+
+    [ -n "$first_key" ]
+    [ -n "$second_key" ]
+    [ "$first_key" != "$second_key" ]
 }

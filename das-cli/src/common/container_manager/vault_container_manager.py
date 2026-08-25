@@ -55,7 +55,7 @@ class VaultContainerManager(ContainerManager):
                 volumes={
                     str(OPENBAO_CONFIG_DIR): {
                         "bind": OPENBAO_CONFIG_IN_CONTAINER,
-                        "mode": "rw",
+                        "mode": "ro",
                     },
                     self._data_volume_name: {
                         "bind": OPENBAO_DATA_IN_CONTAINER,
@@ -71,6 +71,7 @@ class VaultContainerManager(ContainerManager):
     def wait_for_api(self, timeout: int = 60, interval: float = 1) -> None:
         elapsed = 0.0
         while elapsed < timeout:
+            self._raise_if_container_dead()
             try:
                 self.get_status()
                 return
@@ -79,6 +80,29 @@ class VaultContainerManager(ContainerManager):
                 elapsed += interval
 
         raise DockerError("Timeout waiting for the Vault API to become ready.")
+
+    def _raise_if_container_dead(self) -> None:
+        container_name = self.get_container().name
+        try:
+            container = self.get_docker_client().containers.get(container_name)
+            container.reload()
+        except docker.errors.NotFound:
+            raise DockerError(f"Vault container {container_name} is not running.")
+
+        state = container.attrs.get("State", {})
+        if state.get("Running") or state.get("Restarting"):
+            return
+
+        logs = container.logs(stdout=True, stderr=True, tail=50)
+        log_text = (
+            logs.decode("utf-8", errors="replace").strip()
+            if isinstance(logs, (bytes, bytearray))
+            else str(logs).strip()
+        )
+        message = f"Vault container {container_name} stopped before the API became ready."
+        if log_text:
+            message = f"{message}\n{log_text}"
+        raise DockerError(message)
 
     def get_status(self) -> dict[str, Any]:
         _status_code, payload = self._request("GET", "/v1/sys/seal-status")

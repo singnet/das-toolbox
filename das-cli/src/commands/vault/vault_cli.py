@@ -229,6 +229,8 @@ class VaultStop(Command):
 
         except DockerContainerNotFoundError:
             message = f"The Vault service named {container.name} is already stopped."
+            if prune:
+                message += " Data volume removed."
 
             self.stdout(
                 dict(

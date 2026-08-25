@@ -109,6 +109,12 @@ LOADERS (loaders)
         Docker image used for the MorkDB loader.
 
 
+VAULT (vault)
+
+    vault.endpoint
+        Endpoint where the Vault (OpenBao) server is exposed.
+
+
 AGENTS (agents)
 
     agents.query.endpoint
@@ -192,12 +198,6 @@ PARAMETERS (params)
     params.context.initial_spreading_rate_upperbound
 
         Controls context management behavior.
-
-
-VAULT (vault)
-
-    vault.endpoint
-        Endpoint where the Vault (OpenBao) server is exposed.
 
 
 ENVIRONMENT (environment)
