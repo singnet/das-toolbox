@@ -7,21 +7,21 @@ import { AgentTable } from "./servicestable/ServicesTable";
 import { LoadingOverlay, EmptyState, ChartPlaceholder } from "./LoadingSkeleton";
 import { useDashboardContext } from "../../global_providers/DashboardContextProvider";
 import { useServerTabMetricsContext } from "../../global_providers/ServerTabMetricsProvider";
-import { ChartPanel, MainBoxGrid, TableBox } from "./maincontent.styled";
+import { ChartPanel, MainBoxGrid, TableBox } from "./servermetrics.styled";
 
-export function MainContent() {
+export function ServerMetrics() {
   const { machines, currentMachine, currentService } = useDashboardContext();
   const {
     hostMachineStats,
-    hostMergedServices,
+    hostServices,
     hostStreamSwitching,
     hostStreamError,
     hostMetricsRollup,
   } = useServerTabMetricsContext();
 
   const selectedService = useMemo(
-    () => hostMergedServices?.find((service) => service.service_key === currentService),
-    [hostMergedServices, currentService]
+    () => hostServices?.find((service) => service.container_name === currentService),
+    [hostServices, currentService]
   );
 
   const chartContainerName = selectedService?.is_running
