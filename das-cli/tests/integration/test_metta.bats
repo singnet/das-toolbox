@@ -26,7 +26,7 @@ setup() {
     run das-cli metta check "$metta_file_path"
 
     assert_line --partial "$metta_file_path"
-    assert_line --partial "Checking syntax... OK"
+    assert_line --partial "Checking syntax for ${metta_file_path}... OK"
 }
 
 @test "Checking syntax of an invalid MeTTa file" {
@@ -35,7 +35,7 @@ setup() {
     run das-cli metta check "$metta_file_path"
 
     assert_failure 1
-    assert_line --partial "Checking syntax... FAILED"
+    assert_line --partial "Checking syntax for ${metta_file_path}... FAILED"
     assert_output --partial "MeTTa syntax check failed"
 }
 
@@ -46,8 +46,9 @@ setup() {
 
     assert_failure 1
     assert_line --partial "$metta_file_path"
-    assert_line --partial "Checking syntax... OK"
-    assert_line --partial "Checking syntax... FAILED"
+    assert_line --partial "Checking syntax for"
+    assert_line --partial "... OK"
+    assert_line --partial "... FAILED"
     assert_output --partial "MeTTa syntax check failed"
 }
 
@@ -98,7 +99,7 @@ setup() {
     assert_line --partial "is running on port"
     assert_line --partial "Loading metta file"
     assert_line --partial "$metta_file_path"
-    assert_line --partial "Done loading."
+    assert_line --partial "Done loading ${metta_file_path}."
 
     assert_success
 }
