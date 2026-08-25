@@ -7,16 +7,17 @@ load 'libs/utils'
 bats_require_minimum_version 1.5.0
 
 setup() {
-    skip "Skip test causing failure for subsequent tests"
+    installed_fixture_package=0
 
     if [ "$current_user" == "root" ]; then
         apt -y update
         apt -y install --allow-downgrades das-cli=0.2.17
+        installed_fixture_package=1
     fi
 }
 
 teardown() {
-    if [ "$current_user" == "root" ]; then
+    if [ "${installed_fixture_package:-0}" -eq 1 ]; then
         apt -y remove --autoremove --purge das-cli
     fi
 }
@@ -28,6 +29,8 @@ teardown() {
 }
 
 @test "Update package version" {
+    skip "Skip test causing failure for subsequent tests"
+
     local expected_output
     local new_version="0.4.7"
     local current_version="$(get_das_cli_version)"
@@ -39,6 +42,8 @@ Package version successfully updated  $current_version --> $new_version."
 }
 
 @test "Update package version to the latest" {
+    skip "Skip test causing failure for subsequent tests"
+
     local current_version="$(get_das_cli_version)"
     local latest_version="$(get_das_cli_latest_version das-cli)"
 
@@ -58,6 +63,8 @@ The das-cli could not be updated. Please check if the specified version exists."
 }
 
 @test "Trying to update das-cli before it's installed" {
+    skip "Skip test causing failure for subsequent tests"
+
     apt -y remove --autoremove --purge das-cli
 
     run -127 das-cli update-version

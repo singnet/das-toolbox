@@ -244,6 +244,18 @@ class VaultStop(Command):
                 ),
                 severity=StdoutSeverity.WARNING,
             )
+        except DockerError as e:
+            self.stdout(
+                ServiceResponse(
+                    service=CLI_SERVICE_NAME,
+                    action="stop",
+                    status=StdoutStatus.ERROR,
+                    message="DAS-CLI failed to stop the Vault service.",
+                    error=e,
+                    container=container,
+                ),
+                severity=StdoutSeverity.ERROR,
+            )
 
 
 class VaultCli(CommandGroup):
