@@ -1,7 +1,5 @@
 #!/usr/local/bin/bats
 
-skip "Skip test causing failure for subsequent tests"
-
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
@@ -9,6 +7,8 @@ load 'libs/utils'
 bats_require_minimum_version 1.5.0
 
 setup() {
+    skip "Skip test causing failure for subsequent tests"
+
     if [ "$current_user" == "root" ]; then
         apt -y update
         apt -y install --allow-downgrades das-cli=0.2.17
