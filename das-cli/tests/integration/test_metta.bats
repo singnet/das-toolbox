@@ -41,14 +41,15 @@ setup() {
 
 @test "Checking syntax of multiple MeTTa files" {
     local metta_file_path="$test_fixtures_dir/metta/"
+    local animals_file_path="${metta_file_path}animals.metta"
+    local invalid_file_path="${metta_file_path}invalid.metta"
 
     run das-cli metta check "$metta_file_path"
 
     assert_failure 1
     assert_line --partial "$metta_file_path"
-    assert_line --partial "Checking syntax for"
-    assert_line --partial "... OK"
-    assert_line --partial "... FAILED"
+    assert_line --partial "Checking syntax for ${animals_file_path}... OK"
+    assert_line --partial "Checking syntax for ${invalid_file_path}... FAILED"
     assert_output --partial "MeTTa syntax check failed"
 }
 
