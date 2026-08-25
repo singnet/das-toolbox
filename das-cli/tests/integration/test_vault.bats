@@ -10,8 +10,13 @@ vault_start() {
     printf 'y\n' | das-cli vault start "$@"
 }
 
-unseal_key_1_from_output() {
-    echo "$output" | grep 'Unseal Key 1:' | tail -n 1
+unseal_key_from_output() {
+    local n="$1"
+    echo "$output" | sed 's/\x1b\[[0-9;]*m//g' | grep "Unseal Key ${n}:" | tail -n 1 | sed "s/.*Unseal Key ${n}: //"
+}
+
+vault_unseal() {
+    printf '%s\n' "$1" "$2" "$3" | das-cli vault start
 }
 
 setup() {
@@ -103,7 +108,7 @@ teardown() {
 @test "Pruning Vault forces a fresh initialization" {
     run vault_start
     assert_success
-    first_key="$(unseal_key_1_from_output)"
+    first_key="$(unseal_key_from_output 1)"
 
     run das-cli vault stop --prune
     assert_success
@@ -112,9 +117,36 @@ teardown() {
     run vault_start
     assert_success
     assert_output --partial "Unseal Key 1:"
-    second_key="$(unseal_key_1_from_output)"
+    second_key="$(unseal_key_from_output 1)"
 
     [ -n "$first_key" ]
     [ -n "$second_key" ]
     [ "$first_key" != "$second_key" ]
+}
+
+@test "Stopping Vault without prune requires the original unseal keys" {
+    run vault_start
+    assert_success
+
+    key1="$(unseal_key_from_output 1)"
+    key2="$(unseal_key_from_output 2)"
+    key3="$(unseal_key_from_output 3)"
+    [ -n "$key1" ]
+    [ -n "$key2" ]
+    [ -n "$key3" ]
+
+    run das-cli vault stop
+    assert_success
+
+    run is_service_up "$vault_container"
+    assert_failure
+
+    run vault_unseal "$key1" "$key2" "$key3"
+    assert_success
+    assert_output --partial "started on port"
+    assert_output --partial "$vault_port"
+    refute_output --partial "Initializing Vault"
+
+    run is_service_up "$vault_container"
+    assert_success
 }

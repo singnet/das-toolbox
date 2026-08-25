@@ -20,8 +20,8 @@ SECTIONS
     │ 2. AtomDB Backend  │
     │ 3. Loaders         │
     │ 4. Vault           │
-    │ 5. Brokers         │
-    │ 6. Agents          │
+    │ 5. Agents          │
+    │ 6. Brokers         │
     │ 7. Parameters      │
     │ 8. Environment     │
     └────────────────────┘

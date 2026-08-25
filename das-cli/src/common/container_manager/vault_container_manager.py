@@ -86,14 +86,16 @@ class VaultContainerManager(ContainerManager):
         try:
             container = self.get_docker_client().containers.get(container_name)
             container.reload()
+            state = container.attrs.get("State", {})
+            if state.get("Running") or state.get("Restarting"):
+                return
+
+            logs = container.logs(stdout=True, stderr=True, tail=50)
         except docker.errors.NotFound:
             raise DockerError(f"Vault container {container_name} is not running.")
+        except docker.errors.APIError as error:
+            raise DockerError(error.explanation or str(error))
 
-        state = container.attrs.get("State", {})
-        if state.get("Running") or state.get("Restarting"):
-            return
-
-        logs = container.logs(stdout=True, stderr=True, tail=50)
         log_text = (
             logs.decode("utf-8", errors="replace").strip()
             if isinstance(logs, (bytes, bytearray))
