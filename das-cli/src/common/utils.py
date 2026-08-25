@@ -195,5 +195,20 @@ def extract_service_port(endpoint: str) -> int | None:
         return None
 
 
+def require_endpoint_port(endpoint: Any, setting_name: str) -> int:
+    if not isinstance(endpoint, str) or not endpoint.strip():
+        raise ValueError(
+            f"Invalid or missing {setting_name}. Expected format: 'localhost:8200'."
+        )
+
+    port = extract_service_port(endpoint)
+    if port is None or not (1 <= port <= 65535):
+        raise ValueError(
+            f"Invalid {setting_name} '{endpoint}'. "
+            "Expected host:port with an integer port between 1 and 65535."
+        )
+    return port
+
+
 def get_platform_info() -> str:
     return f"{sys.platform} {sys.version.split()[0]}"

@@ -96,3 +96,26 @@ assert_config_core_endpoints() {
     run cat "$das_env_file"
     assert_output "configpath=${das_config_file}"
 }
+
+@test "config set accepts a valid vault.endpoint" {
+    use_config "simple"
+    ensure_env
+
+    run das-cli config set vault.endpoint=localhost:8210
+    assert_success
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8210"
+}
+
+@test "config set rejects a non-numeric vault.endpoint port" {
+    use_config "simple"
+    ensure_env
+
+    run das-cli config set vault.endpoint=localhost:abc
+    assert_failure
+    assert_output --partial "vault.endpoint"
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+}

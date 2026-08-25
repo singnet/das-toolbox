@@ -10,9 +10,11 @@ setup() {
     installed_fixture_package=0
 
     if [ "$current_user" == "root" ]; then
-        apt -y update
-        apt -y install --allow-downgrades das-cli=0.2.17
-        installed_fixture_package=1
+        if ! dpkg-query -W -f='${Status}' das-cli 2>/dev/null | grep -q 'install ok installed'; then
+            apt -y update
+            apt -y install --allow-downgrades das-cli=0.2.17
+            installed_fixture_package=1
+        fi
     fi
 }
 

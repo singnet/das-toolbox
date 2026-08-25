@@ -45,10 +45,9 @@ def _assert_timeout_is_docker_error(port: int) -> None:
     try:
         manager.get_status()
     except DockerError as error:
-        if error.__cause__ is not None and not isinstance(error.__cause__, TimeoutError):
-            raise SystemExit(
-                f"DockerError cause was {type(error.__cause__).__name__}"
-            ) from error
+        if not isinstance(error.__cause__, TimeoutError):
+            cause = type(error.__cause__).__name__ if error.__cause__ is not None else "None"
+            raise SystemExit(f"DockerError cause was {cause}") from error
         return
     except Exception as error:
         raise SystemExit(f"expected DockerError, got {type(error).__name__}: {error}") from error

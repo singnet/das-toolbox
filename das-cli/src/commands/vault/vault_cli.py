@@ -8,6 +8,7 @@ from common.docker.exceptions import (
 )
 from common.exceptions import PortBindingError
 from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
+from common.utils import require_endpoint_port
 
 from .vault_docs import (
     HELP_START,
@@ -104,6 +105,7 @@ class VaultStart(Command):
 
     def run(self):
         self._settings.validate_configuration_file()
+        require_endpoint_port(self._settings.get("vault.endpoint"), "vault.endpoint")
 
         container = self._get_container()
         port = container.port

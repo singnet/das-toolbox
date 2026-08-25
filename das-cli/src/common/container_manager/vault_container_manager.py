@@ -40,7 +40,16 @@ class VaultContainerManager(ContainerManager):
     def start_container(self) -> None:
         self.raise_running_container()
 
-        port = int(self._options.get("vault_port", 0))
+        port = self._options.get("vault_port")
+        if not isinstance(port, int):
+            raise ValueError(
+                "Invalid or missing vault.endpoint. Expected host:port with an integer port, "
+                "for example 'localhost:8200'."
+            )
+        if not (1 <= port <= 65535):
+            raise ValueError(
+                f"Invalid vault.endpoint port '{port}'. Port must be between 1 and 65535."
+            )
         self.raise_on_port_in_use([port])
         self._write_server_config(port)
 

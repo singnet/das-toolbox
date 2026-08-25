@@ -45,6 +45,31 @@ teardown() {
     done
 }
 
+@test "Start Vault when port is already in use" {
+    run listen_port "${vault_port}"
+    assert_success
+
+    run vault_start
+
+    assert_failure 1
+    assert_output --partial "Starting Vault"
+    assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
+
+    run stop_listen_port "${vault_port}"
+    assert_success
+
+    run is_service_up "$vault_container"
+    assert_failure
+}
+
+@test "Starting Vault with an invalid endpoint fails with a configuration error" {
+    update_json_key "$das_config_file" vault.endpoint "localhost:abc"
+
+    run das-cli vault start
+    assert_failure
+    assert_output --partial "vault.endpoint"
+}
+
 @test "Starting Vault" {
     run vault_start
 
