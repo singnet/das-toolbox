@@ -18,7 +18,7 @@ export function useServerTabMetrics(host) {
 
   const appendSnapshot = useCallback((servicesData) => {
     snapshotHistoryRef.current.push({ data: servicesData });
-    if (snapshotHistoryRef.current.length > 20) snapshotHistoryRef.current.shift();
+    if (snapshotHistoryRef.current.length > 30) snapshotHistoryRef.current.shift();
   }, []);
 
   useEffect(() => {
