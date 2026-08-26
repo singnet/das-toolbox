@@ -101,7 +101,7 @@ assert_config_core_endpoints() {
     use_config "simple"
     ensure_env
 
-    for endpoint in localhost:8200 localhost:8210 127.0.0.1:8200 0.0.0.0:8200; do
+    for endpoint in localhost:8200 localhost:8210 127.0.0.1:8200; do
         run das-cli config set "vault.endpoint=${endpoint}"
         assert_success
 
@@ -115,6 +115,13 @@ assert_config_core_endpoints() {
     ensure_env
 
     run das-cli config set vault.endpoint=vault.example:8200
+    assert_failure
+    assert_output --partial "vault.endpoint"
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+
+    run das-cli config set vault.endpoint=0.0.0.0:8200
     assert_failure
     assert_output --partial "vault.endpoint"
 
@@ -160,4 +167,74 @@ assert_config_core_endpoints() {
         run get_config ".vault.endpoint"
         assert_output "localhost:8200"
     done
+}
+
+config_set_answers_before_vault() {
+    # save path, decline overwrite, then AtomDB / agents / jupyter defaults
+    printf '%s\n' "" "n"
+    local i
+    for i in $(seq 1 36); do
+        printf '\n'
+    done
+}
+
+run_interactive_config_set() {
+    set -o pipefail
+    {
+        config_set_answers_before_vault
+        printf '%s\n' "$1" "$2"
+    } | das-cli config set
+}
+
+@test "interactive config set keeps the default vault.endpoint" {
+    use_config "simple"
+    ensure_env
+
+    run run_interactive_config_set "" ""
+    assert_success
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+}
+
+@test "interactive config set persists a custom loopback vault port" {
+    use_config "simple"
+    ensure_env
+
+    run run_interactive_config_set "localhost" "8210"
+    assert_success
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8210"
+}
+
+@test "interactive config set rejects a non-loopback vault hostname" {
+    use_config "simple"
+    ensure_env
+
+    run run_interactive_config_set "vault.example" "8200"
+    assert_failure
+    assert_output --partial "vault.endpoint"
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+}
+
+@test "config set --file rejects an invalid vault.endpoint" {
+    use_config "simple"
+    ensure_env
+
+    local invalid_config
+    invalid_config="$(mktemp)"
+    cp "${test_fixtures_dir}/config/simple.json" "$invalid_config"
+    update_json_key "$invalid_config" vault.endpoint "vault.example:8200"
+
+    run das-cli config set --file "$invalid_config"
+    assert_failure
+    assert_output --partial "vault.endpoint"
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+
+    rm -f "$invalid_config"
 }

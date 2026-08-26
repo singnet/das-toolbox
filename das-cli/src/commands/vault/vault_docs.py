@@ -10,9 +10,10 @@ SYNOPSIS
 DESCRIPTION
 
     Starts an OpenBao server in production mode in a Docker container, with
-    persistent storage and the web UI enabled. The listen address is read
-    from vault.endpoint in the JSON configuration file. The hostname must be a
-    loopback address (localhost, 127.0.0.1, or 0.0.0.0).
+    persistent storage and the web UI enabled. The host-published endpoint is
+    read from vault.endpoint in the JSON configuration file and must be a
+    loopback address (localhost or 127.0.0.1). Inside the container, OpenBao
+    listens on 0.0.0.0 on the configured port.
 
     After the container is up, OpenBao is initialized automatically with 3
     unseal keys. Those keys and the root token are printed together so you

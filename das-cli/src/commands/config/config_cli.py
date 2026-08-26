@@ -106,6 +106,10 @@ class ConfigSet(Command):
                 f"Configuration file at '{save_path}' is empty. " "The file was left unchanged."
             )
 
+        vault_endpoint = self._settings.get("vault.endpoint")
+        if vault_endpoint is not None:
+            require_vault_endpoint(vault_endpoint)
+
         verify_populate_missing_values(self._settings, save_path)
 
         self.log(

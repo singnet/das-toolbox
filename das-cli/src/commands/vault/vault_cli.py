@@ -122,7 +122,6 @@ class VaultStart(Command):
             return
 
         container = self._get_container()
-        dashboard_host = "localhost" if host.lower() == "0.0.0.0" else host
 
         self.log("Starting Vault...", severity=StdoutSeverity.INFO)
 
@@ -153,7 +152,7 @@ class VaultStart(Command):
             elif status.get("sealed"):
                 self._unseal_interactively()
 
-            dashboard_url = f"http://{dashboard_host}:{port}/ui"
+            dashboard_url = f"http://{host}:{port}/ui"
             message = (
                 f"Vault started on port {port}.\n"
                 f"Open the dashboard at {dashboard_url} and use the Root Token to log in."

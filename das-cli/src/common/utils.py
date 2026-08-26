@@ -180,6 +180,7 @@ def extract_service_name(container_name: str) -> str | None:
 
 
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0"})
+VAULT_ENDPOINT_HOSTS = frozenset({"localhost", "127.0.0.1"})
 
 
 def extract_service_hostname(endpoint: str) -> str | None:
@@ -248,7 +249,7 @@ def require_vault_endpoint(endpoint: str | None) -> tuple[str, int]:
     return require_endpoint_port(
         endpoint,
         key="vault.endpoint",
-        allowed_hosts=LOCAL_HOSTS,
+        allowed_hosts=VAULT_ENDPOINT_HOSTS,
     )
 
 

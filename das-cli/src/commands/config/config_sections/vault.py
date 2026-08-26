@@ -9,7 +9,7 @@ def vault_section(settings: Settings):
     default_endpoint = str(get_default_value(settings, "vault.endpoint") or "localhost:8200")
 
     hostname = Command.prompt(
-        "Enter the Vault (OpenBao) hostname (localhost, 127.0.0.1, or 0.0.0.0)",
+        "Enter the Vault (OpenBao) hostname (localhost or 127.0.0.1)",
         default=extract_service_hostname(default_endpoint) or "localhost",
     )
     vault_port = Command.prompt(
