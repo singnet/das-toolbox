@@ -62,7 +62,7 @@ class VaultContainerManager(ContainerManager):
             self._start_container(
                 command=["bao", "server", f"-config={OPENBAO_CONFIG_IN_CONTAINER}"],
                 cap_add=["IPC_LOCK"],
-                ports={port: port},
+                ports={port: ("127.0.0.1", port)},
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
