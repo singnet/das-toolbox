@@ -1,6 +1,6 @@
 from common.command import Command
 from common.settings import Settings
-from common.utils import extract_service_port
+from common.utils import extract_service_port, require_endpoint_port
 
 from .setup_utils import get_default_value
 
@@ -13,4 +13,6 @@ def vault_section(settings: Settings):
         type=int,
     )
 
-    return {"vault": {"endpoint": f"localhost:{vault_port}"}}
+    endpoint = f"localhost:{vault_port}"
+    require_endpoint_port(endpoint, "vault.endpoint")
+    return {"vault": {"endpoint": endpoint}}

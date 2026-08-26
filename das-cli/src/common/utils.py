@@ -201,8 +201,22 @@ def require_endpoint_port(endpoint: Any, setting_name: str) -> int:
             f"Invalid or missing {setting_name}. Expected format: 'localhost:8200'."
         )
 
-    port = extract_service_port(endpoint)
-    if port is None or not (1 <= port <= 65535):
+    parts = endpoint.strip().split(":")
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ValueError(
+            f"Invalid {setting_name} '{endpoint}'. "
+            "Expected host:port with an integer port between 1 and 65535."
+        )
+
+    try:
+        port = int(parts[1])
+    except ValueError as error:
+        raise ValueError(
+            f"Invalid {setting_name} '{endpoint}'. "
+            "Expected host:port with an integer port between 1 and 65535."
+        ) from error
+
+    if not (1 <= port <= 65535):
         raise ValueError(
             f"Invalid {setting_name} '{endpoint}'. "
             "Expected host:port with an integer port between 1 and 65535."

@@ -63,11 +63,22 @@ teardown() {
 }
 
 @test "Starting Vault with an invalid endpoint fails with a configuration error" {
-    update_json_key "$das_config_file" vault.endpoint "localhost:abc"
+    local endpoints=(
+        "localhost:abc"
+        "localhost:0"
+        "localhost:65536"
+        ":8200"
+        "localhost:8200:extra"
+    )
 
-    run das-cli vault start
-    assert_failure
-    assert_output --partial "vault.endpoint"
+    for endpoint in "${endpoints[@]}"; do
+        use_config "simple"
+        update_json_key "$das_config_file" vault.endpoint "$endpoint"
+
+        run das-cli vault start
+        assert_failure
+        assert_output --partial "vault.endpoint"
+    done
 }
 
 @test "Starting Vault" {
