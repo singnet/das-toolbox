@@ -179,6 +179,9 @@ def extract_service_name(container_name: str) -> str | None:
     return parts[0] if parts else name
 
 
+LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0"})
+
+
 def extract_service_hostname(endpoint: str) -> str | None:
     try:
         hostname = endpoint.split(":")[0]
@@ -195,7 +198,12 @@ def extract_service_port(endpoint: str) -> int | None:
         return None
 
 
-def require_endpoint_port(endpoint: str | None, *, key: str = "endpoint") -> tuple[str, int]:
+def require_endpoint_port(
+    endpoint: str | None,
+    *,
+    key: str = "endpoint",
+    allowed_hosts: frozenset[str] | set[str] | None = None,
+) -> tuple[str, int]:
     example = "localhost:8200"
     if not isinstance(endpoint, str) or not endpoint.strip():
         raise ValueError(
@@ -211,8 +219,17 @@ def require_endpoint_port(endpoint: str | None, *, key: str = "endpoint") -> tup
         )
 
     host, port_text = parts
+    host = host.strip()
     if not host:
         raise ValueError(f"Invalid {key} '{endpoint}'. Hostname must not be empty.")
+
+    if allowed_hosts is not None:
+        allowed = {item.lower() for item in allowed_hosts}
+        if host.lower() not in allowed:
+            allowed_list = ", ".join(sorted(allowed_hosts))
+            raise ValueError(
+                f"Invalid {key} '{endpoint}'. Hostname must be one of: {allowed_list}."
+            )
 
     try:
         port = int(port_text)
@@ -225,6 +242,14 @@ def require_endpoint_port(endpoint: str | None, *, key: str = "endpoint") -> tup
         raise ValueError(f"Invalid {key} port '{port}'. Port must be between 1 and 65535.")
 
     return host, port
+
+
+def require_vault_endpoint(endpoint: str | None) -> tuple[str, int]:
+    return require_endpoint_port(
+        endpoint,
+        key="vault.endpoint",
+        allowed_hosts=LOCAL_HOSTS,
+    )
 
 
 def get_platform_info() -> str:

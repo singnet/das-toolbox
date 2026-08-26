@@ -97,23 +97,26 @@ assert_config_core_endpoints() {
     assert_output "configpath=${das_config_file}"
 }
 
-@test "config set accepts a valid vault.endpoint" {
+@test "config set accepts loopback vault.endpoint hosts" {
     use_config "simple"
     ensure_env
 
-    run das-cli config set vault.endpoint=localhost:8210
-    assert_success
+    for endpoint in localhost:8200 localhost:8210 127.0.0.1:8200 0.0.0.0:8200; do
+        run das-cli config set "vault.endpoint=${endpoint}"
+        assert_success
 
-    run get_config ".vault.endpoint"
-    assert_output "localhost:8210"
+        run get_config ".vault.endpoint"
+        assert_output "$endpoint"
+    done
 }
 
-@test "config set accepts vault.endpoint on port 8200" {
+@test "config set rejects a non-loopback vault.endpoint hostname" {
     use_config "simple"
     ensure_env
 
-    run das-cli config set vault.endpoint=localhost:8200
-    assert_success
+    run das-cli config set vault.endpoint=vault.example:8200
+    assert_failure
+    assert_output --partial "vault.endpoint"
 
     run get_config ".vault.endpoint"
     assert_output "localhost:8200"

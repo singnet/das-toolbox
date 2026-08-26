@@ -8,7 +8,7 @@ from common.docker.exceptions import (
 )
 from common.exceptions import PortBindingError
 from common.service_response import CONTAINER_START_FAILURE_MESSAGE, ServiceResponse, StdoutStatus
-from common.utils import require_endpoint_port
+from common.utils import require_vault_endpoint
 
 from .vault_docs import (
     HELP_START,
@@ -107,7 +107,7 @@ class VaultStart(Command):
         self._settings.validate_configuration_file()
 
         try:
-            require_endpoint_port(self._settings.get("vault.endpoint"), key="vault.endpoint")
+            host, port = require_vault_endpoint(self._settings.get("vault.endpoint"))
         except ValueError as error:
             self.stdout(
                 ServiceResponse(
@@ -122,7 +122,7 @@ class VaultStart(Command):
             return
 
         container = self._get_container()
-        port = container.port
+        dashboard_host = "localhost" if host.lower() == "0.0.0.0" else host
 
         self.log("Starting Vault...", severity=StdoutSeverity.INFO)
 
@@ -153,7 +153,7 @@ class VaultStart(Command):
             elif status.get("sealed"):
                 self._unseal_interactively()
 
-            dashboard_url = f"http://localhost:{port}/ui"
+            dashboard_url = f"http://{dashboard_host}:{port}/ui"
             message = (
                 f"Vault started on port {port}.\n"
                 f"Open the dashboard at {dashboard_url} and use the Root Token to log in."

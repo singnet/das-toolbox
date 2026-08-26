@@ -112,7 +112,8 @@ LOADERS (loaders)
 VAULT (vault)
 
     vault.endpoint
-        Endpoint where the Vault (OpenBao) server is exposed.
+        Local loopback endpoint where the Vault (OpenBao) server is exposed,
+        in the form host:port. Hostname must be localhost, 127.0.0.1, or 0.0.0.0.
 
 
 AGENTS (agents)
