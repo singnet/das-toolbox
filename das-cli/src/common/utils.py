@@ -195,5 +195,37 @@ def extract_service_port(endpoint: str) -> int | None:
         return None
 
 
+def require_endpoint_port(endpoint: str | None, *, key: str = "endpoint") -> tuple[str, int]:
+    example = "localhost:8200"
+    if not isinstance(endpoint, str) or not endpoint.strip():
+        raise ValueError(
+            f"Invalid or missing {key}. Expected host:port with an integer port, "
+            f"for example '{example}'."
+        )
+
+    parts = endpoint.split(":")
+    if len(parts) != 2:
+        raise ValueError(
+            f"Invalid {key} '{endpoint}'. Expected host:port with exactly one host and port, "
+            f"for example '{example}'."
+        )
+
+    host, port_text = parts
+    if not host:
+        raise ValueError(f"Invalid {key} '{endpoint}'. Hostname must not be empty.")
+
+    try:
+        port = int(port_text)
+    except (TypeError, ValueError) as error:
+        raise ValueError(
+            f"Invalid {key} '{endpoint}'. Port must be an integer between 1 and 65535."
+        ) from error
+
+    if not (1 <= port <= 65535):
+        raise ValueError(f"Invalid {key} port '{port}'. Port must be between 1 and 65535.")
+
+    return host, port
+
+
 def get_platform_info() -> str:
     return f"{sys.platform} {sys.version.split()[0]}"

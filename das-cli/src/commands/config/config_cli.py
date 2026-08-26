@@ -14,6 +14,7 @@ from common import (
     StdoutSeverity,
     StdoutStatus,
 )
+from common.utils import require_endpoint_port
 from common.prompt_types import AbsolutePath
 from settings.config import CURRENT_CONFIGFILE_PATH
 
@@ -145,6 +146,9 @@ class ConfigSet(Command):
         key, value = config_key_value
 
         self._non_interactive_config_provider.raise_property_invalid(key)
+
+        if key == "vault.endpoint":
+            require_endpoint_port(value, key=key)
 
         config_mappings = self._non_interactive_config_provider.setup_settings()
         self._non_interactive_config_provider.apply_values_to_settings(config_mappings)

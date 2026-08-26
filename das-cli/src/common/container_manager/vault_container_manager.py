@@ -257,8 +257,8 @@ class VaultContainerManager(ContainerManager):
         except urllib.error.HTTPError as error:
             try:
                 raw = error.read()
-            except TimeoutError as timeout_error:
-                raise DockerError(str(timeout_error)) from timeout_error
+            except OSError as read_error:
+                raise DockerError(str(read_error)) from read_error
             payload = self._read_json(raw)
             errors = payload.get("errors")
             if errors:
@@ -266,8 +266,8 @@ class VaultContainerManager(ContainerManager):
             raise DockerError(str(error)) from error
         except urllib.error.URLError as error:
             raise DockerError(str(error.reason)) from error
-        except TimeoutError as timeout_error:
-            raise DockerError(str(timeout_error)) from timeout_error
+        except OSError as error:
+            raise DockerError(str(error)) from error
 
     @staticmethod
     def _read_json(raw: bytes) -> dict[str, Any]:
