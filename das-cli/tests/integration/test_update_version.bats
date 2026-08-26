@@ -15,8 +15,8 @@ setup() {
 
     if _is_package_installed; then
         original_version="$(_package_version)"
+        original_deb="$(_matching_dist_deb "$original_version")"
     fi
-    original_deb="$(_dist_deb)"
 }
 
 teardown() {
@@ -33,8 +33,24 @@ _package_version() {
     dpkg-query -W -f='${Version}' "$PACKAGE_NAME" 2>/dev/null
 }
 
-_dist_deb() {
-    find "${BATS_TEST_DIRNAME}/../../../dist" -name '*.deb' -type f 2>/dev/null | head -n 1
+_matching_dist_deb() {
+    local expected_version="$1"
+    local dist_dir="${BATS_TEST_DIRNAME}/../../../dist"
+    local deb pkg ver
+
+    [ -n "$expected_version" ] || return 1
+    [ -d "$dist_dir" ] || return 1
+
+    while IFS= read -r -d '' deb; do
+        pkg="$(dpkg-deb -f "$deb" Package 2>/dev/null)" || continue
+        ver="$(dpkg-deb -f "$deb" Version 2>/dev/null)" || continue
+        if [ "$pkg" = "$PACKAGE_NAME" ] && [ "$ver" = "$expected_version" ]; then
+            printf '%s\n' "$deb"
+            return 0
+        fi
+    done < <(find "$dist_dir" -name '*.deb' -type f -print0 2>/dev/null)
+
+    return 1
 }
 
 _require_passwordless_sudo() {
@@ -62,13 +78,17 @@ _candidate_apt_version() {
 }
 
 _restore_das_toolbox() {
-    if [ -n "${original_deb:-}" ] && [ -f "${original_deb}" ]; then
-        sudo -n apt -y --allow-downgrades install "$original_deb"
+    if [ -z "${original_version:-}" ]; then
         return
     fi
-    if [ -n "${original_version:-}" ]; then
-        sudo -n apt -y --allow-downgrades install "${PACKAGE_NAME}=${original_version}"
+
+    if [ -n "${original_deb:-}" ] && [ -f "${original_deb}" ]; then
+        if sudo -n apt -y --allow-downgrades install "$original_deb"; then
+            return
+        fi
     fi
+
+    sudo -n apt -y --allow-downgrades install "${PACKAGE_NAME}=${original_version}"
 }
 
 @test "Trying to update package version without sudo" {
