@@ -15,7 +15,9 @@ setup() {
 
     if _is_package_installed; then
         original_version="$(_package_version)"
-        original_deb="$(_matching_dist_deb "$original_version")"
+        if ! original_deb="$(_matching_dist_deb "$original_version")"; then
+            original_deb=""
+        fi
     fi
 }
 
