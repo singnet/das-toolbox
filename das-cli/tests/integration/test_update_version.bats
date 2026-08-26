@@ -1,66 +1,181 @@
 #!/usr/local/bin/bats
 
-skip "Skip test causing failure for subsequent tests"
-
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'libs/utils'
 
 bats_require_minimum_version 1.5.0
 
+PACKAGE_NAME="das-toolbox"
+
 setup() {
-    if [ "$current_user" == "root" ]; then
-        apt -y update
-        apt -y install --allow-downgrades das-cli=0.2.17
+    restore_package=0
+    original_version=""
+    original_deb=""
+
+    if _is_package_installed; then
+        original_version="$(_package_version)"
+        if ! original_deb="$(_matching_dist_deb "$original_version")"; then
+            original_deb=""
+        fi
     fi
 }
 
 teardown() {
-    if [ "$current_user" == "root" ]; then
-        apt -y remove --autoremove --purge das-cli
+    if [ "${restore_package:-0}" -eq 1 ]; then
+        _restore_das_toolbox
     fi
 }
 
-@test "Trying to update package version without sudo" {
-    run das-cli update-version
+_is_package_installed() {
+    dpkg-query -W -f='${Status}' "$PACKAGE_NAME" 2>/dev/null | grep -q 'install ok installed'
+}
 
-    assert_output "This command is not being executed with sudo."
+_package_version() {
+    dpkg-query -W -f='${Version}' "$PACKAGE_NAME" 2>/dev/null
+}
+
+_matching_dist_deb() {
+    local expected_version="$1"
+    local dist_dir="${BATS_TEST_DIRNAME}/../../../dist"
+    local deb pkg ver
+
+    [ -n "$expected_version" ] || return 1
+    [ -d "$dist_dir" ] || return 1
+
+    while IFS= read -r -d '' deb; do
+        pkg="$(dpkg-deb -f "$deb" Package 2>/dev/null)" || continue
+        ver="$(dpkg-deb -f "$deb" Version 2>/dev/null)" || continue
+        if [ "$pkg" = "$PACKAGE_NAME" ] && [ "$ver" = "$expected_version" ]; then
+            printf '%s\n' "$deb"
+            return 0
+        fi
+    done < <(find "$dist_dir" -name '*.deb' -type f -print0 2>/dev/null)
+
+    return 1
+}
+
+_require_passwordless_sudo() {
+    if ! command -v sudo >/dev/null; then
+        skip "sudo is not available"
+    fi
+    if ! sudo -n true 2>/dev/null; then
+        skip "passwordless sudo is not available"
+    fi
+}
+
+_require_apt_package() {
+    if ! _is_package_installed; then
+        skip "das-toolbox is not installed via APT"
+    fi
+}
+
+_alternate_apt_version() {
+    local current="$1"
+    apt-cache madison "$PACKAGE_NAME" 2>/dev/null | awk '{print $3}' | grep -vxF "$current" | head -n 1
+}
+
+_candidate_apt_version() {
+    apt-cache policy "$PACKAGE_NAME" 2>/dev/null | awk '/Candidate:/ {print $2; exit}'
+}
+
+_restore_das_toolbox() {
+    if [ -z "${original_version:-}" ]; then
+        return
+    fi
+
+    if [ -n "${original_deb:-}" ] && [ -f "${original_deb}" ]; then
+        if sudo -n apt -y --allow-downgrades install "$original_deb"; then
+            return
+        fi
+    fi
+
+    sudo -n apt -y --allow-downgrades install "${PACKAGE_NAME}=${original_version}"
+}
+
+@test "Trying to update package version without sudo" {
+    if [ -n "${SUDO_USER:-}" ] || [ "$(id -u)" -eq 0 ]; then
+        skip "Cannot assert the non-sudo path when already running with root privileges"
+    fi
+
+    run das-cli update-version
+    assert_failure
+    assert_output --partial "Requires 'root' permissions to execute"
 }
 
 @test "Update package version" {
-    local expected_output
-    local new_version="0.4.7"
-    local current_version="$(get_das_cli_version)"
+    _require_passwordless_sudo
+    _require_apt_package
 
-    run sudo das-cli update-version --version $new_version
+    local current_version new_version
+    current_version="$(_package_version)"
+    new_version="$(_alternate_apt_version "$current_version")"
 
-    assert_output "Updating the package das-cli...
-Package version successfully updated  $current_version --> $new_version."
+    if [ -z "$new_version" ]; then
+        skip "no alternate das-toolbox version available in apt"
+    fi
+
+    restore_package=1
+
+    run sudo das-cli update-version --version "$new_version"
+
+    assert_success
+    assert_output --partial "Updating the package das-toolbox..."
+    assert_output --partial "Package version successfully updated  ${current_version} --> ${new_version}."
 }
 
 @test "Update package version to the latest" {
-    local current_version="$(get_das_cli_version)"
-    local latest_version="$(get_das_cli_latest_version das-cli)"
+    _require_passwordless_sudo
+    _require_apt_package
+
+    local current_version latest_version
+    current_version="$(_package_version)"
+    latest_version="$(_candidate_apt_version)"
+
+    if [ -z "$latest_version" ] || [ "$latest_version" = "(none)" ]; then
+        skip "no das-toolbox candidate version available in apt"
+    fi
+
+    restore_package=1
 
     run sudo das-cli update-version
 
-    assert_output "Updating the package das-cli...
-Package version successfully updated  $current_version --> $latest_version."
+    assert_success
+    assert_output --partial "Updating the package das-toolbox..."
+    if [ "$current_version" = "$latest_version" ]; then
+        assert_output --partial "The package is already updated to version ${latest_version}."
+    else
+        assert_output --partial "Package version successfully updated  ${current_version} --> ${latest_version}."
+    fi
 }
 
 @test "Trying to install invalid version" {
+    _require_passwordless_sudo
+    _require_apt_package
+
     local version="invalid-version"
 
     run sudo das-cli update-version --version $version
 
-    assert_output "Updating the package das-cli...
-The das-cli could not be updated. Please check if the specified version exists."
+    assert_failure
+    assert_output --partial "Updating the package das-toolbox..."
+    assert_output --partial "could not be updated"
 }
 
-@test "Trying to update das-cli before it's installed" {
-    apt -y remove --autoremove --purge das-cli
+@test "Trying to update das-toolbox before it's installed" {
+    _require_passwordless_sudo
+    _require_apt_package
 
-    run -127 das-cli update-version
+    local cli_copy
+    cli_copy="${BATS_TEST_TMPDIR}/das-cli"
+    cp "$(command -v das-cli)" "$cli_copy"
+    chmod +x "$cli_copy"
+
+    restore_package=1
+    sudo -n apt -y remove "$PACKAGE_NAME"
+
+    run sudo "$cli_copy" update-version
 
     assert_failure
+    assert_output --partial "The package 'das-toolbox' is not installed via APT."
 }
