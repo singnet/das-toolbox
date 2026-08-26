@@ -23,7 +23,7 @@ setup() {
     use_config "simple"
 
     vault_port="$(extract_port "$(get_config .vault.endpoint)")"
-    vault_container="das-cli-vault-${vault_port}"
+    vault_container="das-cli-vault"
 
     das-cli vault stop --prune &>/dev/null || true
     stop_listen_port "$vault_port" &>/dev/null || true

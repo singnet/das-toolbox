@@ -1,4 +1,5 @@
 import json
+import re
 import time
 import urllib.error
 import urllib.request
@@ -13,6 +14,10 @@ from settings.config import DAS_PATH, OPENBAO_IMAGE_NAME, OPENBAO_IMAGE_VERSION
 OPENBAO_CONFIG_DIR = DAS_PATH / "openbao"
 OPENBAO_CONFIG_IN_CONTAINER = "/openbao/config"
 OPENBAO_DATA_IN_CONTAINER = "/openbao/file"
+
+VAULT_CONTAINER_NAME = "das-cli-vault"
+_LEGACY_VAULT_CONTAINER = re.compile(rf"^{re.escape(VAULT_CONTAINER_NAME)}-\d+$")
+_LEGACY_VAULT_VOLUME = re.compile(rf"^{re.escape(VAULT_CONTAINER_NAME)}-\d+-data$")
 
 
 class VaultContainerManager(ContainerManager):
@@ -57,6 +62,7 @@ class VaultContainerManager(ContainerManager):
             self._start_container(
                 command=["bao", "server", f"-config={OPENBAO_CONFIG_IN_CONTAINER}"],
                 cap_add=["IPC_LOCK"],
+                ports={port: port},
                 restart_policy={
                     "Name": "on-failure",
                     "MaximumRetryCount": 5,
@@ -154,13 +160,14 @@ class VaultContainerManager(ContainerManager):
             super().stop(remove_volume=False, force=force)
         except DockerContainerNotFoundError as error:
             missing_error = error
-            if not remove_volume:
-                raise
+
+        legacy_stopped = self._stop_legacy_containers(force=force)
 
         if remove_volume:
             self._remove_data_volume()
+            self._remove_legacy_data_volumes()
 
-        if missing_error:
+        if missing_error and not legacy_stopped:
             raise missing_error
 
     def _write_server_config(self, port: int) -> None:
@@ -195,6 +202,41 @@ class VaultContainerManager(ContainerManager):
             pass
         except docker.errors.APIError as e:
             raise DockerError(e.explanation)
+
+    def _stop_legacy_containers(self, force: bool = False) -> int:
+        try:
+            containers = self.get_docker_client().containers.list(all=True)
+        except docker.errors.APIError as error:
+            raise DockerError(error.explanation or str(error))
+
+        stopped = 0
+        for container in containers:
+            if not _LEGACY_VAULT_CONTAINER.match(container.name):
+                continue
+            try:
+                container.kill()
+            except Exception:
+                pass
+            try:
+                container.remove(v=False, force=force)
+            except docker.errors.APIError as error:
+                raise DockerError(error.explanation)
+            stopped += 1
+        return stopped
+
+    def _remove_legacy_data_volumes(self) -> None:
+        try:
+            volumes = self.get_docker_client().volumes.list()
+        except docker.errors.APIError as error:
+            raise DockerError(error.explanation or str(error))
+
+        for volume in volumes:
+            if not _LEGACY_VAULT_VOLUME.match(volume.name):
+                continue
+            try:
+                volume.remove(force=True)
+            except docker.errors.APIError as error:
+                raise DockerError(error.explanation)
 
     def _request(
         self,
