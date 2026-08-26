@@ -19,10 +19,11 @@ SECTIONS
     │ 1. Schema Version  │
     │ 2. AtomDB Backend  │
     │ 3. Loaders         │
-    │ 4. Brokers         │
+    │ 4. Vault           │
     │ 5. Agents          │
-    │ 6. Parameters      │
-    │ 7. Environment     │
+    │ 6. Brokers         │
+    │ 7. Parameters      │
+    │ 8. Environment     │
     └────────────────────┘
 
 
@@ -106,6 +107,12 @@ LOADERS (loaders)
 
     loaders.morkdb.image
         Docker image used for the MorkDB loader.
+
+
+VAULT (vault)
+
+    vault.endpoint
+        Endpoint where the Vault (OpenBao) server is exposed.
 
 
 AGENTS (agents)

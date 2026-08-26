@@ -27,6 +27,9 @@ assert_config_core_endpoints() {
     run get_config ".environment.jupyter.endpoint"
     assert_output "localhost:40019"
 
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+
     run get_config ".agents.context.endpoint"
     assert_output "localhost:40006"
 
@@ -92,4 +95,66 @@ assert_config_core_endpoints() {
 
     run cat "$das_env_file"
     assert_output "configpath=${das_config_file}"
+}
+
+@test "config set accepts a valid vault.endpoint" {
+    use_config "simple"
+    ensure_env
+
+    run das-cli config set vault.endpoint=localhost:8210
+    assert_success
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8210"
+}
+
+@test "config set accepts vault.endpoint on port 8200" {
+    use_config "simple"
+    ensure_env
+
+    run das-cli config set vault.endpoint=localhost:8200
+    assert_success
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+}
+
+@test "config set rejects a non-numeric vault.endpoint port" {
+    use_config "simple"
+    ensure_env
+
+    run das-cli config set vault.endpoint=localhost:abc
+    assert_failure
+    assert_output --partial "vault.endpoint"
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:8200"
+}
+
+@test "config set rejects out-of-range vault.endpoint ports" {
+    use_config "simple"
+    ensure_env
+
+    for endpoint in localhost:0 localhost:65536; do
+        run das-cli config set "vault.endpoint=${endpoint}"
+        assert_failure
+        assert_output --partial "vault.endpoint"
+
+        run get_config ".vault.endpoint"
+        assert_output "localhost:8200"
+    done
+}
+
+@test "config set rejects malformed vault.endpoint strings" {
+    use_config "simple"
+    ensure_env
+
+    for endpoint in :8200 localhost:8200:extra; do
+        run das-cli config set "vault.endpoint=${endpoint}"
+        assert_failure
+        assert_output --partial "vault.endpoint"
+
+        run get_config ".vault.endpoint"
+        assert_output "localhost:8200"
+    done
 }

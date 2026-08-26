@@ -9,6 +9,7 @@ from .config_sections.atomdb import atomdb_config_section
 from .config_sections.jupyter import jupyter_notebook_section
 from .config_sections.loaders import loaders_config_section
 from .config_sections.savefile import savefile_path_section
+from .config_sections.vault import vault_section
 
 
 class ConfigProvider(ABC):
@@ -68,6 +69,7 @@ class InteractiveConfigProvider(ConfigProvider):
             atomdb_config_section,
             agents_config_section,
             jupyter_notebook_section,
+            vault_section,
             loaders_config_section,
         ]
 
