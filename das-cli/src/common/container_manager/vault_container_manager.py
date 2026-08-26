@@ -1,13 +1,11 @@
-import json
 import time
-import urllib.error
-import urllib.request
 from typing import Any, Dict
 
 import docker
 
 from common import Container, ContainerManager
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
+from http_json import HttpJsonError, request_json
 from settings.config import DAS_PATH, OPENBAO_IMAGE_NAME, OPENBAO_IMAGE_VERSION
 
 OPENBAO_CONFIG_DIR = DAS_PATH / "openbao"
@@ -204,38 +202,7 @@ class VaultContainerManager(ContainerManager):
     ) -> tuple[int, dict[str, Any]]:
         port = self.get_container().port
         url = f"http://127.0.0.1:{port}{path}"
-        data = json.dumps(body).encode("utf-8") if body is not None else None
-        request = urllib.request.Request(url, data=data, method=method)
-        if data is not None:
-            request.add_header("Content-Type", "application/json")
-
         try:
-            with urllib.request.urlopen(request, timeout=5) as response:
-                return response.status, self._read_json(response.read())
-        except urllib.error.HTTPError as error:
-            try:
-                raw = error.read()
-            except TimeoutError as timeout_error:
-                raise DockerError(str(timeout_error)) from timeout_error
-            payload = self._read_json(raw)
-            errors = payload.get("errors")
-            if errors:
-                raise DockerError("; ".join(str(item) for item in errors))
-            raise DockerError(str(error))
-        except urllib.error.URLError as error:
-            raise DockerError(str(error.reason)) from error
-        except TimeoutError as timeout_error:
-            raise DockerError(str(timeout_error)) from timeout_error
-
-    @staticmethod
-    def _read_json(raw: bytes) -> dict[str, Any]:
-        if not raw:
-            return {}
-        try:
-            payload = json.loads(raw.decode("utf-8"))
-        except json.JSONDecodeError as error:
-            raise DockerError(f"Unexpected Vault API response: {error}") from error
-
-        if not isinstance(payload, dict):
-            raise DockerError("Unexpected Vault API response.")
-        return payload
+            return request_json(url, method, body)
+        except HttpJsonError as error:
+            raise DockerError(str(error)) from error.__cause__ or error

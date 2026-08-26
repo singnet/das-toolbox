@@ -42,7 +42,7 @@ setup(
             "das-cli=das_cli:das_cli",
         ],
     },
-    py_modules=["das_cli"],
+    py_modules=["das_cli", "http_json"],
     install_requires=get_install_requirements(),
     python_requires=">=3.8",
     license="MIT",

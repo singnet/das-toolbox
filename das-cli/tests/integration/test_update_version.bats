@@ -25,9 +25,13 @@ teardown() {
 }
 
 @test "Trying to update package version without sudo" {
-    run das-cli update-version
+    if [ -n "${SUDO_USER:-}" ] || [ "$(id -u)" -eq 0 ]; then
+        skip "Cannot assert the non-sudo path in this environment"
+    fi
 
-    assert_output "This command is not being executed with sudo."
+    run das-cli update-version
+    assert_failure
+    assert_output --partial "Requires 'root' permissions to execute"
 }
 
 @test "Update package version" {
@@ -60,8 +64,9 @@ Package version successfully updated  $current_version --> $latest_version."
 
     run sudo das-cli update-version --version $version
 
-    assert_output "Updating the package das-cli...
-The das-cli could not be updated. Please check if the specified version exists."
+    assert_failure
+    assert_output --partial "Updating the package das-toolbox..."
+    assert_output --partial "could not be updated"
 }
 
 @test "Trying to update das-cli before it's installed" {
