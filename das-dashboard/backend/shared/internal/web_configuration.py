@@ -11,7 +11,6 @@ from shared.internal.constants import (
     LOCAL_HOSTS,
     LOCAL_DASHBOARD_HOST,
 )
-from shared.utils.service_inventory import build_service_row
 
 # Agent section keys mapped to das-cli service command names.
 AGENT_SERVICE_COMMANDS = {
@@ -119,6 +118,8 @@ class WebConfiguration:
         return self.config_dictionary
 
     def map_remote_hosts(self) -> list[dict]:
+        """ Maps only remote hosts present in the configuration file. Ignores completely any ['localhost', '0.0.0.0', '127.0.0.1'] entries. """
+
         _, remote_by_host = self._group_services_by_host(self.require_config_dictionary())
 
         return [
@@ -127,32 +128,16 @@ class WebConfiguration:
         ]
 
     def map_dashboard_hosts(self) -> list[dict]:
+        """Maps host IPs present on the configuration file."""
+
         local_entries, remote_by_host = self._group_services_by_host(
             self.require_config_dictionary()
         )
 
-        dashboard_hosts = [
-            {
-                "ip": host,
-                "services": [
-                    build_service_row(service_key, service)
-                    for service_key, service in entries
-                ],
-            }
-            for host, entries in sorted(remote_by_host.items(), key=lambda item: item[0])
-        ]
+        dashboard_hosts = [{"ip": host} for host in sorted(remote_by_host.keys())]
 
         if local_entries:
-            dashboard_hosts.insert(
-                0,
-                {
-                    "ip": LOCAL_DASHBOARD_HOST,
-                    "services": [
-                        build_service_row(service_key, service)
-                        for service_key, service in local_entries
-                    ],
-                },
-            )
+            dashboard_hosts.insert(0, {"ip": LOCAL_DASHBOARD_HOST})
 
         return dashboard_hosts
 

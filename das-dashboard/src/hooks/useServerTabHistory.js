@@ -54,28 +54,37 @@ export function useServerTabHistory(serverIp, period) {
     }
   }, [serverIp, period]);
 
-  const refreshCollection = useCallback(async () => {
-    if (!serverIp) {
-      setCollecting(false);
-      return;
-    }
-
-    try {
-      const status = await fetchCollectionStatus(serverIp);
-      setCollecting(Boolean(status?.collecting));
-    } catch (error) {
-      console.error("Failed to load collection status:", error);
-      setCollecting(false);
-    }
-  }, [serverIp]);
-
   useEffect(() => {
     refreshHistory().catch(() => {});
   }, [refreshHistory]);
 
   useEffect(() => {
-    refreshCollection();
-  }, [refreshCollection]);
+    let active = true;
+    setCollecting(false);
+
+    if (!serverIp) {
+      return () => {
+        active = false;
+      };
+    }
+
+    fetchCollectionStatus(serverIp)
+      .then((status) => {
+        if (active) {
+          setCollecting(Boolean(status?.collecting));
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load collection status:", error);
+        if (active) {
+          setCollecting(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [serverIp]);
 
   const toggleCollection = useCallback(async () => {
     if (!serverIp) return;
