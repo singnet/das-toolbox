@@ -17,14 +17,38 @@ export const METRICS_PERIODS = [
   { value: "week", label: "1 week" },
 ];
 
+export const HISTORY_CHUNK_COUNT = 30;
+
+// This function fills up a default CPU and Memory metrics array with null values.
+// Then iterates through the points we receive from the back-end and fills up the empty indexes with the correct value and position.
+// Position is given by the points on the back-end's payload. Each point has a "bucket" value that represents it's position inside the whole time period.
+
+function padMetricSeries(points = [], chunkCount = HISTORY_CHUNK_COUNT) {
+  const cpu = Array(chunkCount).fill(null); // Empty CPU with 30 null spaces
+  const memory = Array(chunkCount).fill(null); // Empty Memory with 30 null spaces
+
+  points.forEach((point) => {
+    const rawBucket = Number(point.bucket);
+    if (!Number.isFinite(rawBucket)) {
+      return;
+    }
+
+    const bucket = Math.min(chunkCount - 1, Math.max(0, Math.floor(rawBucket)));
+    cpu[bucket] = Number(point.cpu) || 0;
+    memory[bucket] = Number(point.memory) || 0;
+  });
+
+  return { cpu, memory };
+}
+
 function toMachineHistory(payload) {
   const services = payload?.services ?? {};
+  const chunkCount = Number(payload?.chunk_count) || HISTORY_CHUNK_COUNT;
 
   return {
     agents: Object.entries(services).map(([name, points]) => ({
       name,
-      cpu: (points ?? []).map((point) => Number(point.cpu) || 0),
-      memory: (points ?? []).map((point) => Number(point.memory) || 0),
+      ...padMetricSeries(points, chunkCount),
     })),
   };
 }

@@ -232,6 +232,7 @@ class MetricsServices:
             services[service_name].append(
                 {
                     "timestamp": bucket_time.isoformat(),
+                    "bucket": bucket,
                     "cpu": round(avg_cpu, 2),
                     "memory": round(avg_memory, 2),
                 }
@@ -241,5 +242,6 @@ class MetricsServices:
             "server_ip": server_ip,
             "period": period_value,
             "chunk_seconds": chunk_seconds,
+            "chunk_count": HISTORY_CHUNK_COUNT,
             "services": dict(services),
         }

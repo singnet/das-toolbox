@@ -69,7 +69,9 @@ export function ServerMetricsCharts() {
   const chartServiceName = matchChartService(chartSource, selectedService);
   const chartData = pickChartAgents(chartSource, chartServiceName);
   const hasChartData = (chartData.agents ?? []).some(
-    (agent) => agent.cpu?.length > 0 || agent.memory?.length > 0
+    (agent) =>
+      (agent.cpu ?? []).some((value) => value != null) ||
+      (agent.memory ?? []).some((value) => value != null)
   );
   const emptyDescription = isRealtime
     ? "Waiting for live samples from the stream."
