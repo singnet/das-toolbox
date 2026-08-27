@@ -15,6 +15,7 @@ export default function DashboardContextProvider({ children }) {
   const [currentMachine, setCurrentMachine] = useState(null);
   const [currentService, setCurrentService] = useState(null);
   const [currentContext, setCurrentContext] = useState("servers");
+  const [metricsPeriod, setMetricsPeriod] = useState("realtime");
 
   const applyInitialState = useCallback((initialState) => {
     if (!initialState) return;
@@ -70,6 +71,8 @@ export default function DashboardContextProvider({ children }) {
         setCurrentService,
         currentContext,
         setCurrentContext,
+        metricsPeriod,
+        setMetricsPeriod,
         applyInitialState,
       }}
     >
