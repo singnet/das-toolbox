@@ -8,6 +8,7 @@ import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
 import { ServerInfoHeader } from "./ServerInfoHeader";
 import { useToast } from "../../../global_providers/ToastProvider";
+import { serviceRowKey } from "../../../../utils/serviceRows";
 
 export function AgentTable({ machine }) {
   const { showToast } = useToast();
@@ -85,9 +86,9 @@ export function AgentTable({ machine }) {
             ) : (
               hostServices.map((service) => (
                 <AgentRow
-                  key={service.container_name || service.service_command_label}
+                  key={serviceRowKey(service)}
                   agent={service}
-                  selected={currentService === service.container_name}
+                  selected={currentService === serviceRowKey(service)}
                   handleSelect={handleSelect}
                   onAction={handleAction}
                   getStatusColor={getStatusColor}

@@ -105,8 +105,14 @@ def get_service_metrics_averages(
                 """
                 SELECT
                     service_name,
-                    CAST(
-                        (strftime('%s', substr(timestamp, 1, 19)) - ?) / ? AS INTEGER
+                    MIN(
+                        ? - 1,
+                        MAX(
+                            0,
+                            CAST(
+                                (strftime('%s', substr(timestamp, 1, 19)) - ?) / ? AS INTEGER
+                            )
+                        )
                     ) AS bucket,
                     AVG(CAST(cpu_usage AS REAL)) AS avg_cpu,
                     AVG(CAST(memory_usage AS REAL)) AS avg_memory
@@ -114,15 +120,14 @@ def get_service_metrics_averages(
                 WHERE machine_ip = ?
                   AND strftime('%s', substr(timestamp, 1, 19)) >= ?
                 GROUP BY service_name, bucket
-                HAVING bucket >= 0 AND bucket < ?
                 ORDER BY service_name, bucket
                 """,
                 (
+                    chunk_count,
                     start,
                     chunk_seconds,
                     machine_ip,
                     start,
-                    chunk_count,
                 ),
             ).fetchall()
     except sqlite3.Error as error:

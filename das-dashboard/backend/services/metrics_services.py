@@ -141,6 +141,13 @@ class MetricsServices:
                         return
                     continue
 
+            await process.wait()
+            if process.returncode:
+                yield {
+                    "type": "error",
+                    "message": "Failed to stream server metrics.",
+                }
+
         except Exception as e:
             yield {"type": "error", "message": f"Internal metrics collection error: {str(e)}"}
         finally:
@@ -190,11 +197,15 @@ class MetricsServices:
                 if not service_info:
                     continue
 
-                save_service_metrics_data(server_ip, service_info)
+                await asyncio.to_thread(save_service_metrics_data, server_ip, service_info)
         except asyncio.CancelledError:
             raise
         finally:
-            self.job_control.remove_job(METRICS_COLLECTION_JOB, server_ip)
+            self.job_control.remove_job(
+                METRICS_COLLECTION_JOB,
+                server_ip,
+                asyncio.current_task(),
+            )
 
     def delete_server_metrics(self, server_ip: str) -> dict:
         deleted = delete_metrics_by_ip(server_ip)

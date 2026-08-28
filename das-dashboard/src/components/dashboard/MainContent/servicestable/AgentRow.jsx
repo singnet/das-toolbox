@@ -17,6 +17,7 @@ export function AgentRow({
   const isRunning = agent.is_running;
   const rowKey = serviceRowKey(agent);
   const command = agent.service_command_label;
+  const canExecuteAction = Boolean(command);
 
   const executeAction = (e, actionType) => {
     e.stopPropagation();
@@ -82,14 +83,14 @@ export function AgentRow({
           <Tooltip title="Start">
             <ActionButton
               onClick={(e) => executeAction(e, "START")}
-              disabled={isRunning}
+              disabled={isRunning || !canExecuteAction}
               sx={{
                 color: "#ffffff",
-                backgroundColor: isRunning ? palette.borderSubtle : palette.success,
-                borderColor: isRunning ? palette.borderSubtle : palette.success,
+                backgroundColor: isRunning || !canExecuteAction ? palette.borderSubtle : palette.success,
+                borderColor: isRunning || !canExecuteAction ? palette.borderSubtle : palette.success,
                 "&:hover": {
-                  backgroundColor: isRunning ? palette.borderSubtle : palette.successHover,
-                  borderColor: isRunning ? palette.borderSubtle : palette.successHover,
+                  backgroundColor: isRunning || !canExecuteAction ? palette.borderSubtle : palette.successHover,
+                  borderColor: isRunning || !canExecuteAction ? palette.borderSubtle : palette.successHover,
                 },
               }}
             >
@@ -100,14 +101,14 @@ export function AgentRow({
           <Tooltip title="Stop">
             <ActionButton
               onClick={(e) => executeAction(e, "STOP")}
-              disabled={!isRunning}
+              disabled={!isRunning || !canExecuteAction}
               sx={{
                 color: "#ffffff",
-                backgroundColor: !isRunning ? palette.borderSubtle : palette.danger,
-                borderColor: !isRunning ? palette.borderSubtle : palette.danger,
+                backgroundColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.danger,
+                borderColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.danger,
                 "&:hover": {
-                  backgroundColor: !isRunning ? palette.borderSubtle : palette.dangerHover,
-                  borderColor: !isRunning ? palette.borderSubtle : palette.dangerHover,
+                  backgroundColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.dangerHover,
+                  borderColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.dangerHover,
                 },
               }}
             >
@@ -118,14 +119,14 @@ export function AgentRow({
           <Tooltip title="Restart">
             <ActionButton
               onClick={(e) => executeAction(e, "RESTART")}
-              disabled={!isRunning}
+              disabled={!isRunning || !canExecuteAction}
               sx={{
                 color: "#ffffff",
-                backgroundColor: !isRunning ? palette.borderSubtle : palette.accent,
-                borderColor: !isRunning ? palette.borderSubtle : palette.accent,
+                backgroundColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.accent,
+                borderColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.accent,
                 "&:hover": {
-                  backgroundColor: !isRunning ? palette.borderSubtle : palette.accentHover,
-                  borderColor: !isRunning ? palette.borderSubtle : palette.accentHover,
+                  backgroundColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.accentHover,
+                  borderColor: !isRunning || !canExecuteAction ? palette.borderSubtle : palette.accentHover,
                 },
               }}
             >

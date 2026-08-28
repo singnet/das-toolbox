@@ -5,8 +5,6 @@ import { useDashboardContext } from "./DashboardContextProvider";
 const ArchitectureTabMetricsContext = createContext(null);
 
 export function ArchitectureTabMetricsProvider({ children }) {
-  /* Provides metrics from all servers present in the architecture to display on architecture tab. */
-
   const { machines, currentContext } = useDashboardContext();
   const isAgentsView = currentContext === "agents";
 

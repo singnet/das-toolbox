@@ -39,7 +39,9 @@ async def get_service_metrics_history(
     server_ip: str = Query(...),
     period: MetricsPeriod = Query(...),
 ):
-    result = METRICS_SERVICES.get_service_metrics_history(server_ip, period)
+    result = await asyncio.to_thread(
+        METRICS_SERVICES.get_service_metrics_history, server_ip, period
+    )
     return JSONResponse(
         status_code=200,
         content={"content": result}
@@ -47,7 +49,7 @@ async def get_service_metrics_history(
 
 @router.delete("/history/{server_ip}")
 async def delete_server_history(server_ip: str):
-    result = METRICS_SERVICES.delete_server_metrics(server_ip)
+    result = await asyncio.to_thread(METRICS_SERVICES.delete_server_metrics, server_ip)
     return JSONResponse(
         status_code=200,
         content={"content": result}
@@ -56,9 +58,9 @@ async def delete_server_history(server_ip: str):
 @router.delete("/history")
 async def delete_history(unused_only: bool = Query(False)):
     if unused_only:
-        result = METRICS_SERVICES.delete_unused_server_metrics()
+        result = await asyncio.to_thread(METRICS_SERVICES.delete_unused_server_metrics)
     else:
-        result = METRICS_SERVICES.delete_all_server_metrics()
+        result = await asyncio.to_thread(METRICS_SERVICES.delete_all_server_metrics)
 
     return JSONResponse(
         status_code=200,

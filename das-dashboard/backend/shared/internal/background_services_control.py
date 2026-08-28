@@ -18,8 +18,19 @@ class BackgroundServicesControl:
     def add_job(self, job_name: str, server_ip: str, task: asyncio.Task) -> None:
         self.running_jobs[self._job_key(job_name, server_ip)] = task
 
-    def remove_job(self, job_name: str, server_ip: str) -> asyncio.Task | None:
-        return self.running_jobs.pop(self._job_key(job_name, server_ip), None)
+    def remove_job(
+        self,
+        job_name: str,
+        server_ip: str,
+        task: asyncio.Task | None = None,
+    ) -> asyncio.Task | None:
+        key = self._job_key(job_name, server_ip)
+        current = self.running_jobs.get(key)
+        if current is None:
+            return None
+        if task is not None and current is not task:
+            return None
+        return self.running_jobs.pop(key, None)
 
     def get_job(self, job_name: str, server_ip: str) -> asyncio.Task | None:
         return self.running_jobs.get(self._job_key(job_name, server_ip))

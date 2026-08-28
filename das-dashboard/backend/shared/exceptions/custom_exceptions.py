@@ -179,8 +179,8 @@ class CommandRouterConnectionError(Exception):
 
 class SQLitePersistenceException(Exception):
     MESSAGE = (
-        "Could not persist data into the SQLite database."
-        "Check if database file exists on /opt/web-das/.das and check the file's permissions."
+        "Could not access the SQLite database. "
+        "Check if the database file exists on /opt/web-das/.das and check its permissions."
     )
 
     def __init__(self, exc_details: str = ""):

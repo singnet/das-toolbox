@@ -11,6 +11,7 @@ import { useDialog } from "../../../global_providers/DialogProvider";
 import { useServerTabHistory, REALTIME_PERIOD } from "../../../../hooks/useServerTabHistory";
 import { extractApiError } from "../../../../api/APIUtils";
 import { ChartGrid, ChartPanel, ChartSection } from "../servermetrics.styled";
+import { serviceRowKey } from "../../../../utils/serviceRows";
 
 function matchChartService(chartSource, selectedService) {
   if (!selectedService) {
@@ -18,6 +19,7 @@ function matchChartService(chartSource, selectedService) {
   }
 
   const candidates = [
+    serviceRowKey(selectedService),
     selectedService.container_name,
     selectedService.service_name,
     selectedService.service_command_label,
@@ -59,7 +61,7 @@ export function ServerMetricsCharts() {
   } = useServerTabHistory(serverIp, metricsPeriod);
 
   const selectedService = useMemo(
-    () => hostServices?.find((service) => service.container_name === currentService),
+    () => hostServices?.find((service) => serviceRowKey(service) === currentService),
     [hostServices, currentService]
   );
 
@@ -67,7 +69,10 @@ export function ServerMetricsCharts() {
   const storedHistory = machineHistory ?? { agents: [] };
   const chartSource = isRealtime ? liveHistory : storedHistory;
   const chartServiceName = matchChartService(chartSource, selectedService);
-  const chartData = pickChartAgents(chartSource, chartServiceName);
+  const chartData =
+    currentService && !chartServiceName
+      ? { agents: [] }
+      : pickChartAgents(chartSource, chartServiceName);
   const hasChartData = (chartData.agents ?? []).some(
     (agent) =>
       (agent.cpu ?? []).some((value) => value != null) ||

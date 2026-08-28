@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchMetricsHistory,
   fetchCollectionStatus,
@@ -58,23 +58,36 @@ export function useServerTabHistory(serverIp, period) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [collecting, setCollecting] = useState(false);
   const [collectionBusy, setCollectionBusy] = useState(false);
+  const historyRequestId = useRef(0);
+  const collectionRequestId = useRef(0);
 
   const refreshHistory = useCallback(async () => {
+    const requestId = ++historyRequestId.current;
+
     if (!serverIp || !period || period === REALTIME_PERIOD) {
-      setMachineHistory({ agents: [] });
+      if (requestId === historyRequestId.current) {
+        setMachineHistory({ agents: [] });
+      }
       return;
     }
 
     setHistoryLoading(true);
     try {
       const payload = await fetchMetricsHistory(serverIp, period);
+      if (requestId !== historyRequestId.current) {
+        return;
+      }
       setMachineHistory(toMachineHistory(payload));
     } catch (error) {
       console.error("Failed to load metrics history:", error);
-      setMachineHistory({ agents: [] });
+      if (requestId === historyRequestId.current) {
+        setMachineHistory({ agents: [] });
+      }
       throw error;
     } finally {
-      setHistoryLoading(false);
+      if (requestId === historyRequestId.current) {
+        setHistoryLoading(false);
+      }
     }
   }, [serverIp, period]);
 
@@ -83,42 +96,41 @@ export function useServerTabHistory(serverIp, period) {
   }, [refreshHistory]);
 
   useEffect(() => {
-    let active = true;
+    const requestId = ++collectionRequestId.current;
     setCollecting(false);
 
     if (!serverIp) {
-      return () => {
-        active = false;
-      };
+      return;
     }
 
     fetchCollectionStatus(serverIp)
       .then((status) => {
-        if (active) {
+        if (requestId === collectionRequestId.current) {
           setCollecting(Boolean(status?.collecting));
         }
       })
       .catch((error) => {
         console.error("Failed to load collection status:", error);
-        if (active) {
+        if (requestId === collectionRequestId.current) {
           setCollecting(false);
         }
       });
-
-    return () => {
-      active = false;
-    };
   }, [serverIp]);
 
   const toggleCollection = useCallback(async () => {
     if (!serverIp) return;
 
+    const requestId = ++collectionRequestId.current;
     setCollectionBusy(true);
     try {
       const status = await setCollectionEnabled(serverIp, !collecting);
-      setCollecting(Boolean(status?.collecting));
+      if (requestId === collectionRequestId.current) {
+        setCollecting(Boolean(status?.collecting));
+      }
     } finally {
-      setCollectionBusy(false);
+      if (requestId === collectionRequestId.current) {
+        setCollectionBusy(false);
+      }
     }
   }, [serverIp, collecting]);
 
