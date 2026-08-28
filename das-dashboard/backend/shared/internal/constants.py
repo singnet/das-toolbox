@@ -3,10 +3,9 @@ import os
 # Shared root mounted on host and container (-v /opt/web-das:/opt/web-das).
 # Do not use Path.home() — das-cli resolves ~/.das from the process HOME, which
 # may be /root inside the container while the host user is /home/USERNAME, etc.
-# os.environ.get("DAS_SHARED_ROOT", "/opt/web-das") -> for production
 
 
-SHARED_DAS_ROOT = "/home/levi/.das"
+SHARED_DAS_ROOT = os.environ.get("DAS_SHARED_ROOT", "/opt/web-das")
 CONFIG_DIR = os.path.join(SHARED_DAS_ROOT, ".das")
 
 CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
