@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { normalizeService } from "../utils/NormalizeMetrics";
-import { patchServicesWithRuntime, rollupMetricsHistory } from "../utils/serviceRows";
+import { rollupMetricsHistory } from "../utils/serviceRows";
 import { createMetricsStream } from "../api/MetricsStreamService";
 
-export function useServerTabMetrics(host, baseServices = []) {
+export function useServerTabMetrics(host) {
   const [hostMachineStats, setHostMachineStats] = useState(null);
   const [hostServices, setHostServices] = useState([]);
   const [hostStreamTick, setHostStreamTick] = useState(Date.now());
@@ -18,7 +18,7 @@ export function useServerTabMetrics(host, baseServices = []) {
 
   const appendSnapshot = useCallback((servicesData) => {
     snapshotHistoryRef.current.push({ data: servicesData });
-    if (snapshotHistoryRef.current.length > 20) snapshotHistoryRef.current.shift();
+    if (snapshotHistoryRef.current.length > 30) snapshotHistoryRef.current.shift();
   }, []);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function useServerTabMetrics(host, baseServices = []) {
 
     setHostStreamSwitching(true);
     snapshotHistoryRef.current = [];
-    setHostServices(baseServices);
+    setHostServices([]);
     setHostMachineStats(null);
     setHostStreamTick(Date.now());
     fatalErrorRef.current = false;
@@ -65,7 +65,7 @@ export function useServerTabMetrics(host, baseServices = []) {
 
         if (payload.serviceInfo) {
           const runtime = Object.values(payload.serviceInfo).map(normalizeService);
-          setHostServices(patchServicesWithRuntime(baseServices, runtime));
+          setHostServices(runtime);
           appendSnapshot(runtime);
         }
 
@@ -86,7 +86,7 @@ export function useServerTabMetrics(host, baseServices = []) {
         }
         setHostStreamConnected(false);
         snapshotHistoryRef.current = [];
-        setHostServices(baseServices);
+        setHostServices([]);
         setHostMachineStats(null);
         setHostStreamTick(Date.now());
         setHostStreamError({
@@ -110,7 +110,7 @@ export function useServerTabMetrics(host, baseServices = []) {
       intentionalCloseRef.current = true;
       stream.close();
     };
-  }, [host, baseServices, appendSnapshot]);
+  }, [host, appendSnapshot]);
 
   const hostMetricsRollup = useMemo(
     () => rollupMetricsHistory(snapshotHistoryRef.current),
@@ -119,7 +119,7 @@ export function useServerTabMetrics(host, baseServices = []) {
 
   return {
     hostMachineStats,
-    hostMergedServices: hostServices,
+    hostServices,
     hostStreamTick,
     hostStreamConnected,
     hostStreamSwitching,

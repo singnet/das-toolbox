@@ -15,13 +15,43 @@ export const MainBoxGrid = styled(Box)({
   boxSizing: "border-box"
 });
 
-export const ChartPanel = styled(Box)({
+export const ChartSection = styled(Box)({
+  gridColumn: "span 2",
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
   backgroundColor: palette.surface,
   border: `1px solid ${palette.borderSubtle}`,
   borderRadius: 12,
   padding: 16,
   boxShadow: palette.shadow,
-  minHeight: 300,
+  boxSizing: "border-box"
+});
+
+export const ChartToolbar = styled(Box)({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap"
+});
+
+export const ChartToolbarGroup = styled(Box)({
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  flexWrap: "wrap"
+});
+
+export const ChartGrid = styled(Box)({
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 16,
+  minHeight: 280
+});
+
+export const ChartPanel = styled(Box)({
+  minHeight: 280,
   display: "flex",
   flexDirection: "column"
 });

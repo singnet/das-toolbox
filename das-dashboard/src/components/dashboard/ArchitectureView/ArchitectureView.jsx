@@ -4,25 +4,21 @@ import { Container, Grid } from "./architectureview.styled";
 import { ServiceChart } from "./ServiceChart";
 import { ServerCard } from "./ServerCard";
 import { StyledTab, StyledTabs } from "../MainContent/servertab/servertab.styled";
-import { formatCpuCell, formatMemoryCell } from "../../../utils/serviceRows";
+import { formatCpuCell, formatMemoryCell, isAtomDbService, serviceDisplayName } from "../../../utils/serviceRows";
 
 const TAB_CATEGORIES = ["Agents", "AtomDB"];
 
-function mapServiceType(type) {
-  if (type === "atomdb") return "AtomDB";
-  return "Agents";
-}
-
 function buildServiceCard(service, history = { cpu: [], memory: [] }) {
   const isRunning = service.is_running;
+  const rowKey = service.container_name || service.service_command_label;
 
   return {
-    id: `${service.serverIp}:${service.service_key}`,
+    id: `${service.serverIp}:${rowKey}`,
     name: service.container_name,
-    serviceKey: service.service_key,
-    displayName: service.display_name,
+    serviceKey: service.service_command_label,
+    displayName: serviceDisplayName(service),
     serverIp: service.serverIp,
-    type: mapServiceType(service.type),
+    type: isAtomDbService(service) ? "AtomDB" : "Agents",
     status: isRunning ? "Running" : "Offline",
     cpu: formatCpuCell(service),
     memory: formatMemoryCell(service),
@@ -46,13 +42,13 @@ function buildServiceCard(service, history = { cpu: [], memory: [] }) {
 }
 
 export default function ArchitectureView() {
-  const { fleetMergedServices, fleetMetricsByHost, fleetStreamTick } =
+  const { fleetServices, fleetMetricsByHost, fleetStreamTick } =
     useArchitectureTabMetricsContext();
   const [tab, setTab] = useState(0);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   const processedServices = useMemo(() => {
-    return fleetMergedServices.map((service) => {
+    return fleetServices.map((service) => {
       const history =
         fleetMetricsByHost[service.serverIp]?.agents?.find(
           (agent) => agent.name === service.container_name
@@ -60,7 +56,7 @@ export default function ArchitectureView() {
 
       return buildServiceCard(service, history);
     });
-  }, [fleetMergedServices, fleetMetricsByHost, fleetStreamTick]);
+  }, [fleetServices, fleetMetricsByHost, fleetStreamTick]);
 
   const filteredServices = processedServices.filter(
     (service) => service.type === TAB_CATEGORIES[tab]

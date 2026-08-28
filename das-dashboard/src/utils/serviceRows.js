@@ -1,71 +1,19 @@
-const ATOMDB_MARKERS = {
-  db: "mongodb",
-  redis: "redis",
-  morkdb: "morkdb",
-  adapterdb: "database-adapter",
-  "adapter-backend": "adapter",
-};
-
-const ATOMDB_RUNTIME_LABELS = new Set(["db", "database-adapter", "database"]);
-
-function matchesRuntime(serviceKey, runtime) {
-  const label = String(runtime?.service_command_label ?? "").toLowerCase();
-  const normalizedKey = String(serviceKey).toLowerCase();
-
-  if (label === normalizedKey) {
+export function isAtomDbService(service) {
+  const label = String(service?.service_command_label ?? "").toLowerCase();
+  if (["db", "database-adapter", "database", "redis", "morkdb", "adapterdb"].includes(label)) {
     return true;
   }
 
-  const name = String(runtime?.container_name ?? "").toLowerCase();
-  if (!name) {
-    return false;
-  }
-
-  const marker = ATOMDB_MARKERS[normalizedKey];
-  if (marker) {
-    if (!name.includes(marker)) {
-      return false;
-    }
-
-    if (!label) {
-      return true;
-    }
-
-    return ATOMDB_RUNTIME_LABELS.has(label) || label === normalizedKey;
-  }
-
-  return name.includes(normalizedKey);
+  const name = String(service?.container_name ?? "").toLowerCase();
+  return ["mongodb", "redis", "morkdb", "database-adapter"].some((marker) => name.includes(marker));
 }
 
-export function patchServicesWithRuntime(baseServices = [], runtimeServices = []) {
-  const used = new Set();
+export function serviceRowKey(service) {
+  return service?.container_name || service?.service_command_label || "";
+}
 
-  return baseServices.map((row) => {
-    const runtime = runtimeServices.find((entry) => {
-      const name = entry?.container_name;
-      return name && !used.has(name) && matchesRuntime(row.service_key, entry);
-    });
-
-    if (!runtime) return row;
-
-    used.add(runtime.container_name);
-    const running = String(runtime.status ?? "").toLowerCase() === "running";
-
-    return {
-      ...row,
-      service_command_label: runtime.service_command_label ?? row.service_command_label,
-      display_name: runtime.service_name ?? row.display_name,
-      container_name: runtime.container_name,
-      image: runtime.image ?? row.image,
-      port: running ? (runtime.port ?? row.port) : row.port,
-      age: runtime.age ?? row.age,
-      cpu_percent: running ? runtime.cpu_percent ?? 0 : null,
-      memory_mb: running ? runtime.memory_mb ?? 0 : null,
-      status: runtime.status ?? row.status,
-      service_health: runtime.service_health ?? row.service_health,
-      is_running: running,
-    };
-  });
+export function serviceDisplayName(service) {
+  return service?.service_name || service?.container_name || service?.service_command_label || "-";
 }
 
 export function rollupMetricsHistory(snapshots = []) {

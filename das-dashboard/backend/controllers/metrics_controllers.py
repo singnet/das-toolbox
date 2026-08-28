@@ -2,6 +2,7 @@ import asyncio
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from shared.enums.metric_scope import MetricScope
+from shared.enums.metrics_period import MetricsPeriod
 from services_init import METRICS_SERVICES
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
@@ -9,6 +10,58 @@ router = APIRouter(prefix="/metrics", tags=["Metrics"])
 @router.get("")
 async def fetch_initial_info(metric_scope: MetricScope = Query(...), host: str = Query(...)):
     result = await METRICS_SERVICES.load_server_metrics(metric_scope, host)
+    return JSONResponse(
+        status_code=200,
+        content={"content": result}
+    )
+
+@router.get("/collection")
+async def get_collection_status(server_ip: str = Query(...)):
+    result = METRICS_SERVICES.get_collection_status(server_ip)
+    return JSONResponse(
+        status_code=200,
+        content={"content": result}
+    )
+
+@router.post("/collection")
+async def set_collection_enabled(
+    server_ip: str = Query(...),
+    enabled: bool = Query(...),
+):
+    result = METRICS_SERVICES.set_collection_enabled(server_ip, enabled)
+    return JSONResponse(
+        status_code=200,
+        content={"content": result}
+    )
+
+@router.get("/history")
+async def get_service_metrics_history(
+    server_ip: str = Query(...),
+    period: MetricsPeriod = Query(...),
+):
+    result = await asyncio.to_thread(
+        METRICS_SERVICES.get_service_metrics_history, server_ip, period
+    )
+    return JSONResponse(
+        status_code=200,
+        content={"content": result}
+    )
+
+@router.delete("/history/{server_ip}")
+async def delete_server_history(server_ip: str):
+    result = await asyncio.to_thread(METRICS_SERVICES.delete_server_metrics, server_ip)
+    return JSONResponse(
+        status_code=200,
+        content={"content": result}
+    )
+
+@router.delete("/history")
+async def delete_history(unused_only: bool = Query(False)):
+    if unused_only:
+        result = await asyncio.to_thread(METRICS_SERVICES.delete_unused_server_metrics)
+    else:
+        result = await asyncio.to_thread(METRICS_SERVICES.delete_all_server_metrics)
+
     return JSONResponse(
         status_code=200,
         content={"content": result}

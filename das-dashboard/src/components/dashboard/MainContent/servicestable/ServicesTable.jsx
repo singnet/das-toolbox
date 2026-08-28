@@ -8,12 +8,13 @@ import { EmptyContent } from "./EmptyContent";
 import { TableContainer, HeaderCell } from "./servicestable.styled";
 import { ServerInfoHeader } from "./ServerInfoHeader";
 import { useToast } from "../../../global_providers/ToastProvider";
+import { serviceRowKey } from "../../../../utils/serviceRows";
 
 export function AgentTable({ machine }) {
   const { showToast } = useToast();
 
   const { currentMachine, currentService, setCurrentService } = useDashboardContext();
-  const { hostMergedServices } = useServerTabMetricsContext();
+  const { hostServices } = useServerTabMetricsContext();
 
   const getStatusColor = (status) => {
     if (status === "running") return "success";
@@ -80,14 +81,14 @@ export function AgentTable({ machine }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {hostMergedServices.length === 0 ? (
+            {hostServices.length === 0 ? (
               <EmptyContent />
             ) : (
-              hostMergedServices.map((service) => (
+              hostServices.map((service) => (
                 <AgentRow
-                  key={service.service_key}
+                  key={serviceRowKey(service)}
                   agent={service}
-                  selected={currentService === service.service_key}
+                  selected={currentService === serviceRowKey(service)}
                   handleSelect={handleSelect}
                   onAction={handleAction}
                   getStatusColor={getStatusColor}

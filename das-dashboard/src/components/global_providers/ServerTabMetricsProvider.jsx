@@ -9,8 +9,7 @@ export function ServerTabMetricsProvider({ children }) {
   const isServersView = currentContext === "servers";
 
   const metrics = useServerTabMetrics(
-    isServersView ? currentMachine?.serverIp : null,
-    isServersView ? currentMachine?.services ?? [] : []
+    isServersView ? currentMachine?.serverIp : null
   );
 
   return (

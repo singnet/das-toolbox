@@ -176,3 +176,16 @@ class CommandRouterConnectionError(Exception):
         if self.technical_detail:
             return f"{self.message}\n{self.technical_detail}"
         return self.message
+
+class SQLitePersistenceException(Exception):
+    MESSAGE = (
+        "Could not access the SQLite database. "
+        "Check if the database file exists on /opt/web-das/.das and check its permissions."
+    )
+
+    def __init__(self, exc_details: str = ""):
+        self.message = self.MESSAGE
+        self.detail = (exc_details or "No details provided for this error.")
+
+    def __str__(self) -> str:
+        return f"{self.message}\n{self.detail}"

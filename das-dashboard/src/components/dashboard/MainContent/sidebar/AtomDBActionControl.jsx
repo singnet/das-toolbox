@@ -29,7 +29,7 @@ export function AtomDBActionControl({
 }) {
   const [loadingAction, setLoadingAction] = useState(null);
 
-  const { currentMachine, machines } = useDashboardContext();
+  const { currentMachine } = useDashboardContext();
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
 
@@ -84,24 +84,13 @@ export function AtomDBActionControl({
     }
 
     const typeLabel = ATOMDB_TYPE_LABELS[atomdbType] ?? atomdbType ?? "AtomDB";
-    const endpoints = [
-      ...new Set(
-        machines.flatMap((machine) =>
-          (machine.services ?? [])
-            .filter((service) => service.type === "atomdb" && service.host)
-            .map((service) =>
-              service.port ? `${service.host}:${service.port}` : service.host
-            )
-        )
-      ),
-    ].sort();
-    const serversList = endpoints.length ? endpoints.join(", ") : "configured servers";
+    const targetHost = currentHost || "the selected server";
 
     showConfirm({
       title: "Start AtomDB",
       message:
-        `An ${typeLabel} AtomDB will be started in the servers: ${serversList}. ` +
-        "Any AtomDB component running on these machines will be re-started " +
+        `An ${typeLabel} AtomDB will be started on ${targetHost}. ` +
+        "Any AtomDB component already running there will be re-started " +
         "so any data they may be carrying will be lost.",
       onConfirm: () => executeAsyncAction(
         "start-database",

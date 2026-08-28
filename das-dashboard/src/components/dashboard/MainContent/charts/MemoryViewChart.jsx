@@ -18,6 +18,20 @@ function formatAxisValue(value) {
   return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2);
 }
 
+// Show isolated mark prevents the last bucket from being invisible.
+
+function showIsolatedMark(data) {
+  return ({ index }) => {
+    if (data[index] == null) {
+      return false;
+    }
+
+    const prevEmpty = index === 0 || data[index - 1] == null;
+    const nextEmpty = index === data.length - 1 || data[index + 1] == null;
+    return prevEmpty && nextEmpty;
+  };
+}
+
 export function MemoryViewChart({ machine, currentService, stats }) {
   const data = machine;
   const totalMemoryGb = Number(stats?.MemoryInfo?.totalMemory);
@@ -36,8 +50,9 @@ export function MemoryViewChart({ machine, currentService, stats }) {
     color: stringToColor(a.name),
     curve: undefined,
     area: true,
-    showMark: false,
+    showMark: showIsolatedMark(a.memory),
     stack: "Memory",
+    connectNulls: false,
   }));
 
   const maxLength = Math.max(...filtered.map((a) => a.memory.length), 0);
@@ -55,11 +70,18 @@ export function MemoryViewChart({ machine, currentService, stats }) {
 
   return (
     <LineChart
-      xAxis={[{ data: xAxisData, scaleType: "point", disableTicks: true, tickLabelStyle: { display: "none" } }]}
+      xAxis={[{
+        data: xAxisData,
+        scaleType: "point",
+        min: 1,
+        max: maxLength,
+        disableTicks: true,
+        tickLabelStyle: { display: "none" },
+      }]}
       yAxis={[yAxis]}
       series={series}
       height={250}
-      margin={{ left: 60, right: 20, top: 40, bottom: 20 }}
+      margin={{ left: 60, right: 36, top: 40, bottom: 20 }}
       slotProps={{ legend: { hidden: filtered.length > 5 } }}
       skipAnimation={true}
     />

@@ -25,10 +25,9 @@ export function normalizeService(service) {
     ...service,
     cpu_percent: cpuNum,
     memory_mb: memoryNum,
-    
     cpu_label: formatCpuLabel(cpuNum),
     memory_label: formatMemoryLabel(memoryNum),
-    
+    is_running: String(service?.status ?? "").toLowerCase() === "running",
     service_health:
       !service.service_health || service.service_health === "-"
         ? "healthy"
