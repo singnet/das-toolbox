@@ -67,6 +67,7 @@ export function useServerTabHistory(serverIp, period) {
     if (!serverIp || !period || period === REALTIME_PERIOD) {
       if (requestId === historyRequestId.current) {
         setMachineHistory({ agents: [] });
+        setHistoryLoading(false);
       }
       return;
     }
@@ -98,6 +99,7 @@ export function useServerTabHistory(serverIp, period) {
   useEffect(() => {
     const requestId = ++collectionRequestId.current;
     setCollecting(false);
+    setCollectionBusy(false);
 
     if (!serverIp) {
       return;
