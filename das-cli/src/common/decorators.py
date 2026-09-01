@@ -9,12 +9,7 @@ from .command import StdoutSeverity
 from .docker.exceptions import DockerContainerNotFoundError
 from .service_response import ServiceResponse, StdoutStatus
 from .settings import Settings
-
-LOCAL_HOSTS = {
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-}
+from .utils import LOCAL_HOSTS
 
 
 def ensure_container_running(

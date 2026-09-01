@@ -19,10 +19,11 @@ SECTIONS
     │ 1. Schema Version  │
     │ 2. AtomDB Backend  │
     │ 3. Loaders         │
-    │ 4. Brokers         │
+    │ 4. Vault           │
     │ 5. Agents          │
-    │ 6. Parameters      │
-    │ 7. Environment     │
+    │ 6. Brokers         │
+    │ 7. Parameters      │
+    │ 8. Environment     │
     └────────────────────┘
 
 
@@ -106,6 +107,14 @@ LOADERS (loaders)
 
     loaders.morkdb.image
         Docker image used for the MorkDB loader.
+
+
+VAULT (vault)
+
+    vault.endpoint
+        Local loopback endpoint where the Vault (OpenBao) server is published
+        on the host, in the form host:port. Hostname must be localhost or
+        127.0.0.1. Inside the container, OpenBao listens on 0.0.0.0.
 
 
 AGENTS (agents)

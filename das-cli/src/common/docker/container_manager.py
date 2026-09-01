@@ -117,15 +117,22 @@ class ContainerManager(DockerManager):
     def _start_container(self, **kwargs) -> Any:
         self.raise_running_container()
 
+        run_kwargs = {
+            **kwargs,
+            "image": self.get_container().image,
+            "name": self.get_container().name,
+            "detach": True,
+            "labels": {"das-cli.managed": "true", **self.labels},
+        }
+        if (
+            "network" not in kwargs
+            and "network_mode" not in kwargs
+            and not run_kwargs.get("ports")
+        ):
+            run_kwargs["network"] = SERVICES_NETWORK_NAME
+
         try:
-            response = self.get_docker_client().containers.run(
-                **kwargs,
-                image=self.get_container().image,
-                name=self.get_container().name,
-                detach=True,
-                network=SERVICES_NETWORK_NAME,
-                labels={"das-cli.managed": "true", **self.labels},
-            )
+            response = self.get_docker_client().containers.run(**run_kwargs)
 
             return response
 

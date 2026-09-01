@@ -37,6 +37,9 @@
       "image": "trueagi/das-mork-loader-1.0.5"
     }
   },
+  "vault": {
+    "endpoint": "localhost:8200"
+  },
   "agents": {
     "schema_version": "1.0.1",
     "attention": {

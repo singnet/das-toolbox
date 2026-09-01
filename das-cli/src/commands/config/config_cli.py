@@ -14,6 +14,7 @@ from common import (
     StdoutSeverity,
     StdoutStatus,
 )
+from common.utils import require_vault_endpoint
 from common.prompt_types import AbsolutePath
 from settings.config import CURRENT_CONFIGFILE_PATH
 
@@ -105,6 +106,10 @@ class ConfigSet(Command):
                 f"Configuration file at '{save_path}' is empty. " "The file was left unchanged."
             )
 
+        vault_endpoint = self._settings.get("vault.endpoint")
+        if vault_endpoint is not None:
+            require_vault_endpoint(vault_endpoint)
+
         verify_populate_missing_values(self._settings, save_path)
 
         self.log(
@@ -145,6 +150,9 @@ class ConfigSet(Command):
         key, value = config_key_value
 
         self._non_interactive_config_provider.raise_property_invalid(key)
+
+        if key == "vault.endpoint":
+            require_vault_endpoint(value)
 
         config_mappings = self._non_interactive_config_provider.setup_settings()
         self._non_interactive_config_provider.apply_values_to_settings(config_mappings)

@@ -39,6 +39,9 @@ OPENFAAS_IMAGE_NAME = "trueagi/openfaas"
 JUPYTER_NOTEBOOK_IMAGE_NAME = "trueagi/das"
 JUPYTER_NOTEBOOK_IMAGE_VERSION = "latest-jupyter-notebook"
 
+OPENBAO_IMAGE_NAME = "openbao/openbao"
+OPENBAO_IMAGE_VERSION = "2.6.1"
+
 DAS_PEER_IMAGE_NAME = "trueagi/das"
 DAS_PEER_IMAGE_VERSION = "latest-database-adapter-server"
 
