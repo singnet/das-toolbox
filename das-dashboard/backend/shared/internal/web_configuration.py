@@ -17,7 +17,6 @@ AGENT_SERVICE_COMMANDS = {
     "attention": "attention-broker",
     "query": "query-engine",
     "link_creation": "link-creation-agent",
-    "inference": "inference-agent",
     "evolution": "evolution-agent",
     "context": "context-broker",
     "atomdb": "atomdb-broker",

@@ -25,4 +25,4 @@ types-python-dateutil==2.9.0.20260508
 
 # agent integration tests
 pytest==9.0.2
-hyperon>=0.2.9
+hyperon>=0.2.9; python_version < "3.13"
