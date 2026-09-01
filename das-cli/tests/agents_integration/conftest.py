@@ -4,9 +4,7 @@ import time
 import pytest
 import hyperon
 import os
-import json
 import shutil
-from pathlib import Path
 
 class BackendType(Enum):
     REDIS_MONGO = "redismongodb"
