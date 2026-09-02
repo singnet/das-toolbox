@@ -67,10 +67,10 @@ teardown() {
         "localhost:abc"
         "localhost:0"
         "localhost:65536"
-        ":8200"
-        "localhost:8200:extra"
-        "vault.example:8200"
-        "0.0.0.0:8200"
+        ":40010"
+        "localhost:40010:extra"
+        "vault.example:40010"
+        "0.0.0.0:40010"
     )
 
     for endpoint in "${endpoints[@]}"; do

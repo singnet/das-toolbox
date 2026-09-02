@@ -6,7 +6,7 @@ from .setup_utils import get_default_value
 
 
 def vault_section(settings: Settings):
-    default_endpoint = str(get_default_value(settings, "vault.endpoint") or "localhost:8200")
+    default_endpoint = str(get_default_value(settings, "vault.endpoint") or "localhost:40010")
 
     hostname = Command.prompt(
         "Enter the Vault (OpenBao) hostname (localhost or 127.0.0.1)",
