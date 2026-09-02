@@ -49,7 +49,7 @@ class VaultContainerManager(ContainerManager):
         if not isinstance(port, int):
             raise ValueError(
                 "Invalid or missing vault.endpoint. Expected host:port with an integer port, "
-                "for example 'localhost:8200'."
+                "for example 'localhost:40010'."
             )
         if not (1 <= port <= 65535):
             raise ValueError(

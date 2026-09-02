@@ -38,7 +38,7 @@
     }
   },
   "vault": {
-    "endpoint": "localhost:8200"
+    "endpoint": "localhost:40010"
   },
   "agents": {
     "schema_version": "1.0.1",

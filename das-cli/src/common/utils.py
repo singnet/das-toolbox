@@ -205,7 +205,7 @@ def require_endpoint_port(
     key: str = "endpoint",
     allowed_hosts: frozenset[str] | set[str] | None = None,
 ) -> tuple[str, int]:
-    example = "localhost:8200"
+    example = "localhost:40010"
     if not isinstance(endpoint, str) or not endpoint.strip():
         raise ValueError(
             f"Invalid or missing {key}. Expected host:port with an integer port, "
