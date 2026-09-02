@@ -14,7 +14,6 @@ class AgentsBuilder:
         "base_query",
         "query",
         "link_creation",
-        "inference",
         "evolution",
         "context",
         "atomdb",
@@ -63,12 +62,6 @@ class AgentsBuilder:
         "query_timeout",
         "positive_importance_flag",
         "use_metta_as_query_tokens",
-    )
-
-    _INFERENCE_PARAMS = (
-        "inference_request_timeout",
-        "repeat_count",
-        "max_answers",
     )
 
     _EVOLUTION_PARAMS = (
@@ -126,13 +119,6 @@ class AgentsBuilder:
                 agent,
                 label,
                 param_keys=self._LINK_CREATION_PARAMS,
-            )
-
-        if agent_key == "inference":
-            return self._build_connection_and_params(
-                agent,
-                label,
-                param_keys=self._INFERENCE_PARAMS,
             )
 
         if agent_key == "evolution":

@@ -3,7 +3,6 @@ import LinkCreationParams from "./AgentsParams/LinkCreationParams"
 import EvolutionParams from "./AgentsParams/EvolutionParams"
 import ContextParams from "./AgentsParams/ContextParams"
 import BaseQueryParams from "./AgentsParams/BaseParams"
-import InferenceParams from "./AgentsParams/InferenceParams"
 
 export const AGENT_GROUPS = [
   {
@@ -12,7 +11,6 @@ export const AGENT_GROUPS = [
       { key: "base_query", label: "Base Query", paramsKey: "base_query" },
       { key: "query", label: "Query Agent", paramsKey: "query" },
       { key: "link_creation", label: "Link Creation Agent", paramsKey: "link_creation" },
-      { key: "inference", label: "Inference Agent", paramsKey: "inference" },
       { key: "evolution", label: "Evolution Agent", paramsKey: "evolution" },
       { key: "command_router", label: "Command Router", paramsKey: null }
     ]
@@ -39,5 +37,4 @@ export const AGENT_COMPONENTS = {
   link_creation: LinkCreationParams,
   evolution: EvolutionParams,
   context: ContextParams,
-  inference: InferenceParams,
 }

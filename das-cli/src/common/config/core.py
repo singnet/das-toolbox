@@ -129,15 +129,6 @@ def get_core_defaults_dict() -> Dict[str, Any]:
                     "use_metta_as_query_tokens": False,
                 },
             },
-            "inference": {
-                "endpoint": "localhost:40004",
-                "ports_range": "44000:44999",
-                "params": {
-                    "inference_request_timeout": 86400,
-                    "repeat_count": 5,
-                    "max_answers": 150,
-                },
-            },
             "evolution": {
                 "endpoint": "localhost:40005",
                 "ports_range": "45000:45999",

@@ -131,12 +131,6 @@ AGENTS (agents)
     agents.link_creation.ports_range
         Range of ports used by Link Creation workers.
 
-    agents.inference.endpoint
-        Endpoint for the Inference Agent.
-
-    agents.inference.ports_range
-        Range of ports used by Inference workers.
-
     agents.evolution.endpoint
         Endpoint for the Evolution Agent.
 

@@ -10,7 +10,6 @@ import QueryAgentPanel from "./QueryAgent"
 import ContextBrokerPanel from "./ContextBroker"
 import EvolutionAgentPanel from "./EvolutionAgent"
 import LinkCreationAgentPanel from "./LinkCreation"
-import InferenceAgentPanel from "./InferenceAgent"
 import CommandRouterPanel from "./CommandRouter"
 import AttentionBrokerPanel from "./AttentionBroker"
 import AtomDbBrokerPanel from "./AtomDbBroker"
@@ -42,7 +41,6 @@ export function AgentsForm({ activeAgent, onAgentChange }) {
       {selectedAgent === "context" && <ContextBrokerPanel />}
       {selectedAgent === "evolution" && <EvolutionAgentPanel />}
       {selectedAgent === "link_creation" && <LinkCreationAgentPanel />}
-      {selectedAgent === "inference" && <InferenceAgentPanel />}
       {selectedAgent === "command_router" && <CommandRouterPanel />}
       {selectedAgent === "attention" && <AttentionBrokerPanel />}
       {selectedAgent === "atomdb" && <AtomDbBrokerPanel />}

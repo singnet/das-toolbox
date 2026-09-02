@@ -8,7 +8,6 @@ class ConfigurationEntriesDto(BaseModel):
     atomdb: Optional[Dict[str, Any]] = None
     agents_query: Optional[Dict[str, Any]] = Field(default=None, alias="agents.query")
     agents_link_creation: Optional[Dict[str, Any]] = Field(default=None, alias="agents.link_creation")
-    agents_inference: Optional[Dict[str, Any]] = Field(default=None, alias="agents.inference")
     agents_evolution: Optional[Dict[str, Any]] = Field(default=None, alias="agents.evolution")
     agents_command_router: Optional[Dict[str, Any]] = Field(default=None, alias="agents.command_router")
     agents_attention: Optional[Dict[str, Any]] = Field(default=None, alias="agents.attention")

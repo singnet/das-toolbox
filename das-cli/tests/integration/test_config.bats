@@ -173,7 +173,7 @@ config_set_answers_before_vault() {
     # save path, decline overwrite, then AtomDB / agents / jupyter defaults
     printf '%s\n' "" "n"
     local i
-    for i in $(seq 1 36); do
+    for i in $(seq 1 32); do
         printf '\n'
     done
 }
