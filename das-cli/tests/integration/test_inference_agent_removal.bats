@@ -23,12 +23,12 @@ teardown() {
     
     # Verify that the config does not have inference-agent agent configuration
     run get_config ".agents.inference"
-    assert_failure
+    assert_success
+    assert_output "null"
 }
 
 @test "Config list succeeds without inference-agent configuration" {
     use_config "simple"
-    start_simple_stack
     
     # Config list should work without inference-agent present
     run das-cli config list
@@ -37,7 +37,6 @@ teardown() {
 
 @test "System status works without inference-agent" {
     use_config "simple"
-    start_simple_stack
     
     # System status should succeed and not reference inference-agent
     run das-cli system status
@@ -62,6 +61,12 @@ teardown() {
 @test "Query agent service starts without inference dependencies" {
     use_config "simple"
     
+    run das-cli db start
+    assert_success
+
+    run das-cli attention-broker start
+    assert_success
+
     run das-cli query-agent start
     assert_success
 }
@@ -87,5 +92,5 @@ teardown() {
 @test "Attempting to view inference-agent logs fails as expected" {
     run das-cli logs inference-agent
     assert_failure
-    assert_output --partial "Error"
+    assert_output --partial "No such command 'inference-agent'"
 }
