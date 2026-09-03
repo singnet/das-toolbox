@@ -8,6 +8,8 @@ paramiko==3.4.0
 injector==0.21.0
 rich==14.2.0
 PyYAML==6.0.3
+requests==2.32.5
+websockets==15.0.1
 
 # Dev dependencies
 flake8==6.1.0

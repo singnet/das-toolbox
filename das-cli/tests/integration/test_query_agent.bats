@@ -153,3 +153,33 @@ teardown() {
     run is_service_up das-query-engine-40002
     assert_success
 }
+
+@test "Query run rejects invalid attention-correlation option value" {
+    run das-cli query run "(Inheritance Link Human Mammal)" --attention-correlation INVALID
+
+    assert_failure
+    assert_output --partial "Invalid value for '--attention-correlation'"
+}
+
+@test "Query run rejects invalid attention-update option value" {
+    run das-cli query run "(Inheritance Link Human Mammal)" --attention-update INVALID
+
+    assert_failure
+    assert_output --partial "Invalid value for '--attention-update'"
+}
+
+@test "Query run rejects invalid unique-assignment option value" {
+    run das-cli query run "(Inheritance Link Human Mammal)" --unique-assignment maybe
+
+    assert_failure
+    assert_output --partial "Invalid value for '--unique-assignment'"
+}
+
+@test "Query run help lists parameter flags" {
+    run das-cli query run --help
+
+    assert_success
+    assert_output --partial "--attention-correlation"
+    assert_output --partial "--attention-update"
+    assert_output --partial "--unique-assignment"
+}

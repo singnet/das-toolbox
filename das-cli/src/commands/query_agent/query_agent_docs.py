@@ -67,6 +67,28 @@ EXAMPLES
 
 SHORT_HELP_RESTART = "Restart the Query Agent service."
 
+HELP_RUN = """
+NAME
+
+    run - Execute a query via command-router and stream answers in real time
+
+SYNOPSIS
+
+    das-cli query run <query-text> [--attention-correlation <mode>] [--attention-update <mode>] [--unique-assignment <true|false>]
+
+DESCRIPTION
+
+    Submits a query execution request to command-router and streams answers until
+    terminal status is reached.
+
+    Attention mode options:
+      - NONE
+      - HANDLES
+      - HANDLES_VARIABLES
+"""
+
+SHORT_HELP_RUN = "Execute query and stream answers in real time."
+
 HELP_QA = """
 NAME
 
@@ -96,6 +118,10 @@ COMMANDS
 
         Restart the Query Agent service.
 
+    run
+
+        Execute a query and stream events in real time.
+
 EXAMPLES
 
     Start the Query Agent service:
@@ -109,6 +135,10 @@ EXAMPLES
     Restart the Query Agent service:
 
         $ das-cli query-agent restart --port-range 42000:42999
+
+    Execute and stream query results:
+
+        $ das-cli query run 'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "\\"human\\"" VARIABLE S'
 """
 
 SHORT_HELP_QA = "Manage the Query Agent service."
