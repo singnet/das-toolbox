@@ -16,6 +16,7 @@ from common.factory.busnode_manager_factory import BusNodeContainerManagerFactor
 from settings.config import SECRETS_PATH
 
 from .query_agent_cli import QueryAgentCli, Settings
+from .query_client import CommandRouterQueryClient
 
 
 class QueryAgentModule(Module):
@@ -26,6 +27,7 @@ class QueryAgentModule(Module):
 
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
         self._bus_node_factory = BusNodeContainerManagerFactory()
+        self._query_client = CommandRouterQueryClient(settings=self._settings)
 
         self._dependency_list = [
             (RedisContainerManager, AtomDbContainerManagerFactory().build()),
@@ -50,5 +52,9 @@ class QueryAgentModule(Module):
             (
                 Settings,
                 self._settings,
+            ),
+            (
+                CommandRouterQueryClient,
+                self._query_client,
             ),
         ]
