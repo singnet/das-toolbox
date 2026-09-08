@@ -25,9 +25,25 @@ class CommandRouterQueryClient:
             response.raise_for_status()
             return response.json()
         except RequestException as error:
-            raise RuntimeError(f"Failed to create query execution on {url}: {error}") from error
+            details = self._response_error_details(getattr(error, "response", None))
+            raise RuntimeError(
+                f"Failed to create query execution on {url}: {error}{details}"
+            ) from error
         except ValueError as error:
             raise RuntimeError(f"Command-router returned invalid JSON for execution creation: {error}") from error
+
+    def _response_error_details(self, response: Any | None) -> str:
+        if response is None:
+            return ""
+
+        try:
+            payload = response.json()
+            return f" | response: {json.dumps(payload)}"
+        except Exception:
+            text = getattr(response, "text", "")
+            if text:
+                return f" | response: {text}"
+            return ""
 
     async def stream_events(self, execution_id: str):
         endpoints = self._build_websocket_urls(execution_id)
@@ -92,22 +108,17 @@ class CommandRouterQueryClient:
         if not trimmed_query:
             raise ValueError("Query text must not be empty.")
 
-        payload_params: dict[str, Any] = {
-            "query": {
-                "syntax": "metta",
-                "tokens": [trimmed_query],
-            }
+        payload: dict[str, Any] = {
+            "command_type": "query",
+            "command_text": trimmed_query,
         }
 
         if parameters:
             if "query" in parameters:
                 raise ValueError("Reserved parameter 'query' cannot be overridden.")
-            payload_params.update(parameters)
+            payload["command_params"] = parameters
 
-        return {
-            "command": "query",
-            "params": payload_params,
-        }
+        return payload
 
     def _transform_stream_event(self, event: dict[str, Any]) -> dict[str, Any]:
         command = event.get("command")
