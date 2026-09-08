@@ -52,15 +52,24 @@ class CommandRouterQueryClient:
 
         for endpoint in endpoints:
             try:
+                terminal_status_received = False
+
                 async with ws_connect(endpoint, open_timeout=10, close_timeout=5) as upstream:
                     async for raw_message in upstream:
                         event = self._transform_stream_event(json.loads(raw_message))
                         yield event
 
                         if event.get("status") in TERMINAL_STATUSES:
+                            terminal_status_received = True
                             return
 
-                return
+                if terminal_status_received:
+                    return
+
+                last_error = RuntimeError(
+                    "Command-router stream closed before a terminal execution status "
+                    f"(completed/error/aborted) for execution '{execution_id}' at {endpoint}."
+                )
             except (ws_exception, OSError, asyncio.TimeoutError, json.JSONDecodeError) as error:
                 last_error = error
 
