@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from enum import Enum
 import time
 import pytest
@@ -19,6 +20,8 @@ SERVICE_LIST = [
 ]
 
 metta = None
+
+DAS_CLI_COMMAND = [sys.executable, "-m", "das_cli"]
 
 def get_metta():
     global metta
@@ -53,17 +56,17 @@ def setup_environment():
         f.write(f"configpath={target_path}")
 
 def start_db():
-    command = ["das-cli", "db", "start"]
+    command = DAS_CLI_COMMAND + ["db", "start"]
     process = subprocess.Popen(command)
     process.wait()
     assert process.returncode == 0
 
 def stop_db():
-    subprocess.run(["das-cli", "db", "stop"], check=False)
+    subprocess.run(DAS_CLI_COMMAND + ["db", "stop"], check=False)
     subprocess.run(["rm", "-f", "/tmp/temp_db_file.metta"], check=False)
 
 def start_agent(agent_name, args, input_strs=[]):
-    command = ["das-cli", f"{agent_name}"] + args
+    command = DAS_CLI_COMMAND + [f"{agent_name}"] + args
     input_str = "\n".join(input_strs) + "\n"
     result = subprocess.run(command, input=input_str.encode(), check=True)
     assert result.returncode == 0
@@ -72,10 +75,10 @@ def start_agent(agent_name, args, input_strs=[]):
 
 def stop_agents():
     for service in SERVICE_LIST:
-        subprocess.run(["das-cli", service, "stop"], check=False)
+        subprocess.run(DAS_CLI_COMMAND + [service, "stop"], check=False)
 
 def load_db(file_path=None, file_url=None):
-    command = ["das-cli", "metta", "load"]
+    command = DAS_CLI_COMMAND + ["metta", "load"]
     if file_path:
         command += [file_path]
     if file_url:
@@ -106,7 +109,7 @@ def env(request):
 def das_integration_env(env):
     setup_environment()
 
-    subprocess.run(["das-cli", "config", "set", f"atomdb.type={env.value}"], check=True)
+    subprocess.run(DAS_CLI_COMMAND + ["config", "set", f"atomdb.type={env.value}"], check=True)
 
     start_db()
 
