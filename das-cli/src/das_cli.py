@@ -17,6 +17,7 @@ from commands.link_creation_agent import LinkCreationAgentModule
 from commands.logs import LogsModule
 from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
+from commands.query import QueryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
 from commands.system import SystemModule
@@ -32,6 +33,7 @@ MODULES = [
     MettaModule,
     PythonLibraryModule,
     ReleaseNotesModule,
+    QueryModule,
     DatabaseAdapterModule,
     AttentionBrokerModule,
     QueryAgentModule,
