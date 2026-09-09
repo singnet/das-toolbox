@@ -1,5 +1,4 @@
 import asyncio
-import importlib
 import json
 from typing import Any
 
@@ -80,14 +79,14 @@ class CommandRouterQueryClient:
 
     def _load_websocket_client(self):
         try:
-            ws_client_module = importlib.import_module("websockets.asyncio.client")
-            ws_exceptions_module = importlib.import_module("websockets.exceptions")
+            from websockets.asyncio.client import connect
+            from websockets.exceptions import WebSocketException
         except ModuleNotFoundError as error:
             raise RuntimeError(
                 "Missing dependency 'websockets'. Install dependencies and try again."
             ) from error
 
-        return ws_client_module.connect, ws_exceptions_module.WebSocketException
+        return connect, WebSocketException
 
     def _build_http_base_url(self) -> str:
         return f"http://{self._resolve_http_api_endpoint()}"
