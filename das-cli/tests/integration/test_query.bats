@@ -11,6 +11,31 @@ safe_stop() {
 }
 
 QUERY_SIMILARITY_HUMAN='LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
+QUERY_READY_MAX_ATTEMPTS=20
+
+wait_for_query_ready() {
+    local attempt=1
+    local probe_output=""
+
+    while [ "$attempt" -le "$QUERY_READY_MAX_ATTEMPTS" ]; do
+        probe_output="$(das-cli query run "${QUERY_SIMILARITY_HUMAN}" 2>&1)"
+        if [ "$?" -eq 0 ]; then
+            return 0
+        fi
+
+        if [[ "$probe_output" == *"pattern_matching_query"* ]] || [[ "$probe_output" == *"Exception thrown in command processor."* ]]; then
+            sleep 1
+            attempt=$((attempt + 1))
+            continue
+        fi
+
+        echo "$probe_output"
+        return 1
+    done
+
+    echo "$probe_output"
+    return 1
+}
 
 start_query_run_stack() {
     das-cli command-router start >/dev/null 2>&1 || true
@@ -25,6 +50,9 @@ ensure_query_run_stack() {
     assert_success
 
     run is_service_up das-query-engine-40002
+    assert_success
+
+    run wait_for_query_ready
     assert_success
 }
 
