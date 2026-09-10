@@ -12,6 +12,38 @@ safe_stop() {
 
 QUERY_SIMILARITY_HUMAN='LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
 QUERY_READY_MAX_ATTEMPTS=20
+SERVICE_READY_MAX_ATTEMPTS=20
+
+print_query_stack_diagnostics() {
+    echo "---- query stack diagnostics ----"
+    echo "docker ps -a"
+    docker ps -a || true
+    echo
+
+    for container in das-command-router-40008 das-query-engine-40002; do
+        echo "docker logs ${container} (last 200 lines)"
+        docker logs --tail 200 "$container" 2>&1 || true
+        echo
+    done
+}
+
+wait_for_service_up() {
+    local container_name="$1"
+    local attempt=1
+
+    while [ "$attempt" -le "$SERVICE_READY_MAX_ATTEMPTS" ]; do
+        if is_service_up "$container_name"; then
+            return 0
+        fi
+
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+
+    echo "Container '${container_name}' was not running after ${SERVICE_READY_MAX_ATTEMPTS} attempts."
+    print_query_stack_diagnostics
+    return 1
+}
 
 wait_for_query_ready() {
     local attempt=1
@@ -38,21 +70,24 @@ wait_for_query_ready() {
 }
 
 start_query_run_stack() {
-    das-cli query-agent start --port-range 12000:12100 >/dev/null 2>&1 || true
-    das-cli command-router start >/dev/null 2>&1 || true
+    das-cli query-agent start --port-range 12000:12100
+    das-cli command-router start
     das-cli metta load "$test_fixtures_dir/metta/animals.metta" >/dev/null 2>&1 || true
 }
 
 ensure_query_run_stack() {
     start_query_run_stack
 
-    run is_service_up das-command-router-40008
+    run wait_for_service_up das-command-router-40008
     assert_success
 
-    run is_service_up das-query-engine-40002
+    run wait_for_service_up das-query-engine-40002
     assert_success
 
     run wait_for_query_ready
+    if [ "$status" -ne 0 ]; then
+        print_query_stack_diagnostics
+    fi
     assert_success
 }
 
