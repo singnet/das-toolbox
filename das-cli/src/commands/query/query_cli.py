@@ -3,18 +3,13 @@ import json
 
 from injector import inject
 
-from common import Choice, Command, CommandArgument, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common import Command, CommandArgument, CommandGroup, Settings, StdoutSeverity
 from common.service_response import ServiceResponse, StdoutStatus
 
 from ..query_agent.query_client import TERMINAL_STATUSES, CommandRouterQueryClient
 from .query_docs import HELP_QUERY, HELP_RUN, SHORT_HELP_QUERY, SHORT_HELP_RUN
 
 CLI_SERVICE_NAME = "query"
-QUERY_ATTENTION_MODE_MAP = {
-    "NONE": 0,
-    "HANDLES": 1,
-    "HANDLES_VARIABLES": 3,
-}
 
 
 class QueryRun(Command):
@@ -28,27 +23,6 @@ class QueryRun(Command):
             ["query_text"],
             type=str,
         ),
-        CommandOption(
-            ["--attention-correlation"],
-            type=Choice(list(QUERY_ATTENTION_MODE_MAP.keys())),
-            required=False,
-            default=None,
-            help="Configure attention_correlation (NONE, HANDLES, HANDLES_VARIABLES).",
-        ),
-        CommandOption(
-            ["--attention-update"],
-            type=Choice(list(QUERY_ATTENTION_MODE_MAP.keys())),
-            required=False,
-            default=None,
-            help="Configure attention_update (NONE, HANDLES, HANDLES_VARIABLES).",
-        ),
-        CommandOption(
-            ["--unique-assignment"],
-            type=Choice(["true", "false"]),
-            required=False,
-            default=None,
-            help="Set unique_assignment_flag for this query execution.",
-        ),
     ]
 
     @inject
@@ -61,23 +35,28 @@ class QueryRun(Command):
         self._settings = settings
         self._command_router_query_client = command_router_query_client
 
-    def _build_query_params(
-        self,
-        attention_correlation: str | None,
-        attention_update: str | None,
-        unique_assignment: str | None,
-    ) -> dict:
-        params = {}
+    @staticmethod
+    def _get_params_section(section: object) -> dict:
+        if not isinstance(section, dict):
+            return {}
 
-        if attention_correlation is not None:
-            params["attention_correlation"] = QUERY_ATTENTION_MODE_MAP[attention_correlation]
+        params = section.get("params")
+        if not isinstance(params, dict):
+            return {}
 
-        if attention_update is not None:
-            params["attention_update"] = QUERY_ATTENTION_MODE_MAP[attention_update]
+        return dict(params)
 
-        if unique_assignment is not None:
-            params["unique_assignment_flag"] = unique_assignment.lower() == "true"
+    def _build_query_params_from_config(self) -> dict:
+        config = self._settings.get_content()
+        if not isinstance(config, dict):
+            return {}
 
+        agents = config.get("agents")
+        if not isinstance(agents, dict):
+            return {}
+
+        params = self._get_params_section(agents.get("base_query"))
+        params.update(self._get_params_section(agents.get("query")))
         return params
 
     def _render_chunk(self, event: dict) -> None:
@@ -120,17 +99,10 @@ class QueryRun(Command):
     def run(
         self,
         query_text: str,
-        attention_correlation: str | None = None,
-        attention_update: str | None = None,
-        unique_assignment: str | None = None,
     ) -> None:
         self._settings.validate_configuration_file()
 
-        parameters = self._build_query_params(
-            attention_correlation=attention_correlation,
-            attention_update=attention_update,
-            unique_assignment=unique_assignment,
-        )
+        parameters = self._build_query_params_from_config()
 
         response_payload = self._command_router_query_client.create_execution(
             query_text=query_text,

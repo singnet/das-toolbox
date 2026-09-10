@@ -33,17 +33,18 @@ NAME
 
 SYNOPSIS
 
-    das-cli query run <query-text> [--attention-correlation <mode>] [--attention-update <mode>] [--unique-assignment <true|false>]
+    das-cli query run <query-text>
 
 DESCRIPTION
 
     Submits a query execution request to command-router and streams answers until
     terminal status is reached.
 
-    Attention mode options:
-      - NONE
-      - HANDLES
-      - HANDLES_VARIABLES
+    Query execution parameters are loaded from the active configuration file
+    using `agents.base_query.params` merged with `agents.query.params`.
+
+    Use `das-cli config list` to inspect those values and `das-cli config set`
+    to change them.
 """
 
 SHORT_HELP_RUN = "Execute query and stream answers in real time."

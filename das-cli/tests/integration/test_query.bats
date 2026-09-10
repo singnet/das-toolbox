@@ -38,8 +38,8 @@ wait_for_query_ready() {
 }
 
 start_query_run_stack() {
-    das-cli command-router start >/dev/null 2>&1 || true
     das-cli query-agent start --port-range 12000:12100 >/dev/null 2>&1 || true
+    das-cli command-router start >/dev/null 2>&1 || true
     das-cli metta load "$test_fixtures_dir/metta/animals.metta" >/dev/null 2>&1 || true
 }
 
@@ -84,35 +84,6 @@ teardown() {
     assert_output --partial "run"
 }
 
-@test "Query run help lists parameter flags" {
-    run das-cli query run --help
-
-    assert_success
-    assert_output --partial "--attention-correlation"
-    assert_output --partial "--attention-update"
-    assert_output --partial "--unique-assignment"
-}
-
-@test "Query run rejects invalid attention-correlation option value" {
-    run das-cli query run "(Inheritance Link Human Mammal)" --attention-correlation INVALID
-
-    assert_failure
-    assert_output --partial "Invalid value for '--attention-correlation'"
-}
-
-@test "Query run rejects invalid attention-update option value" {
-    run das-cli query run "(Inheritance Link Human Mammal)" --attention-update INVALID
-
-    assert_failure
-    assert_output --partial "Invalid value for '--attention-update'"
-}
-
-@test "Query run rejects invalid unique-assignment option value" {
-    run das-cli query run "(Inheritance Link Human Mammal)" --unique-assignment maybe
-
-    assert_failure
-    assert_output --partial "Invalid value for '--unique-assignment'"
-}
 
 @test "Query run fails when query text argument is missing" {
     run das-cli query run
@@ -164,13 +135,16 @@ teardown() {
     assert_output --partial '"status": "success"'
 }
 
-@test "Query run succeeds with parameter override flags" {
+@test "Query run succeeds with execution parameters loaded from config" {
+    set_config ".agents.base_query.params.attention_correlation" 1
+    set_config ".agents.base_query.params.attention_update" 3
+    set_config ".agents.base_query.params.unique_assignment_flag" true
+    set_config ".agents.query.params.count_flag" true
+    set_config ".agents.query.params.positive_importance_flag" true
+
     ensure_query_run_stack
 
-    run das-cli query run "${QUERY_SIMILARITY_HUMAN}" \
-        --attention-correlation HANDLES \
-        --attention-update HANDLES_VARIABLES \
-        --unique-assignment true
+    run das-cli query run "${QUERY_SIMILARITY_HUMAN}"
 
     assert_success
     assert_output --partial "completed successfully"
