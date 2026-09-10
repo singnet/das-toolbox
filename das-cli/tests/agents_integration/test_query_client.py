@@ -24,6 +24,9 @@ class _DummyConfigSettings:
     def get_content(self):
         return self._content
 
+    def validate_configuration_file(self):
+        return None
+
 
 class _FakeStream:
     def __init__(self, messages):
@@ -49,6 +52,21 @@ class _FakeConnection:
 
     async def __aexit__(self, exc_type, exc, tb):
         return False
+
+
+class _FakeQueryClient:
+    def __init__(self):
+        self.query_text = None
+        self.parameters = None
+
+    def create_execution(self, query_text, parameters=None):
+        self.query_text = query_text
+        self.parameters = parameters
+        return {"execution_id": "exec-123"}
+
+    async def stream_events(self, execution_id):
+        assert execution_id == "exec-123"
+        yield {"status": "completed"}
 
 
 def _collect_events(client, execution_id):
@@ -112,6 +130,170 @@ def test_query_run_builds_execution_params_from_base_and_query_config():
         "unique_assignment_flag": False,
         "attention_update": 0,
         "max_answers": 7,
+        "count_flag": True,
+    }
+
+
+def test_query_run_builds_execution_params_from_query_only_config():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "agents": {
+                    "query": {
+                        "params": {
+                            "positive_importance_flag": True,
+                            "unique_value_flag": True,
+                            "count_flag": False,
+                        }
+                    }
+                }
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_query_params_from_config() == {
+        "positive_importance_flag": True,
+        "unique_value_flag": True,
+        "count_flag": False,
+    }
+
+
+def test_query_run_builds_execution_params_from_base_only_config():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "agents": {
+                    "base_query": {
+                        "params": {
+                            "unique_assignment_flag": True,
+                            "attention_update": 3,
+                            "attention_correlation": 1,
+                            "attention_focus_strictness": 0.25,
+                            "max_bundle_size": 250,
+                            "max_answers": 5,
+                            "use_link_template_cache": True,
+                            "populate_metta_mapping": True,
+                            "use_metta_as_query_tokens": True,
+                            "allow_incomplete_chain_path": True,
+                        }
+                    }
+                }
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_query_params_from_config() == {
+        "unique_assignment_flag": True,
+        "attention_update": 3,
+        "attention_correlation": 1,
+        "attention_focus_strictness": 0.25,
+        "max_bundle_size": 250,
+        "max_answers": 5,
+        "use_link_template_cache": True,
+        "populate_metta_mapping": True,
+        "use_metta_as_query_tokens": True,
+        "allow_incomplete_chain_path": True,
+    }
+
+
+def test_query_run_builds_execution_params_with_full_supported_config_set():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "agents": {
+                    "base_query": {
+                        "params": {
+                            "unique_assignment_flag": True,
+                            "attention_update": 3,
+                            "attention_correlation": 1,
+                            "attention_focus_strictness": 0.75,
+                            "max_bundle_size": 42,
+                            "max_answers": 99,
+                            "use_link_template_cache": True,
+                            "populate_metta_mapping": True,
+                            "use_metta_as_query_tokens": False,
+                            "allow_incomplete_chain_path": True,
+                        }
+                    },
+                    "query": {
+                        "params": {
+                            "positive_importance_flag": True,
+                            "disregard_importance_flag": True,
+                            "unique_value_flag": True,
+                            "count_flag": True,
+                        }
+                    },
+                }
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_query_params_from_config() == {
+        "unique_assignment_flag": True,
+        "attention_update": 3,
+        "attention_correlation": 1,
+        "attention_focus_strictness": 0.75,
+        "max_bundle_size": 42,
+        "max_answers": 99,
+        "use_link_template_cache": True,
+        "populate_metta_mapping": True,
+        "use_metta_as_query_tokens": False,
+        "allow_incomplete_chain_path": True,
+        "positive_importance_flag": True,
+        "disregard_importance_flag": True,
+        "unique_value_flag": True,
+        "count_flag": True,
+    }
+
+
+def test_query_run_forwards_merged_config_params_to_execution_client(monkeypatch):
+    fake_client = _FakeQueryClient()
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "agents": {
+                    "base_query": {
+                        "params": {
+                            "unique_assignment_flag": True,
+                            "attention_update": 3,
+                            "max_answers": 11,
+                            "use_metta_as_query_tokens": True,
+                        }
+                    },
+                    "query": {
+                        "params": {
+                            "positive_importance_flag": True,
+                            "disregard_importance_flag": False,
+                            "unique_value_flag": True,
+                            "count_flag": True,
+                            "max_answers": 2,
+                        }
+                    },
+                }
+            }
+        ),
+        command_router_query_client=fake_client,
+    )
+
+    monkeypatch.setattr(command, "log", lambda *args, **kwargs: None)
+    monkeypatch.setattr(command, "stdout", lambda *args, **kwargs: None)
+
+    command.run('LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S')
+
+    assert fake_client.query_text == (
+        'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
+    )
+    assert fake_client.parameters == {
+        "unique_assignment_flag": True,
+        "attention_update": 3,
+        "max_answers": 2,
+        "use_metta_as_query_tokens": True,
+        "positive_importance_flag": True,
+        "disregard_importance_flag": False,
+        "unique_value_flag": True,
         "count_flag": True,
     }
 

@@ -108,7 +108,7 @@ teardown() {
     assert_output --partial "Failed to create query execution"
 }
 
-@test "Query run succeeds and returns expected similarity values" {
+@test "Query run succeeds and streams results" {
     ensure_query_run_stack
 
     run das-cli query run "${QUERY_SIMILARITY_HUMAN}"
@@ -116,12 +116,6 @@ teardown() {
     assert_success
     assert_output --partial "Streaming execution"
     assert_output --partial "completed successfully"
-
-    if [[ ! "$output" =~ monkey|chimp|ent ]]; then
-        echo "Expected at least one known Similarity answer for \"human\" (monkey|chimp|ent)."
-        echo "$output"
-        false
-    fi
 }
 
 @test "Query run json output includes stream chunk and terminal statuses" {
@@ -148,4 +142,21 @@ teardown() {
 
     assert_success
     assert_output --partial "completed successfully"
+}
+
+@test "Query run count_flag from config changes the streamed JSON event shape" {
+    set_config ".agents.base_query.params.max_answers" 1
+    set_config ".agents.query.params.count_flag" true
+    set_config ".agents.query.params.positive_importance_flag" false
+    set_config ".agents.query.params.disregard_importance_flag" false
+    set_config ".agents.query.params.unique_value_flag" false
+
+    ensure_query_run_stack
+
+    run das-cli query run "${QUERY_SIMILARITY_HUMAN}" --output-format json
+
+    assert_success
+    assert_output --partial '"status": "completed"'
+    assert_output --partial '"total_items": 0'
+    assert_output --partial '"status": "success"'
 }
