@@ -4,28 +4,10 @@ current_user="$(whoami)"
 
 export current_user
 export test_fixtures_dir="${BATS_TEST_DIRNAME}/fixtures"
-export das_cli_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-export das_cli_bin="${das_cli_root}/../env/bin/das-cli"
-export das_cli_python="${das_cli_root}/../env/bin/python"
-export das_cli_src="${das_cli_root}/src/das_cli.py"
 export das_log_file="/tmp/$current_user-das-cli.log"
 export das_config_dir="${HOME}/.das"
 export das_config_file="${das_config_dir}/config.json"
 export das_env_file="${das_config_dir}/.env"
-
-function das-cli() {
-    if [ -x "$das_cli_bin" ]; then
-        "$das_cli_bin" "$@"
-        return $?
-    fi
-
-    if [ -x "$das_cli_python" ] && [ -f "$das_cli_src" ]; then
-        "$das_cli_python" "$das_cli_src" "$@"
-        return $?
-    fi
-
-    command das-cli "$@"
-}
 
 function clean_string() {
     local a=${1//[^[:alnum:]]/}
