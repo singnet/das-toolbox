@@ -94,8 +94,7 @@ class Settings:
         if hasattr(store, "file_exists") and not store.file_exists():
             raise FileNotFoundError(
                 f"Configuration file not found at '{path}'. "
-                "Run 'das-cli config set --file <path>' to point to an existing file, "
-                "or 'das-cli config set' to create one."
+                "Run 'das-cli config set' to choose default config or create a new custom config."
             )
 
         if load_error is not None:
@@ -107,8 +106,7 @@ class Settings:
         if not self.exists():
             raise ValueError(
                 f"Configuration file at '{path}' is empty. "
-                "Restore a valid DAS config JSON, then run "
-                "'das-cli config set --file <path>'."
+                "Restore a valid DAS config JSON, then run 'das-cli config set'."
             )
 
     def raise_on_version_mismatch(self):
@@ -133,8 +131,7 @@ class Settings:
                     "Your configuration file doesn't have all the entries "
                     "this version of das-cli requires. "
                     f"Missing entry: '{current_path}'. "
-                    "Run 'das-cli config set' and press ENTER on the prompts "
-                    "to reuse your current values and populate new fields."
+                    "Run 'das-cli config set' and choose a valid default or custom config path."
                 )
 
             current_value = current[key]

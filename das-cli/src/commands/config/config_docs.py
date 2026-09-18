@@ -1,30 +1,29 @@
 HELP_CONFIG_SET = """
 NAME
-    das-cli config set - Interactively set configuration parameters for the DAS CLI.
+    das-cli config set - Select active config path or update active config keys.
 
 SYNOPSIS
     das-cli config set
 
 
 DESCRIPTION
-    The 'config set' command prompts the user to configure various DAS CLI components,
-    such as service endpoints, ports ranges, cluster settings, and runtime parameters.
+     The 'config set' command supports two modes:
 
-    For each configuration option, a prompt is displayed with a suggested default value
-    (if available). If a value has been set previously, it is shown as the default.
+     1) No arguments:
+         Shows an interactive prompt with two options:
+         - Use default config (/usr/share/das/config.json)
+         - Create new custom config (copy from default to ~/.das/<name>.json)
+
+     2) key=value:
+         Updates a single key in the active config file.
+
+     Note: key=value updates are blocked when the active config is
+     /usr/share/das/config.json (default config is read-only).
 
 SECTIONS
 
-    ┌────────────────────┐
-    │ 1. Schema Version  │
-    │ 2. AtomDB Backend  │
-    │ 3. Loaders         │
-    │ 4. Vault           │
-    │ 5. Agents          │
-    │ 6. Brokers         │
-    │ 7. Parameters      │
-    │ 8. Environment     │
-    └────────────────────┘
+    - Interactive mode selection
+    - Legacy key=value update mode
 
 
 OPTIONS AND VARIABLES
@@ -204,17 +203,17 @@ ENVIRONMENT (environment)
 
 EXAMPLES
 
-    Set all configuration options interactively:
+    Select active config interactively:
 
         $ das-cli config set
 
-    Set a configuration option non-interactively:
+    Set a configuration option on the active custom config:
 
-        $ das-cli config set --file={path-to-your-config-file} atomdb.mongodb.endpoint="localhost:40040"
+        $ das-cli config set atomdb.mongodb.endpoint="localhost:40040"
 
 """
 
-SHORT_HELP_CONFIG_SET = "Interactively or non-interactively set DAS CLI configuration parameters."
+SHORT_HELP_CONFIG_SET = "Select default config or create ~/.das/<name>.json; set key=value on custom config."
 
 HELP_CONFIG_LIST = """Display all current configuration values used by the DAS CLI.
 

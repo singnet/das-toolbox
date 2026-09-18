@@ -14,10 +14,32 @@ SERVICES_NETWORK_NAME = "host"
 DAS_PATH = Path.home() / ".das"
 SECRETS_PATH = DAS_PATH / ".env"
 
-DEFAULT_CONFIGFILE_PATH = DAS_PATH / "config.json"
-CURRENT_CONFIGFILE_PATH = (
-    EnvFileLoader(SECRETS_PATH).load().get("configpath", DEFAULT_CONFIGFILE_PATH)
-)
+LEGACY_DEFAULT_CONFIGFILE_PATH = DAS_PATH / "config.json"
+SYSTEM_DEFAULT_CONFIGFILE_PATH = Path("/usr/share/das/config.json")
+PACKAGED_DEFAULT_CONFIGFILE_PATH = Path(__file__).resolve().parent / "config.json"
+
+
+def _resolve_default_config_path() -> Path:
+    if SYSTEM_DEFAULT_CONFIGFILE_PATH.exists():
+        return SYSTEM_DEFAULT_CONFIGFILE_PATH
+
+    if PACKAGED_DEFAULT_CONFIGFILE_PATH.exists():
+        return PACKAGED_DEFAULT_CONFIGFILE_PATH
+
+    return LEGACY_DEFAULT_CONFIGFILE_PATH
+
+
+DEFAULT_CONFIGFILE_PATH = _resolve_default_config_path()
+
+
+def _resolve_current_config_path() -> str:
+    return EnvFileLoader(SECRETS_PATH).load().get(
+        "configpath",
+        str(DEFAULT_CONFIGFILE_PATH),
+    )
+
+
+CURRENT_CONFIGFILE_PATH = _resolve_current_config_path()
 
 # LOG
 

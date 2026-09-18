@@ -8,6 +8,8 @@ BASH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/etc/bash_completion.
 ZSH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/zsh/site-functions
 USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib/$(DEB_SOURCE)
 TEMP_DIR := $(shell mktemp -d)
+DAS_REPO_URL ?= https://github.com/singnet/das.git
+DAS_REPO_REF ?= master
 
 ifeq ($(PACKAGE_VERSION),)
 $(error The PACKAGE_VERSION environment variable is not defined. Please define it before continuing.)
@@ -43,6 +45,16 @@ override_dh_auto_install:
 	# Copy all binaries
 	mkdir -p $(USR_BIN_DIR) $(USR_LIBS_DIR)
 	find $(ARTIFACTS_DIR) -maxdepth 1 -type f ! -name "*.*" -executable -exec cp {} $(USR_BIN_DIR) \;
+
+	# Install default DAS configuration
+	set -e; \
+	DAS_CLONE_DIR="$$(mktemp -d)"; \
+	trap 'rm -rf "$$DAS_CLONE_DIR"' EXIT; \
+	git clone --depth 1 --branch "$(DAS_REPO_REF)" "$(DAS_REPO_URL)" "$$DAS_CLONE_DIR"; \
+	test -f "$$DAS_CLONE_DIR/config/das.json"; \
+	install -D -m 0644 \
+		"$$DAS_CLONE_DIR/config/das.json" \
+		"$(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/das/config.json"
 
 build_man_pages:
 	PYTHONPATH=$(ROOT_DIR)/das-cli/src python3 $(ROOT_DIR)/das-cli/setup.py --command-packages=click_man.commands man_pages --target $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/man/man1/

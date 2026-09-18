@@ -1,3 +1,6 @@
+import os
+import shutil
+from pathlib import Path
 from typing import Optional
 
 from injector import inject
@@ -6,7 +9,6 @@ from common import (
     Command,
     CommandArgument,
     CommandGroup,
-    CommandOption,
     KeyValueType,
     RemoteContextManager,
     ServiceResponse,
@@ -15,8 +17,12 @@ from common import (
     StdoutStatus,
 )
 from common.utils import require_vault_endpoint
-from common.prompt_types import AbsolutePath
-from settings.config import CURRENT_CONFIGFILE_PATH
+from settings.config import (
+    DAS_PATH,
+    DEFAULT_CONFIGFILE_PATH,
+    PACKAGED_DEFAULT_CONFIGFILE_PATH,
+    SYSTEM_DEFAULT_CONFIGFILE_PATH,
+)
 
 from .config_docs import (
     HELP_CONFIG,
@@ -26,8 +32,7 @@ from .config_docs import (
     SHORT_HELP_CONFIG_LIST,
     SHORT_HELP_CONFIG_SET,
 )
-from .config_provider import InteractiveConfigProvider, NonInteractiveConfigProvider
-from .config_sections.normalize_file import verify_populate_missing_values
+from .config_provider import NonInteractiveConfigProvider
 
 CLI_SERVICE_NAME = "config"
 
@@ -40,18 +45,6 @@ class ConfigSet(Command):
     help = HELP_CONFIG_SET
 
     params = [
-        CommandOption(
-            ["--file"],
-            help="Path to an already existing das config file",
-            required=False,
-            type=AbsolutePath(
-                file_okay=True,
-                dir_okay=False,
-                exists=True,
-                writable=True,
-                readable=True,
-            ),
-        ),
         CommandArgument(
             ["config_key_value"],
             required=False,
@@ -66,14 +59,12 @@ class ConfigSet(Command):
         settings: Settings,
         remote_context_manager: RemoteContextManager,
         non_interactive_config_provider: NonInteractiveConfigProvider,
-        interactive_config_provider: InteractiveConfigProvider,
     ) -> None:
         super().__init__()
 
         self._settings = settings
         self._remote_context_manager = remote_context_manager
         self._non_interactive_config_provider = non_interactive_config_provider
-        self._interactive_config_provider = interactive_config_provider
 
     def _finish_set(self, message: str) -> None:
         self.stdout(
@@ -90,42 +81,6 @@ class ConfigSet(Command):
             severity=StdoutSeverity.SUCCESS,
         )
 
-    def _set_file_path(self, save_path) -> None:
-        self._settings.set_path(save_path)
-        self._settings.rewind()
-
-        load_error = self._settings.get_load_error()
-        if load_error is not None:
-            raise ValueError(
-                f"Could not load configuration from '{save_path}': {load_error}. "
-                "The file was left unchanged. Fix the JSON and try again."
-            ) from load_error
-
-        if not self._settings.exists():
-            raise ValueError(
-                f"Configuration file at '{save_path}' is empty. " "The file was left unchanged."
-            )
-
-        vault_endpoint = self._settings.get("vault.endpoint")
-        if vault_endpoint is not None:
-            require_vault_endpoint(vault_endpoint)
-
-        verify_populate_missing_values(self._settings, save_path)
-
-        self.log(
-            "Formatting file and setting up incorrect/incomplete values.",
-            severity=StdoutSeverity.WARNING,
-        )
-
-        self._settings.save_path()
-
-        config_path = self._settings.get_path()
-        self.log(
-            f"Configuration file set to -> {config_path}",
-            severity=StdoutSeverity.SUCCESS,
-        )
-        self._finish_set(f"Configuration file set to {config_path}.")
-
     def _save(self, save_path: str) -> None:
         self._remote_context_manager.commit()
         self._settings.set_path(save_path)
@@ -133,21 +88,94 @@ class ConfigSet(Command):
         self._settings.save_path()
 
         config_path = self._settings.get_path()
-        self.log(
-            f"Configuration file saved -> {config_path}",
-            severity=StdoutSeverity.SUCCESS,
-        )
         self._finish_set(f"Configuration file saved to {config_path}.")
 
+    def _is_default_config_path(self, path: str) -> bool:
+        active_path = Path(path).expanduser().resolve(strict=False)
+        default_paths = {
+            SYSTEM_DEFAULT_CONFIGFILE_PATH.resolve(strict=False),
+            PACKAGED_DEFAULT_CONFIGFILE_PATH.resolve(strict=False),
+        }
+        return active_path in default_paths
+
+    def _get_default_source_path(self) -> Path:
+        source_path = Path(DEFAULT_CONFIGFILE_PATH).expanduser().resolve(strict=False)
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Default config not found: {source_path}. "
+                "Reinstall package or verify system installation."
+            )
+        return source_path
+
+    def _activate_default_config(self) -> None:
+        source_path = self._get_default_source_path()
+        self._remote_context_manager.commit()
+        self._settings.set_path(str(source_path))
+        self._settings.save_path()
+
+        config_path = self._settings.get_path()
+        self._finish_set(f"Configuration file set to -> {config_path}.")
+
+    def _create_custom_config(self) -> None:
+        config_name = Command.prompt(
+            "Enter the custom config file name (it will be saved in ~/.das)",
+            type=str,
+        ).strip()
+
+        if not config_name:
+            raise ValueError("Config file name cannot be empty.")
+
+        if "/" in config_name or "\\" in config_name:
+            raise ValueError("Use only a file name, not a path.")
+
+        if not config_name.endswith(".json"):
+            config_name = f"{config_name}.json"
+
+        save_path = str((DAS_PATH / config_name).resolve(strict=False))
+
+        if os.path.exists(save_path):
+            raise ValueError(
+                f"Destination already exists: {save_path}. Please choose a new file path."
+            )
+
+        source_path = self._get_default_source_path()
+
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        shutil.copyfile(str(source_path), save_path)
+
+        self._remote_context_manager.commit()
+        self._settings.set_path(save_path)
+        self._settings.rewind()
+        self._settings.save_path()
+
+        config_path = self._settings.get_path()
+        self._finish_set(f"Configuration file set to -> {config_path}.")
+
     def interactive_mode(self) -> None:
-        config_mappings = self._interactive_config_provider.setup_settings()
-        save_path = config_mappings.pop("file_path")
+        mode = Command.select(
+            text="Choose config setup mode",
+            options={
+                "Use default config": "default",
+                "Create new custom config": "custom",
+            },
+            default="default",
+        )
 
-        self._interactive_config_provider.apply_values_to_settings(config_mappings)
-        self._save(save_path)
+        if mode == "default":
+            return self._activate_default_config()
 
-    def non_interactive_mode(self, config_key_value: tuple, config_path=str) -> None:
+        return self._create_custom_config()
+
+    def non_interactive_mode(self, config_key_value: tuple) -> None:
         key, value = config_key_value
+
+        active_config_path = self._settings.get_path()
+        if self._is_default_config_path(active_config_path):
+            raise ValueError(
+                f"Cannot modify default config file: {active_config_path}\n"
+                "Use: das-cli config set\n"
+                "Then choose: Create new custom config"
+            )
 
         self._non_interactive_config_provider.raise_property_invalid(key)
 
@@ -158,19 +186,15 @@ class ConfigSet(Command):
         self._non_interactive_config_provider.apply_values_to_settings(config_mappings)
         self._settings.set(key, value)
 
-        self._save(config_path)
+        self._save(active_config_path)
 
     def run(
         self,
-        file: Optional[str] = None,
         config_key_value: Optional[tuple] = None,
     ):
 
         if config_key_value is not None:
-            return self.non_interactive_mode(config_key_value, CURRENT_CONFIGFILE_PATH)
-
-        elif file is not None:
-            return self._set_file_path(file)
+            return self.non_interactive_mode(config_key_value)
 
         else:
             return self.interactive_mode()
