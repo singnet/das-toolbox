@@ -32,6 +32,8 @@ teardown() {
         "das-query-engine-40002"
     )
 
+    services_pattern="das-cli-redis-40020|das-cli-mongodb-40021|das-attention-broker-40001|das-query-engine-40002"
+
     for service in db attention-broker query-agent; do
         das-cli "$service" start
     done
@@ -43,7 +45,7 @@ teardown() {
 
     run das-cli system status
 
-    count_services_up=$(echo "$output" | grep -c "running" || true)
+    count_services_up=$(echo "$output" | grep -E "$services_pattern" | grep -c "running" || true)
     assert [ "$count_services_up" -ge 1 ]
 
     for header in \
@@ -73,6 +75,6 @@ teardown() {
 
     run das-cli system status
 
-    count_services_up=$(echo "$output" | grep -c "running" || true)
+    count_services_up=$(echo "$output" | grep -E "$services_pattern" | grep -c "running" || true)
     assert [ "$count_services_up" -eq 0 ]
 }
