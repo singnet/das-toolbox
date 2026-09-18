@@ -1,4 +1,5 @@
 import copy
+import sys
 
 from injector import Injector
 
@@ -65,7 +66,7 @@ def init_modules(cli):
             init_module(cli, module)
     except Exception as e:
         log_exception(e)
-        exit(1)
+        sys.exit(1)
 
 
 def init_cli(module):
@@ -77,7 +78,7 @@ def init_cli(module):
         return instance.group
     except Exception as e:
         log_exception(e)
-        exit(1)
+        sys.exit(1)
 
 
 das_cli = init_cli(DasModule)
