@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
 from common.config.core import get_core_defaults_dict
@@ -149,7 +150,7 @@ class Settings:
                 )
 
     def _build_expected_schema(self, config: dict) -> dict:
-        expected = get_core_defaults_dict().copy()
+        expected = deepcopy(get_core_defaults_dict())
 
         atomdb_type = config.get("atomdb", {}).get("type")
 

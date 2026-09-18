@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -17,6 +18,7 @@ from common import (
     StdoutStatus,
 )
 from common.utils import require_vault_endpoint
+from common.config.defaults import get_default_config_dict
 from settings.config import (
     DAS_PATH,
     DEFAULT_CONFIGFILE_PATH,
@@ -142,6 +144,9 @@ class ConfigSet(Command):
 
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         shutil.copyfile(str(source_path), save_path)
+
+        with open(save_path, "w", encoding="utf-8") as config_file:
+            json.dump(get_default_config_dict(), config_file, indent=4)
 
         self._remote_context_manager.commit()
         self._settings.set_path(save_path)

@@ -1,9 +1,9 @@
 from typing import Any, Dict
 
-from common.config.core import get_core_defaults_dict
+from common.config.defaults import get_default_config_dict
 from common.settings import Settings
 
-DEFAULT_VALUES_DICT = get_core_defaults_dict()
+DEFAULT_VALUES_DICT = get_default_config_dict()
 
 
 def get_default_value(settings: Settings, path: str) -> str | Dict[str, Any] | None:

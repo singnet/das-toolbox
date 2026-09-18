@@ -1,7 +1,6 @@
 import os
 
 from common import Settings
-from common.config.core import get_core_defaults_dict
 from common.config.store import JsonConfigStore
 from common.container_manager.atomdb.redis_container_manager import (
     RedisContainerManager,
@@ -14,7 +13,6 @@ class RedisContainerManagerFactory:
 
     def __init__(self):
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
-        self._default = get_core_defaults_dict()
 
     def _get_backend_path(self) -> str:
         if self._settings.get("atomdb.type") == "adapterdb":
