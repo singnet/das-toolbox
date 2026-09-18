@@ -17,7 +17,7 @@ from common.execution_context import ExecutionContext, SSHParams
 from common.prompt_types import ValidUsername
 from common.service_response import ServiceResponse, StdoutStatus
 from common.utils import log_exception
-from settings.config import SECRETS_PATH
+from settings.config import CURRENT_CONFIGFILE_PATH, SECRETS_PATH
 
 from .utils import env_to_dict
 
@@ -269,7 +269,7 @@ class Command:
 
         try:
             env_dict = env_to_dict(SECRETS_PATH)
-            config_path = env_dict.get("configpath")
+            config_path = env_dict.get("configpath", CURRENT_CONFIGFILE_PATH)
             with open(config_path, "r") as f:
                 local_config = json.loads(f.read())
         except Exception as e:

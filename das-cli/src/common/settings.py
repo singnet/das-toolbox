@@ -51,6 +51,10 @@ class Settings:
     def save_path(self):
         self._store.save_path()
 
+    def remove_saved_path(self):
+        if hasattr(self._store, "remove_saved_path"):
+            self._store.remove_saved_path()
+
     def get_dir_path(self):
         return self._store.get_dir_path()
 

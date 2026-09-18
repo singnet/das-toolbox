@@ -3,7 +3,12 @@ from typing import Any, Dict
 from common.config.defaults import get_default_config_dict
 from common.settings import Settings
 
-DEFAULT_VALUES_DICT = get_default_config_dict()
+
+def _default_values_dict() -> Dict[str, Any]:
+    try:
+        return get_default_config_dict()
+    except (FileNotFoundError, ValueError):
+        return {}
 
 
 def get_default_value(settings: Settings, path: str) -> str | Dict[str, Any] | None:
@@ -12,7 +17,7 @@ def get_default_value(settings: Settings, path: str) -> str | Dict[str, Any] | N
     if existing_value is None:
         try:
             keys = path.split(".")
-            value: Any = DEFAULT_VALUES_DICT
+            value: Any = _default_values_dict()
 
             for key in keys:
                 value = value.get(key, None)

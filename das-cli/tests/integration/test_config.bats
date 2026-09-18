@@ -45,13 +45,8 @@ assert_config_core_endpoints() {
 
     run das-cli config list
 
-    assert_failure
-    if [[ "$output" == *"$FILE_NOT_FOUND_ERROR"* ]] || [[ "$output" == *"Your configuration file doesn't have all the entries"* ]]; then
-        true
-    else
-        echo "Unexpected error output: $output"
-        false
-    fi
+    assert_success
+    assert_output --partial "Configuration listed successfully."
 }
 
 @test "listing config with valid configuration file" {
@@ -175,23 +170,21 @@ assert_config_core_endpoints() {
     done
 }
 
-@test "config set default selection uses resolved fallback config path" {
+@test "config set default selection removes configpath and uses resolved default path" {
     use_config "simple"
     ensure_env
 
     run timeout 20 sh -c 'printf "\n" | das-cli config set'
     assert_success
 
-    run cat "$das_env_file"
-    assert_output --partial "configpath="
-
-    local active_config_path
-    active_config_path="${output#configpath=}"
-    [ -f "$active_config_path" ]
-
-    if [ ! -f "/usr/share/das/config.json" ]; then
-        [ "$active_config_path" != "/usr/share/das/config.json" ]
+    if [ -f "$das_env_file" ]; then
+        run cat "$das_env_file"
+        [[ "$output" != *"configpath="* ]]
     fi
+
+    run das-cli config list
+    assert_success
+    assert_output --partial "Configuration listed successfully."
 }
 
 @test "config set key=value is blocked when active config is default path" {

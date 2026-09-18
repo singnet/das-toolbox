@@ -113,7 +113,8 @@ class ConfigSet(Command):
         source_path = self._get_default_source_path()
         self._remote_context_manager.commit()
         self._settings.set_path(str(source_path))
-        self._settings.save_path()
+        self._settings.rewind()
+        self._settings.remove_saved_path()
 
         config_path = self._settings.get_path()
         self._finish_set(f"Configuration file set to -> {config_path}.")
@@ -135,18 +136,14 @@ class ConfigSet(Command):
 
         save_path = str((DAS_PATH / config_name).resolve(strict=False))
 
-        if os.path.exists(save_path):
-            raise ValueError(
-                f"Destination already exists: {save_path}. Please choose a new file path."
-            )
+        if not os.path.exists(save_path):
+            source_path = self._get_default_source_path()
 
-        source_path = self._get_default_source_path()
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            shutil.copyfile(str(source_path), save_path)
 
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        shutil.copyfile(str(source_path), save_path)
-
-        with open(save_path, "w", encoding="utf-8") as config_file:
-            json.dump(get_default_config_dict(), config_file, indent=4)
+            with open(save_path, "w", encoding="utf-8") as config_file:
+                json.dump(get_default_config_dict(), config_file, indent=4)
 
         self._remote_context_manager.commit()
         self._settings.set_path(save_path)
