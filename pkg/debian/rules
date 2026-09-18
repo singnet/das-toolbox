@@ -8,6 +8,7 @@ BASH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/etc/bash_completion.
 ZSH_COMPLETION_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/zsh/site-functions
 USR_LIBS_DIR := $(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/lib/$(DEB_SOURCE)
 TEMP_DIR := $(shell mktemp -d)
+CLI_BUILD_HOME := $(TEMP_DIR)/cli-home
 DAS_REPO_URL ?= https://github.com/singnet/das.git
 DAS_REPO_REF ?= master
 
@@ -66,5 +67,16 @@ build_man_pages:
 build_autocomplete:
 	@echo "Generating autocompletion scripts..."
 	mkdir -p $(BASH_COMPLETION_DIR) $(ZSH_COMPLETION_DIR)
-	_DAS_CLI_COMPLETE=bash_source $(ARTIFACTS_DIR)/das-cli > $(BASH_COMPLETION_DIR)/das-cli.bash
-	_DAS_CLI_COMPLETE=zsh_source $(ARTIFACTS_DIR)/das-cli > $(ZSH_COMPLETION_DIR)/_das-cli
+	@set -e; \
+	mkdir -p "$(CLI_BUILD_HOME)/.das"; \
+	if [ -f "$(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/das/config.json" ]; then \
+		cp "$(ROOT_DIR)/pkg/debian/$(DEB_SOURCE)/usr/share/das/config.json" "$(CLI_BUILD_HOME)/.das/config.json"; \
+	else \
+		DAS_CLONE_DIR="$$(mktemp -d)"; \
+		trap 'rm -rf "$$DAS_CLONE_DIR"' EXIT; \
+		git clone --depth 1 --branch "$(DAS_REPO_REF)" "$(DAS_REPO_URL)" "$$DAS_CLONE_DIR"; \
+		test -f "$$DAS_CLONE_DIR/config/das.json"; \
+		cp "$$DAS_CLONE_DIR/config/das.json" "$(CLI_BUILD_HOME)/.das/config.json"; \
+	fi; \
+	HOME="$(CLI_BUILD_HOME)" _DAS_CLI_COMPLETE=bash_source $(ARTIFACTS_DIR)/das-cli > $(BASH_COMPLETION_DIR)/das-cli.bash; \
+	HOME="$(CLI_BUILD_HOME)" _DAS_CLI_COMPLETE=zsh_source $(ARTIFACTS_DIR)/das-cli > $(ZSH_COMPLETION_DIR)/_das-cli
