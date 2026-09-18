@@ -92,7 +92,7 @@ ensure_query_run_stack() {
 }
 
 setup() {
-    use_config "simple" || true
+    use_config "simple"
 
     query_agent_port="$(extract_port "$(get_config .agents.query.endpoint 2>/dev/null || echo localhost:40002)")"
 
