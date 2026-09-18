@@ -11,7 +11,7 @@ safe_stop() {
 }
 
 QUERY_SIMILARITY_HUMAN='LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
-QUERY_READY_MAX_ATTEMPTS=20
+QUERY_READY_MAX_ATTEMPTS=90
 SERVICE_READY_MAX_ATTEMPTS=20
 
 print_query_stack_diagnostics() {
@@ -55,7 +55,7 @@ wait_for_query_ready() {
             return 0
         fi
 
-        if [[ "$probe_output" == *"pattern_matching_query"* ]] || [[ "$probe_output" == *"Exception thrown in command processor."* ]]; then
+        if [[ "$probe_output" == *"pattern_matching_query"* ]] || [[ "$probe_output" == *"Exception thrown in command processor."* ]] || [[ "$probe_output" == *"Bus: no owner is defined for command <pattern_matching_query>"* ]]; then
             sleep 1
             attempt=$((attempt + 1))
             continue
