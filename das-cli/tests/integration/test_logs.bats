@@ -13,7 +13,6 @@ setup() {
     das-cli attention-broker stop
     das-cli query-agent stop
     das-cli link-creation-agent stop
-    das-cli inference-agent stop
     das-cli evolution-agent stop
 }
 
@@ -25,7 +24,6 @@ teardown() {
     safe_stop attention-broker
     safe_stop query-agent
     safe_stop link-creation-agent
-    safe_stop inference-agent
     safe_stop evolution-agent
     safe_stop context-broker
 }
@@ -127,31 +125,6 @@ teardown() {
         --port-range 12300:12400
 
     run timeout 5s das-cli logs link-creation-agent -f
-    assert_failure 124
-}
-
-@test "Trying to show logs for inference agent before it is running" {
-    run das-cli logs inference-agent -f
-
-    assert_output --partial "$DOCKER_CONTAINER_MISSING"
-    assert_output --partial "Inference agent is not running"
-
-    run is_service_up inference-agent
-    assert_failure
-}
-
-@test "Show logs for inference agent" {
-    das-cli attention-broker start
-    das-cli db start
-    das-cli query-agent start --port-range 12000:12100
-
-    das-cli link-creation-agent start \
-        --port-range 12300:12400
-
-    das-cli inference-agent start \
-        --port-range 12500:12600
-
-    run timeout 5s das-cli logs inference-agent -f
     assert_failure 124
 }
 

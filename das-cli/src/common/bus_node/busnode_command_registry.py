@@ -14,7 +14,6 @@ class BusNodeCommandRegistry:
             "query-engine": self.cmd_query_engine,
             "evolution-agent": self.cmd_evolution_agent,
             "link-creation-agent": self.cmd_link_creation_agent,
-            "inference-agent": self.cmd_inference_agent,
             "context-broker": self.cmd_context_broker,
             "command-router": self.cmd_command_router,
         }
@@ -81,15 +80,6 @@ class BusNodeCommandRegistry:
         return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def cmd_link_creation_agent(self, service, endpoint, ports_range, options, **args):
-        base = self._gen_default_cmd(service, endpoint, ports_range)
-        attention_broker = (
-            f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
-        )
-        busnode_endpoint = self._get_bus_endpoint(options)
-
-        return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
-
-    def cmd_inference_agent(self, service, endpoint, ports_range, options, **args):
         base = self._gen_default_cmd(service, endpoint, ports_range)
         attention_broker = (
             f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"

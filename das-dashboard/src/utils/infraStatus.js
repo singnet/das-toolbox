@@ -12,7 +12,6 @@ const ARCHITECTURE_COMMAND_LABELS = new Set([
   "context-broker",
   "link-creation-agent",
   "evolution-agent",
-  "inference-agent",
 ]);
 
 const ATOMDB_NAME_MARKERS = [
@@ -60,7 +59,6 @@ function isArchitectureEntry(entry) {
     "context-broker",
     "command-router",
     "link-creation",
-    "inference",
     "evolution",
   ].some((marker) => name.includes(marker));
 }

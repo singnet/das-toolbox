@@ -6,7 +6,6 @@ ORCHESTRATION_ORDER = (
     "context-broker",
     "link-creation-agent",
     "evolution-agent",
-    "inference-agent",
 )
 
 

@@ -5,7 +5,6 @@ FLAT_SECTION_ORDER = (
     "agents.base_query",
     "agents.query",
     "agents.link_creation",
-    "agents.inference",
     "agents.evolution",
     "agents.context",
     "agents.atomdb",
@@ -169,13 +168,6 @@ CONSTANTS = {
         "query_interval": 0,
         "query_timeout": 0,
         "use_metta_as_query_tokens": False,
-    },
-    "agents.inference": {
-        "endpoint": "0.0.0.0:40004",
-        "ports_range": "44000:44999",
-        "inference_request_timeout": 86400,
-        "repeat_count": 5,
-        "max_answers": 150,
     },
     "agents.evolution": {
         "endpoint": "0.0.0.0:40005",

@@ -7,7 +7,11 @@ load 'libs/docker'
 load 'libs/errors'
 
 vault_start() {
-    printf 'y\n' | das-cli vault start "$@"
+    printf 'y\n' | timeout 90s das-cli vault start "$@"
+}
+
+vault_stop() {
+    timeout 60s das-cli vault stop "$@"
 }
 
 unseal_key_from_output() {
@@ -16,7 +20,7 @@ unseal_key_from_output() {
 }
 
 vault_unseal() {
-    printf '%s\n' "$1" "$2" "$3" | das-cli vault start
+    printf '%s\n' "$1" "$2" "$3" | timeout 90s das-cli vault start
 }
 
 setup() {
@@ -25,12 +29,13 @@ setup() {
     vault_port="$(extract_port "$(get_config .vault.endpoint)")"
     vault_container="das-cli-vault"
 
-    das-cli vault stop --prune &>/dev/null || true
+    timeout 60s das-cli vault stop --prune &>/dev/null || true
     stop_listen_port "$vault_port" &>/dev/null || true
 }
 
 teardown() {
-    das-cli vault stop --prune &>/dev/null || true
+    timeout 60s das-cli vault stop --prune &>/dev/null || true
+    stop_listen_port "$vault_port" &>/dev/null || true
 }
 
 @test "Trying to start and stop Vault with unset configuration file" {
@@ -46,17 +51,17 @@ teardown() {
 }
 
 @test "Start Vault when port is already in use" {
-    run listen_port "${vault_port}"
-    assert_success
+    local listener_pid
+    listener_pid="$(listen_port "${vault_port}")"
+    [ -n "$listener_pid" ]
 
-    run vault_start
+    run timeout 15s das-cli vault start
 
     assert_failure 1
     assert_output --partial "Starting Vault"
     assert_output --partial "$CONTAINER_START_FAILURE_MESSAGE"
 
-    run stop_listen_port "${vault_port}"
-    assert_success
+    kill -9 "$listener_pid"
 
     run is_service_up "$vault_container"
     assert_failure
@@ -77,7 +82,7 @@ teardown() {
         use_config "simple"
         update_json_key "$das_config_file" vault.endpoint "$endpoint"
 
-        run das-cli vault start
+        run timeout 60s das-cli vault start
         assert_failure
         assert_output --partial "vault.endpoint"
     done
@@ -106,7 +111,7 @@ teardown() {
     run vault_start
     assert_success
 
-    run das-cli vault start
+    run timeout 60s das-cli vault start
     assert_success
 
     assert_output --partial "already running"
@@ -119,7 +124,7 @@ teardown() {
 @test "Stopping Vault" {
     vault_start
 
-    run das-cli vault stop
+    run vault_stop
     assert_success
 
     assert_output --partial "service stopped"
@@ -129,7 +134,7 @@ teardown() {
 }
 
 @test "Trying to stop Vault after already stopped" {
-    run das-cli vault stop
+    run vault_stop
     assert_success
 
     assert_output --partial "already stopped"
@@ -137,7 +142,7 @@ teardown() {
     run is_service_up "$vault_container"
     assert_failure
 
-    run das-cli vault stop --prune
+    run vault_stop --prune
     assert_success
     assert_output --partial "already stopped"
     assert_output --partial "Data volume removed"
@@ -148,7 +153,7 @@ teardown() {
     assert_success
     first_key="$(unseal_key_from_output 1)"
 
-    run das-cli vault stop --prune
+    run vault_stop --prune
     assert_success
     assert_output --partial "data volume removed"
 
@@ -173,7 +178,7 @@ teardown() {
     [ -n "$key2" ]
     [ -n "$key3" ]
 
-    run das-cli vault stop
+    run vault_stop
     assert_success
 
     run is_service_up "$vault_container"
@@ -190,6 +195,6 @@ teardown() {
 }
 
 @test "Vault API body-read timeout is translated to DockerError" {
-    run python3 "${BATS_TEST_DIRNAME}/vault_body_timeout.py"
+    run timeout 20s python3 "${BATS_TEST_DIRNAME}/vault_body_timeout.py"
     assert_success
 }

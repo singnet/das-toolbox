@@ -9,7 +9,6 @@ from common.container_manager.agents.attention_broker_container_manager import (
 from common.container_manager.agents.generic_agent_containers import (
     ContextBrokerContainerManager,
     EvolutionAgentContainerManager,
-    InferenceAgentContainerManager,
     LCAContainerManager,
     QueryAgentContainerManager,
 )
@@ -23,7 +22,6 @@ from .logs_docs import (
     HELP_CB,
     HELP_DAS_LOGS,
     HELP_EA,
-    HELP_IA,
     HELP_LCA,
     HELP_LOGS,
     HELP_MONGODB,
@@ -33,7 +31,6 @@ from .logs_docs import (
     SHORT_HELP_CB,
     SHORT_HELP_DAS_LOGS,
     SHORT_HELP_EA,
-    SHORT_HELP_IA,
     SHORT_HELP_LCA,
     SHORT_HELP_LOGS,
     SHORT_HELP_MONGODB,
@@ -280,45 +277,6 @@ class LogsLinkCreationAgent(Command):
         self._link_creation_container_manager.logs(follow)
 
 
-class LogsInferenceAgent(Command):
-    name = "inference-agent"
-
-    aliases = ["inference"]
-
-    short_help = SHORT_HELP_IA
-
-    help = HELP_IA
-
-    params = [
-        CommandOption(
-            ["--follow", "-f"],
-            is_flag=True,
-            help="Follow log output in real-time.",
-            default=False,
-            required=False,
-        )
-    ]
-
-    @inject
-    def __init__(
-        self,
-        settings: Settings,
-        inference_agent_container_manager: InferenceAgentContainerManager,
-    ) -> None:
-        super().__init__()
-        self._settings = settings
-        self._inference_agent_container_manager = inference_agent_container_manager
-
-    @ensure_container_running(
-        ["_inference_agent_container_manager"],
-        exception_text="Inference agent is not running. Please start it with 'das-cli inference-agent start' before viewing logs.",
-        verbose=False,
-    )
-    def run(self, follow: bool = False):
-        self._settings.validate_configuration_file()
-        self._inference_agent_container_manager.logs(follow)
-
-
 class LogsEvolutionAgent(Command):
     name = "evolution-agent"
 
@@ -413,7 +371,6 @@ class LogsCli(CommandGroup):
         logs_attention_broker: LogsAttentionBroker,
         logs_query_agent: LogsQueryAgent,
         logs_link_creation_agent: LogsLinkCreationAgent,
-        logs_inference_agent: LogsInferenceAgent,
         logs_evolution_agent: LogsEvolutionAgent,
         logs_context_broker: LogsContextBroker,
     ) -> None:
@@ -426,7 +383,6 @@ class LogsCli(CommandGroup):
                 logs_attention_broker,
                 logs_query_agent,
                 logs_link_creation_agent,
-                logs_inference_agent,
                 logs_evolution_agent,
                 logs_context_broker,
             ]

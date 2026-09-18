@@ -64,10 +64,6 @@
       "container_name": "das-cli-link-creation-agent-40003",
       "port": 40003
     },
-    "inference_agent": {
-      "port": 40004,
-      "container_name": "das-cli-inference-agent-40004"
-    },
     "evolution_agent": {
       "port": 40005,
       "container_name": "das-cli-evolution-broker-40005"

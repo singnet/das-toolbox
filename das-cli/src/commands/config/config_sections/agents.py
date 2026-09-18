@@ -8,7 +8,6 @@ from .agents_params import (
     setup_base_query_params,
     setup_context_params,
     setup_evolution_params,
-    setup_inference_params,
     setup_link_creation_params,
     setup_query_params,
 )
@@ -120,34 +119,6 @@ def setup_link_creation_agent(settings: Settings):
     }
 
 
-def setup_inference_agent(settings: Settings):
-    endpoint = setup_endpoint(
-        settings,
-        "inference agent",
-        "inference",
-    )
-
-    ports_range = setup_ports_range(
-        settings,
-        "inference agent",
-        "inference",
-    )
-
-    confirm_parameter_config = _setup_custom_params("inference agent")
-
-    inference_params = (
-        setup_inference_params(settings)
-        if confirm_parameter_config
-        else get_default_value(settings, "agents.inference.params")
-    )
-
-    return {
-        "endpoint": endpoint,
-        "ports_range": ports_range,
-        "params": inference_params,
-    }
-
-
 def setup_evolution_agent(settings: Settings):
     endpoint = setup_endpoint(
         settings,
@@ -251,7 +222,6 @@ def agents_config_section(settings: Settings):
             "base_query": setup_agents_base_params(settings),
             "query": setup_query_agent(settings),
             "link_creation": setup_link_creation_agent(settings),
-            "inference": setup_inference_agent(settings),
             "evolution": setup_evolution_agent(settings),
             "context": setup_context_broker(settings),
             "atomdb": setup_atomdb_broker(settings),

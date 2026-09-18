@@ -87,7 +87,6 @@ const ATOMDB_TYPE_LABELS = {
 const AGENT_CONFIG_KEYS = [
   "agents.query",
   "agents.link_creation",
-  "agents.inference",
   "agents.evolution",
   "agents.command_router",
   "agents.attention",

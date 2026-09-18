@@ -32,7 +32,6 @@ const ORCHESTRATION_SERVICES = [
   { id: "context-broker", label: "Context Broker", group: "agent" },
   { id: "link-creation-agent", label: "Link Creation Agent", group: "agent" },
   { id: "evolution-agent", label: "Evolution Agent", group: "agent" },
-  { id: "inference-agent", label: "Inference Agent", group: "agent" },
 ];
 
 export function ArchitectureActionControl({

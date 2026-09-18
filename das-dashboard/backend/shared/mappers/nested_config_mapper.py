@@ -41,7 +41,6 @@ class NestedConfigMapper:
         agent_keys_with_ports = (
             "query",
             "link_creation",
-            "inference",
             "evolution",
             "context",
             "atomdb",

@@ -8,7 +8,6 @@ from common.container_manager.agents.attention_broker_container_manager import (
 from common.container_manager.agents.generic_agent_containers import (
     ContextBrokerContainerManager,
     EvolutionAgentContainerManager,
-    InferenceAgentContainerManager,
     LCAContainerManager,
     QueryAgentContainerManager,
 )
@@ -61,10 +60,6 @@ class LogsModule(Module):
             (
                 LCAContainerManager,
                 container_factory.build(type=ContainerTypes.LINK_CREATION_AGENT),
-            ),
-            (
-                InferenceAgentContainerManager,
-                container_factory.build(type=ContainerTypes.INFERENCE_AGENT),
             ),
             (
                 EvolutionAgentContainerManager,

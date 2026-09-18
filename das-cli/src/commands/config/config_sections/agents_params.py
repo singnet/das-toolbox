@@ -33,12 +33,6 @@ LINK_CREATION_DEFAULTS = {
     "use_metta_as_query_tokens": False,
 }
 
-INFERENCE_DEFAULTS = {
-    "inference_request_timeout": 86400,
-    "repeat_count": 5,
-    "max_answers": 150,
-}
-
 EVOLUTION_DEFAULTS = {
     "population_size": 1000,
     "max_generations": 100,
@@ -186,29 +180,6 @@ def setup_link_creation_params(settings: Settings):
         "use_metta_as_query_tokens": Command.confirm(
             "Use MeTTa as query tokens?",
             default=LINK_CREATION_DEFAULTS["use_metta_as_query_tokens"],
-        ),
-    }
-
-
-def setup_inference_params(settings: Settings):
-    if not _setup_custom_params("Inference"):
-        return INFERENCE_DEFAULTS.copy()
-
-    return {
-        "inference_request_timeout": Command.prompt(
-            "Inference request timeout",
-            default=INFERENCE_DEFAULTS["inference_request_timeout"],
-            type=int,
-        ),
-        "repeat_count": Command.prompt(
-            "Repeat count",
-            default=INFERENCE_DEFAULTS["repeat_count"],
-            type=int,
-        ),
-        "max_answers": Command.prompt(
-            "Max answers",
-            default=INFERENCE_DEFAULTS["max_answers"],
-            type=int,
         ),
     }
 

@@ -1,3 +1,5 @@
+import sys
+
 from injector import inject
 
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
@@ -61,6 +63,23 @@ class VaultStart(Command):
 
     def _unseal_interactively(self) -> None:
         self.log("Vault is sealed. Enter the unseal keys you stored earlier.")
+
+        if not sys.stdin.isatty():
+            for raw_key in sys.stdin:
+                key = raw_key.strip()
+                if not key:
+                    continue
+
+                try:
+                    status = self._vault_container_manager.unseal(key)
+                except DockerError as error:
+                    self.log(str(error), severity=StdoutSeverity.ERROR)
+                    continue
+
+                if not status.get("sealed", True):
+                    return
+
+            raise DockerError("Failed to unseal Vault with the provided keys.")
 
         while True:
             status = self._vault_container_manager.get_status()
