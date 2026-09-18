@@ -24,7 +24,7 @@ teardown() {
 @test "Trying to start, stop and restart Jupyter notebook with unset configuration file" {
     local cmds=(start stop restart)
 
-    unset_config
+    use_missing_config_path
 
     for cmd in "${cmds[@]}"; do
         run das-cli jupyter-notebook "$cmd"

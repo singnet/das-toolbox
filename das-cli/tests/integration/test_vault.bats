@@ -41,7 +41,7 @@ teardown() {
 @test "Trying to start and stop Vault with unset configuration file" {
     local cmds=(start stop)
 
-    unset_config
+    use_missing_config_path
 
     for cmd in "${cmds[@]}"; do
         run das-cli vault "$cmd"

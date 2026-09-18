@@ -24,7 +24,7 @@ teardown() {
 }
 
 @test "Trying to run database-adapter with unset configuration file" {
-    unset_config
+    use_missing_config_path
 
     run das-cli database-adapter run
 

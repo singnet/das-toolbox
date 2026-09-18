@@ -16,7 +16,7 @@ teardown() {
 
 @test "Trying to show the system status with unset configuration file" {
 
-    unset_config
+    use_missing_config_path
 
     run das-cli system status
 

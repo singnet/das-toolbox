@@ -13,7 +13,7 @@ setup() {
 }
 
 @test "Checking MeTTa file syntax with unset configuration file" {
-    unset_config
+    use_missing_config_path
 
     run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
 
@@ -65,7 +65,7 @@ setup() {
 }
 
 @test "Loading MeTTa file with unset configuration file" {
-    unset_config
+    use_missing_config_path
 
     run das-cli metta load "$test_fixtures_dir/metta/animals.metta"
 

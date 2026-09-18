@@ -18,7 +18,7 @@ setup() {
 @test "Trying to start, stop and restart das-peer with unset configuration file" {
     local cmds=(start stop restart)
 
-    unset_config
+    use_missing_config_path
 
     for cmd in "${cmds[@]}"; do
         run das-cli dbms-adapter das-peer $cmd

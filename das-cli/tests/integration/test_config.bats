@@ -40,7 +40,7 @@ assert_config_core_endpoints() {
     assert_output "localhost:40008"
 }
 
-@test "listing config with unset configuration file" {
+@test "listing config with unset configuration file uses default config" {
     unset_config
 
     run das-cli config list
@@ -77,14 +77,20 @@ assert_config_core_endpoints() {
     assert_output "localhost:9999"
 }
 
-@test "raises error when config file is missing but env exists" {
-    use_config "simple"
-    ensure_env
-
-    rm -f "$das_config_file"
+@test "raises error when active configpath points to missing file" {
+    use_missing_config_path
 
     run das-cli config list
 
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
+}
+
+@test "service commands fail when active configpath points to missing file" {
+    use_missing_config_path
+
+    run das-cli db start
+
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
@@ -185,6 +191,23 @@ assert_config_core_endpoints() {
     run das-cli config list
     assert_success
     assert_output --partial "Configuration listed successfully."
+}
+
+@test "config set default selection removes only configpath from env" {
+    use_config "simple"
+    mkdir -p "${das_config_dir}"
+    cat <<EOF > "${das_env_file}"
+configpath=${das_config_file}
+FOO=bar
+EOF
+
+    run timeout 20 sh -c 'printf "\n" | das-cli config set'
+    assert_success
+
+    run cat "$das_env_file"
+    assert_success
+    [[ "$output" != *"configpath="* ]]
+    [[ "$output" == *"FOO=bar"* ]]
 }
 
 @test "config set key=value is blocked when active config is default path" {

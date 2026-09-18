@@ -30,7 +30,7 @@ teardown() {
 }
 
 @test "Fails to start the Query Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli query-agent start --port-range 12000:12100
 
@@ -38,7 +38,7 @@ teardown() {
 }
 
 @test "Fails to stop the Query Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli query-agent stop
 
@@ -46,7 +46,7 @@ teardown() {
 }
 
 @test "Fails to restart the Query Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli query-agent restart --port-range 12000:12100
 

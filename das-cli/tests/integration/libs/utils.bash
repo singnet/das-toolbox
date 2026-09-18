@@ -127,6 +127,14 @@ function unset_config() {
     rm -f "$das_env_file"
 }
 
+function use_missing_config_path() {
+    local missing_path="${das_config_dir}/missing-config.json"
+
+    unset_config
+    set_env_config_path "$missing_path"
+    rm -f "$missing_path"
+}
+
 function _ensure_config_path_is_file() {
     if [ -d "$das_config_file" ]; then
         rm -rf "$das_config_file" 2>/dev/null || {
