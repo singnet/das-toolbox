@@ -148,6 +148,7 @@ class ConfigSet(Command):
         self._remote_context_manager.commit()
         self._settings.set_path(save_path)
         self._settings.rewind()
+        self._settings.validate_configuration_file()
         self._settings.save_path()
 
         config_path = self._settings.get_path()
