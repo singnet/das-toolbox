@@ -40,6 +40,7 @@ teardown() {
     run das-cli link-creation-agent start \
         --port-range 12300:12400
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
@@ -48,6 +49,7 @@ teardown() {
 
     run das-cli link-creation-agent stop
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
@@ -57,6 +59,7 @@ teardown() {
     run das-cli link-creation-agent restart \
         --port-range 12300:12400
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 

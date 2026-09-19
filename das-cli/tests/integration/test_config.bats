@@ -82,6 +82,7 @@ assert_config_core_endpoints() {
 
     run das-cli config list
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 

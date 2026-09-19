@@ -33,6 +33,7 @@ teardown() {
     run das-cli evolution-agent start \
         --port-range 12700:12800 \
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
@@ -41,6 +42,7 @@ teardown() {
 
     run das-cli evolution-agent stop
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
@@ -50,6 +52,7 @@ teardown() {
     run das-cli evolution-agent restart \
         --port-range 12700:12800 \
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
