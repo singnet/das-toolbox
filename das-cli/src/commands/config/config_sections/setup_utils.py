@@ -7,7 +7,7 @@ from common.settings import Settings
 def _default_values_dict() -> Dict[str, Any]:
     try:
         return get_default_config_dict()
-    except (FileNotFoundError, ValueError):
+    except FileNotFoundError:
         return {}
 
 
