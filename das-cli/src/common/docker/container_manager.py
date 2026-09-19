@@ -10,6 +10,7 @@ from rich.live import Live
 from rich.panel import Panel
 
 from common.exceptions import PortBindingError
+from common.logger import logger
 from settings.config import SERVICES_NETWORK_NAME
 
 from ..utils import deep_merge_dicts
@@ -90,7 +91,7 @@ class ContainerManager(DockerManager):
 
         resolved_path = str(Path(path).expanduser().resolve(strict=False))
         if not Path(resolved_path).exists():
-            print(f"[WARNING] Skipping missing {warning_context}: {resolved_path}")
+            logger().warning(f"Skipping missing {warning_context}: {resolved_path}")
             return {}
 
         return {
