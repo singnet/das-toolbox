@@ -123,6 +123,8 @@ class JsonConfigStore(ConfigStore):
 
     def save_path(self) -> None:
         lines = self._without_configpath(self._read_env_lines())
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
         lines.append(f"configpath={self._file_path}\n")
         self._write_env_lines(lines)
 
