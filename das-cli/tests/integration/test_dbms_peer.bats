@@ -42,6 +42,30 @@ teardown() {
 Database Adapter started successfully."
 }
 
+@test "Database-adapter ignores missing optional mount paths" {
+    use_config "simple"
+
+    local tmp_root
+    tmp_root="$(mktemp -d)"
+    local existing_mount="${tmp_root}/existing-map"
+    local missing_mount="${tmp_root}/missing-map"
+    local output_dir="${tmp_root}/metta-output"
+
+    mkdir -p "${existing_mount}"
+    mkdir -p "${output_dir}"
+
+    set_config '.atomdb.adapterdb.context_mapping_paths' "[\"$existing_mount\", \"$missing_mount\"]"
+    set_config '.atomdb.adapterdb.export_metta_on_mapping.output_dir' "\"$output_dir\""
+
+    safe_stop_adapter
+
+    run das-cli database-adapter run
+
+    assert_success
+    assert_output --partial "Starting Database Adapter..."
+    assert_output --partial "Database Adapter started successfully."
+}
+
 @test "Stopping database-adapter" {
     use_config "simple"
 
