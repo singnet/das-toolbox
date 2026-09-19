@@ -1,10 +1,9 @@
 {
   "atomdb": {
-    "uid": "local",
     "type": "redismongodb",
     "composite_type_enabled": true,
     "mongodb": {
-      "image": "mongodb/mongodb-community-server:8.0.4-ubuntu2204",
+      "image": "mongodb/mongodb-community-server:8.2-ubuntu2204",
       "endpoint": "localhost:40021",
       "username": "admin",
       "password": "admin",
@@ -19,7 +18,7 @@
       ]
     },
     "redis": {
-      "image": "redis7.2.3-alpine",
+      "image": "redis:7.2.3-alpine",
       "endpoint": "localhost:40020",
       "cluster": false,
       "nodes": [
@@ -33,10 +32,10 @@
   },
   "loaders": {
     "metta": {
-      "image": "trueagi/das-1.0.0-metta-parser"
+      "image": "trueagi/das:1.0.0-metta-parser"
     },
     "morkdb": {
-      "image": "trueagi/das-mork-loader-1.0.5"
+      "image": "trueagi/das:mork-loader-1.1.0"
     }
   },
   "vault": {
@@ -44,7 +43,7 @@
     "endpoint": "localhost:40010"
   },
   "agents": {
-    "schema_version": "1.0.1",
+    "schema_version": "1.2.0",
     "attention": {
       "endpoint": "localhost:40001"
     },
@@ -59,13 +58,12 @@
         "attention_update": 0,
         "attention_correlation": 0,
         "attention_focus_strictness": 0.0,
-        "public_key_tokens": "",
         "max_bundle_size": 1000,
         "max_answers": 0,
-        "use_link_template_cache": false,
         "populate_metta_mapping": false,
         "use_metta_as_query_tokens": false,
-        "allow_incomplete_chain_path": false
+        "allow_incomplete_chain_path": false,
+        "public_key_tokens": ""
       }
     },
     "query": {
@@ -83,21 +81,13 @@
       "ports_range": "43000:43999",
       "params": {
         "unique_assignment_flag": false,
+        "positive_importance_flag": false,
         "disregard_importance_flag": false,
         "unique_value_flag": false,
-        "max_answers": 10,
-        "repeat_count": 1,
-        "context": "context",
-        "attention_update": 0,
-        "attention_correlation": 0,
-        "positive_importance_flag": true,
-        "query_interval": 0,
-        "query_timeout": 0,
-        "use_metta_as_query_tokens": false,
-        "max_rounds": 5,
         "max_successful_creation_per_round": 10,
         "max_unproductive_visits_per_round": 500,
         "max_visit_attempts_per_round": 20,
+        "max_rounds": 5,
         "link_creation_strength_threshold": 0.1
       }
     },
