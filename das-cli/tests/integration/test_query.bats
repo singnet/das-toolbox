@@ -11,7 +11,7 @@ safe_stop() {
 }
 
 QUERY_SIMILARITY_HUMAN='LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
-QUERY_READY_MAX_ATTEMPTS=90
+QUERY_READY_MAX_ATTEMPTS=180
 SERVICE_READY_MAX_ATTEMPTS=20
 
 print_query_stack_diagnostics() {
