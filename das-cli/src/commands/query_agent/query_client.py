@@ -9,6 +9,7 @@ from common.settings import Settings
 
 TERMINAL_STATUSES = frozenset({"completed", "error", "aborted"})
 ROUTER_TIMEOUT_SECONDS = 10
+RESERVED_ROUTER_PARAM_KEYS = frozenset({"query"})
 
 
 class CommandRouterQueryClient:
@@ -116,17 +117,23 @@ class CommandRouterQueryClient:
         if not trimmed_query:
             raise ValueError("Query text must not be empty.")
 
-        payload: dict[str, Any] = {
-            "command_type": "query",
-            "command_text": trimmed_query,
+        params: dict[str, Any] = {
+            "query": {
+                "syntax": "metta",
+                "tokens": [trimmed_query],
+            }
         }
 
         if parameters:
-            if "query" in parameters:
+            if any(key in RESERVED_ROUTER_PARAM_KEYS for key in parameters):
                 raise ValueError("Reserved parameter 'query' cannot be overridden.")
-            payload["command_params"] = parameters
 
-        return payload
+            params.update(parameters)
+
+        return {
+            "command": "query",
+            "params": params,
+        }
 
     def _transform_stream_event(self, event: dict[str, Any]) -> dict[str, Any]:
         command = event.get("command")

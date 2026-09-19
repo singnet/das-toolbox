@@ -46,6 +46,19 @@ class QueryRun(Command):
 
         return dict(params)
 
+    @staticmethod
+    def _is_empty_param_value(value: object) -> bool:
+        if value is None:
+            return True
+
+        if isinstance(value, str):
+            return value.strip() == ""
+
+        if isinstance(value, (list, tuple, dict, set)):
+            return len(value) == 0
+
+        return False
+
     def _build_query_params_from_config(self) -> dict:
         config = self._settings.get_content()
         if not isinstance(config, dict):
@@ -57,7 +70,12 @@ class QueryRun(Command):
 
         params = self._get_params_section(agents.get("base_query"))
         params.update(self._get_params_section(agents.get("query")))
-        return params
+
+        return {
+            key: value
+            for key, value in params.items()
+            if not self._is_empty_param_value(value)
+        }
 
     def _render_chunk(self, event: dict) -> None:
         answers = event.get("data")

@@ -313,3 +313,67 @@ def test_query_run_ignores_missing_or_invalid_param_sections(config):
     )
 
     assert command._build_query_params_from_config() == {}
+
+
+def test_query_run_omits_empty_values_from_execution_params():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "agents": {
+                    "base_query": {
+                        "params": {
+                            "public_key_tokens": "",
+                            "empty_spaces": "   ",
+                            "none_value": None,
+                            "empty_list": [],
+                            "empty_dict": {},
+                            "count_flag": False,
+                            "attention_update": 0,
+                            "max_answers": 3,
+                        }
+                    }
+                }
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_query_params_from_config() == {
+        "count_flag": False,
+        "attention_update": 0,
+        "max_answers": 3,
+    }
+
+
+def test_query_client_builds_execution_payload_with_command_and_params_contract():
+    client = CommandRouterQueryClient(settings=_DummySettings())
+    query_text = 'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
+
+    payload = client._build_query_execution_payload(
+        query_text=query_text,
+        parameters={
+            "count_flag": True,
+            "max_answers": 5,
+        },
+    )
+
+    assert payload["command"] == "query"
+    assert payload["params"]["query"] == {
+        "syntax": "metta",
+        "tokens": [query_text],
+    }
+    assert payload["params"]["count_flag"] is True
+    assert payload["params"]["max_answers"] == 5
+    assert "command_type" not in payload
+    assert "command_text" not in payload
+    assert "command_params" not in payload
+
+
+def test_query_client_rejects_query_param_override_in_execution_payload():
+    client = CommandRouterQueryClient(settings=_DummySettings())
+
+    with pytest.raises(ValueError, match="Reserved parameter 'query' cannot be overridden"):
+        client._build_query_execution_payload(
+            query_text='LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S',
+            parameters={"query": {"syntax": "metta", "tokens": ["override"]}},
+        )
