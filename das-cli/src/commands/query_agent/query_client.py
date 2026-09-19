@@ -156,6 +156,7 @@ class CommandRouterQueryClient:
             if params.get("message"):
                 transformed["message"] = params.get("message")
             if params.get("total_items") is not None:
+                transformed["total_items"] = params.get("total_items")
                 transformed["received_count"] = params.get("total_items")
             elif params.get("received_count") is not None:
                 transformed["received_count"] = params.get("received_count")
