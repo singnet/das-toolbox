@@ -1,5 +1,6 @@
 {
   "atomdb": {
+    "uid": "local",
     "type": "redismongodb",
     "composite_type_enabled": true,
     "mongodb": {
