@@ -9,12 +9,29 @@ from common.settings import Settings
 
 TERMINAL_STATUSES = frozenset({"completed", "error", "aborted"})
 ROUTER_TIMEOUT_SECONDS = 10
+ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS = 30
 RESERVED_ROUTER_PARAM_KEYS = frozenset({"query"})
 
 
 class CommandRouterQueryClient:
     def __init__(self, settings: Settings):
         self._settings = settings
+        self._stream_inactivity_timeout_seconds = self._resolve_stream_inactivity_timeout_seconds()
+
+    def _resolve_stream_inactivity_timeout_seconds(self) -> float:
+        raw_timeout = self._settings.get(
+            "agents.command_router.stream_inactivity_timeout_seconds",
+            ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS,
+        )
+        try:
+            timeout_seconds = float(raw_timeout)
+        except (TypeError, ValueError):
+            return float(ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS)
+
+        if timeout_seconds <= 0:
+            return float(ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS)
+
+        return timeout_seconds
 
     def create_execution(self, query_text: str, parameters: dict[str, Any] | None = None) -> dict:
         payload = self._build_query_execution_payload(query_text=query_text, parameters=parameters)
@@ -55,7 +72,22 @@ class CommandRouterQueryClient:
                 terminal_status_received = False
 
                 async with ws_connect(endpoint, open_timeout=10, close_timeout=5) as upstream:
-                    async for raw_message in upstream:
+                    upstream_iter = upstream.__aiter__()
+                    while True:
+                        try:
+                            raw_message = await asyncio.wait_for(
+                                upstream_iter.__anext__(),
+                                timeout=self._stream_inactivity_timeout_seconds,
+                            )
+                        except StopAsyncIteration:
+                            break
+                        except asyncio.TimeoutError as error:
+                            raise RuntimeError(
+                                "Command-router stream inactivity timeout "
+                                f"({self._stream_inactivity_timeout_seconds}s) for execution "
+                                f"'{execution_id}' at {endpoint}."
+                            ) from error
+
                         event = self._transform_stream_event(json.loads(raw_message))
                         yield event
 
@@ -70,7 +102,7 @@ class CommandRouterQueryClient:
                     "Command-router stream closed before a terminal execution status "
                     f"(completed/error/aborted) for execution '{execution_id}' at {endpoint}."
                 )
-            except (ws_exception, OSError, asyncio.TimeoutError, json.JSONDecodeError) as error:
+            except (ws_exception, OSError, asyncio.TimeoutError, json.JSONDecodeError, RuntimeError) as error:
                 last_error = error
 
         message = str(last_error) if last_error else "unknown websocket error"

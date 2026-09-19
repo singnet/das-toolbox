@@ -54,6 +54,22 @@ class _FakeConnection:
         return False
 
 
+class _HangingStream:
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        await asyncio.Future()
+
+
+class _HangingConnection:
+    async def __aenter__(self):
+        return _HangingStream()
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+
 class _FakeQueryClient:
     def __init__(self):
         self.query_text = None
@@ -100,6 +116,23 @@ def test_stream_events_raises_on_clean_close_without_terminal_status(monkeypatch
 
     with pytest.raises(RuntimeError, match="stream closed before a terminal execution status"):
         _collect_events(client, "exec-1")
+
+
+def test_stream_events_raises_on_inactivity_timeout(monkeypatch):
+    client = CommandRouterQueryClient(settings=_DummySettings())
+    client._stream_inactivity_timeout_seconds = 0.01
+
+    def fake_connect(endpoint, open_timeout=10, close_timeout=5):
+        del endpoint, open_timeout, close_timeout
+        return _HangingConnection()
+
+    monkeypatch.setattr(client, "_build_websocket_urls", lambda execution_id: [
+        f"ws://localhost:40009/executions/ws/{execution_id}",
+    ])
+    monkeypatch.setattr(client, "_load_websocket_client", lambda: (fake_connect, Exception))
+
+    with pytest.raises(RuntimeError, match="inactivity timeout"):
+        _collect_events(client, "exec-timeout")
 
 
 def test_query_run_builds_execution_params_from_base_and_query_config():
