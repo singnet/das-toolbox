@@ -109,6 +109,13 @@ jobs:
           cd -
           sudo apt -y update && sudo apt -y install socat lsof
 
+          # Pin jq to 1.7+ to keep numeric serialization behavior stable in tests.
+          curl -fsSL -o /tmp/jq \
+            https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
+          echo "5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5  /tmp/jq" | sha256sum --check --strict
+          sudo install -m 0755 /tmp/jq /usr/local/bin/jq
+          jq --version
+
       - name: Running integration tests
         run: make tests-local
         working-directory: das-cli

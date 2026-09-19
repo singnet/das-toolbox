@@ -1,7 +1,7 @@
 import os
 
 from common import Settings
-from common.config.core import get_core_defaults_dict
+from common.config.defaults import get_default_config_dict
 from common.config.store import JsonConfigStore
 from common.container_manager.vault_container_manager import (
     VAULT_CONTAINER_NAME,
@@ -18,7 +18,7 @@ class VaultManagerFactory:
     def build(self):
         endpoint = self._settings.get("vault.endpoint")
         if not endpoint:
-            endpoint = get_core_defaults_dict()["vault"]["endpoint"]
+            endpoint = get_default_config_dict().get("vault", {}).get("endpoint", "localhost:40010")
 
         vault_port = extract_service_port(endpoint)
 

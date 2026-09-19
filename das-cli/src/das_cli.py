@@ -1,4 +1,5 @@
 import copy
+import sys
 
 from injector import Injector
 
@@ -17,6 +18,7 @@ from commands.link_creation_agent import LinkCreationAgentModule
 from commands.logs import LogsModule
 from commands.metta import MettaModule
 from commands.python_library import PythonLibraryModule
+from commands.query import QueryModule
 from commands.query_agent import QueryAgentModule
 from commands.release_notes import ReleaseNotesModule
 from commands.system import SystemModule
@@ -32,6 +34,7 @@ MODULES = [
     MettaModule,
     PythonLibraryModule,
     ReleaseNotesModule,
+    QueryModule,
     DatabaseAdapterModule,
     AttentionBrokerModule,
     QueryAgentModule,
@@ -63,7 +66,7 @@ def init_modules(cli):
             init_module(cli, module)
     except Exception as e:
         log_exception(e)
-        exit(1)
+        sys.exit(1)
 
 
 def init_cli(module):
@@ -75,7 +78,7 @@ def init_cli(module):
         return instance.group
     except Exception as e:
         log_exception(e)
-        exit(1)
+        sys.exit(1)
 
 
 das_cli = init_cli(DasModule)

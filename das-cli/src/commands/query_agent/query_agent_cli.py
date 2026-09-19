@@ -28,8 +28,6 @@ from .query_agent_docs import (
 )
 
 CLI_SERVICE_NAME = "query_agent"
-
-
 class QueryAgentStop(Command):
     name = "stop"
 
@@ -224,7 +222,7 @@ class QueryAgentRestart(Command):
 class QueryAgentCli(CommandGroup):
     name = "query-agent"
 
-    aliases = ["qa", "query", "query-engine", "qe"]
+    aliases = ["qa", "query-engine", "qe"]
 
     short_help = SHORT_HELP_QA
     help = HELP_QA

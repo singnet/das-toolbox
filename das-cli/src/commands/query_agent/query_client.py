@@ -1,0 +1,197 @@
+import asyncio
+import json
+from typing import Any
+
+import requests
+from requests.exceptions import RequestException
+
+from common.settings import Settings
+
+TERMINAL_STATUSES = frozenset({"completed", "error", "aborted"})
+ROUTER_TIMEOUT_SECONDS = 10
+ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS = 30
+RESERVED_ROUTER_PARAM_KEYS = frozenset({"query"})
+
+
+class CommandRouterQueryClient:
+    def __init__(self, settings: Settings):
+        self._settings = settings
+        self._stream_inactivity_timeout_seconds = self._resolve_stream_inactivity_timeout_seconds()
+
+    def _resolve_stream_inactivity_timeout_seconds(self) -> float:
+        raw_timeout = self._settings.get(
+            "agents.command_router.stream_inactivity_timeout_seconds",
+            ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS,
+        )
+        try:
+            timeout_seconds = float(raw_timeout)
+        except (TypeError, ValueError):
+            return float(ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS)
+
+        if timeout_seconds <= 0:
+            return float(ROUTER_STREAM_INACTIVITY_TIMEOUT_SECONDS)
+
+        return timeout_seconds
+
+    def create_execution(self, query_text: str, parameters: dict[str, Any] | None = None) -> dict:
+        payload = self._build_query_execution_payload(query_text=query_text, parameters=parameters)
+        url = f"{self._build_http_base_url()}/command-router/executions"
+
+        try:
+            response = requests.post(url, json=payload, timeout=ROUTER_TIMEOUT_SECONDS)
+            response.raise_for_status()
+            return response.json()
+        except RequestException as error:
+            details = self._response_error_details(getattr(error, "response", None))
+            raise RuntimeError(
+                f"Failed to create query execution on {url}: {error}{details}"
+            ) from error
+        except ValueError as error:
+            raise RuntimeError(f"Command-router returned invalid JSON for execution creation: {error}") from error
+
+    def _response_error_details(self, response: Any | None) -> str:
+        if response is None:
+            return ""
+
+        try:
+            payload = response.json()
+            return f" | response: {json.dumps(payload)}"
+        except Exception:
+            text = getattr(response, "text", "")
+            if text:
+                return f" | response: {text}"
+            return ""
+
+    async def stream_events(self, execution_id: str):
+        endpoints = self._build_websocket_urls(execution_id)
+        last_error: Exception | None = None
+        ws_connect, ws_exception = self._load_websocket_client()
+
+        for endpoint in endpoints:
+            try:
+                terminal_status_received = False
+
+                async with ws_connect(endpoint, open_timeout=10, close_timeout=5) as upstream:
+                    upstream_iter = upstream.__aiter__()
+                    while True:
+                        try:
+                            raw_message = await asyncio.wait_for(
+                                upstream_iter.__anext__(),
+                                timeout=self._stream_inactivity_timeout_seconds,
+                            )
+                        except StopAsyncIteration:
+                            break
+                        except asyncio.TimeoutError as error:
+                            raise RuntimeError(
+                                "Command-router stream inactivity timeout "
+                                f"({self._stream_inactivity_timeout_seconds}s) for execution "
+                                f"'{execution_id}' at {endpoint}."
+                            ) from error
+
+                        event = self._transform_stream_event(json.loads(raw_message))
+                        yield event
+
+                        if event.get("status") in TERMINAL_STATUSES:
+                            terminal_status_received = True
+                            return
+
+                if terminal_status_received:
+                    return
+
+                last_error = RuntimeError(
+                    "Command-router stream closed before a terminal execution status "
+                    f"(completed/error/aborted) for execution '{execution_id}' at {endpoint}."
+                )
+            except (ws_exception, OSError, asyncio.TimeoutError, json.JSONDecodeError, RuntimeError) as error:
+                last_error = error
+
+        message = str(last_error) if last_error else "unknown websocket error"
+        raise RuntimeError(
+            f"Failed to stream execution events from command-router for execution '{execution_id}': {message}"
+        ) from last_error
+
+    def _load_websocket_client(self):
+        try:
+            from websockets.asyncio.client import connect
+            from websockets.exceptions import WebSocketException
+        except ModuleNotFoundError as error:
+            raise RuntimeError(
+                "Missing dependency 'websockets'. Install dependencies and try again."
+            ) from error
+
+        return connect, WebSocketException
+
+    def _build_http_base_url(self) -> str:
+        return f"http://{self._resolve_http_api_endpoint()}"
+
+    def _build_websocket_urls(self, execution_id: str) -> list[str]:
+        endpoint = self._resolve_http_api_endpoint()
+        return [
+            f"ws://{endpoint}/executions/ws/{execution_id}",
+            f"ws://{endpoint}/command-router/ws/{execution_id}",
+        ]
+
+    def _resolve_http_api_endpoint(self) -> str:
+        explicit_http_api = self._settings.get("agents.command_router.http_api.endpoint", None)
+        if explicit_http_api:
+            return explicit_http_api
+
+        router_endpoint = self._settings.get("agents.command_router.endpoint", "localhost:40008")
+        host = str(router_endpoint).split(":", maxsplit=1)[0]
+        return f"{host}:40009"
+
+    def _build_query_execution_payload(
+        self,
+        query_text: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        trimmed_query = query_text.strip()
+        if not trimmed_query:
+            raise ValueError("Query text must not be empty.")
+
+        params: dict[str, Any] = {
+            "query": {
+                "syntax": "metta",
+                "tokens": [trimmed_query],
+            }
+        }
+
+        if parameters:
+            if any(key in RESERVED_ROUTER_PARAM_KEYS for key in parameters):
+                raise ValueError("Reserved parameter 'query' cannot be overridden.")
+
+            params.update(parameters)
+
+        return {
+            "command": "query",
+            "params": params,
+        }
+
+    def _transform_stream_event(self, event: dict[str, Any]) -> dict[str, Any]:
+        command = event.get("command")
+        params = event.get("params")
+
+        if command == "query_answers" and isinstance(params, dict):
+            return {
+                "execution_id": params.get("execution_id") or event.get("execution_id"),
+                "type": "chunk",
+                "seq": params.get("seq"),
+                "received_count": params.get("received_count"),
+                "data": params.get("answers", []),
+            }
+
+        if command == "execution_status" and isinstance(params, dict):
+            transformed = {
+                "execution_id": params.get("execution_id"),
+                "status": params.get("status"),
+            }
+            if params.get("message"):
+                transformed["message"] = params.get("message")
+            if params.get("total_items") is not None:
+                transformed["total_items"] = params.get("total_items")
+                transformed["received_count"] = params.get("total_items")
+            elif params.get("received_count") is not None:
+                transformed["received_count"] = params.get("received_count")
+            return transformed
+
+        return event

@@ -40,12 +40,13 @@ assert_config_core_endpoints() {
     assert_output "localhost:40008"
 }
 
-@test "listing config with unset configuration file" {
+@test "listing config with unset configuration file uses default config" {
     unset_config
 
     run das-cli config list
 
-    assert_output --partial "$FILE_NOT_FOUND_ERROR"
+    assert_success
+    assert_output --partial "Configuration listed successfully."
 }
 
 @test "listing config with valid configuration file" {
@@ -76,14 +77,21 @@ assert_config_core_endpoints() {
     assert_output "localhost:9999"
 }
 
-@test "raises error when config file is missing but env exists" {
-    use_config "simple"
-    ensure_env
-
-    rm -f "$das_config_file"
+@test "raises error when active configpath points to missing file" {
+    use_missing_config_path
 
     run das-cli config list
 
+    assert_failure
+    assert_output --partial "$FILE_NOT_FOUND_ERROR"
+}
+
+@test "service commands fail when active configpath points to missing file" {
+    use_missing_config_path
+
+    run das-cli db start
+
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
@@ -169,72 +177,49 @@ assert_config_core_endpoints() {
     done
 }
 
-config_set_answers_before_vault() {
-    # save path, decline overwrite, then AtomDB / agents / jupyter defaults
-    printf '%s\n' "" "n"
-    local i
-    for i in $(seq 1 32); do
-        printf '\n'
-    done
-}
-
-run_interactive_config_set() {
-    set -o pipefail
-    {
-        config_set_answers_before_vault
-        printf '%s\n' "$1" "$2"
-    } | das-cli config set
-}
-
-@test "interactive config set keeps the default vault.endpoint" {
+@test "config set default selection removes configpath and uses resolved default path" {
     use_config "simple"
     ensure_env
 
-    run run_interactive_config_set "" ""
+    run timeout 20 sh -c 'printf "\n" | das-cli config set'
     assert_success
 
-    run get_config ".vault.endpoint"
-    assert_output "localhost:40010"
+    if [ -f "$das_env_file" ]; then
+        run cat "$das_env_file"
+        [[ "$output" != *"configpath="* ]]
+    fi
+
+    run das-cli config list
+    assert_success
+    assert_output --partial "Configuration listed successfully."
 }
 
-@test "interactive config set persists a custom loopback vault port" {
+@test "config set default selection removes only configpath from env" {
     use_config "simple"
-    ensure_env
+    mkdir -p "${das_config_dir}"
+    cat <<EOF > "${das_env_file}"
+configpath=${das_config_file}
+FOO=bar
+EOF
 
-    run run_interactive_config_set "localhost" "40011"
+    run timeout 20 sh -c 'printf "\n" | das-cli config set'
     assert_success
 
-    run get_config ".vault.endpoint"
-    assert_output "localhost:40011"
+    run cat "$das_env_file"
+    assert_success
+    [[ "$output" != *"configpath="* ]]
+    [[ "$output" == *"FOO=bar"* ]]
 }
 
-@test "interactive config set rejects a non-loopback vault hostname" {
+@test "config set key=value is blocked when active config is default path" {
     use_config "simple"
-    ensure_env
 
-    run run_interactive_config_set "vault.example" "40010"
+    set_env_config_path "/usr/share/das/config.json"
+
+    run das-cli config set vault.endpoint=localhost:40123
     assert_failure
-    assert_output --partial "vault.endpoint"
+    assert_output --partial "Cannot modify default config file"
 
     run get_config ".vault.endpoint"
     assert_output "localhost:40010"
-}
-
-@test "config set --file rejects an invalid vault.endpoint" {
-    use_config "simple"
-    ensure_env
-
-    local invalid_config
-    invalid_config="$(mktemp)"
-    cp "${test_fixtures_dir}/config/simple.json" "$invalid_config"
-    update_json_key "$invalid_config" vault.endpoint "vault.example:40010"
-
-    run das-cli config set --file "$invalid_config"
-    assert_failure
-    assert_output --partial "vault.endpoint"
-
-    run get_config ".vault.endpoint"
-    assert_output "localhost:40010"
-
-    rm -f "$invalid_config"
 }

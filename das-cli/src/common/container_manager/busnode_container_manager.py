@@ -73,16 +73,16 @@ class BusNodeContainerManager(ContainerManager):
 
     def _build_adapterdb_mapping_volumes(self):
         adapterdb_context_maps = self._options.get("adapterdb_context_maps") or []
-        return {path: {"bind": path, "mode": "ro"} for path in adapterdb_context_maps}
+        return self._build_existing_paths_volumes(
+            paths=adapterdb_context_maps,
+            mode="ro",
+            warning_context="adapterdb mapping path",
+        )
 
     def _build_metta_output_dir(self):
         metta_output_dir = self._options.get("metta_mapping_output_dir")
-        if not metta_output_dir:
-            return {}
-
-        return {
-            metta_output_dir: {
-                "bind": metta_output_dir,
-                "mode": "ro",
-            }
-        }
+        return self._build_existing_path_volume(
+            path=metta_output_dir,
+            mode="ro",
+            warning_context="metta output directory mount",
+        )

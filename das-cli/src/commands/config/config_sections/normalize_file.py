@@ -2,7 +2,7 @@ import getpass
 from copy import deepcopy
 from typing import Any, Dict, List
 
-from common.config.core import get_core_defaults_dict
+from common.config.defaults import get_default_config_dict
 from common.docker import RemoteContextManager
 from common.docker.remote_context_manager import Server
 from common.settings import Settings
@@ -61,8 +61,11 @@ def _fill_missing_values(current: Any, defaults: Any) -> Any:
 
 
 def _defaults_for_config(content: Dict[str, Any]) -> Dict[str, Any]:
-    """Return schema defaults trimmed to the active atomdb type (same rules as validation)."""
-    expected = deepcopy(get_core_defaults_dict())
+    """Return canonical defaults trimmed to the active atomdb type (same rules as validation)."""
+    expected = deepcopy(get_default_config_dict())
+    if not expected:
+        return {}
+
     default_atomdb_type = expected.get("atomdb", {}).get("type", "redismongodb")
     atomdb_type = content.get("atomdb", {}).get("type") or default_atomdb_type
     atomdb_section = expected["atomdb"]

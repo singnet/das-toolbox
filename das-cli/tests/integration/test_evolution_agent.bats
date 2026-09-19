@@ -28,28 +28,31 @@ teardown() {
 }
 
 @test "Fails to start the Evolution Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli evolution-agent start \
         --port-range 12700:12800 \
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to stop the Evolution Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli evolution-agent stop
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to restart the Evolution Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli evolution-agent restart \
         --port-range 12700:12800 \
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 

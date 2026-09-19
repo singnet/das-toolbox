@@ -31,7 +31,7 @@ teardown() {
 @test "Show logs for MongoDB and Redis with unset configuration file" {
     local services=(mongodb redis)
 
-    unset_config
+    use_missing_config_path
 
     for service in "${services[@]}"; do
         run das-cli logs "$service"

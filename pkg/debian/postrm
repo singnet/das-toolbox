@@ -1,13 +1,29 @@
 #!/bin/bash
 set -e
 
-echo "Removing services..."
-systemctl stop gk-server || true
-systemctl disable gk-server || true
+case "$1" in
+	remove)
+		echo "Removing services..."
+		systemctl stop gk-server || true
+		systemctl disable gk-server || true
+		systemctl daemon-reload || true
+		echo "Removal completed!"
+		;;
+	purge)
+		echo "Purging services and configuration..."
+		systemctl stop gk-server || true
+		systemctl disable gk-server || true
+		systemctl daemon-reload || true
+		rm -f /usr/share/das/config.json || true
+		rmdir /usr/share/das 2>/dev/null || true
+		echo "Purge completed!"
+		;;
+	upgrade|failed-upgrade|disappear)
+		;;
+	*)
+		echo "postrm called with unknown argument $1" >&2
+		exit 1
+		;;
+esac
 
-systemctl daemon-reload || true
-
-# echo "Removing database..."
-# rm -rf /opt/gk/
-
-echo "Removal completed!"
+exit 0

@@ -74,6 +74,10 @@ class ConfigStore(ABC):
         """Save the new configuration file path of identifier."""
         pass
 
+    def remove_saved_path(self) -> None:
+        """Remove the saved configuration file path while preserving other env entries."""
+        pass
+
     @abstractmethod
     def get_dir_path(self) -> str:
         """Get the directory path where the configuration is stored."""
@@ -102,10 +106,31 @@ class JsonConfigStore(ConfigStore):
     def set_path(self, new_file_path: str) -> None:
         self._file_path = new_file_path
 
-    def save_path(self) -> None:
+    def _read_env_lines(self) -> list[str]:
+        if not self._env_path or not os.path.exists(self._env_path):
+            return []
+
+        with open(self._env_path, "r", encoding="utf-8") as env_file:
+            return env_file.readlines()
+
+    def _write_env_lines(self, lines: list[str]) -> None:
         os.makedirs(os.path.dirname(self._env_path), exist_ok=True)
         with open(self._env_path, "w", encoding="utf-8") as env_file:
-            env_file.write(f"configpath={self._file_path}\n")
+            env_file.writelines(lines)
+
+    def _without_configpath(self, lines: list[str]) -> list[str]:
+        return [line for line in lines if not line.strip().startswith("configpath=")]
+
+    def save_path(self) -> None:
+        lines = self._without_configpath(self._read_env_lines())
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
+        lines.append(f"configpath={self._file_path}\n")
+        self._write_env_lines(lines)
+
+    def remove_saved_path(self) -> None:
+        lines = self._without_configpath(self._read_env_lines())
+        self._write_env_lines(lines)
 
     def get_dir_path(self) -> str:
         return os.path.dirname(self._file_path)

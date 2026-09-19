@@ -35,28 +35,31 @@ teardown() {
 }
 
 @test "Fails to start the Link Creation Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli link-creation-agent start \
         --port-range 12300:12400
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to stop the Link Creation Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli link-creation-agent stop
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 
 @test "Fails to restart the Link Creation Agent when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli link-creation-agent restart \
         --port-range 12300:12400
 
+    assert_failure
     assert_output --partial "$FILE_NOT_FOUND_ERROR"
 }
 

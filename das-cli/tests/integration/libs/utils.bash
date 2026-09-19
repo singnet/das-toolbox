@@ -127,6 +127,14 @@ function unset_config() {
     rm -f "$das_env_file"
 }
 
+function use_missing_config_path() {
+    local missing_path="${das_config_dir}/missing-config.json"
+
+    unset_config
+    set_env_config_path "$missing_path"
+    rm -f "$missing_path"
+}
+
 function _ensure_config_path_is_file() {
     if [ -d "$das_config_file" ]; then
         rm -rf "$das_config_file" 2>/dev/null || {
@@ -199,17 +207,42 @@ function listen_port() {
 function stop_listen_port() {
     local port="$1"
     local pids=()
+    local pid
+    local attempt
 
-    pids=($(lsof -ti :$port))
+    mapfile -t pids < <(lsof -ti :"$port" 2>/dev/null)
 
-    if [ -z "$pids" ]; then
+    if [ "${#pids[@]}" -eq 0 ]; then
         echo "There are no service running on port $port to be stopped"
         return 1
     fi
 
     for pid in "${pids[@]}"; do
-        kill -9 "$pid"
+        kill "$pid" >/dev/null 2>&1 || true
     done
+
+    for attempt in {1..20}; do
+        if ! lsof -i :"$port" >/dev/null 2>&1; then
+            return 0
+        fi
+
+        sleep 0.1
+    done
+
+    mapfile -t pids < <(lsof -ti :"$port" 2>/dev/null)
+
+    for pid in "${pids[@]}"; do
+        kill -9 "$pid" >/dev/null 2>&1 || true
+    done
+
+    sleep 0.1
+
+    if lsof -i :"$port" >/dev/null 2>&1; then
+        echo "Failed to stop services running on port $port"
+        return 1
+    fi
+
+    return 0
 }
 
 function update_json_key() {
