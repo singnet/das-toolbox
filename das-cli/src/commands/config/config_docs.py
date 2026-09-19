@@ -25,8 +25,8 @@ DESCRIPTION
      2) key=value:
          Updates a single key in the active config file.
 
-     Note: key=value updates are blocked when the active config is
-     a default config path (default config is read-only).
+     Note: key=value updates are blocked when the active config is a
+     system or packaged default configuration file.
 
      Note: interactive modes that depend on default config contents may fail
      if no default config file is available in the current installation.
