@@ -4,6 +4,7 @@ NAME
 
 SYNOPSIS
     das-cli config set
+    das-cli config set key=value
 
 
 DESCRIPTION
@@ -11,14 +12,24 @@ DESCRIPTION
 
      1) No arguments:
          Shows an interactive prompt with two options:
-         - Use default config (/usr/share/das/config.json)
-         - Create new custom config (copy from default to ~/.das/<name>.json)
+         - Use default config
+         - Create new custom config (saved to ~/.das/<name>.json)
+
+         If "Use default config" is selected, the command activates the
+         resolved default config path and removes only the saved configpath
+         override from ~/.das/.env.
+
+         If "Create new custom config" is selected, the command creates
+         ~/.das/<name>.json (when missing) and activates it.
 
      2) key=value:
          Updates a single key in the active config file.
 
      Note: key=value updates are blocked when the active config is
-     /usr/share/das/config.json (default config is read-only).
+     a default config path (default config is read-only).
+
+     Note: interactive modes that depend on default config contents may fail
+     if no default config file is available in the current installation.
 
 SECTIONS
 
@@ -207,13 +218,23 @@ EXAMPLES
 
         $ das-cli config set
 
+    Select default config (press Enter to keep the default option):
+
+        $ printf "\n" | das-cli config set
+
     Set a configuration option on the active custom config:
 
         $ das-cli config set atomdb.mongodb.endpoint="localhost:40040"
 
+    Create and activate a custom config interactively:
+
+        $ das-cli config set
+        # choose: Create new custom config
+        # enter file name: my-config
+
 """
 
-SHORT_HELP_CONFIG_SET = "Select default config or create ~/.das/<name>.json; set key=value on custom config."
+SHORT_HELP_CONFIG_SET = "Activate default config or create ~/.das/<name>.json; set key=value on active custom config."
 
 HELP_CONFIG_LIST = """Display all current configuration values used by the DAS CLI.
 
