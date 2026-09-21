@@ -67,8 +67,9 @@ class BusNodeCommandRegistry:
         attention_broker = (
             f"{options['attention_broker_hostname']}:{options['attention_broker_port']}"
         )
+        busnode_endpoint = self._get_bus_endpoint(options)
 
-        return f"{base} --attention-broker-endpoint={attention_broker}"
+        return f"{base} --attention-broker-endpoint={attention_broker} --bus-endpoint={busnode_endpoint}"
 
     def cmd_evolution_agent(self, service, endpoint, ports_range, options, **args):
         base = self._gen_default_cmd(service, endpoint, ports_range)

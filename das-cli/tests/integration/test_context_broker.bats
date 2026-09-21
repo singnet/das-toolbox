@@ -51,7 +51,7 @@ teardown() {
 
 
 @test "Fails to start the Context Broker when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli context-broker start \
         --port-range 12700:12800 \
@@ -61,7 +61,7 @@ teardown() {
 
 
 @test "Fails to stop the Context Broker when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli context-broker stop
 
@@ -70,7 +70,7 @@ teardown() {
 
 
 @test "Fails to restart the Context Broker when configuration file is not set" {
-    unset_config
+    use_missing_config_path
 
     run das-cli context-broker restart \
         --port-range 12700:12800 \

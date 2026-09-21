@@ -1,5 +1,6 @@
 import socket
 import time
+from pathlib import Path
 from typing import Any, List, Optional, TypedDict, Union, cast
 
 import docker
@@ -9,6 +10,7 @@ from rich.live import Live
 from rich.panel import Panel
 
 from common.exceptions import PortBindingError
+from common.logger import logger
 from settings.config import SERVICES_NETWORK_NAME
 
 from ..utils import deep_merge_dicts
@@ -77,6 +79,48 @@ class ContainerManager(DockerManager):
 
     def get_container(self) -> Container:
         return self._container
+
+    def _build_existing_path_volume(
+        self,
+        path: str | None,
+        mode: str = "ro",
+        warning_context: str = "mount path",
+    ) -> dict[str, dict[str, str]]:
+        if not path:
+            return {}
+
+        resolved_path = str(Path(path).expanduser().resolve(strict=False))
+        if not Path(resolved_path).exists():
+            logger().warning(f"Skipping missing {warning_context}: {resolved_path}")
+            return {}
+
+        return {
+            resolved_path: {
+                "bind": resolved_path,
+                "mode": mode,
+            }
+        }
+
+    def _build_existing_paths_volumes(
+        self,
+        paths: list[str] | None,
+        mode: str = "ro",
+        warning_context: str = "mount path",
+    ) -> dict[str, dict[str, str]]:
+        if not paths:
+            return {}
+
+        volumes: dict[str, dict[str, str]] = {}
+        for path in paths:
+            volumes.update(
+                self._build_existing_path_volume(
+                    path=path,
+                    mode=mode,
+                    warning_context=warning_context,
+                )
+            )
+
+        return volumes
 
     def _exec_container(self, command: str):
         try:

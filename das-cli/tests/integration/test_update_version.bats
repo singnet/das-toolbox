@@ -12,6 +12,11 @@ setup() {
     restore_package=0
     original_version=""
     original_deb=""
+    root_cfg_existed=0
+    root_env_existed=0
+    root_cfg_backup=""
+    root_env_backup=""
+    root_state_touched=0
 
     if _is_package_installed; then
         original_version="$(_package_version)"
@@ -24,6 +29,10 @@ setup() {
 teardown() {
     if [ "${restore_package:-0}" -eq 1 ]; then
         _restore_das_toolbox
+    fi
+
+    if [ "${root_state_touched:-0}" -eq 1 ]; then
+        _restore_root_state
     fi
 }
 
@@ -91,6 +100,52 @@ _restore_das_toolbox() {
     fi
 
     sudo -n apt -y --allow-downgrades install "${PACKAGE_NAME}=${original_version}"
+}
+
+_backup_root_state() {
+    root_state_touched=1
+    root_cfg_backup="${BATS_TEST_TMPDIR}/root-config.backup.json"
+    root_env_backup="${BATS_TEST_TMPDIR}/root-env.backup"
+
+    if sudo -n test -f /root/.das/config.json; then
+        root_cfg_existed=1
+        sudo -n cat /root/.das/config.json > "$root_cfg_backup"
+    fi
+
+    if sudo -n test -f /root/.das/.env; then
+        root_env_existed=1
+        sudo -n cat /root/.das/.env > "$root_env_backup"
+    fi
+}
+
+_restore_root_state() {
+    if [ "${root_cfg_existed:-0}" -eq 1 ] && [ -f "${root_cfg_backup:-}" ]; then
+        sudo -n install -D -m 0644 "$root_cfg_backup" /root/.das/config.json
+    else
+        sudo -n rm -f /root/.das/config.json
+    fi
+
+    if [ "${root_env_existed:-0}" -eq 1 ] && [ -f "${root_env_backup:-}" ]; then
+        sudo -n install -D -m 0644 "$root_env_backup" /root/.das/.env
+    else
+        sudo -n rm -f /root/.das/.env
+    fi
+}
+
+_provision_root_runtime_config() {
+    local source_config="${BATS_TEST_DIRNAME}/fixtures/config/simple.json"
+
+    _backup_root_state
+
+    sudo -n mkdir -p /root/.das
+    sudo -n install -m 0644 "$source_config" /root/.das/config.json
+    printf 'configpath=/root/.das/config.json\n' | sudo -n tee /root/.das/.env >/dev/null
+}
+
+_clear_root_runtime_config() {
+    _backup_root_state
+
+    sudo -n rm -f /root/.das/config.json /root/.das/.env
 }
 
 @test "Trying to update package version without sudo" {
@@ -174,8 +229,30 @@ _restore_das_toolbox() {
     restore_package=1
     sudo -n apt -y remove "$PACKAGE_NAME"
 
+    _provision_root_runtime_config
+
     run sudo "$cli_copy" update-version
 
     assert_failure
     assert_output --partial "The package 'das-toolbox' is not installed via APT."
+}
+
+@test "Trying to update das-toolbox before it's installed without default config file" {
+    _require_passwordless_sudo
+    _require_apt_package
+
+    local cli_copy
+    cli_copy="${BATS_TEST_TMPDIR}/das-cli"
+    cp "$(command -v das-cli)" "$cli_copy"
+    chmod +x "$cli_copy"
+
+    restore_package=1
+    sudo -n apt -y remove "$PACKAGE_NAME"
+
+    _clear_root_runtime_config
+
+    run sudo "$cli_copy" update-version
+
+    assert_failure
+    assert_output --partial "Default config file not found"
 }

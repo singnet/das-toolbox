@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        if [ -d /usr/share/das ]; then
+            chmod 755 /usr/share/das
+        fi
+
+        if [ -f /usr/share/das/config.json ]; then
+            chmod 644 /usr/share/das/config.json
+
+            echo "==================================="
+            echo "DAS Configuration Package Installed"
+            echo "==================================="
+            echo ""
+            echo "Default configuration file installed at:"
+            echo "  /usr/share/das/config.json"
+            echo ""
+        fi
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        echo "postinst called with unknown argument $1" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

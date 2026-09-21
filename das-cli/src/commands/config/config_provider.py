@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from common.config.core import get_core_defaults_dict
+from common.config.defaults import get_default_config_dict
 from common.settings import Settings
 
 from .config_sections.agents import agents_config_section
@@ -19,11 +19,11 @@ class ConfigProvider(ABC):
         self._settings = settings
 
     def _get_core_defaults(self) -> Dict[str, Any]:
-        return get_core_defaults_dict()
+        return get_default_config_dict()
 
     def _get_current_or_default_config(self) -> Dict[str, Any]:
 
-        core_defaults = get_core_defaults_dict()
+        core_defaults = get_default_config_dict()
         user_settings = self._settings.get_content()
 
         core_defaults.update(user_settings)

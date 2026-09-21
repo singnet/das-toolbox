@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from enum import Enum
 import time
 import pytest
@@ -19,6 +20,20 @@ SERVICE_LIST = [
 ]
 
 metta = None
+
+DAS_CLI_COMMAND = [sys.executable, "-m", "das_cli"]
+
+
+def build_das_cli_environment():
+    env = os.environ.copy()
+    src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+    pythonpath = env.get("PYTHONPATH")
+    entries = [src_dir]
+    if pythonpath:
+        entries.append(pythonpath)
+    env["PYTHONPATH"] = os.pathsep.join(entries)
+    return env
+
 
 def get_metta():
     global metta
@@ -53,29 +68,29 @@ def setup_environment():
         f.write(f"configpath={target_path}")
 
 def start_db():
-    command = ["das-cli", "db", "start"]
-    process = subprocess.Popen(command)
+    command = DAS_CLI_COMMAND + ["db", "start"]
+    process = subprocess.Popen(command, env=build_das_cli_environment())
     process.wait()
     assert process.returncode == 0
 
 def stop_db():
-    subprocess.run(["das-cli", "db", "stop"], check=False)
+    subprocess.run(DAS_CLI_COMMAND + ["db", "stop"], check=False, env=build_das_cli_environment())
     subprocess.run(["rm", "-f", "/tmp/temp_db_file.metta"], check=False)
 
 def start_agent(agent_name, args, input_strs=[]):
-    command = ["das-cli", f"{agent_name}"] + args
+    command = DAS_CLI_COMMAND + [f"{agent_name}"] + args
     input_str = "\n".join(input_strs) + "\n"
-    result = subprocess.run(command, input=input_str.encode(), check=True)
+    result = subprocess.run(command, input=input_str.encode(), check=True, env=build_das_cli_environment())
     assert result.returncode == 0
     if args[0] != "stop":
         time.sleep(5)
 
 def stop_agents():
     for service in SERVICE_LIST:
-        subprocess.run(["das-cli", service, "stop"], check=False)
+        subprocess.run(DAS_CLI_COMMAND + [service, "stop"], check=False, env=build_das_cli_environment())
 
 def load_db(file_path=None, file_url=None):
-    command = ["das-cli", "metta", "load"]
+    command = DAS_CLI_COMMAND + ["metta", "load"]
     if file_path:
         command += [file_path]
     if file_url:
@@ -106,7 +121,7 @@ def env(request):
 def das_integration_env(env):
     setup_environment()
 
-    subprocess.run(["das-cli", "config", "set", f"atomdb.type={env.value}"], check=True)
+    subprocess.run(DAS_CLI_COMMAND + ["config", "set", f"atomdb.type={env.value}"], check=True)
 
     start_db()
 
