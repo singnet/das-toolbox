@@ -17,8 +17,6 @@ case "$1" in
             echo "Default configuration file installed at:"
             echo "  /usr/share/das/config.json"
             echo ""
-            echo "You can now run DAS CLI commands directly."
-            echo ""
         fi
         ;;
     abort-upgrade|abort-remove|abort-deconfigure)
