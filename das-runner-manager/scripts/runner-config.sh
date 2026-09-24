@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Simple defaults for batch runner provisioning.
-# Add/remove entries in the arrays below as needed.
-
 GITHUB_ORG="singnet"
 
 REPOSITORIES=(
