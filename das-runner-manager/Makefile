@@ -20,3 +20,6 @@ build-das-runner-manager-agent-image:
 
 run-volume-cleaner:
 	@./scripts/clean_runner_volume.sh
+
+start-runners:
+	@./scripts/start-runners.sh

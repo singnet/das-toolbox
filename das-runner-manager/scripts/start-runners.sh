@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+RUNNER_MANAGER_BIN="${PROJECT_DIR}/dist/das-runner-manager"
 
 source "${SCRIPT_DIR}/runner-config.sh"
 
@@ -12,6 +13,10 @@ require_command() {
     echo "Error: command '$cmd' not found."
     exit 1
   fi
+}
+
+run_cli() {
+  "$RUNNER_MANAGER_BIN" "$@"
 }
 
 wait_for_agent_health() {
@@ -77,7 +82,7 @@ detect_arch_labels() {
 
 start_agent() {
   echo "Starting agent container..."
-  (cd "$PROJECT_DIR" && python3 src/cli/main.py start-agent)
+  run_cli start-agent
 }
 
 start_user_cache_runners() {
@@ -92,15 +97,12 @@ start_user_cache_runners() {
     labels_csv="${arch_labels_csv},${user}"
 
     echo "Starting cache runner '${runner_name}' for user '${user}'..."
-    (
-      cd "$PROJECT_DIR"
-      GH_TOKEN="$GH_TOKEN" python3 src/cli/main.py start \
-        --org "$GITHUB_ORG" \
-        --repository "$SELECTED_REPO" \
-        --runners 1 \
-        --labels "$labels_csv" \
-        --runner-name "$runner_name"
-    )
+    GH_TOKEN="$GH_TOKEN" run_cli start \
+      --org "$GITHUB_ORG" \
+      --repository "$SELECTED_REPO" \
+      --runners 1 \
+      --labels "$labels_csv" \
+      --runner-name "$runner_name"
   done
 }
 
@@ -109,20 +111,23 @@ start_nocache_runners() {
   arch_labels_csv="$(IFS=,; echo "${ARCH_LABELS[*]}")"
 
   echo "Starting ${NO_CACHE_RUNNERS} no-cache runners for '${SELECTED_REPO}'..."
-  (
-    cd "$PROJECT_DIR"
-    GH_TOKEN="$GH_TOKEN" python3 src/cli/main.py start \
-      --org "$GITHUB_ORG" \
-      --repository "$SELECTED_REPO" \
-      --runners "$NO_CACHE_RUNNERS" \
-      --no-cache-runners "$NO_CACHE_RUNNERS" \
-      --labels "$arch_labels_csv"
-  )
+  GH_TOKEN="$GH_TOKEN" run_cli start \
+    --org "$GITHUB_ORG" \
+    --repository "$SELECTED_REPO" \
+    --runners "$NO_CACHE_RUNNERS" \
+    --no-cache-runners "$NO_CACHE_RUNNERS" \
+    --labels "$arch_labels_csv"
 }
 
 main() {
-  require_command python3
   require_command curl
+
+  if [[ ! -x "$RUNNER_MANAGER_BIN" ]]; then
+    echo "Error: binary not found at '$RUNNER_MANAGER_BIN'."
+    echo "Build it first from '$PROJECT_DIR' with:"
+    echo "  make build"
+    exit 1
+  fi
 
   if [[ "${#REPOSITORIES[@]}" -eq 0 ]]; then
     echo "Error: no repositories configured."
