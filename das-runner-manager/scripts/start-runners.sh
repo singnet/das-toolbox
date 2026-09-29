@@ -9,6 +9,7 @@ AGENT_CONTAINER_NAME="das-runner-manager-agent"
 CREATED_RUNNERS=()
 STARTUP_IN_PROGRESS=0
 AGENT_CONTAINER_PREEXISTED=0
+AGENT_OWNERSHIP_KNOWN=0
 
 source "${SCRIPT_DIR}/runner-config.sh"
 
@@ -30,7 +31,21 @@ runner_exists() {
 }
 
 agent_container_exists() {
-  docker ps -a --format '{{.Names}}' --filter "name=^${AGENT_CONTAINER_NAME}$" | grep -Fxq "$AGENT_CONTAINER_NAME"
+  local docker_output
+  set +e
+  docker_output="$(docker ps -a --format '{{.Names}}' --filter "name=^${AGENT_CONTAINER_NAME}$")"
+  local docker_status=$?
+  set -e
+
+  if (( docker_status != 0 )); then
+    return 2
+  fi
+
+  if grep -Fxq "$AGENT_CONTAINER_NAME" <<<"$docker_output"; then
+    return 0
+  fi
+
+  return 1
 }
 
 cleanup_created_runners() {
@@ -50,11 +65,23 @@ cleanup_created_runners() {
 }
 
 cleanup_created_agent() {
+  if (( AGENT_OWNERSHIP_KNOWN == 0 )); then
+    echo "Skipping agent cleanup because ownership could not be determined safely."
+    return
+  fi
+
   if (( AGENT_CONTAINER_PREEXISTED == 1 )); then
     return
   fi
 
-  if ! agent_container_exists; then
+  if agent_container_exists; then
+    :
+  else
+    local lookup_status=$?
+    if (( lookup_status == 1 )); then
+      return
+    fi
+    echo "Skipping agent cleanup because container lookup failed."
     return
   fi
 
@@ -89,7 +116,7 @@ wait_for_agent_health() {
   done
 
   echo "Error: agent health check timed out on http://localhost:3000/health"
-  exit 1
+  return 1
 }
 
 select_repository() {
@@ -253,10 +280,19 @@ main() {
   echo "Repository selected: ${SELECTED_REPO}"
   echo "Architecture labels: $(IFS=,; echo "${ARCH_LABELS[*]}")"
 
-  STARTUP_IN_PROGRESS=1
   if agent_container_exists; then
     AGENT_CONTAINER_PREEXISTED=1
+  else
+    local lookup_status=$?
+    if (( lookup_status != 1 )); then
+      echo "Error: failed to determine whether '${AGENT_CONTAINER_NAME}' already exists."
+      echo "Aborting startup to avoid unsafe cleanup on failure."
+      exit 1
+    fi
   fi
+  AGENT_OWNERSHIP_KNOWN=1
+
+  STARTUP_IN_PROGRESS=1
   trap on_startup_error ERR
 
   start_agent
