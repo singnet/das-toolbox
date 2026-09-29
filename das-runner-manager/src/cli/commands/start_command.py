@@ -17,6 +17,11 @@ class StartCommand:
             help="Repository name",
         )
         self.parser.add_argument(
+            "--org",
+            default="singnet",
+            help="GitHub organization name (default: singnet)",
+        )
+        self.parser.add_argument(
             "--token",
             help="GitHub Action runner token (will prompt if not provided)",
         )
@@ -38,6 +43,12 @@ class StartCommand:
             default="",
             type=str,
         )
+        self.parser.add_argument(
+            "--runner-name",
+            help="Explicit runner/container name. Requires --runners 1.",
+            default="",
+            type=str,
+        )
         self.parser.set_defaults(func=self.run)
 
     @handle_connection_refused
@@ -50,6 +61,13 @@ class StartCommand:
             print("Error: The number of cache runners must be at least 0 and no greater than the total number of runners.")
             sys.exit(1)
 
+        if args.runner_name and args.runners != 1:
+            print("Error: --runner-name can only be used with --runners 1.")
+            sys.exit(1)
+
+        if not args.token:
+            args.token = os.getenv("GH_TOKEN", "")
+
         if not args.token:
             args.token = getpass.getpass("Enter GitHub Token: ")
 
@@ -61,7 +79,7 @@ class StartCommand:
             home_dir = os.path.expanduser("~")
             volume = {}
             labels = {label.strip(): "" for label in args.labels.split(",") if label.strip()} if args.labels else {}
-            container_name = f"{args.repository}-github-runner-{i}"
+            container_name = args.runner_name if args.runner_name else f"{args.repository}-github-runner-{i}"
             network_name = "das-runner-network"
             tmpfs = {}
 
@@ -83,7 +101,7 @@ class StartCommand:
 
 
             env_vars = {
-                "REPO_URL": f"https://github.com/singnet/{args.repository}",
+                "REPO_URL": f"https://github.com/{args.org}/{args.repository}",
                 "GH_TOKEN": args.token,
                 "USER": "ubuntu",
                 "EXTRA_LABELS": ",".join(labels.keys()),
