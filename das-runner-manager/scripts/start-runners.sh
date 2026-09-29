@@ -115,7 +115,7 @@ detect_arch_labels() {
 start_agent() {
   echo "Starting agent container..."
   set +e
-  timeout "${AGENT_START_TIMEOUT_SECONDS}" run_cli start-agent
+  timeout "${AGENT_START_TIMEOUT_SECONDS}" "$RUNNER_MANAGER_BIN" start-agent
   local status=$?
   set -e
 
@@ -220,6 +220,8 @@ main() {
     echo "Error: NO_CACHE_RUNNERS must be a non-negative integer."
     exit 1
   fi
+
+  NO_CACHE_RUNNERS=$((10#$NO_CACHE_RUNNERS))
 
   if (( NO_CACHE_RUNNERS > 15 )); then
     echo "Error: NO_CACHE_RUNNERS must be between 0 and 15."
