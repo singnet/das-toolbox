@@ -11,7 +11,7 @@ USERS=(
   "levisingularity"
   "marcocapozzoli"
   "andre-senna"
-  "arturgontijo"
+  "ccgsnet"
 )
 
 # Number of no-cache runners to create per selected repository.
