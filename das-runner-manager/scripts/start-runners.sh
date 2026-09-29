@@ -5,8 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 RUNNER_MANAGER_BIN="${PROJECT_DIR}/dist/das-runner-manager"
 AGENT_START_TIMEOUT_SECONDS=180
+AGENT_CONTAINER_NAME="das-runner-manager-agent"
 CREATED_RUNNERS=()
 STARTUP_IN_PROGRESS=0
+AGENT_CONTAINER_PREEXISTED=0
 
 source "${SCRIPT_DIR}/runner-config.sh"
 
@@ -27,6 +29,10 @@ runner_exists() {
   docker ps -a --format '{{.Names}}' --filter "name=^${runner_name}$" | grep -Fxq "$runner_name"
 }
 
+agent_container_exists() {
+  docker ps -a --format '{{.Names}}' --filter "name=^${AGENT_CONTAINER_NAME}$" | grep -Fxq "$AGENT_CONTAINER_NAME"
+}
+
 cleanup_created_runners() {
   if [[ "${#CREATED_RUNNERS[@]}" -eq 0 ]]; then
     return
@@ -43,10 +49,26 @@ cleanup_created_runners() {
   set -e
 }
 
+cleanup_created_agent() {
+  if (( AGENT_CONTAINER_PREEXISTED == 1 )); then
+    return
+  fi
+
+  if ! agent_container_exists; then
+    return
+  fi
+
+  echo "Removing agent container '${AGENT_CONTAINER_NAME}' created in this execution..."
+  set +e
+  docker rm -f "$AGENT_CONTAINER_NAME" >/dev/null 2>&1 || true
+  set -e
+}
+
 on_startup_error() {
   local exit_code=$?
   if (( STARTUP_IN_PROGRESS == 1 )); then
     cleanup_created_runners
+    cleanup_created_agent
   fi
   exit "$exit_code"
 }
@@ -232,6 +254,9 @@ main() {
   echo "Architecture labels: $(IFS=,; echo "${ARCH_LABELS[*]}")"
 
   STARTUP_IN_PROGRESS=1
+  if agent_container_exists; then
+    AGENT_CONTAINER_PREEXISTED=1
+  fi
   trap on_startup_error ERR
 
   start_agent
