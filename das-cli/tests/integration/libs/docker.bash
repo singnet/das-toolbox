@@ -2,19 +2,83 @@
 
 openfaas_repository="trueagi/openfaas"
 
-function stop_simple_stack() {
-    das-cli query-agent stop >/dev/null 2>&1 || true
-    das-cli attention-broker stop >/dev/null 2>&1 || true
-    das-cli db stop >/dev/null 2>&1 || true
+function run_authorization_admin() {
+    local image="$1"
+    local config_file="$2"
+    shift 2
 
-    for container in \
-        das-cli-redis-40020 \
-        das-cli-mongodb-40021 \
-        das-attention-broker-40001 \
+    [[ -f "$config_file" ]] || {
+        echo "Authorization config file not found: $config_file" >&2
+        return 1
+    }
+
+    timeout 60 docker run --rm --pull never \
+        --name das-cli-authorization-admin \
+        --network host \
+        --user "$(id -u):$(id -g)" \
+        --mount "type=bind,src=$config_file,dst=/tmp/authorization-config.json,readonly" \
+        --entrypoint authorization_admin \
+        "$image" "$@" --config /tmp/authorization-config.json </dev/null
+}
+
+function stop_simple_stack() {
+    local prune=false
+    local cleanup_status=0
+    local container volume container_volumes
+    local volumes=()
+    local services=(command-router query-agent attention-broker db)
+    local database_containers=(das-cli-redis-40020 das-cli-mongodb-40021)
+    local containers=(
+        das-cli-authorization-admin
+        das-command-router-40008
         das-query-engine-40002
-    do
-        docker rm -f "$container" >/dev/null 2>&1 || true
+        das-attention-broker-40001
+        "${database_containers[@]}"
+    )
+
+    case "${1:-}" in
+        '') ;;
+        --prune) prune=true ;;
+        *) echo 'Usage: stop_simple_stack [--prune]' >&2; return 2 ;;
+    esac
+    if (( $# > 1 )); then
+        echo 'Usage: stop_simple_stack [--prune]' >&2
+        return 2
+    fi
+
+    if [[ "$prune" == true ]]; then
+        docker info >/dev/null || return 1
+        for container in "${database_containers[@]}"; do
+            if docker container inspect "$container" >/dev/null 2>&1; then
+                container_volumes="$(get_container_volumes "$container")" || return 1
+                while IFS= read -r volume; do
+                    [[ -z "$volume" ]] || volumes+=("$volume")
+                done <<<"$container_volumes"
+            fi
+        done
+    fi
+
+    local service
+    for service in "${services[@]}"; do
+        das-cli "$service" stop >/dev/null 2>&1 || true
     done
+
+    for container in "${containers[@]}"; do
+        if [[ "$prune" == true ]]; then
+            if docker container inspect "$container" >/dev/null 2>&1; then
+                docker container rm -f "$container" >/dev/null || cleanup_status=1
+            fi
+        else
+            docker rm -f "$container" >/dev/null 2>&1 || true
+        fi
+    done
+
+    for volume in "${volumes[@]}"; do
+        if volume_exists "$volume"; then
+            docker volume rm "$volume" >/dev/null || cleanup_status=1
+        fi
+    done
+    return "$cleanup_status"
 }
 
 function is_container_running() {
@@ -173,7 +237,15 @@ function get_service_volumes() {
         return 1
     fi
 
-    docker container inspect "$container_name" \
+    get_container_volumes "$container_name"
+}
+
+function get_container_volumes() {
+    local container_name="$1"
+    local container_info
+
+    container_info="$(docker container inspect "$container_name")" || return 1
+    printf '%s\n' "$container_info" \
         | jq -r '.[0].Mounts[] | select(.Type=="volume") | .Name'
 }
 
