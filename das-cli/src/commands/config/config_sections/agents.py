@@ -1,3 +1,5 @@
+from typing import Any
+
 from common.command import Command
 from common.prompt_types import PortRangeType
 from common.settings import Settings
@@ -11,6 +13,7 @@ from .agents_params import (
     setup_link_creation_params,
     setup_query_params,
 )
+from .atomdb_keys import build_public_key_tokens
 from .setup_utils import get_default_value
 
 
@@ -46,9 +49,19 @@ def setup_agents_base_params(settings: Settings):
     )
 
     if confirmParameterConfig:
-        return {"params": setup_base_query_params(settings)}
+        params = setup_base_query_params(settings)
+    else:
+        params = get_default_value(settings, "agents.base_query.params")
+        if params is None:
+            params = {}
 
-    return {"params": get_default_value(settings, "agents.base_query.params")}
+    atomdb_config: dict[str, Any] | None = settings.get("atomdb")
+    if atomdb_config:
+        public_key_tokens = build_public_key_tokens(atomdb_config)
+        if public_key_tokens:
+            params["public_key_tokens"] = public_key_tokens
+
+    return {"params": params}
 
 
 def setup_attention_broker(settings: Settings):

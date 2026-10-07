@@ -1,6 +1,7 @@
 {
   "atomdb": {
     "uid": "local",
+    "public_keys": ["local_key_primary"],
     "type": "redismongodb",
     "composite_type_enabled": true,
     "mongodb": {

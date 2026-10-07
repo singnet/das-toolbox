@@ -378,6 +378,84 @@ def test_query_run_omits_empty_values_from_execution_params():
     }
 
 
+def test_query_run_derives_public_key_tokens_from_atomdb_first_keys():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "atomdb": {
+                    "uid": "local",
+                    "public_keys": ["local_key_primary", "local_key_secondary"],
+                    "remote_peers": [
+                        {
+                            "uid": "peer1",
+                            "public_keys": ["peer1_key_primary", "peer1_key_secondary"],
+                        },
+                        {
+                            "uid": "peer2",
+                            "public_keys": ["peer2_key_primary"],
+                        },
+                    ],
+                },
+                "agents": {
+                    "base_query": {
+                        "params": {
+                            "public_key_tokens": "",
+                        }
+                    },
+                    "query": {
+                        "params": {
+                            "count_flag": True,
+                        }
+                    },
+                },
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_query_params_from_config() == {
+        "public_key_tokens": "local local_key_primary peer1 peer1_key_primary peer2 peer2_key_primary",
+        "count_flag": True,
+    }
+
+
+def test_query_run_keeps_explicit_public_key_tokens():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "atomdb": {
+                    "uid": "local",
+                    "public_keys": ["local_key_primary"],
+                    "remote_peers": [
+                        {
+                            "uid": "peer1",
+                            "public_keys": ["peer1_key_primary"],
+                        }
+                    ],
+                },
+                "agents": {
+                    "base_query": {
+                        "params": {
+                            "public_key_tokens": "peer1 explicit_override_key",
+                        }
+                    },
+                    "query": {
+                        "params": {
+                            "count_flag": True,
+                        }
+                    },
+                },
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_query_params_from_config() == {
+        "public_key_tokens": "peer1 explicit_override_key",
+        "count_flag": True,
+    }
+
+
 def test_query_client_builds_execution_payload_with_command_and_params_contract():
     client = CommandRouterQueryClient(settings=_DummySettings())
     query_text = 'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'

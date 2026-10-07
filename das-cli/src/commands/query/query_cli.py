@@ -6,6 +6,7 @@ from injector import inject
 from common import Command, CommandArgument, CommandGroup, Settings, StdoutSeverity
 from common.service_response import ServiceResponse, StdoutStatus
 
+from ..config.config_sections.atomdb_keys import build_public_key_tokens
 from ..query_agent.query_client import TERMINAL_STATUSES, CommandRouterQueryClient
 from .query_docs import HELP_QUERY, HELP_RUN, SHORT_HELP_QUERY, SHORT_HELP_RUN
 
@@ -70,6 +71,13 @@ class QueryRun(Command):
 
         params = self._get_params_section(agents.get("base_query"))
         params.update(self._get_params_section(agents.get("query")))
+
+        if self._is_empty_param_value(params.get("public_key_tokens")):
+            atomdb_config = config.get("atomdb")
+            if isinstance(atomdb_config, dict):
+                auto_public_key_tokens = build_public_key_tokens(atomdb_config)
+                if auto_public_key_tokens:
+                    params["public_key_tokens"] = auto_public_key_tokens
 
         return {
             key: value
