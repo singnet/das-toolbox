@@ -108,10 +108,14 @@ def test_stream_events_raises_on_clean_close_without_terminal_status(monkeypatch
             return _FakeConnection(first_endpoint_messages)
         return _FakeConnection([])
 
-    monkeypatch.setattr(client, "_build_websocket_urls", lambda execution_id: [
-        f"ws://localhost:40009/executions/ws/{execution_id}",
-        f"ws://localhost:40009/command-router/ws/{execution_id}",
-    ])
+    monkeypatch.setattr(
+        client,
+        "_build_websocket_urls",
+        lambda execution_id: [
+            f"ws://localhost:40009/executions/ws/{execution_id}",
+            f"ws://localhost:40009/command-router/ws/{execution_id}",
+        ],
+    )
     monkeypatch.setattr(client, "_load_websocket_client", lambda: (fake_connect, Exception))
 
     with pytest.raises(RuntimeError, match="stream closed before a terminal execution status"):
@@ -126,9 +130,13 @@ def test_stream_events_raises_on_inactivity_timeout(monkeypatch):
         del endpoint, open_timeout, close_timeout
         return _HangingConnection()
 
-    monkeypatch.setattr(client, "_build_websocket_urls", lambda execution_id: [
-        f"ws://localhost:40009/executions/ws/{execution_id}",
-    ])
+    monkeypatch.setattr(
+        client,
+        "_build_websocket_urls",
+        lambda execution_id: [
+            f"ws://localhost:40009/executions/ws/{execution_id}",
+        ],
+    )
     monkeypatch.setattr(client, "_load_websocket_client", lambda: (fake_connect, Exception))
 
     with pytest.raises(RuntimeError, match="inactivity timeout"):
@@ -378,82 +386,167 @@ def test_query_run_omits_empty_values_from_execution_params():
     }
 
 
-def test_query_run_derives_public_key_tokens_from_atomdb_first_keys():
+@pytest.fixture
+def key_query_command():
+    return QueryRun(
+        settings=_DummyConfigSettings({"atomdb": {"uid": "local"}}),
+        command_router_query_client=_FakeQueryClient(),
+    )
+
+
+@pytest.mark.parametrize("reference", ["absolute", "./key.pub", "keys/key.pub", "~/key.pub"])
+def test_query_run_loads_key_from_explicit_path(
+    key_query_command, tmp_path, monkeypatch, reference
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    key_path = tmp_path / ("keys/key.pub" if reference == "keys/key.pub" else "key.pub")
+    key_path.parent.mkdir(parents=True, exist_ok=True)
+    key_path.write_text("valid_key\n", encoding="utf-8")
+    argument = str(key_path) if reference == "absolute" else reference
+
+    assert key_query_command._load_public_key_tokens(argument) == "local valid_key"
+
+
+def test_query_run_bare_name_falls_back_to_das_directory(key_query_command, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    (tmp_path / ".das").mkdir()
+    (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
+
+    assert key_query_command._load_public_key_tokens("key.pub") == "local valid_key"
+
+
+def test_query_run_bare_name_prefers_current_directory(key_query_command, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    (tmp_path / ".das").mkdir()
+    (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
+    (tmp_path / "key.pub").write_text("unknown_key", encoding="utf-8")
+
+    assert key_query_command._load_public_key_tokens("key.pub") == "local unknown_key"
+
+
+@pytest.mark.parametrize("reference", ["absolute", "./key.pub", "keys/key.pub", "~/key.pub"])
+def test_query_run_explicit_missing_path_never_falls_back(
+    key_query_command, tmp_path, monkeypatch, reference
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    (tmp_path / ".das").mkdir()
+    (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
+    argument = str(tmp_path / "key.pub") if reference == "absolute" else reference
+
+    with pytest.raises(FileNotFoundError, match="Public key file not found"):
+        key_query_command._load_public_key_tokens(argument)
+
+
+@pytest.mark.parametrize("content", ["", " \n", "two tokens", "key\nsecond_key"])
+def test_query_run_invalid_file_never_falls_back(key_query_command, tmp_path, monkeypatch, content):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    (tmp_path / ".das").mkdir()
+    (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
+    (tmp_path / "key.pub").write_text(content, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="single non-empty token"):
+        key_query_command._load_public_key_tokens("key.pub")
+
+
+def test_query_run_missing_key_fails_before_http(key_query_command, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with pytest.raises(FileNotFoundError, match="Public key file not found"):
+        key_query_command.run("query", public_key="missing.pub")
+
+    assert key_query_command._command_router_query_client.query_text is None
+
+
+@pytest.mark.parametrize(
+    "failure, expected_error",
+    [
+        ("directory", IsADirectoryError),
+        ("encoding", UnicodeDecodeError),
+        ("unreadable", PermissionError),
+    ],
+)
+def test_query_run_unreadable_key_never_falls_back_or_calls_http(
+    key_query_command, tmp_path, monkeypatch, failure, expected_error
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    (tmp_path / ".das").mkdir()
+    (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
+    key_path = tmp_path / "key.pub"
+    if failure == "directory":
+        key_path.mkdir()
+    elif failure == "encoding":
+        key_path.write_bytes(b"\xff")
+    else:
+        key_path.write_text("valid_key", encoding="utf-8")
+        original_read = Path.read_text
+
+        def deny_key_read(path, *args, **kwargs):
+            if path.name == "key.pub" and path.parent == Path("."):
+                raise PermissionError("Public key file is not readable")
+            return original_read(path, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "read_text", deny_key_read)
+
+    with pytest.raises(expected_error):
+        key_query_command.run("query", public_key="key.pub")
+    assert key_query_command._command_router_query_client.query_text is None
+
+
+@pytest.mark.parametrize("uid", [None, "", "two uids", "\n", 42])
+def test_query_run_rejects_invalid_uid_before_http(key_query_command, tmp_path, uid):
+    key_path = tmp_path / "key.pub"
+    key_path.write_text("valid_key", encoding="utf-8")
+    key_query_command._settings = _DummyConfigSettings({"atomdb": {"uid": uid}})
+
+    with pytest.raises(ValueError, match="atomdb.uid"):
+        key_query_command.run("query", public_key=str(key_path))
+    assert key_query_command._command_router_query_client.query_text is None
+
+
+@pytest.mark.parametrize("reference", ["", "   "])
+def test_query_run_rejects_empty_key_option_before_http(key_query_command, reference):
+    with pytest.raises(ValueError, match="Public key file name must not be empty"):
+        key_query_command.run("query", public_key=reference)
+    assert key_query_command._command_router_query_client.query_text is None
+
+
+def test_query_run_forwards_file_key_and_ignores_config_keys(tmp_path, monkeypatch):
+    key_path = tmp_path / "key.pub"
+    key_path.write_text("file_key", encoding="utf-8")
+    fake_client = _FakeQueryClient()
     command = QueryRun(
         settings=_DummyConfigSettings(
             {
-                "atomdb": {
-                    "uid": "local",
-                    "public_keys": ["local_key_primary", "local_key_secondary"],
-                    "remote_peers": [
-                        {
-                            "uid": "peer1",
-                            "public_keys": ["peer1_key_primary", "peer1_key_secondary"],
-                        },
-                        {
-                            "uid": "peer2",
-                            "public_keys": ["peer2_key_primary"],
-                        },
-                    ],
-                },
+                "atomdb": {"uid": "custom_uid", "public_keys": ["config_key"]},
                 "agents": {
-                    "base_query": {
-                        "params": {
-                            "public_key_tokens": "",
-                        }
-                    },
+                    "base_query": {"params": {"public_key_tokens": "local base_key"}},
                     "query": {
-                        "params": {
-                            "count_flag": True,
-                        }
+                        "params": {"public_key_tokens": "local query_key", "count_flag": True}
                     },
                 },
             }
         ),
-        command_router_query_client=None,
+        command_router_query_client=fake_client,
     )
+    monkeypatch.setattr(command, "log", lambda *args, **kwargs: None)
+    monkeypatch.setattr(command, "stdout", lambda *args, **kwargs: None)
 
-    assert command._build_query_params_from_config() == {
-        "public_key_tokens": "local local_key_primary peer1 peer1_key_primary peer2 peer2_key_primary",
+    command.run("query", public_key=str(key_path))
+    assert fake_client.parameters == {
         "count_flag": True,
+        "public_key_tokens": "custom_uid file_key",
     }
 
-
-def test_query_run_keeps_explicit_public_key_tokens():
-    command = QueryRun(
-        settings=_DummyConfigSettings(
-            {
-                "atomdb": {
-                    "uid": "local",
-                    "public_keys": ["local_key_primary"],
-                    "remote_peers": [
-                        {
-                            "uid": "peer1",
-                            "public_keys": ["peer1_key_primary"],
-                        }
-                    ],
-                },
-                "agents": {
-                    "base_query": {
-                        "params": {
-                            "public_key_tokens": "peer1 explicit_override_key",
-                        }
-                    },
-                    "query": {
-                        "params": {
-                            "count_flag": True,
-                        }
-                    },
-                },
-            }
-        ),
-        command_router_query_client=None,
-    )
-
-    assert command._build_query_params_from_config() == {
-        "public_key_tokens": "peer1 explicit_override_key",
-        "count_flag": True,
-    }
+    command.run("query")
+    assert fake_client.parameters == {"count_flag": True}
+    assert command._settings.get_content()["atomdb"]["public_keys"] == ["config_key"]
 
 
 def test_query_client_builds_execution_payload_with_command_and_params_contract():

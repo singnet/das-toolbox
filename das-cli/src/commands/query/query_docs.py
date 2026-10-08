@@ -33,7 +33,7 @@ NAME
 
 SYNOPSIS
 
-    das-cli query run <query-text>
+    das-cli query run <query-text> [--public-key <path-or-file-name>]
 
 DESCRIPTION
 
@@ -45,6 +45,22 @@ DESCRIPTION
 
     Use `das-cli config list` to inspect those values and `das-cli config set`
     to change them.
+
+    Pass --public-key to read a public key from a UTF-8 file containing a single
+    non-empty token. The file content is sent with atomdb.uid. The key must already have permission in the AtomDB.
+
+    Absolute and explicit relative paths (including ./key.pub) are used exactly
+    as provided, with ~ expanded. Only a bare name such as key.pub can fall back
+    from the current directory to ~/.das/key.pub when the file is missing.
+    Existing empty, invalid or unreadable files never trigger fallback.
+
+    Without --public-key, no key is sent. 
+
+EXAMPLES
+
+    $ das-cli query run '<query-text>' --public-key /path/to/key.pub
+    $ das-cli query run '<query-text>' --public-key ./key.pub
+    $ das-cli query run '<query-text>' --public-key key.pub
 """
 
 SHORT_HELP_RUN = "Execute query and stream answers in real time."

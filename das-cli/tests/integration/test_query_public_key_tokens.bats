@@ -47,14 +47,18 @@ query_without_results() {
 }
 
 execute_query() {
-    timeout 30 das-cli query run "$QUERY_SIMILARITY_HUMAN" --output-format json \
+    timeout 30 das-cli query run "$QUERY_SIMILARITY_HUMAN" --output-format json "$@" \
         >"$test_state_dir/query.json" 2>"$test_state_dir/query.stderr"
+}
+
+execute_query_from_test_directory() {
+    (cd "$test_state_dir" && execute_query "$@")
 }
 
 wait_for_authorized_query() {
     local deadline=$((SECONDS + 180))
     while ((SECONDS < deadline)); do
-        if execute_query && query_authorized; then
+        if execute_query --public-key "$test_state_dir/valid.pub" && query_authorized; then
             return 0
         fi
     done
@@ -67,7 +71,7 @@ grant_primary_key() {
     cp "$das_config_file" "$test_state_dir/admin.json" || return 1
     image="$(docker container inspect --format '{{.Image}}' das-attention-broker-40001)" || return 1
     run_authorization_admin "$image" "$test_state_dir/admin.json" \
-        grant --public-key valid_primary_key --full-access
+        grant --public-key "$(<"$test_state_dir/valid.pub")" --full-access
 }
 
 setup() {
@@ -80,6 +84,10 @@ setup() {
     fi
     configuration_saved=1
     use_config simple || return 1
+    printf '%s\n' valid_primary_key >"$test_state_dir/valid.pub" || return 1
+    fallback_key_file="$(mktemp "$das_config_dir/query-key.XXXXXX")" || return 1
+    fallback_key_name="${fallback_key_file##*/}"
+    printf '%s\n' valid_primary_key >"$fallback_key_file" || return 1
     stack_owned=1
     stop_simple_stack --prune || return 1
     local port
@@ -89,8 +97,6 @@ setup() {
             return 1
         fi
     done
-    set_config '.atomdb.public_keys' '["valid_primary_key"]' || return 1
-    set_config '.agents.base_query.params.public_key_tokens' '""' || return 1
     set_config '.agents.base_query.params.populate_metta_mapping' true || return 1
     run timeout 180 das-cli attention-broker start
     assert_success
@@ -126,51 +132,85 @@ teardown() {
             rm -f "$das_env_file" || cleanup_status=1
         fi
     fi
+    [[ -z "${fallback_key_file:-}" ]] || rm -f "$fallback_key_file" || cleanup_status=1
     [[ -z "${test_state_dir:-}" ]] || rm -rf "$test_state_dir" || cleanup_status=1
     return "$cleanup_status"
 }
 
-@test "Protected query uses the first configured public key" {
-    set_config '.atomdb.public_keys' '["valid_primary_key", "valid_secondary_key"]'
-    run execute_query
+@test "Protected query reads a public key from an absolute path" {
+    run execute_query --public-key "$test_state_dir/valid.pub"
     assert_success
     run query_authorized
     assert_success
 }
 
-@test "Protected query does not fall back to the second public key" {
-    set_config '.atomdb.public_keys' '["invalid_key", "valid_primary_key"]'
-    run execute_query
+@test "Protected query reads a public key from a relative path" {
+    run execute_query_from_test_directory --public-key ./valid.pub
+    assert_success
+    run query_authorized
+    assert_success
+}
+
+@test "Protected query falls back to ~/.das only for a bare file name" {
+    run execute_query_from_test_directory --public-key "$fallback_key_name"
+    assert_success
+    run query_authorized
+    assert_success
+}
+
+@test "Protected query does not replace an unauthorized file with the ~/.das key" {
+    printf '%s\n' invalid_key >"$test_state_dir/$fallback_key_name"
+    run execute_query_from_test_directory --public-key "$fallback_key_name"
     assert_success
     run query_without_results
     assert_success
 
-    set_config '.atomdb.public_keys' '["valid_primary_key"]'
-    run execute_query
+    run execute_query --public-key "$test_state_dir/valid.pub"
     assert_success
     run query_authorized
     assert_success
 }
 
-@test "Protected query respects explicit public_key_tokens over derived keys" {
-    set_config '.atomdb.public_keys' '["invalid_key", "valid_primary_key"]'
+@test "Protected query does not fall back for a missing absolute path" {
+    run execute_query --public-key "$test_state_dir/$fallback_key_name"
+    assert_failure
+    run grep -F 'Public key file not found' "$test_state_dir/query.stderr"
+    assert_success
+}
+
+@test "Protected query does not fall back for a missing explicit relative path" {
+    run execute_query_from_test_directory --public-key "./$fallback_key_name"
+    assert_failure
+    run grep -F 'Public key file not found' "$test_state_dir/query.stderr"
+    assert_success
+}
+
+@test "Protected query fails when a bare file name is missing in both locations" {
+    rm -f "$fallback_key_file"
+    run execute_query_from_test_directory --public-key "$fallback_key_name"
+    assert_failure
+    run grep -F 'Public key file not found' "$test_state_dir/query.stderr"
+    assert_success
+}
+
+@test "Protected query does not fall back for an existing empty key file" {
+    printf '' >"$test_state_dir/$fallback_key_name"
+    run execute_query_from_test_directory --public-key "$fallback_key_name"
+    assert_failure
+    run grep -F 'single non-empty token' "$test_state_dir/query.stderr"
+    assert_success
+}
+
+@test "Protected query ignores config keys when no CLI key is provided" {
+    set_config '.atomdb.public_keys' '["valid_primary_key"]'
     set_config '.agents.base_query.params.public_key_tokens' '"local valid_primary_key"'
-    run execute_query
-    assert_success
-    run query_authorized
-    assert_success
-}
-
-@test "Protected query returns no results without a configured public key" {
-    set_config '.atomdb.public_keys' '[]'
-    set_config '.agents.base_query.params.public_key_tokens' '""'
+    set_config '.agents.query.params.public_key_tokens' '"local valid_primary_key"'
     run execute_query
     assert_success
     run query_without_results
     assert_success
 
-    set_config '.atomdb.public_keys' '["valid_primary_key"]'
-    run execute_query
+    run execute_query --public-key "$test_state_dir/valid.pub"
     assert_success
     run query_authorized
     assert_success
