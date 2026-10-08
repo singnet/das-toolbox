@@ -22,7 +22,7 @@ RUN git config --global http.postBuffer 157286400
 
 RUN curl -fsSL https://get.docker.com/ | bash
 
-RUN pip3 install pyinstaller==6.3.0
+RUN pip3 install --default-timeout=100 pyinstaller==6.3.0
 
 WORKDIR /app/das
 

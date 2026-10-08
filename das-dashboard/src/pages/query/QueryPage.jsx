@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Box, Button, IconButton, Switch, Tooltip, Typography } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
-import { Switch } from "@mui/material";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
+import CloseIcon from "@mui/icons-material/Close";
 import ParameterSection from "../../components/query_page/ParameterSection";
 import QueryAnswersPanel from "../../components/query_page/QueryAnswersPanel";
 import QueryFrequencyHistogram from "../../components/query_page/QueryFrequencyHistogram";
@@ -44,6 +46,7 @@ function QueryPageContent() {
   const [queryText, setQueryText] = useState(
     ''
   );
+  const [publicKeyFile, setPublicKeyFile] = useState(null);
 
   const {
     answers,
@@ -119,7 +122,7 @@ function QueryPageContent() {
                   disableElevation
                   startIcon={<PlayArrowIcon />}
                   disabled={!canRun}
-                  onClick={() => startQuery(queryText)}
+                  onClick={() => startQuery(queryText, publicKeyFile)}
                 >
                   Run
                 </RunButton>
@@ -144,6 +147,54 @@ function QueryPageContent() {
               onChange={(event) => setQueryText(event.target.value)}
               placeholder="Enter a query expression…"
             />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 1.5, minWidth: 0 }}>
+              <Button
+                component="label"
+                variant="outlined"
+                size="small"
+                startIcon={<VpnKeyIcon />}
+                disabled={isRunning}
+              >
+                Choose public key
+                <input
+                  hidden
+                  type="file"
+                  accept=".pub,.key,text/plain"
+                  onChange={(event) => {
+                    setPublicKeyFile(event.target.files?.[0] ?? null);
+                    event.target.value = "";
+                  }}
+                />
+              </Button>
+              {publicKeyFile ? (
+                <>
+                  <Typography
+                    variant="body2"
+                    noWrap
+                    title={publicKeyFile.name}
+                    sx={{ minWidth: 0 }}
+                  >
+                    {publicKeyFile.name}
+                  </Typography>
+                  <Tooltip title="Remove selected key">
+                    <span>
+                      <IconButton
+                        size="small"
+                        aria-label="Remove selected key"
+                        disabled={isRunning}
+                        onClick={() => setPublicKeyFile(null)}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Optional. The selected file is used for this query only.
+                </Typography>
+              )}
+            </Box>
           </QueryCard>
 
           <QueryStatusBar

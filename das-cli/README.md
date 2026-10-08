@@ -213,16 +213,27 @@ das-cli query start
 
 #### 5. Run a Query
 
-You can run a query test using the `query send` command, passing a **port range**, and the **query expression**.
+Run a query through the command-router and stream its results:
 
 ```bash
-das-cli query send \
-  --port-range 42500:42599 \
-  --query 'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "\"human\"" VARIABLE S'
+das-cli query run \
+  'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
 ```
 
-> This command sends a MeTTa query to the running DAS environment. This command is under construction yet.
+For a protected AtomDB, pass a file containing the public key identifier already
+authorized by `authorization_admin`. The UTF-8 file must contain a single non-empty token.
 
+```bash
+das-cli query run '<query-text>' --public-key /path/to/key.pub
+das-cli query run '<query-text>' --public-key ./key.pub
+das-cli query run '<query-text>' --public-key key.pub
+```
+
+Absolute paths and explicit relative paths are used exactly as supplied, with
+`~` expanded. Only a bare file name such as `key.pub` can fall back to
+`~/.das/key.pub` if it is absent from the current directory. `./key.pub` never
+uses that fallback. Existing empty, invalid or unreadable files cause an error
+before submitting the query.
 
 ## Help
 
@@ -299,6 +310,7 @@ DAS_CLI_TEST_CLUSTER=true make tests-local
 ```
 
 Make sure you have configured the `tests/integration/fixtures/config/redis_cluster.json` file. Replace the `username` and `ip` for the cluster nodes. For the first node, you don't need to replace the `username` as it will automatically use the current server's user where the tests are running with `das-cli`. Do not change the `context` as it will be created during test execution.
+
 
 ## Troubleshooting
 
