@@ -172,7 +172,6 @@ class EndpointType(ParamType):
     )
 
     def convert(self, value, param, ctx):
-
         if not value:
             self.fail("Endpoint cannot be empty.")
 
