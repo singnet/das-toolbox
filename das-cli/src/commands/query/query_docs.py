@@ -56,7 +56,7 @@ DESCRIPTION
     from the current directory to ~/.das/key.pub when the file is missing.
     Existing empty, invalid or unreadable files never trigger fallback.
 
-    Without --public-key, no key is sent. 
+    Without --public-key, no key is sent.
 
 EXAMPLES
 
