@@ -191,7 +191,7 @@ function QueryPageContent() {
                 </>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  Optional. The selected file is used for this query only.
+                  Optional. Used for the local AtomDB or all remote peers; each protected backend must grant this key.
                 </Typography>
               )}
             </Box>

@@ -92,13 +92,37 @@ class QueryServices:
 
         config = self.web_config.load_raw_configuration()
         atomdb = config.get("atomdb") or {}
-        uid = atomdb.get("uid")
-        if not isinstance(uid, str) or not uid or any(character.isspace() for character in uid):
+        atomdb_uid = atomdb.get("uid")
+        if (
+            not isinstance(atomdb_uid, str)
+            or not atomdb_uid
+            or any(character.isspace() for character in atomdb_uid)
+        ):
             raise CustomValueError(
                 "atomdb.uid must be a single non-empty token to use a public key."
             )
 
-        return f"{uid} {public_key}"
+        if atomdb.get("type") != "remotedb":
+            return f"{atomdb_uid} {public_key}"
+
+        peers = atomdb.get("remote_peers")
+        if not isinstance(peers, list) or not peers:
+            raise CustomValueError("atomdb.remote_peers must contain peers to use a public key.")
+
+        peer_uids = []
+        seen_uids = set()
+        for index, peer in enumerate(peers):
+            uid = peer.get("uid") if isinstance(peer, dict) else None
+            if not isinstance(uid, str) or not uid or any(character.isspace() for character in uid):
+                raise CustomValueError(
+                    f"atomdb.remote_peers[{index}].uid must be a single non-empty token."
+                )
+            if uid in seen_uids:
+                raise CustomValueError(f"Duplicate remote peer UID: {uid}")
+            seen_uids.add(uid)
+            peer_uids.append(uid)
+
+        return " ".join(f"{uid} {public_key}" for uid in peer_uids)
 
     def get_default_params_from_config(self) -> dict:
         config = self.web_config.load_raw_configuration()

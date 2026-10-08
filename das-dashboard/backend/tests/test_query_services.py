@@ -5,15 +5,21 @@ from shared.exceptions.custom_exceptions import CustomValueError
 
 
 class _WebConfig:
-    def __init__(self, uid: str = "local"):
-        self.uid = uid
+    def __init__(self, uid: str = "local", atomdb_type: str = "redismongodb", remote_peers=None):
+        self.atomdb = {"uid": uid, "type": atomdb_type}
+        if remote_peers is not None:
+            self.atomdb["remote_peers"] = remote_peers
 
     def load_raw_configuration(self):
-        return {"atomdb": {"uid": self.uid}}
+        return {"atomdb": self.atomdb}
 
 
-def _service(uid: str = "local") -> QueryServices:
-    return QueryServices(_WebConfig(uid))
+def _service(
+    uid: str = "local",
+    atomdb_type: str = "redismongodb",
+    remote_peers=None,
+) -> QueryServices:
+    return QueryServices(_WebConfig(uid, atomdb_type, remote_peers))
 
 
 def _capture_payload(service: QueryServices, monkeypatch, public_key: str | None) -> dict:
@@ -41,6 +47,38 @@ def test_uploaded_key_overrides_config_key_tokens(monkeypatch):
     assert captured["payload"]["params"]["public_key_tokens"] == "dashboard-user query_key"
     assert captured["payload"]["params"]["count_flag"] is True
     assert captured["payload"]["params"]["query"]["tokens"] == ['(Similarity "human" %C)']
+
+
+def test_uploaded_key_is_reused_for_every_remote_peer(monkeypatch):
+    service = _service(
+        uid="federation",
+        atomdb_type="remotedb",
+        remote_peers=[{"uid": "peer-a"}, {"uid": "peer-b"}],
+    )
+    captured = _capture_payload(service, monkeypatch, "shared_key")
+
+    assert captured["payload"]["params"]["public_key_tokens"] == (
+        "peer-a shared_key peer-b shared_key"
+    )
+
+
+@pytest.mark.parametrize(
+    "peers, message",
+    [
+        ([{"uid": "peer-a"}, {"uid": "peer-a"}], "Duplicate remote peer UID"),
+        ([{"uid": "peer-a"}, {}], r"remote_peers\[1\]\.uid"),
+        ([], "must contain peers"),
+    ],
+)
+def test_uploaded_key_rejects_invalid_remote_peer_uids(peers, message):
+    service = _service(
+        uid="federation",
+        atomdb_type="remotedb",
+        remote_peers=peers,
+    )
+
+    with pytest.raises(CustomValueError, match=message):
+        service._build_public_key_tokens("shared_key")
 
 
 def test_query_without_key_ignores_config_key_tokens(monkeypatch):

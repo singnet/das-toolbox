@@ -90,10 +90,38 @@ class QueryRun(Command):
 
         config = self._settings.get_content()
         atomdb = config.get("atomdb") if isinstance(config, dict) else None
-        uid = atomdb.get("uid") if isinstance(atomdb, dict) else None
-        if not isinstance(uid, str) or not uid or any(character.isspace() for character in uid):
+        if not isinstance(atomdb, dict):
+            raise ValueError("atomdb configuration is required to use --public-key.")
+
+        atomdb_uid = atomdb.get("uid")
+        if (
+            not isinstance(atomdb_uid, str)
+            or not atomdb_uid
+            or any(character.isspace() for character in atomdb_uid)
+        ):
             raise ValueError("atomdb.uid must be a single non-empty token to use --public-key.")
-        return f"{uid} {public_key}"
+
+        if atomdb.get("type") != "remotedb":
+            return f"{atomdb_uid} {public_key}"
+
+        peers = atomdb.get("remote_peers")
+        if not isinstance(peers, list) or not peers:
+            raise ValueError("atomdb.remote_peers must contain peers to use --public-key.")
+
+        peer_uids = []
+        seen_uids = set()
+        for index, peer in enumerate(peers):
+            uid = peer.get("uid") if isinstance(peer, dict) else None
+            if not isinstance(uid, str) or not uid or any(character.isspace() for character in uid):
+                raise ValueError(
+                    f"atomdb.remote_peers[{index}].uid must be a single non-empty token."
+                )
+            if uid in seen_uids:
+                raise ValueError(f"Duplicate remote peer UID: {uid}")
+            seen_uids.add(uid)
+            peer_uids.append(uid)
+
+        return " ".join(f"{uid} {public_key}" for uid in peer_uids)
 
     def _render_chunk(self, event: dict) -> None:
         answers = event.get("data")

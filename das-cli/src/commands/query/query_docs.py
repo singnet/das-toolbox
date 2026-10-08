@@ -47,7 +47,9 @@ DESCRIPTION
     to change them.
 
     Pass --public-key to read a public key from a UTF-8 file containing a single
-    non-empty token. The file content is sent with atomdb.uid. The key must already have permission in the AtomDB.
+    non-empty token. Basic AtomDB uses atomdb.uid; remotedb uses every configured
+    remote peer UID with the same key. Each protected backend must grant access
+    to that key.
 
     Absolute and explicit relative paths (including ./key.pub) are used exactly
     as provided, with ~ expanded. Only a bare name such as key.pub can fall back

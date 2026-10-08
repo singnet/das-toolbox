@@ -222,6 +222,9 @@ das-cli query run \
 
 For a protected AtomDB, pass a file containing the public key identifier already
 authorized by `authorization_admin`. The UTF-8 file must contain a single non-empty token.
+For a basic AtomDB, the key is associated with `atomdb.uid`; for `remotedb`, the
+same key is associated with every configured remote peer UID. Grant that key on
+each protected peer. Peer `local_persistence` is not included.
 
 ```bash
 das-cli query run '<query-text>' --public-key /path/to/key.pub

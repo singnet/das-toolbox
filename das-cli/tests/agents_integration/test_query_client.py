@@ -561,6 +561,49 @@ def test_query_run_forwards_file_key_and_ignores_config_keys(tmp_path, monkeypat
     assert command._settings.get_content()["atomdb"]["public_keys"] == ["config_key"]
 
 
+def test_query_run_reuses_selected_key_for_every_remote_peer():
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "atomdb": {
+                    "uid": "federation",
+                    "type": "remotedb",
+                    "remote_peers": [{"uid": "peer-a"}, {"uid": "peer-b"}],
+                }
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    assert command._build_public_key_tokens("shared_key") == ("peer-a shared_key peer-b shared_key")
+
+
+@pytest.mark.parametrize(
+    "peers, error",
+    [
+        ([{"uid": "peer-a"}, {"uid": "peer-a"}], "Duplicate remote peer UID"),
+        ([{"uid": "peer-a"}, {}], r"remote_peers\[1\]\.uid"),
+        ([], "must contain peers"),
+    ],
+)
+def test_query_run_rejects_invalid_remote_peer_uids(peers, error):
+    command = QueryRun(
+        settings=_DummyConfigSettings(
+            {
+                "atomdb": {
+                    "uid": "federation",
+                    "type": "remotedb",
+                    "remote_peers": peers,
+                }
+            }
+        ),
+        command_router_query_client=None,
+    )
+
+    with pytest.raises(ValueError, match=error):
+        command._build_public_key_tokens("shared_key")
+
+
 def test_query_client_builds_execution_payload_with_command_and_params_contract():
     client = CommandRouterQueryClient(settings=_DummySettings())
     query_text = 'LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S'
