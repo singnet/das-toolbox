@@ -1,10 +1,10 @@
 import asyncio
 import json
-from pathlib import Path
 
 from injector import inject
 
 from common import Command, CommandArgument, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common.prompt_types import PublicKeyFileType
 from common.service_response import ServiceResponse, StdoutStatus
 
 from ..query_agent.query_client import TERMINAL_STATUSES, CommandRouterQueryClient
@@ -26,7 +26,7 @@ class QueryRun(Command):
         ),
         CommandOption(
             ["--public-key"],
-            type=str,
+            type=PublicKeyFileType(),
             required=False,
             help="Public key file path or name; only a bare name can fall back to ~/.das.",
         ),
@@ -84,31 +84,9 @@ class QueryRun(Command):
             key: value for key, value in params.items() if not self._is_empty_param_value(value)
         }
 
-    def _load_public_key_tokens(self, public_key_file: str) -> str:
-        if not public_key_file.strip():
-            raise ValueError("Public key file name must not be empty.")
-
-        candidates = [Path(public_key_file).expanduser()]
-        if (
-            Path(public_key_file).name == public_key_file
-            and public_key_file not in (".", "..")
-            and not public_key_file.startswith("~")
-        ):
-            candidates.append(Path.home() / ".das" / public_key_file)
-
-        for candidate in candidates:
-            try:
-                public_key = candidate.read_text(encoding="utf-8").strip()
-            except FileNotFoundError:
-                continue
-            if not public_key or any(character.isspace() for character in public_key):
-                raise ValueError(
-                    f"Public key file must contain a single non-empty token: {candidate}"
-                )
-            break
-        else:
-            paths = ", ".join(str(candidate) for candidate in candidates)
-            raise FileNotFoundError(f"Public key file not found. Checked: {paths}")
+    def _build_public_key_tokens(self, public_key: str) -> str:
+        if not public_key or any(character.isspace() for character in public_key):
+            raise ValueError("Public key must be a single non-empty token.")
 
         config = self._settings.get_content()
         atomdb = config.get("atomdb") if isinstance(config, dict) else None
@@ -163,7 +141,7 @@ class QueryRun(Command):
 
         parameters = self._build_query_params_from_config()
         if public_key is not None:
-            parameters["public_key_tokens"] = self._load_public_key_tokens(public_key)
+            parameters["public_key_tokens"] = self._build_public_key_tokens(public_key)
 
         response_payload = self._command_router_query_client.create_execution(
             query_text=query_text,

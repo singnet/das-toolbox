@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 
 import pytest
+from click import BadParameter
+from click.testing import CliRunner
 
 SRC_PATH = Path(__file__).resolve().parents[2] / "src"
 if str(SRC_PATH) not in sys.path:
@@ -10,6 +12,7 @@ if str(SRC_PATH) not in sys.path:
 
 from commands.query.query_cli import QueryRun
 from commands.query_agent.query_client import CommandRouterQueryClient
+from common.prompt_types import PublicKeyFileType
 
 
 class _DummySettings:
@@ -405,7 +408,8 @@ def test_query_run_loads_key_from_explicit_path(
     key_path.write_text("valid_key\n", encoding="utf-8")
     argument = str(key_path) if reference == "absolute" else reference
 
-    assert key_query_command._load_public_key_tokens(argument) == "local valid_key"
+    public_key = PublicKeyFileType().convert(argument, None, None)
+    assert key_query_command._build_public_key_tokens(public_key) == "local valid_key"
 
 
 def test_query_run_bare_name_falls_back_to_das_directory(key_query_command, tmp_path, monkeypatch):
@@ -414,7 +418,8 @@ def test_query_run_bare_name_falls_back_to_das_directory(key_query_command, tmp_
     (tmp_path / ".das").mkdir()
     (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
 
-    assert key_query_command._load_public_key_tokens("key.pub") == "local valid_key"
+    public_key = PublicKeyFileType().convert("key.pub", None, None)
+    assert key_query_command._build_public_key_tokens(public_key) == "local valid_key"
 
 
 def test_query_run_bare_name_prefers_current_directory(key_query_command, tmp_path, monkeypatch):
@@ -424,7 +429,8 @@ def test_query_run_bare_name_prefers_current_directory(key_query_command, tmp_pa
     (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
     (tmp_path / "key.pub").write_text("unknown_key", encoding="utf-8")
 
-    assert key_query_command._load_public_key_tokens("key.pub") == "local unknown_key"
+    public_key = PublicKeyFileType().convert("key.pub", None, None)
+    assert key_query_command._build_public_key_tokens(public_key) == "local unknown_key"
 
 
 @pytest.mark.parametrize("reference", ["absolute", "./key.pub", "keys/key.pub", "~/key.pub"])
@@ -437,8 +443,8 @@ def test_query_run_explicit_missing_path_never_falls_back(
     (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
     argument = str(tmp_path / "key.pub") if reference == "absolute" else reference
 
-    with pytest.raises(FileNotFoundError, match="Public key file not found"):
-        key_query_command._load_public_key_tokens(argument)
+    with pytest.raises(BadParameter, match="Public key file not found"):
+        PublicKeyFileType().convert(argument, None, None)
 
 
 @pytest.mark.parametrize("content", ["", " \n", "two tokens", "key\nsecond_key"])
@@ -449,17 +455,17 @@ def test_query_run_invalid_file_never_falls_back(key_query_command, tmp_path, mo
     (tmp_path / ".das/key.pub").write_text("valid_key", encoding="utf-8")
     (tmp_path / "key.pub").write_text(content, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="single non-empty token"):
-        key_query_command._load_public_key_tokens("key.pub")
+    with pytest.raises(BadParameter, match="single non-empty token"):
+        PublicKeyFileType().convert("key.pub", None, None)
 
 
 def test_query_run_missing_key_fails_before_http(key_query_command, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
 
-    with pytest.raises(FileNotFoundError, match="Public key file not found"):
-        key_query_command.run("query", public_key="missing.pub")
-
+    result = CliRunner().invoke(key_query_command.command, ["query", "--public-key", "missing.pub"])
+    assert result.exit_code == 2
+    assert "Public key file not found" in result.output
     assert key_query_command._command_router_query_client.query_text is None
 
 
@@ -494,8 +500,14 @@ def test_query_run_unreadable_key_never_falls_back_or_calls_http(
 
         monkeypatch.setattr(Path, "read_text", deny_key_read)
 
-    with pytest.raises(expected_error):
-        key_query_command.run("query", public_key="key.pub")
+    if expected_error is IsADirectoryError:
+        expected_message = "Is a directory"
+    elif expected_error is UnicodeDecodeError:
+        expected_message = "decode"
+    else:
+        expected_message = "not readable"
+    with pytest.raises(BadParameter, match=expected_message):
+        PublicKeyFileType().convert("key.pub", None, None)
     assert key_query_command._command_router_query_client.query_text is None
 
 
@@ -506,14 +518,14 @@ def test_query_run_rejects_invalid_uid_before_http(key_query_command, tmp_path, 
     key_query_command._settings = _DummyConfigSettings({"atomdb": {"uid": uid}})
 
     with pytest.raises(ValueError, match="atomdb.uid"):
-        key_query_command.run("query", public_key=str(key_path))
+        key_query_command.run("query", public_key="valid_key")
     assert key_query_command._command_router_query_client.query_text is None
 
 
 @pytest.mark.parametrize("reference", ["", "   "])
 def test_query_run_rejects_empty_key_option_before_http(key_query_command, reference):
-    with pytest.raises(ValueError, match="Public key file name must not be empty"):
-        key_query_command.run("query", public_key=reference)
+    with pytest.raises(BadParameter, match="Public key file name must not be empty"):
+        PublicKeyFileType().convert(reference, None, None)
     assert key_query_command._command_router_query_client.query_text is None
 
 
@@ -538,7 +550,7 @@ def test_query_run_forwards_file_key_and_ignores_config_keys(tmp_path, monkeypat
     monkeypatch.setattr(command, "log", lambda *args, **kwargs: None)
     monkeypatch.setattr(command, "stdout", lambda *args, **kwargs: None)
 
-    command.run("query", public_key=str(key_path))
+    command.run("query", public_key=PublicKeyFileType().convert(str(key_path), None, None))
     assert fake_client.parameters == {
         "count_flag": True,
         "public_key_tokens": "custom_uid file_key",
