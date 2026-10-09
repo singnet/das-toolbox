@@ -12,7 +12,6 @@ BASE_QUERY_DEFAULTS = {
     "populate_metta_mapping": False,
     "use_metta_as_query_tokens": False,
     "allow_incomplete_chain_path": False,
-    "public_key_tokens": "",
 }
 
 QUERY_DEFAULTS = {
@@ -108,7 +107,6 @@ def setup_base_query_params(settings: Settings):
             "Allow incomplete chain path?",
             default=BASE_QUERY_DEFAULTS["allow_incomplete_chain_path"],
         ),
-        "public_key_tokens": BASE_QUERY_DEFAULTS["public_key_tokens"],
     }
 
 
