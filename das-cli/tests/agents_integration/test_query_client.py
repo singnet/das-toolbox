@@ -412,6 +412,25 @@ def test_query_run_loads_key_from_explicit_path(
     assert key_query_command._build_public_key_tokens(public_key) == "local valid_key"
 
 
+def test_query_run_cli_forwards_public_key_tokens_to_execution_client(
+    key_query_command, tmp_path, monkeypatch
+):
+    key_path = tmp_path / "key.pub"
+    key_path.write_text("valid_key\n", encoding="utf-8")
+    monkeypatch.setattr(key_query_command, "log", lambda *args, **kwargs: None)
+    monkeypatch.setattr(key_query_command, "stdout", lambda *args, **kwargs: None)
+    query_text = '(Similarity "human" %C)'
+
+    result = CliRunner().invoke(
+        key_query_command.command, [query_text, "--public-key", str(key_path)]
+    )
+
+    assert result.exit_code == 0, result.output
+    fake_client = key_query_command._command_router_query_client
+    assert fake_client.query_text == query_text
+    assert fake_client.parameters["public_key_tokens"] == "local valid_key"
+
+
 def test_query_run_bare_name_falls_back_to_das_directory(key_query_command, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
