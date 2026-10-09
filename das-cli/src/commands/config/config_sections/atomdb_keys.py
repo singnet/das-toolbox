@@ -8,6 +8,24 @@ constructing a tokenized string for authentication/authorization.
 from typing import Any
 
 
+def _append_public_key_pair(
+    tokens: list[str], database_config: dict[str, Any], config_path: str
+) -> None:
+    public_keys = database_config.get("public_keys")
+    if public_keys is None or public_keys == []:
+        return
+    if not isinstance(public_keys, list):
+        raise ValueError(f"{config_path}.public_keys must be an array.")
+
+    uid = database_config.get("uid")
+    public_key = public_keys[0]
+    for field, value in (("uid", uid), ("public_keys[0]", public_key)):
+        if not isinstance(value, str) or not value or any(character.isspace() for character in value):
+            raise ValueError(f"{config_path}.{field} must be a single non-empty token.")
+
+    tokens.append(f"{uid} {public_key}")
+
+
 def build_public_key_tokens(atomdb_config: dict[str, Any]) -> str:
     """
     Build a space-separated public_key_tokens string from atomdb configuration.
@@ -22,25 +40,20 @@ def build_public_key_tokens(atomdb_config: dict[str, Any]) -> str:
 
     Returns:
         Space-separated "uid1 key1 uid2 key2 ..." string, or empty string if no keys found
+
+    Raises:
+        ValueError: If public_keys is not an array or a UID/first key is not a single non-empty token
     """
     tokens: list[str] = []
 
-    local_uid = atomdb_config.get("uid")
-    local_public_keys = atomdb_config.get("public_keys", [])
-    if local_uid and local_public_keys and len(local_public_keys) > 0:
-        tokens.append(f"{local_uid} {local_public_keys[0]}")
+    _append_public_key_pair(tokens, atomdb_config, "atomdb")
 
-    for peer in atomdb_config.get("remote_peers", []):
-        peer_uid = peer.get("uid")
-        peer_public_keys = peer.get("public_keys", [])
-        if peer_uid and peer_public_keys and len(peer_public_keys) > 0:
-            tokens.append(f"{peer_uid} {peer_public_keys[0]}")
+    for index, peer in enumerate(atomdb_config.get("remote_peers", [])):
+        peer_path = f"atomdb.remote_peers[{index}]"
+        _append_public_key_pair(tokens, peer, peer_path)
 
         local_persistence = peer.get("local_persistence")
         if local_persistence:
-            local_persist_uid = local_persistence.get("uid")
-            local_persist_public_keys = local_persistence.get("public_keys", [])
-            if local_persist_uid and local_persist_public_keys and len(local_persist_public_keys) > 0:
-                tokens.append(f"{local_persist_uid} {local_persist_public_keys[0]}")
+            _append_public_key_pair(tokens, local_persistence, f"{peer_path}.local_persistence")
 
     return " ".join(tokens)

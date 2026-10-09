@@ -1,10 +1,33 @@
 """Unit tests for atomdb_keys builder module."""
 
+import pytest
+
 from commands.config.config_sections.atomdb_keys import build_public_key_tokens
 
 
 class TestBuildPublicKeyTokens:
     """Test suite for build_public_key_tokens function."""
+
+    @pytest.mark.parametrize("location", ["local", "remote_peer", "local_persistence"])
+    @pytest.mark.parametrize("field", ["uid", "public_keys"])
+    @pytest.mark.parametrize("value", ["", " ", "two tokens", "key\tsecond", "key\nsecond", None, 123])
+    def test_rejects_invalid_uid_or_first_key(self, location, field, value):
+        database_config = {"uid": "local", "public_keys": ["valid_key"]}
+        database_config[field] = [value, "valid_fallback"] if field == "public_keys" else value
+        if location == "local":
+            config = database_config
+        elif location == "remote_peer":
+            config = {"remote_peers": [database_config]}
+        else:
+            config = {"remote_peers": [{"local_persistence": database_config}]}
+
+        with pytest.raises(ValueError, match="single non-empty token"):
+            build_public_key_tokens(config)
+
+    @pytest.mark.parametrize("public_keys", ["valid_key", {}, 123])
+    def test_rejects_public_keys_that_are_not_an_array(self, public_keys):
+        with pytest.raises(ValueError, match="public_keys must be an array"):
+            build_public_key_tokens({"uid": "local", "public_keys": public_keys})
 
     def test_simple_local_atomdb_only(self):
         """Test with only local atomdb having public keys."""
