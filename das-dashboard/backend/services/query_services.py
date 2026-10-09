@@ -67,9 +67,15 @@ class QueryServices:
         self,
         query_text: str,
         parameters: dict | None = None,
+        public_key: str | None = None,
     ) -> Response:
+        query_parameters = dict(parameters or {})
+        query_parameters.pop("public_key_tokens", None)
+        if public_key is not None:
+            query_parameters["public_key_tokens"] = self._build_public_key_tokens(public_key)
+
         try:
-            payload = build_query_execution_payload(query_text, parameters)
+            payload = build_query_execution_payload(query_text, query_parameters)
         except ValueError as error:
             raise CustomValueError(str(error)) from error
 
@@ -78,6 +84,45 @@ class QueryServices:
             f"{ROUTE_PREFIX}/executions",
             json=payload,
         )
+
+    def _build_public_key_tokens(self, public_key: str) -> str:
+        public_key = public_key.strip()
+        if not public_key or any(character.isspace() for character in public_key):
+            raise CustomValueError("Public key file must contain a single non-empty token.")
+
+        config = self.web_config.load_raw_configuration()
+        atomdb = config.get("atomdb") or {}
+        atomdb_uid = atomdb.get("uid")
+        if (
+            not isinstance(atomdb_uid, str)
+            or not atomdb_uid
+            or any(character.isspace() for character in atomdb_uid)
+        ):
+            raise CustomValueError(
+                "atomdb.uid must be a single non-empty token to use a public key."
+            )
+
+        if atomdb.get("type") != "remotedb":
+            return f"{atomdb_uid} {public_key}"
+
+        peers = atomdb.get("remote_peers")
+        if not isinstance(peers, list) or not peers:
+            raise CustomValueError("atomdb.remote_peers must contain peers to use a public key.")
+
+        peer_uids = []
+        seen_uids = set()
+        for index, peer in enumerate(peers):
+            uid = peer.get("uid") if isinstance(peer, dict) else None
+            if not isinstance(uid, str) or not uid or any(character.isspace() for character in uid):
+                raise CustomValueError(
+                    f"atomdb.remote_peers[{index}].uid must be a single non-empty token."
+                )
+            if uid in seen_uids:
+                raise CustomValueError(f"Duplicate remote peer UID: {uid}")
+            seen_uids.add(uid)
+            peer_uids.append(uid)
+
+        return " ".join(f"{uid} {public_key}" for uid in peer_uids)
 
     def get_default_params_from_config(self) -> dict:
         config = self.web_config.load_raw_configuration()

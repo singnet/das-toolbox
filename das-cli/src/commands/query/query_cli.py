@@ -3,7 +3,8 @@ import json
 
 from injector import inject
 
-from common import Command, CommandArgument, CommandGroup, Settings, StdoutSeverity
+from common import Command, CommandArgument, CommandGroup, CommandOption, Settings, StdoutSeverity
+from common.prompt_types import PublicKeyFileType
 from common.service_response import ServiceResponse, StdoutStatus
 
 from ..query_agent.query_client import TERMINAL_STATUSES, CommandRouterQueryClient
@@ -22,6 +23,12 @@ class QueryRun(Command):
         CommandArgument(
             ["query_text"],
             type=str,
+        ),
+        CommandOption(
+            ["--public-key"],
+            type=PublicKeyFileType(),
+            required=False,
+            help="Public key file path or name; only a bare name can fall back to ~/.das.",
         ),
     ]
 
@@ -71,11 +78,50 @@ class QueryRun(Command):
         params = self._get_params_section(agents.get("base_query"))
         params.update(self._get_params_section(agents.get("query")))
 
+        params.pop("public_key_tokens", None)
+
         return {
-            key: value
-            for key, value in params.items()
-            if not self._is_empty_param_value(value)
+            key: value for key, value in params.items() if not self._is_empty_param_value(value)
         }
+
+    def _build_public_key_tokens(self, public_key: str) -> str:
+        if not public_key or any(character.isspace() for character in public_key):
+            raise ValueError("Public key must be a single non-empty token.")
+
+        config = self._settings.get_content()
+        atomdb = config.get("atomdb") if isinstance(config, dict) else None
+        if not isinstance(atomdb, dict):
+            raise ValueError("atomdb configuration is required to use --public-key.")
+
+        atomdb_uid = atomdb.get("uid")
+        if (
+            not isinstance(atomdb_uid, str)
+            or not atomdb_uid
+            or any(character.isspace() for character in atomdb_uid)
+        ):
+            raise ValueError("atomdb.uid must be a single non-empty token to use --public-key.")
+
+        if atomdb.get("type") != "remotedb":
+            return f"{atomdb_uid} {public_key}"
+
+        peers = atomdb.get("remote_peers")
+        if not isinstance(peers, list) or not peers:
+            raise ValueError("atomdb.remote_peers must contain peers to use --public-key.")
+
+        peer_uids = []
+        seen_uids = set()
+        for index, peer in enumerate(peers):
+            uid = peer.get("uid") if isinstance(peer, dict) else None
+            if not isinstance(uid, str) or not uid or any(character.isspace() for character in uid):
+                raise ValueError(
+                    f"atomdb.remote_peers[{index}].uid must be a single non-empty token."
+                )
+            if uid in seen_uids:
+                raise ValueError(f"Duplicate remote peer UID: {uid}")
+            seen_uids.add(uid)
+            peer_uids.append(uid)
+
+        return " ".join(f"{uid} {public_key}" for uid in peer_uids)
 
     def _render_chunk(self, event: dict) -> None:
         answers = event.get("data")
@@ -117,10 +163,13 @@ class QueryRun(Command):
     def run(
         self,
         query_text: str,
+        public_key: str | None = None,
     ) -> None:
         self._settings.validate_configuration_file()
 
         parameters = self._build_query_params_from_config()
+        if public_key is not None:
+            parameters["public_key_tokens"] = self._build_public_key_tokens(public_key)
 
         response_payload = self._command_router_query_client.create_execution(
             query_text=query_text,

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pathlib import Path
 from typing import Optional
 
 from click import ParamType
@@ -76,6 +77,44 @@ class AbsolutePath(ClickPath):
         return path
 
 
+class PublicKeyFileType(ParamType):
+    name = "public key file"
+
+    def convert(self, value, param, ctx):
+        if not isinstance(value, str) or not value.strip():
+            self.fail("Public key file name must not be empty.", param, ctx)
+
+        try:
+            path = Path(value).expanduser()
+        except RuntimeError as error:
+            self.fail(f"Could not resolve public key file path '{value}': {error}", param, ctx)
+        candidates = [path]
+        if Path(value).name == value and value not in (".", "..") and not value.startswith("~"):
+            try:
+                candidates.append(Path.home() / ".das" / value)
+            except RuntimeError as error:
+                self.fail(f"Could not resolve the user's home directory: {error}", param, ctx)
+
+        for candidate in candidates:
+            try:
+                public_key = candidate.read_text(encoding="utf-8").strip()
+            except FileNotFoundError:
+                continue
+            except (OSError, UnicodeError) as error:
+                self.fail(f"Could not read public key file '{candidate}': {error}", param, ctx)
+
+            if not public_key or any(character.isspace() for character in public_key):
+                self.fail(
+                    f"Public key file must contain a single non-empty token: {candidate}",
+                    param,
+                    ctx,
+                )
+            return public_key
+
+        checked_paths = ", ".join(str(candidate) for candidate in candidates)
+        self.fail(f"Public key file not found. Checked: {checked_paths}", param, ctx)
+
+
 class AbsolutePathList(ParamType):
     name = "absolute_path_list"
 
@@ -133,7 +172,6 @@ class EndpointType(ParamType):
     )
 
     def convert(self, value, param, ctx):
-
         if not value:
             self.fail("Endpoint cannot be empty.")
 
