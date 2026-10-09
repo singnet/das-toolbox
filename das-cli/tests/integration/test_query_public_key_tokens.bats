@@ -61,6 +61,7 @@ wait_for_authorized_query() {
         if execute_query --public-key "$test_state_dir/valid.pub" && query_authorized; then
             return 0
         fi
+        sleep 2
     done
     print_diagnostics
     return 1
