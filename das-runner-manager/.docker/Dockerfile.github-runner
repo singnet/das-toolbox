@@ -41,7 +41,7 @@ RUN case "${TARGETARCH}" in \
       *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac && \
   curl -fL -o actions-runner.tar.gz \
-    "https://github.com/actions/runner/releases/download/v2.329.0/actions-runner-linux-${RUNNER_ARCH}-2.329.0.tar.gz" && \
+    "https://github.com/actions/runner/releases/download/v2.337.0/actions-runner-linux-${RUNNER_ARCH}-2.337.0.tar.gz" && \
   tar xzf actions-runner.tar.gz && \
   rm actions-runner.tar.gz
 
