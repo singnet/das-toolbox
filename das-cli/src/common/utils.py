@@ -1,4 +1,5 @@
 import base64
+import binascii
 import getpass
 import os
 import secrets
@@ -9,6 +10,9 @@ from pathlib import Path
 from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import urlsplit
+
+from paramiko import PKey, SSHException
+from paramiko.pkey import UnknownKeyType
 
 from common.logger import logger
 
@@ -30,6 +34,24 @@ def env_to_dict(path_to_env: Path):
                 content[key.strip()] = value.strip()
 
     return content
+
+
+def normalize_public_key(public_key: str) -> str:
+    public_key = public_key.strip()
+    message = "Public key file must contain a single non-empty token or one valid SSH public key."
+    if not public_key:
+        raise ValueError(message)
+    if not any(character.isspace() for character in public_key):
+        return public_key
+
+    parts = public_key.split(maxsplit=2)
+    if len(parts) < 2 or "\n" in public_key or "\r" in public_key:
+        raise ValueError(message)
+    try:
+        key = PKey.from_type_string(parts[0], base64.b64decode(parts[1], validate=True))
+    except (ValueError, binascii.Error, SSHException, UnknownKeyType) as error:
+        raise ValueError(message) from error
+    return key.get_base64()
 
 
 def is_executable_bin():

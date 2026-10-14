@@ -8,6 +8,7 @@ from click import ParamType
 from click import Path as ClickPath
 
 from common.network import is_server_port_available, is_ssh_server_reachable
+from common.utils import normalize_public_key
 
 
 def _is_remote_invocation(ctx) -> bool:
@@ -103,13 +104,10 @@ class PublicKeyFileType(ParamType):
             except (OSError, UnicodeError) as error:
                 self.fail(f"Could not read public key file '{candidate}': {error}", param, ctx)
 
-            if not public_key or any(character.isspace() for character in public_key):
-                self.fail(
-                    f"Public key file must contain a single non-empty token: {candidate}",
-                    param,
-                    ctx,
-                )
-            return public_key
+            try:
+                return normalize_public_key(public_key)
+            except ValueError as error:
+                self.fail(f"{error} File: {candidate}", param, ctx)
 
         checked_paths = ", ".join(str(candidate) for candidate in candidates)
         self.fail(f"Public key file not found. Checked: {checked_paths}", param, ctx)

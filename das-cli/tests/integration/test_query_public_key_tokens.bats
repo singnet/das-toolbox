@@ -69,10 +69,11 @@ wait_for_authorized_query() {
 
 grant_primary_key() {
     local image
+    local public_key="${1:-$(<"$test_state_dir/valid.pub")}"
     cp "$das_config_file" "$test_state_dir/admin.json" || return 1
     image="$(docker container inspect --format '{{.Image}}' das-attention-broker-40001)" || return 1
     run_authorization_admin "$image" "$test_state_dir/admin.json" \
-        grant --public-key "$(<"$test_state_dir/valid.pub")" --full-access
+        grant --public-key "$public_key" --full-access
 }
 
 setup() {
@@ -136,6 +137,48 @@ teardown() {
     [[ -z "${fallback_key_file:-}" ]] || rm -f "$fallback_key_file" || cleanup_status=1
     [[ -z "${test_state_dir:-}" ]] || rm -rf "$test_state_dir" || cleanup_status=1
     return "$cleanup_status"
+}
+
+@test "Protected query accepts an SSH key with spaces and a comment" {
+    run ssh-keygen -q -t ed25519 -N '' -C 'dashboard user@computer' -f "$test_state_dir/ssh-key"
+    assert_success
+
+    local key_type
+    local encoded_key
+    local comment
+    read -r key_type encoded_key comment < "$test_state_dir/ssh-key.pub"
+    [[ "$comment" == 'dashboard user@computer' ]]
+    run grant_primary_key "$encoded_key"
+    assert_success
+    assert_output --partial 'Admin finished successfully.'
+
+    run execute_query --public-key "$test_state_dir/ssh-key.pub"
+    assert_success
+    run query_authorized
+    assert_success
+}
+
+@test "Protected query accepts opaque tokens and UUIDs" {
+    local public_key
+    for public_key in 550e8400-e29b-41d4-a716-446655440000 api-token_123+/=; do
+        printf '%s\n' "$public_key" > "$test_state_dir/token.pub"
+        run grant_primary_key "$public_key"
+        assert_success
+        assert_output --partial 'Admin finished successfully.'
+
+        run execute_query --public-key "$test_state_dir/token.pub"
+        assert_success
+        run query_authorized
+        assert_success
+    done
+}
+
+@test "Protected query rejects a file containing multiple keys" {
+    printf '%s\n' first_token second_token > "$test_state_dir/multiple.pub"
+    run execute_query --public-key "$test_state_dir/multiple.pub"
+    assert_failure
+    run grep -F 'single non-empty token' "$test_state_dir/query.stderr"
+    assert_success
 }
 
 @test "Protected query reads a public key from an absolute path" {

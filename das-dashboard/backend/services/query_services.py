@@ -1,8 +1,12 @@
+import base64
+import binascii
 import json
 import logging
 from collections.abc import AsyncIterator
 
 import requests
+from paramiko import PKey, SSHException
+from paramiko.pkey import UnknownKeyType
 from requests import Response
 from requests.exceptions import RequestException
 from websockets.asyncio.client import connect
@@ -87,8 +91,18 @@ class QueryServices:
 
     def _build_public_key_tokens(self, public_key: str) -> str:
         public_key = public_key.strip()
-        if not public_key or any(character.isspace() for character in public_key):
-            raise CustomValueError("Public key file must contain a single non-empty token.")
+        key_error = "Public key file must contain a single non-empty token or one valid SSH public key."
+        if not public_key:
+            raise CustomValueError(key_error)
+        if any(character.isspace() for character in public_key):
+            parts = public_key.split(maxsplit=2)
+            if len(parts) < 2 or "\n" in public_key or "\r" in public_key:
+                raise CustomValueError(key_error)
+            try:
+                key = PKey.from_type_string(parts[0], base64.b64decode(parts[1], validate=True))
+            except (ValueError, binascii.Error, SSHException, UnknownKeyType) as error:
+                raise CustomValueError(key_error) from error
+            public_key = key.get_base64()
 
         config = self.web_config.load_raw_configuration()
         atomdb = config.get("atomdb") or {}

@@ -6,6 +6,7 @@ from injector import inject
 from common import Command, CommandArgument, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.prompt_types import PublicKeyFileType
 from common.service_response import ServiceResponse, StdoutStatus
+from common.utils import normalize_public_key
 
 from ..query_agent.query_client import TERMINAL_STATUSES, CommandRouterQueryClient
 from .query_docs import HELP_QUERY, HELP_RUN, SHORT_HELP_QUERY, SHORT_HELP_RUN
@@ -86,8 +87,7 @@ class QueryRun(Command):
         }
 
     def _build_public_key_tokens(self, public_key: str) -> str:
-        if not public_key or any(character.isspace() for character in public_key):
-            raise ValueError("Public key must be a single non-empty token.")
+        public_key = normalize_public_key(public_key)
 
         config = self._settings.get_content()
         atomdb = config.get("atomdb") if isinstance(config, dict) else None
