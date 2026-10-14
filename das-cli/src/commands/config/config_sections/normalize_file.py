@@ -60,9 +60,23 @@ def _fill_missing_values(current: Any, defaults: Any) -> Any:
     return result
 
 
+def _validate_supplied_sections(current: Any, defaults: Dict[str, Any], path: str = "") -> None:
+    if not isinstance(current, dict):
+        raise ValueError(
+            f"Invalid configuration entry '{path or 'root'}'. Expected an object. "
+            "The file was left unchanged."
+        )
+
+    for key, default_value in defaults.items():
+        if key in current and isinstance(default_value, dict):
+            current_path = f"{path}.{key}" if path else key
+            _validate_supplied_sections(current[key], default_value, current_path)
+
+
 def _defaults_for_config(content: Dict[str, Any]) -> Dict[str, Any]:
     """Return canonical defaults trimmed to the active atomdb type (same rules as validation)."""
     expected = deepcopy(get_default_config_dict())
+    _validate_supplied_sections(content, expected)
     if not expected:
         return {}
 
