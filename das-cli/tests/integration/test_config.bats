@@ -135,7 +135,7 @@ assert_config_core_endpoints() {
 
     run cat "$das_env_file"
     assert_success
-    assert_output --partial "configpath=${config_file}"
+    assert_output "configpath=${config_file}"
 
     run env DOCKER_CONFIG="$docker_config" \
         das-cli config list atomdb.redis.endpoint -o json
@@ -214,6 +214,10 @@ assert_config_core_endpoints() {
     run das-cli config set --file "$invalid_config"
     assert_failure
     assert_output --partial "Could not load configuration from"
+
+    run cat "$das_env_file"
+    assert_success
+    assert_output "configpath=${das_config_file}"
 
     run get_config ".atomdb.redis.endpoint"
     assert_output "localhost:40020"
