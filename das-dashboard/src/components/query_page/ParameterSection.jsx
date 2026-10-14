@@ -32,7 +32,6 @@ const ATTENTION_OPTIONS = [
 
 const BASE_QUERY_SWITCHES = [
   { key: "unique_assignment_flag", label: "Unique assignment" },
-  { key: "use_link_template_cache", label: "Use link template cache" },
   { key: "populate_metta_mapping", label: "Populate MeTTa mapping" },
   { key: "allow_incomplete_chain_path", label: "Allow incomplete chain path" }
 ];

@@ -16,7 +16,6 @@ export function buildQueryParameters({
       ? Math.max(0, Math.trunc(Number(maxAnswersLimit) || 0))
       : 0,
     unique_assignment_flag: Boolean(switches.unique_assignment_flag),
-    use_link_template_cache: Boolean(switches.use_link_template_cache),
     populate_metta_mapping: Boolean(switches.populate_metta_mapping),
     use_metta_as_query_tokens: Boolean(switches.use_metta_as_query_tokens),
     allow_incomplete_chain_path: Boolean(switches.allow_incomplete_chain_path),

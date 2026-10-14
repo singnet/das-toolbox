@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
+from urllib.parse import urlsplit
 
 from common.logger import logger
 
@@ -246,6 +247,31 @@ def require_endpoint_port(
 
 
 def require_vault_endpoint(endpoint: str | None) -> tuple[str, int]:
+    if isinstance(endpoint, str) and "://" in endpoint:
+        try:
+            parsed = urlsplit(endpoint)
+            port = parsed.port
+        except ValueError as error:
+            raise ValueError(
+                f"Invalid vault.endpoint '{endpoint}'. Expected host:port or a local http(s) URL."
+            ) from error
+
+        if (
+            parsed.scheme.lower() not in {"http", "https"}
+            or not parsed.hostname
+            or port is None
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError(
+                f"Invalid vault.endpoint '{endpoint}'. Expected host:port or a local http(s) URL."
+            )
+
+        endpoint = f"{parsed.hostname}:{port}"
+
     return require_endpoint_port(
         endpoint,
         key="vault.endpoint",

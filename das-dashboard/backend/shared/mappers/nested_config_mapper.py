@@ -12,6 +12,7 @@ class NestedConfigMapper:
         atomdb = nested.get("atomdb")
         if atomdb:
             flat["atomdb"] = NestedConfigMapper._atomdb_to_flat(atomdb)
+            flat["atomdb"]["atomdb_uid"] = atomdb.get("uid") or "local"
 
         agents = nested.get("agents")
         if agents:
@@ -20,6 +21,10 @@ class NestedConfigMapper:
         environment = nested.get("environment")
         if environment:
             flat["environment"] = NestedConfigMapper._environment_to_flat(environment)
+
+        vault = nested.get("vault")
+        if vault:
+            flat["vault"] = dict(vault)
 
         return flat
 
@@ -31,6 +36,10 @@ class NestedConfigMapper:
     @staticmethod
     def _agents_to_flat(agents: dict) -> dict:
         flat: dict = {}
+
+        base_proxy = agents.get("base_proxy")
+        if isinstance(base_proxy, dict):
+            flat["agents.base_proxy"] = dict(base_proxy.get("params", {}))
 
         if "attention" in agents:
             flat["agents.attention"] = {"endpoint": agents["attention"].get("endpoint")}

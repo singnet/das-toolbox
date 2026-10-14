@@ -109,13 +109,53 @@ assert_config_core_endpoints() {
     use_config "simple"
     ensure_env
 
-    for endpoint in localhost:40010 localhost:40011 127.0.0.1:40010; do
+    for endpoint in localhost:40010 localhost:40011 127.0.0.1:40010 http://localhost:40010 https://127.0.0.1:40010; do
         run das-cli config set "vault.endpoint=${endpoint}"
         assert_success
 
         run get_config ".vault.endpoint"
         assert_output "$endpoint"
     done
+}
+
+@test "config set --file activates a valid configuration file" {
+    use_config "simple"
+    ensure_env
+
+    local config_file
+    local docker_config
+    config_file="$(mktemp)"
+    docker_config="$(mktemp -d)"
+    cp "${test_fixtures_dir}/config/simple.json" "$config_file"
+    update_json_key "$config_file" atomdb.redis.endpoint "localhost:49999"
+
+    run env DOCKER_CONFIG="$docker_config" \
+        das-cli config set --file "$config_file" -o json
+    assert_success
+
+    run get_config ".atomdb.redis.endpoint"
+    assert_output "localhost:49999"
+
+    rm -f "$config_file"
+    rm -rf "$docker_config"
+}
+
+@test "config set --file rejects invalid JSON without changing active config" {
+    use_config "simple"
+    ensure_env
+
+    local invalid_config
+    invalid_config="$(mktemp)"
+    printf '{invalid json' > "$invalid_config"
+
+    run das-cli config set --file "$invalid_config"
+    assert_failure
+    assert_output --partial "Could not load configuration from"
+
+    run get_config ".atomdb.redis.endpoint"
+    assert_output "localhost:40020"
+
+    rm -f "$invalid_config"
 }
 
 @test "config set rejects a non-loopback vault.endpoint hostname" {

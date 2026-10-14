@@ -64,7 +64,9 @@ class AtomDbBuilder:
         if not builder:
             raise ValueError(f"Unsupported atomdb type: {atomdb_type}")
 
-        return builder(flat_atomdb)
+        atomdb = builder(flat_atomdb)
+        atomdb["uid"] = flat_atomdb.get("atomdb_uid") or "local"
+        return atomdb
 
     @staticmethod
     def _endpoint(host: str, port) -> str:

@@ -5,10 +5,11 @@ NAME
 SYNOPSIS
     das-cli config set
     das-cli config set key=value
+    das-cli config set --file <path>
 
 
 DESCRIPTION
-     The 'config set' command supports two modes:
+    The 'config set' command supports three modes:
 
      1) No arguments:
          Shows an interactive prompt with two options:
@@ -24,6 +25,9 @@ DESCRIPTION
 
      2) key=value:
          Updates a single key in the active config file.
+
+     3) --file <path>:
+         Validates and activates an existing configuration file, normalizing missing values.
 
      Note: key=value updates are blocked when the active config is a
      system or packaged default configuration file.
@@ -180,9 +184,15 @@ PARAMETERS (params)
         Runtime parameters controlling query execution behavior.
 
 
-    params.link_creation.repeat_count
-    params.link_creation.query_interval
-    params.link_creation.query_timeout
+    params.link_creation.unique_assignment_flag
+    params.link_creation.positive_importance_flag
+    params.link_creation.disregard_importance_flag
+    params.link_creation.unique_value_flag
+    params.link_creation.max_successful_creation_per_round
+    params.link_creation.max_unproductive_visits_per_round
+    params.link_creation.max_visit_attempts_per_round
+    params.link_creation.max_rounds
+    params.link_creation.link_creation_strength_threshold
 
         Controls link creation execution behavior.
 

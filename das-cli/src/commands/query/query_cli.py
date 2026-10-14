@@ -79,6 +79,7 @@ class QueryRun(Command):
         params.update(self._get_params_section(agents.get("query")))
 
         params.pop("public_key_tokens", None)
+        params = {key: value for key, value in params.items() if key != "use_link_template_cache"}
 
         return {
             key: value for key, value in params.items() if not self._is_empty_param_value(value)
