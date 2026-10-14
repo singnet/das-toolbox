@@ -11,8 +11,8 @@ from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import urlsplit
 
-from paramiko import PKey, SSHException
-from paramiko.pkey import UnknownKeyType
+from cryptography.exceptions import UnsupportedAlgorithm
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, load_ssh_public_key
 
 from common.logger import logger
 
@@ -48,10 +48,11 @@ def normalize_public_key(public_key: str) -> str:
     if len(parts) < 2 or "\n" in public_key or "\r" in public_key:
         raise ValueError(message)
     try:
-        key = PKey.from_type_string(parts[0], base64.b64decode(parts[1], validate=True))
-    except (ValueError, binascii.Error, SSHException, UnknownKeyType) as error:
+        base64.b64decode(parts[1], validate=True)
+        key = load_ssh_public_key(f"{parts[0]} {parts[1]}".encode("ascii"))
+    except (ValueError, binascii.Error, UnsupportedAlgorithm) as error:
         raise ValueError(message) from error
-    return key.get_base64()
+    return key.public_bytes(Encoding.OpenSSH, PublicFormat.OpenSSH).decode("ascii").split()[1]
 
 
 def is_executable_bin():
