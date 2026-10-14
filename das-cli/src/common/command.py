@@ -1,4 +1,5 @@
 import json
+import shlex
 import sys
 from contextlib import suppress
 from enum import Enum
@@ -207,9 +208,9 @@ class Command:
                 if value:
                     optional_args.append(f"--{arg_key}")
             else:
-                optional_args.append(f"--{arg_key} {str(value)}")
+                optional_args.extend([f"--{arg_key}", str(value)])
 
-        return " ".join(positional_args + optional_args)
+        return shlex.join(positional_args + optional_args)
 
     def _get_clean_command(self) -> str:
         ctx = click.get_current_context(silent=True)
