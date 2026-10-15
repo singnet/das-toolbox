@@ -46,9 +46,11 @@ export function useServerTabMetrics(host) {
       streamRef.current = null;
     }
 
+    let active = true;
     const stream = createMetricsStream({
       host,
       onData: (incomingData) => {
+        if (!active) return;
         const payload = Array.isArray(incomingData) ? incomingData[0] : incomingData;
         if (!payload) return;
 
@@ -74,11 +76,13 @@ export function useServerTabMetrics(host) {
         setHostStreamTick(Date.now());
       },
       onOpen: () => {
+        if (!active) return;
         intentionalCloseRef.current = false;
         setHostStreamConnected(true);
         setHostStreamError(null);
       },
       onClose: (event) => {
+        if (!active) return;
         setHostStreamSwitching(false);
         if (intentionalCloseRef.current || fatalErrorRef.current) {
           setHostStreamConnected(false);
@@ -95,6 +99,7 @@ export function useServerTabMetrics(host) {
         });
       },
       onError: (err) => {
+        if (!active) return;
         setHostStreamSwitching(false);
         if (intentionalCloseRef.current || fatalErrorRef.current) return;
         setHostStreamConnected(false);
@@ -107,6 +112,7 @@ export function useServerTabMetrics(host) {
 
     streamRef.current = stream;
     return () => {
+      active = false;
       intentionalCloseRef.current = true;
       stream.close();
     };
