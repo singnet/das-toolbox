@@ -37,6 +37,7 @@ jobs:
     with:
       version: ${{github.event.inputs.version}}
       binary-artifact-name: das-toolbox
+      architectures: '["amd64", "arm64"]'
 
   tag:
     needs: build-with-code-quality
@@ -58,6 +59,9 @@ jobs:
     runs-on: self-hosted
     if: github.ref == 'refs/heads/master'
     needs: build-with-code-quality
+    env:
+      PACKAGE_VERSION: ${{ inputs.version }}
+      PACKAGES_SUBDIR: das-toolbox-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Set up SSH
         run: |
@@ -69,9 +73,24 @@ jobs:
       - name: Download das-toolbox artifact
         uses: actions/download-artifact@v4
         with:
-          name: das-toolbox 
-          path: packages
+          pattern: das-toolbox-*
+          path: ${{ runner.temp }}/${{ env.PACKAGES_SUBDIR }}
 
       - name: Copy files to server
+        shell: bash
+        env:
+          PACKAGES_DIR: ${{ runner.temp }}/${{ env.PACKAGES_SUBDIR }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_DEB_PACKAGES_PATH: ${{ vars.SERVER_DEB_PACKAGES_PATH }}
         run: |
-          scp -r packages/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ vars.SERVER_DEB_PACKAGES_PATH }}
+          shopt -s nullglob
+          packages=()
+          for arch in amd64 arm64; do
+            candidates=("$PACKAGES_DIR/das-toolbox-$arch/"*.deb)
+            [[ ${#candidates[@]} -eq 1 ]]
+            [[ "$(dpkg-deb -f "${candidates[0]}" Architecture)" == "$arch" ]]
+            [[ "$(dpkg-deb -f "${candidates[0]}" Version)" == "$PACKAGE_VERSION" ]]
+            packages+=("${candidates[0]}")
+          done
+          scp "${packages[@]}" "$SERVER_USERNAME@$SERVER_HOST:$SERVER_DEB_PACKAGES_PATH"

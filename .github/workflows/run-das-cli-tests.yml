@@ -9,7 +9,18 @@ on:
         required: false
         description: DAS-TOOLBOX version
         type: string
-      
+
+      architectures:
+        required: false
+        description: JSON array of native build architectures (amd64, arm64)
+        type: string
+        default: '["amd64"]'
+
+      binary-artifact-name:
+        required: false
+        description: Base name of the architecture-specific artifacts
+        type: string
+        default: das-toolbox
 
   workflow_call:
     inputs:
@@ -18,6 +29,12 @@ on:
         required: false
         description: DAS-TOOLBOX version
         type: string
+
+      architectures:
+        required: false
+        description: JSON array of native build architectures (amd64, arm64)
+        type: string
+        default: '["amd64"]'
 
       run-agent-integration-tests:
         required: false
@@ -37,6 +54,14 @@ on:
       - reopened
       - edited
       - synchronize
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PACKAGE_VERSION: ${{ inputs.version || '0.1.0' }}
+  BINARY_ARTIFACT_NAME: ${{ inputs.binary-artifact-name || 'das-toolbox' }}
 
 jobs:
   lint:
@@ -60,24 +85,45 @@ jobs:
         working-directory: das-cli
 
   build-das-toolbox:
-    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(inputs.architectures || '["amd64"]') }}
+    runs-on: [self-hosted, Linux, "${{ matrix.arch == 'amd64' && 'amd64' || 'arm64' }}"]
+    env:
+      TARGET_ARCH: ${{ matrix.arch }}
+      DOCKER_DEFAULT_PLATFORM: linux/${{ matrix.arch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify native build architecture
+        run: |
+          [[ "$TARGET_ARCH" == amd64 || "$TARGET_ARCH" == arm64 ]]
+          [[ "$(dpkg --print-architecture)" == "$TARGET_ARCH" ]]
+          rm -rf dist
+          mkdir -p dist
+
       - name: Build DAS-TOOLBOX
-        run: PACKAGE_VERSION=${{github.event.inputs.version || '0.1.0'}} make build
+        run: make build
+
 
       - id: upload-artifact
         name: Upload das-toolbox artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox' }}
+          name: ${{ env.BINARY_ARTIFACT_NAME }}-${{ matrix.arch }}
           path: dist/*
           if-no-files-found: "error"
 
   das-cli-integration-tests:
-    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(inputs.architectures || '["amd64"]') }}
+    runs-on: [self-hosted, Linux, "${{ matrix.arch == 'amd64' && 'amd64' || 'arm64' }}"]
+    env:
+      TARGET_ARCH: ${{ matrix.arch }}
     needs: 
       - build-das-toolbox
     steps:
@@ -89,13 +135,19 @@ jobs:
       - name: Download das-toolbox artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{github.event.inputs.binary-artifact-name || 'das-toolbox'}}
+          name: ${{ env.BINARY_ARTIFACT_NAME }}-${{ matrix.arch }}
           path: dist
 
       - name: Installing das-toolbox package
         run: |-
+          [[ "$(dpkg --print-architecture)" == "$TARGET_ARCH" ]]
+          shopt -s nullglob
+          packages=(dist/*.deb)
+          [[ ${#packages[@]} -eq 1 ]]
+          [[ "$(dpkg-deb -f "${packages[0]}" Architecture)" == "$TARGET_ARCH" ]]
+          [[ "$(dpkg-deb -f "${packages[0]}" Version)" == "$PACKAGE_VERSION" ]]
           sudo apt -y --autoremove --purge remove das-toolbox || true
-          sudo apt -y --allow-downgrades install ./$(find . -name *.deb -type f | head -n 1)
+          sudo apt -y --allow-downgrades install "./${packages[0]}"
 
       - name: Install requirements
         run: |-
@@ -110,9 +162,14 @@ jobs:
           sudo apt -y update && sudo apt -y install socat lsof
 
           # Pin jq to 1.7+ to keep numeric serialization behavior stable in tests.
+          case "$TARGET_ARCH" in
+            amd64) checksum=5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5 ;;
+            arm64) checksum=4dd2d8a0661df0b22f1bb9a1f9830f06b6f3b8f7d91211a1ef5d7c4f06a8b4a5 ;;
+            *) exit 1 ;;
+          esac
           curl -fsSL -o /tmp/jq \
-            https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
-          echo "5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5  /tmp/jq" | sha256sum --check --strict
+            "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-$TARGET_ARCH"
+          echo "$checksum  /tmp/jq" | sha256sum --check --strict
           sudo install -m 0755 /tmp/jq /usr/local/bin/jq
           jq --version
 
