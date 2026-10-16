@@ -1,4 +1,5 @@
 import json
+import shlex
 import sys
 from contextlib import suppress
 from enum import Enum
@@ -207,9 +208,9 @@ class Command:
                 if value:
                     optional_args.append(f"--{arg_key}")
             else:
-                optional_args.append(f"--{arg_key} {str(value)}")
+                optional_args.extend([f"--{arg_key}", str(value)])
 
-        return " ".join(positional_args + optional_args)
+        return shlex.join(positional_args + optional_args)
 
     def _get_clean_command(self) -> str:
         ctx = click.get_current_context(silent=True)
@@ -324,7 +325,7 @@ class Command:
         if output_fmt and output_fmt != "plain":
             kwargs["output_format"] = output_fmt
 
-        stream_val = getattr(self, "_stream", None)
+        stream_val = kwargs.get("stream", getattr(self, "_stream", None))
         if stream_val:
             kwargs["stream"] = stream_val
 
@@ -339,8 +340,9 @@ class Command:
             if "config" not in command_path:
                 self._check_remote_config(remote_kwargs)
 
-            result = Connection(**remote_kwargs).run(command, hide=True, warn=True)
-            self._echo_remote_streams(result)
+            result = Connection(**remote_kwargs).run(command, hide=not bool(stream_val), warn=True)
+            if not stream_val:
+                self._echo_remote_streams(result)
 
             if result.failed:
                 if self._remote_das_cli_missing(result):

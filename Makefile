@@ -15,8 +15,7 @@ docker-build:
 
 build: docker-build
 	@docker run --rm \
-		--user=$(id -u):$(id -g) \
-		-e USER=$(id -un) \
+		-e USER=$$(id -un) \
 		-v /etc/passwd:/etc/passwd:ro \
 		-v "$(CURDIR)/dist:/app/das/dist" \
 		-v $(TEMP_DIR):$(TEMP_DIR) \

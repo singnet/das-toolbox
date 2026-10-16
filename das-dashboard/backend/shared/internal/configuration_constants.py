@@ -2,6 +2,7 @@
 FLAT_SECTION_ORDER = (
     "atomdb",
     "agents.attention",
+    "agents.base_proxy",
     "agents.base_query",
     "agents.query",
     "agents.link_creation",
@@ -9,10 +10,11 @@ FLAT_SECTION_ORDER = (
     "agents.context",
     "agents.atomdb",
     "agents.command_router",
+    "vault",
     "environment",
 )
 
-AGENTS_SCHEMA_VERSION = "1.0.1"
+AGENTS_SCHEMA_VERSION = "1.2.0"
 
 # Temporary defaults until http_api extras are dropped from the DAS schema.
 COMMAND_ROUTER_HTTP_API_DEFAULTS = {
@@ -32,6 +34,7 @@ LOADERS = {
 ATOMDB_TEMPLATES = {
     "redismongodb": {
         "atomdb_type": "redismongodb",
+        "atomdb_uid": "local",
         "redis_endpoint": "0.0.0.0",
         "redis_port": 40020,
         "mongo_endpoint": "0.0.0.0",
@@ -136,6 +139,9 @@ CONSTANTS = {
     "agents.attention": {
         "endpoint": "0.0.0.0:40001",
     },
+    "agents.base_proxy": {
+        "orchestration_schema": 0,
+    },
     "agents.base_query": {
         "unique_assignment_flag": False,
         "attention_update": 0,
@@ -143,10 +149,10 @@ CONSTANTS = {
         "attention_focus_strictness": 0.0,
         "max_bundle_size": 1000,
         "max_answers": 0,
-        "use_link_template_cache": False,
         "populate_metta_mapping": False,
         "use_metta_as_query_tokens": False,
         "allow_incomplete_chain_path": False,
+        "public_key_tokens": "",
     },
     "agents.query": {
         "endpoint": "0.0.0.0:40002",
@@ -159,15 +165,15 @@ CONSTANTS = {
     "agents.link_creation": {
         "endpoint": "0.0.0.0:40003",
         "ports_range": "43000:43999",
-        "max_answers": 10,
-        "repeat_count": 1,
-        "context": "context",
-        "attention_update": 0,
-        "attention_correlation": 0,
-        "positive_importance_flag": True,
-        "query_interval": 0,
-        "query_timeout": 0,
-        "use_metta_as_query_tokens": False,
+        "unique_assignment_flag": False,
+        "positive_importance_flag": False,
+        "disregard_importance_flag": False,
+        "unique_value_flag": False,
+        "max_successful_creation_per_round": 10,
+        "max_unproductive_visits_per_round": 500,
+        "max_visit_attempts_per_round": 20,
+        "max_rounds": 5,
+        "link_creation_strength_threshold": 0.1,
     },
     "agents.evolution": {
         "endpoint": "0.0.0.0:40005",
@@ -195,6 +201,10 @@ CONSTANTS = {
         "endpoint": "0.0.0.0:40008",
         "ports_range": "48000:48999",
         "http_api_port": 40009,
+    },
+    "vault": {
+        "type": "openbao",
+        "endpoint": "http://localhost:40010",
     },
     "environment": {
         "jupyter_endpoint": "0.0.0.0:40019",

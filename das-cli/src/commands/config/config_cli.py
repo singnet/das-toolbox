@@ -10,6 +10,7 @@ from common import (
     Command,
     CommandArgument,
     CommandGroup,
+    CommandOption,
     KeyValueType,
     RemoteContextManager,
     ServiceResponse,
@@ -18,6 +19,7 @@ from common import (
     StdoutStatus,
 )
 from common.utils import require_vault_endpoint
+from common.prompt_types import AbsolutePath
 from common.config.defaults import get_default_config_dict
 from settings.config import (
     DAS_PATH,
@@ -35,6 +37,7 @@ from .config_docs import (
     SHORT_HELP_CONFIG_SET,
 )
 from .config_provider import NonInteractiveConfigProvider
+from .config_sections.normalize_file import verify_populate_missing_values
 
 CLI_SERVICE_NAME = "config"
 
@@ -47,6 +50,18 @@ class ConfigSet(Command):
     help = HELP_CONFIG_SET
 
     params = [
+        CommandOption(
+            ["--file"],
+            help="Path to an existing DAS configuration file",
+            required=False,
+            type=AbsolutePath(
+                file_okay=True,
+                dir_okay=False,
+                exists=True,
+                writable=True,
+                readable=True,
+            ),
+        ),
         CommandArgument(
             ["config_key_value"],
             required=False,
@@ -82,6 +97,32 @@ class ConfigSet(Command):
             ),
             severity=StdoutSeverity.SUCCESS,
         )
+
+    def _set_file_path(self, file_path: str) -> None:
+        self._settings.set_path(file_path)
+        self._settings.rewind()
+
+        load_error = self._settings.get_load_error()
+        if load_error is not None:
+            raise ValueError(
+                f"Could not load configuration from '{file_path}': {load_error}. "
+                "The file was left unchanged. Fix the JSON and try again."
+            ) from load_error
+
+        if not self._settings.exists():
+            raise ValueError(
+                f"Configuration file at '{file_path}' is empty. The file was left unchanged."
+            )
+
+        vault_endpoint = self._settings.get("vault.endpoint")
+        if vault_endpoint is not None:
+            require_vault_endpoint(vault_endpoint)
+
+        verify_populate_missing_values(self._settings, file_path)
+        self._settings.save_path()
+
+        config_path = self._settings.get_path()
+        self._finish_set(f"Configuration file set to {config_path}.")
 
     def _save(self, save_path: str) -> None:
         self._remote_context_manager.commit()
@@ -193,14 +234,16 @@ class ConfigSet(Command):
 
     def run(
         self,
+        file: Optional[str] = None,
         config_key_value: Optional[tuple] = None,
     ):
 
         if config_key_value is not None:
             return self.non_interactive_mode(config_key_value)
+        if file is not None:
+            return self._set_file_path(file)
 
-        else:
-            return self.interactive_mode()
+        return self.interactive_mode()
 
 
 class ConfigList(Command):

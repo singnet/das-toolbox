@@ -11,6 +11,7 @@ class AgentsBuilder:
     # Final JSON key order under "agents"
     AGENT_KEYS = (
         "attention",
+        "base_proxy",
         "base_query",
         "query",
         "link_creation",
@@ -39,11 +40,13 @@ class AgentsBuilder:
         "attention_correlation",
         "attention_focus_strictness",
         "unique_assignment_flag",
-        "use_link_template_cache",
         "populate_metta_mapping",
         "use_metta_as_query_tokens",
         "allow_incomplete_chain_path",
+        "public_key_tokens",
     )
+
+    _BASE_PROXY_PARAMS = ("orchestration_schema",)
 
     _QUERY_PARAMS = (
         "positive_importance_flag",
@@ -53,15 +56,15 @@ class AgentsBuilder:
     )
 
     _LINK_CREATION_PARAMS = (
-        "max_answers",
-        "repeat_count",
-        "context",
-        "attention_update",
-        "attention_correlation",
-        "query_interval",
-        "query_timeout",
+        "unique_assignment_flag",
         "positive_importance_flag",
-        "use_metta_as_query_tokens",
+        "disregard_importance_flag",
+        "unique_value_flag",
+        "max_successful_creation_per_round",
+        "max_unproductive_visits_per_round",
+        "max_visit_attempts_per_round",
+        "max_rounds",
+        "link_creation_strength_threshold",
     )
 
     _EVOLUTION_PARAMS = (
@@ -94,6 +97,10 @@ class AgentsBuilder:
 
     def build_agent(self, agent_key: str, agent: dict) -> dict:
         label = f"agents.{agent_key}"
+
+        if agent_key == "base_proxy":
+            _require(agent, *self._BASE_PROXY_PARAMS, label=label)
+            return {"params": {key: agent[key] for key in self._BASE_PROXY_PARAMS}}
 
         if agent_key == "base_query":
             return self._build_base_query(agent, label)
@@ -168,7 +175,7 @@ class AgentsBuilder:
     def _build_base_query(cls, agent: dict, label: str) -> dict:
         normalized = cls._normalize_base_query(agent)
         _require(normalized, *cls._BASE_QUERY_PARAMS, label=label)
-        params = dict(normalized)
+        params = {key: normalized[key] for key in cls._BASE_QUERY_PARAMS}
         params["attention_focus_strictness"] = float(
             params.get("attention_focus_strictness", 0.0)
         )
@@ -216,6 +223,7 @@ class AgentsBuilder:
         _require(agent, "endpoint", "ports_range", *param_keys, label=label)
 
         connection, params = cls._split_connection_and_params(agent)
+        params = {key: params[key] for key in param_keys}
 
         return {
             **connection,

@@ -109,13 +109,120 @@ assert_config_core_endpoints() {
     use_config "simple"
     ensure_env
 
-    for endpoint in localhost:40010 localhost:40011 127.0.0.1:40010; do
+    for endpoint in localhost:40010 localhost:40011 127.0.0.1:40010 http://localhost:40010 https://127.0.0.1:40010; do
         run das-cli config set "vault.endpoint=${endpoint}"
         assert_success
 
         run get_config ".vault.endpoint"
         assert_output "$endpoint"
     done
+}
+
+@test "config set --file activates a valid configuration file" {
+    use_config "simple"
+    ensure_env
+
+    local config_file
+    local docker_config
+    config_file="$(mktemp)"
+    docker_config="$(mktemp -d)"
+    cp "${test_fixtures_dir}/config/simple.json" "$config_file"
+    update_json_key "$config_file" atomdb.redis.endpoint "localhost:49999"
+
+    run env DOCKER_CONFIG="$docker_config" \
+        das-cli config set --file "$config_file" -o json
+    assert_success
+
+    run cat "$das_env_file"
+    assert_success
+    assert_output "configpath=${config_file}"
+
+    run env DOCKER_CONFIG="$docker_config" \
+        das-cli config list atomdb.redis.endpoint -o json
+    assert_success
+    assert_output --partial "localhost:49999"
+
+    use_config "simple"
+    rm -f "$config_file"
+    rm -rf "$docker_config"
+}
+
+@test "config set --file rejects wrong-shaped sections without changing files or active config" {
+    local config_file
+    local original_file
+    local section
+    local value
+    config_file="$(mktemp)"
+    original_file="$(mktemp)"
+
+    for section in atomdb atomdb.redis atomdb.adapterdb.atomdb_backend agents.base_query.params; do
+        for value in '"localhost:49999"' '[]' 'null' '123'; do
+            jq --arg section "$section" --argjson value "$value" \
+                'setpath($section | split("."); $value)' \
+                "${test_fixtures_dir}/config/simple.json" > "$config_file"
+            cp "$config_file" "$original_file"
+
+            run das-cli config set --file "$config_file"
+            assert_failure
+            assert_output --partial "Invalid configuration entry '${section}'"
+            assert_output --partial "Expected an object"
+
+            run cmp "$config_file" "$original_file"
+            assert_success
+
+            run cat "$das_env_file"
+            assert_success
+            assert_output "configpath=${das_config_file}"
+        done
+    done
+
+    rm -f "$config_file" "$original_file"
+}
+
+@test "config set --file fills missing sections while preserving supplied values" {
+    local config_file
+    local docker_config
+    config_file="$(mktemp)"
+    docker_config="$(mktemp -d)"
+    printf '%s' '{"atomdb":{"type":"redismongodb","redis":{"endpoint":"localhost:49999"}}}' \
+        > "$config_file"
+
+    run env DOCKER_CONFIG="$docker_config" \
+        das-cli config set --file "$config_file" -o json
+    assert_success
+
+    run jq -r '.atomdb.redis.endpoint' "$config_file"
+    assert_output "localhost:49999"
+
+    run env DOCKER_CONFIG="$docker_config" das-cli config list agents.base_query -o json
+    assert_success
+    assert_output --partial "Configuration key 'agents.base_query' listed successfully."
+
+    use_config "simple"
+    rm -f "$config_file"
+    rm -rf "$docker_config"
+}
+
+@test "config set --file rejects invalid JSON without changing active config" {
+    use_config "simple"
+    ensure_env
+
+    local invalid_config
+    invalid_config="$(mktemp)"
+    printf '{invalid json' > "$invalid_config"
+
+    run das-cli config set --file "$invalid_config"
+    assert_failure
+    assert_output --partial "Could not load configuration from"
+
+    run cat "$das_env_file"
+    assert_success
+    assert_output "configpath=${das_config_file}"
+
+    run get_config ".atomdb.redis.endpoint"
+    assert_output "localhost:40020"
+
+    rm -f "$invalid_config"
 }
 
 @test "config set rejects a non-loopback vault.endpoint hostname" {

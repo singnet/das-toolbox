@@ -5,13 +5,16 @@ export async function getQueryParamDefaults() {
   return response.data;
 }
 
-export async function startQueryExecution(queryText, parameters = null) {
+export async function startQueryExecution(queryText, parameters = null, publicKey = "") {
   const payload = {
     query_text: queryText
   };
 
   if (parameters && Object.keys(parameters).length > 0) {
     payload.parameters = parameters;
+  }
+  if (publicKey.trim()) {
+    payload.public_key = publicKey.trim();
   }
 
   const response = await api.post("/query/executions", payload);

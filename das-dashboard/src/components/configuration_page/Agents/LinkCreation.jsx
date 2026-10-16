@@ -21,15 +21,15 @@ export default function LinkCreationAgentPanel() {
 
   const form = useRef({
     ...initAgentConnection(getDefaults(), "link_creation"),
-    max_answers: getAgentParam(getDefaults(), "link_creation", "max_answers", 10),
-    repeat_count: getAgentParam(getDefaults(), "link_creation", "repeat_count", 1),
-    context: getAgentParam(getDefaults(), "link_creation", "context", "context") || "context",
-    attention_update: getAgentParam(getDefaults(), "link_creation", "attention_update", 0),
-    attention_correlation: getAgentParam(getDefaults(), "link_creation", "attention_correlation", 0),
-    query_interval: getAgentParam(getDefaults(), "link_creation", "query_interval", 0),
-    query_timeout: getAgentParam(getDefaults(), "link_creation", "query_timeout", 0),
-    positive_importance_flag: getAgentParam(getDefaults(), "link_creation", "positive_importance_flag", true),
-    use_metta_as_query_tokens: getAgentParam(getDefaults(), "link_creation", "use_metta_as_query_tokens", false)
+    unique_assignment_flag: getAgentParam(getDefaults(), "link_creation", "unique_assignment_flag", false),
+    positive_importance_flag: getAgentParam(getDefaults(), "link_creation", "positive_importance_flag", false),
+    disregard_importance_flag: getAgentParam(getDefaults(), "link_creation", "disregard_importance_flag", false),
+    unique_value_flag: getAgentParam(getDefaults(), "link_creation", "unique_value_flag", false),
+    max_successful_creation_per_round: getAgentParam(getDefaults(), "link_creation", "max_successful_creation_per_round", 10),
+    max_unproductive_visits_per_round: getAgentParam(getDefaults(), "link_creation", "max_unproductive_visits_per_round", 500),
+    max_visit_attempts_per_round: getAgentParam(getDefaults(), "link_creation", "max_visit_attempts_per_round", 20),
+    max_rounds: getAgentParam(getDefaults(), "link_creation", "max_rounds", 5),
+    link_creation_strength_threshold: getAgentParam(getDefaults(), "link_creation", "link_creation_strength_threshold", 0.1)
   })
 
   const handleSave = () => {

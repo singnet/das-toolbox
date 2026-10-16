@@ -39,6 +39,7 @@ def create_execution_on_proxy(body: QueryExecutionDto):
     response = QUERY_SERVICES.create_query_execution(
         body.query_text,
         body.parameters,
+        body.public_key,
     )
 
     return JSONResponse(
