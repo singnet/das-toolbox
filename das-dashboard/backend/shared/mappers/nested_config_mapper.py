@@ -13,6 +13,7 @@ class NestedConfigMapper:
         if atomdb:
             flat["atomdb"] = NestedConfigMapper._atomdb_to_flat(atomdb)
             flat["atomdb"]["atomdb_uid"] = atomdb.get("uid") or "local"
+            flat["atomdb"]["composite_type_enabled"] = atomdb.get("composite_type_enabled", True)
 
         agents = nested.get("agents")
         if agents:

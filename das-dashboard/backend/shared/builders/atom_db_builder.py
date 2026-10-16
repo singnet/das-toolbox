@@ -66,6 +66,7 @@ class AtomDbBuilder:
 
         atomdb = builder(flat_atomdb)
         atomdb["uid"] = flat_atomdb.get("atomdb_uid") or "local"
+        atomdb["composite_type_enabled"] = flat_atomdb.get("composite_type_enabled", True)
         return atomdb
 
     @staticmethod
