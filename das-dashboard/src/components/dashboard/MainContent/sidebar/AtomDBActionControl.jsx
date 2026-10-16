@@ -83,15 +83,17 @@ export function AtomDBActionControl({
       console.error("Failed to load AtomDB type for confirmation:", error);
     }
 
-    const typeLabel = ATOMDB_TYPE_LABELS[atomdbType] ?? atomdbType ?? "AtomDB";
+    const localHost = !currentHost || ["localhost", "127.0.0.1", "0.0.0.0"].includes(currentHost);
+    const remoteTopology = atomdbType === "remotedb" && localHost;
+    const displayedType = atomdbType === "remotedb" && !localHost ? "redismongodb" : atomdbType;
+    const typeLabel = ATOMDB_TYPE_LABELS[displayedType] ?? displayedType ?? "AtomDB";
     const targetHost = currentHost || "the selected server";
 
     showConfirm({
       title: "Start AtomDB",
-      message:
-        `An ${typeLabel} AtomDB will be started on ${targetHost}. ` +
-        "Any AtomDB component already running there will be re-started " +
-        "so any data they may be carrying will be lost.",
+      message: remoteTopology
+        ? "Start Redis + MongoDB on each remote peer and the AtomDB Broker locally? Components already running will be kept."
+        : `Start ${typeLabel} on ${targetHost}? Components already running will be kept.`,
       onConfirm: () => executeAsyncAction(
         "start-database",
         () => startDatabases(currentHost),

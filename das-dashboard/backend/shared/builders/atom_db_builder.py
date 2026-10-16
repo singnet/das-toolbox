@@ -1,5 +1,8 @@
+from copy import deepcopy
+
 from shared.builders.builder_helpers import _get, _is_missing, _require
 from shared.utils.adapter_context_mapping import validate_context_mapping_path
+from shared.utils.path_utils import split_endpoint
 
 
 class AtomDbBuilder:
@@ -68,6 +71,34 @@ class AtomDbBuilder:
         atomdb["uid"] = flat_atomdb.get("atomdb_uid") or "local"
         atomdb["composite_type_enabled"] = flat_atomdb.get("composite_type_enabled", True)
         return atomdb
+
+    def build_remote_peer_configs(self, nested_config: dict) -> dict[str, dict]:
+        configurations = {}
+        atomdb = nested_config.get("atomdb") or {}
+        for peer in atomdb.get("remote_peers") or []:
+            _require(peer, "uid", "type", label="atomdb.remote_peers")
+            if peer["type"] != "redismongodb":
+                raise ValueError("Remote provisioning currently supports RedisMongo peers only.")
+            redis_host, redis_port = split_endpoint(peer["redis"]["endpoint"], "", 40020)
+            mongo_host, mongo_port = split_endpoint(peer["mongodb"]["endpoint"], "", 40021)
+            if not redis_host or redis_host != mongo_host:
+                raise ValueError("Redis and MongoDB must use the same server for each peer.")
+            if redis_host in configurations:
+                raise ValueError("Each provisioned peer must use a different server.")
+            remote = deepcopy(nested_config)
+            remote["atomdb"] = self.build({
+                "atomdb_type": "redismongodb",
+                "atomdb_uid": peer["uid"],
+                "composite_type_enabled": atomdb.get("composite_type_enabled", True),
+                "redis_endpoint": "127.0.0.1",
+                "redis_port": redis_port,
+                "mongo_endpoint": "127.0.0.1",
+                "mongo_port": mongo_port,
+                "mongo_username": peer["mongodb"]["username"],
+                "mongo_password": peer["mongodb"]["password"],
+            })
+            configurations[redis_host] = remote
+        return configurations
 
     @staticmethod
     def _endpoint(host: str, port) -> str:
@@ -270,6 +301,7 @@ class AtomDbBuilder:
             peer_config["local_persistence"] = self._build_local_persistence(
                 peer["local_persistence"],
                 where=f"{peer_where}.local_persistence",
+                uid=f"{peer_config['uid']}-local",
             )
 
             peers.append(peer_config)
@@ -279,11 +311,11 @@ class AtomDbBuilder:
             "remote_peers": peers,
         }
 
-    def _build_local_persistence(self, flat: dict, *, where: str) -> dict:
+    def _build_local_persistence(self, flat: dict, *, where: str, uid: str) -> dict:
         _require(flat, "type", label=where)
 
         lp_type = flat["type"]
-        result = {"type": lp_type}
+        result = {"type": lp_type, "uid": flat.get("uid") or uid}
 
         if lp_type == "inmemorydb":
             if not _is_missing(flat, "context"):

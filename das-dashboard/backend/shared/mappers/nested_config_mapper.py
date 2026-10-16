@@ -217,6 +217,8 @@ class NestedConfigMapper:
     def _local_persistence_to_flat(local: dict) -> dict:
         lp_type = local.get("type", "inmemorydb")
         result = {"type": lp_type}
+        if local.get("uid"):
+            result["uid"] = local["uid"]
 
         if lp_type == "inmemorydb":
             if local.get("context"):
