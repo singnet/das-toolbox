@@ -6,6 +6,7 @@ COPY . .
 
 RUN apt-get update && apt-get install -y \
     docker.io \
+    openssh-client \
     bash-completion \
     dpkg \
     && rm -rf /var/lib/apt/lists/*

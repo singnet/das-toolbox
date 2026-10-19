@@ -1,26 +1,26 @@
 import { TextField } from "@mui/material"
-import { useEffect, useRef } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { useConfig } from "../../../global_providers/ConfigurationProvider"
 import { initMorkMongoConnection, parsePortValue } from "../../configFormUtils"
 import { portField } from "../../formValidation"
 import { credentialPasswordField, credentialUsernameField, disableAutofillField } from "../../../../utils/credentialFieldProps"
 import { GridSpan3, GridSpan9 } from "../AtomDBStyled"
 
-export function MorkMongoSubForm({ onChange, category }) {
+export function MorkMongoSubForm({ onChange, category, initialValues }) {
   const { getAtomdbTemplate } = useConfig()
 
-  const form = useRef({
+  const [initialForm] = useState(() => ({
     type: "morkdb",
-    ...initMorkMongoConnection(getAtomdbTemplate("morkdb"))
-  })
+    ...initMorkMongoConnection(initialValues || getAtomdbTemplate("morkdb"))
+  }))
+  const form = useRef({ ...initialForm })
 
   const notifyChange = () => {
     onChange(structuredClone(form.current), category)
   }
 
-  useEffect(() => {
-    notifyChange()
-  }, [])
+  const notifyInitialChange = useEffectEvent(notifyChange)
+  useEffect(() => { notifyInitialChange() }, [])
 
   return (
     <>
@@ -31,7 +31,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           required
           {...disableAutofillField}
-          defaultValue={form.current.mork_endpoint}
+          defaultValue={initialForm.mork_endpoint}
           onChange={(e) => {
             form.current.mork_endpoint = e.target.value
             notifyChange()
@@ -46,7 +46,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           type="number"
           required
-          defaultValue={form.current.mork_port}
+          defaultValue={initialForm.mork_port}
           onChange={(e) => {
             form.current.mork_port = parsePortValue(e.target.value)
             notifyChange()
@@ -62,7 +62,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           required
           {...disableAutofillField}
-          defaultValue={form.current.mongo_endpoint}
+          defaultValue={initialForm.mongo_endpoint}
           onChange={(e) => {
             form.current.mongo_endpoint = e.target.value
             notifyChange()
@@ -77,7 +77,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           type="number"
           required
-          defaultValue={form.current.mongo_port}
+          defaultValue={initialForm.mongo_port}
           onChange={(e) => {
             form.current.mongo_port = parsePortValue(e.target.value)
             notifyChange()
@@ -93,7 +93,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           required
           {...credentialUsernameField}
-          defaultValue={form.current.mongo_username}
+          defaultValue={initialForm.mongo_username}
           onChange={(e) => {
             form.current.mongo_username = e.target.value
             notifyChange()
@@ -108,7 +108,7 @@ export function MorkMongoSubForm({ onChange, category }) {
           size="small"
           required
           {...credentialPasswordField}
-          defaultValue={form.current.mongo_password}
+          defaultValue={initialForm.mongo_password}
           onChange={(e) => {
             form.current.mongo_password = e.target.value
             notifyChange()

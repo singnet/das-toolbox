@@ -61,15 +61,20 @@ class ConfigServices:
         }
 
     async def _propagate_config_to_remotes(self, nested_config: dict) -> list[str]:
-        targets = self.web_config.map_remote_hosts()
+        if nested_config.get("atomdb", {}).get("type") == "remotedb":
+            username = self.web_config.user_profile.get("profile_username") or ""
+            configurations = AtomDbBuilder(username).build_remote_peer_configs(nested_config)
+        else:
+            configurations = {
+                target["ip"]: nested_config for target in self.web_config.map_remote_hosts()
+            }
         remote_hosts: list[str] = []
 
-        for target in targets:
-            ip = target["ip"]
+        for ip, remote_config in configurations.items():
             remote_path = await run_in_threadpool(
                 self._scp_config_sync,
                 ip,
-                nested_config,
+                remote_config,
             )
             await run_in_threadpool(
                 set_das_cli_config,

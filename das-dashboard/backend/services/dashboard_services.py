@@ -10,5 +10,7 @@ class DashboardServices:
         self.web_config = web_config
 
     async def fetch_initial_state(self) -> dict:
-        await run_in_threadpool(self.web_config.load_config_dictionary)
+        await run_in_threadpool(self.web_config.load_config_dictionary, required=False)
+        if not self.web_config.config_dictionary:
+            return {"hosts": []}
         return build_initial_state(self.web_config)
