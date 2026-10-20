@@ -38,6 +38,8 @@ class QueryServices:
             async with connect(
                 websocket_url,
                 open_timeout=10,
+                ping_interval=20,
+                ping_timeout=None,
                 close_timeout=5,
             ) as upstream:
                 async for message in upstream:
