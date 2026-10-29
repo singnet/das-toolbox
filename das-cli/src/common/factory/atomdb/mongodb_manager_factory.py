@@ -20,19 +20,20 @@ class MongoDbContainerManagerFactory:
 
         return "atomdb.mongodb"
 
-    def build(self):
-        backend_path = self._get_backend_path()
+    def build(self, section: dict | None = None):
+        if section is None:
+            section = self._settings.get(self._get_backend_path(), {}) or {}
 
-        mongodb_endpoint = self._settings.get(f"{backend_path}.endpoint")
+        mongodb_endpoint = section.get("endpoint")
         mongodb_port = extract_service_port(mongodb_endpoint)
 
-        mongodb_username = self._settings.get(f"{backend_path}.username")
-        mongodb_password = self._settings.get(f"{backend_path}.password")
+        mongodb_username = section.get("username")
+        mongodb_password = section.get("password")
 
-        mongodb_nodes = self._settings.get(f"{backend_path}.nodes", [])
+        mongodb_nodes = section.get("nodes", []) or []
 
-        mongodb_cluster = self._settings.get(f"{backend_path}.cluster", False)
-        mongodb_cluster_secret_key = self._settings.get(f"{backend_path}.cluster_secret_key", None)
+        mongodb_cluster = section.get("cluster", False)
+        mongodb_cluster_secret_key = section.get("cluster_secret_key", None)
 
         container_name = f"das-cli-mongodb-{mongodb_port}"
 

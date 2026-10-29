@@ -57,9 +57,19 @@ class MongoDBRedisBackend(BackendProvider):
         self,
         mongodb_container_manager: MongodbContainerManager,
         redis_container_manager: RedisContainerManager,
+        peer_uid: Optional[str] = None,
     ) -> None:
         self._mongodb_container_manager = mongodb_container_manager
         self._redis_container_manager = redis_container_manager
+        self.peer_uid = peer_uid
+
+    @property
+    def mongodb_container_manager(self) -> MongodbContainerManager:
+        return self._mongodb_container_manager
+
+    @property
+    def redis_container_manager(self) -> RedisContainerManager:
+        return self._redis_container_manager
 
     def start(self) -> None:
         # TODO: Implement this method here to start the database from the backend instance

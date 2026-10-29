@@ -136,8 +136,10 @@ class DbStop(Command):
 
         for provider in self._atomdb_backend.get_active_providers():
             if isinstance(provider, MongoDBRedisBackend):
-                self._db.stop_redis(self._redis_container_manager, prune=prune)
-                self._db.stop_mongodb(self._mongodb_container_manager, prune=prune)
+                if provider.peer_uid:
+                    self.log(f"Stopping RemoteDB peer {provider.peer_uid}...")
+                self._db.stop_redis(provider.redis_container_manager, prune=prune)
+                self._db.stop_mongodb(provider.mongodb_container_manager, prune=prune)
 
             elif isinstance(provider, MorkMongoDBBackend):
                 self._db.stop_mongodb(self._mongodb_container_manager, prune=prune)
@@ -180,8 +182,10 @@ class DbStart(Command):
 
         for provider in self._atomdb_backend.get_active_providers():
             if isinstance(provider, MongoDBRedisBackend):
-                self._db.start_redis(self._redis_container_manager)
-                self._db.start_mongodb(self._mongodb_container_manager)
+                if provider.peer_uid:
+                    self.log(f"Starting RemoteDB peer {provider.peer_uid}...")
+                self._db.start_redis(provider.redis_container_manager)
+                self._db.start_mongodb(provider.mongodb_container_manager)
 
             elif isinstance(provider, MorkMongoDBBackend):
                 self._db.start_mongodb(self._mongodb_container_manager)

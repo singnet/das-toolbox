@@ -1,10 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from shared.builders.atom_db_builder import AtomDbBuilder
 from shared.enums.action_types import ActionTypes
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import LOCAL_HOSTS
 from shared.utils.das_cli_command import build_host_cli_command
+from shared.utils.docker_ssh_access import ensure_docker_ssh_access
 from shared.exceptions.custom_exceptions import (
     ConfigurationValueNotFoundError,
     DasCliCommandException,
@@ -32,7 +32,7 @@ class ContainerServices:
         host: str | None = None,
     ):
         service_command = command or container_name
-        if service_command == "db" and (host is None or host in LOCAL_HOSTS):
+        if service_command == "db":
             config = self.web_config.load_raw_configuration()
             if config.get("atomdb", {}).get("type") == "remotedb":
                 return self._manage_remote_atomdb(action, config)
@@ -45,28 +45,18 @@ class ContainerServices:
         return self.run_das_cli_command(generated_command)
 
     def _manage_remote_atomdb(self, action: ActionTypes, config: dict):
-        username = self.web_config.user_profile.get("profile_username") or ""
-        hosts = AtomDbBuilder(username).build_remote_peer_configs(config)
-        operations = [(host, "db") for host in hosts]
-        local_peer = any(
-            peer.get("type") == "redismongodb"
-            and all(
-                split_endpoint(peer.get(database, {}).get("endpoint"), "", 0)[0] in LOCAL_HOSTS
-                for database in ("redis", "mongodb")
-            )
-            for peer in config.get("atomdb", {}).get("remote_peers", [])
-        )
-        if local_peer:
-            operations.append(("localhost", "db"))
-        if not operations:
-            raise ValueError("RemoteDB requires at least one peer.")
-        if action == ActionTypes.STOP:
-            operations.reverse()
-        results = []
-        for host, service in operations:
-            command = self.build_das_cli_command(host, service, action.value)
-            results.append({"host": host, **self.run_das_cli_command(command)})
-        return {"success": True, "results": results}
+        peer_hosts = set()
+        for peer in config.get("atomdb", {}).get("remote_peers", []):
+            if peer.get("type") != "redismongodb":
+                continue
+            for database in ("redis", "mongodb"):
+                host, _ = split_endpoint(peer.get(database, {}).get("endpoint"), "", 0)
+                if host and host not in LOCAL_HOSTS:
+                    peer_hosts.add(host)
+
+        ensure_docker_ssh_access(self.web_config, list(peer_hosts))
+        command = self.build_das_cli_command("localhost", "db", action.value)
+        return self.run_das_cli_command(command)
 
     def orchestrate_architecture(self, action: ActionTypes, services: list[str]):
         ordered_services = self._order_services(services, action)

@@ -11,6 +11,7 @@ from common.exceptions import PortBindingError
 from common.service_response import ServiceResponse, StdoutStatus
 
 CLI_SERVICE_NAME = "database"
+LOCAL_NODE_HOSTS = {"", "localhost", "127.0.0.1", "0.0.0.0"}
 
 
 class DbOperations:
@@ -38,6 +39,17 @@ class DbOperations:
             manager.set_exec_context(context)
         else:
             manager.unset_exec_context()
+
+    def _missing_remote_context(self, service: str, node: dict) -> bool:
+        node_ip = node.get("ip", "")
+        if node.get("context") or node_ip in LOCAL_NODE_HOSTS:
+            return False
+
+        self._record_error(
+            f"{service} node {node_ip} has no Docker context. "
+            "Run 'das-cli config set --file <config path>' to create it."
+        )
+        return True
 
     def _record_error(self, message: str) -> None:
         self.errors.append(message)
@@ -85,6 +97,10 @@ class DbOperations:
         redis_errors: list[str] = []
 
         for node in nodes:
+            if self._missing_remote_context("Redis", node):
+                redis_errors.append(node.get("ip", ""))
+                continue
+
             context = node.get("context", "")
             node_username = node.get("username", "")
             node_ip = node.get("ip", "")
@@ -136,6 +152,10 @@ class DbOperations:
         mongo_errors: list[str] = []
 
         for node in nodes:
+            if self._missing_remote_context("MongoDB", node):
+                mongo_errors.append(node.get("ip", ""))
+                continue
+
             context = node.get("context", "")
             node_username = node.get("username", "")
             node_ip = node.get("ip", "")
@@ -203,6 +223,9 @@ class DbOperations:
         nodes = manager._options["redis_nodes"]
 
         for node in nodes:
+            if self._missing_remote_context("Redis", node):
+                continue
+
             context = node.get("context", "")
             node_ip = node.get("ip", "")
             node_username = node.get("username", "")
@@ -239,6 +262,9 @@ class DbOperations:
         nodes = manager._options["mongodb_nodes"]
 
         for node in nodes:
+            if self._missing_remote_context("MongoDB", node):
+                continue
+
             context = node.get("context", "")
             node_ip = node.get("ip", "")
             node_username = node.get("username", "")

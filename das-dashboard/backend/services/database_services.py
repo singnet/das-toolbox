@@ -1,14 +1,10 @@
 import os
-import json
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from fastapi import UploadFile
 from scp import SCPClient, SCPException
 
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import (
     DEFAULT_METTA_FILES_PATH,
-    CONFIG_DIR,
     LOCAL_HOSTS,
     REMOTE_METTA_FILES_PATH,
 )
@@ -83,34 +79,6 @@ class DatabaseServices:
         return file_path
 
     def load_metta_file_into_db(self, host: str, metta_file_path: str):
-        if host in LOCAL_HOSTS:
-            config = self.web_config.load_raw_configuration()
-            atomdb = config.get("atomdb", {})
-            if atomdb.get("type") == "remotedb":
-                peers = [
-                    peer for peer in atomdb.get("remote_peers", [])
-                    if peer.get("type") == "redismongodb"
-                    and peer.get("redis", {}).get("endpoint") == atomdb.get("redis", {}).get("endpoint")
-                    and peer.get("mongodb", {}).get("endpoint") == atomdb.get("mongodb", {}).get("endpoint")
-                ]
-                if len(peers) != 1:
-                    raise ValueError("Configure exactly one local RedisMongo peer before loading local data.")
-                local_config = {**config, "atomdb": {
-                    "type": "redismongodb", "uid": peers[0]["uid"],
-                    "composite_type_enabled": atomdb.get("composite_type_enabled", True),
-                    "redis": atomdb["redis"], "mongodb": atomdb["mongodb"],
-                }}
-                with TemporaryDirectory(prefix="local-load-", dir=CONFIG_DIR) as home:
-                    directory = Path(home) / ".das"
-                    directory.mkdir()
-                    path = directory / "config.json"
-                    path.write_text(json.dumps(local_config), encoding="utf-8")
-                    path.chmod(0o644)
-                    (directory / ".env").write_text(f"configpath={path}\n", encoding="utf-8")
-                    return run_das_cli_json_command(
-                        ["env", f"HOME={home}", "das-cli", "metta", "load", metta_file_path, "-o", "json"],
-                        default_message="The local RedisMongo load command failed.",
-                    )
         cmd = build_host_cli_command(
             self.web_config, host, ["metta", "load", metta_file_path, "-o", "json"]
         )

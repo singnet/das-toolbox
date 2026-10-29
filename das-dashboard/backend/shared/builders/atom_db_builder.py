@@ -1,9 +1,6 @@
-from copy import deepcopy
-
 from shared.builders.builder_helpers import _get, _is_missing, _require
 from shared.internal.constants import LOCAL_HOSTS
 from shared.utils.adapter_context_mapping import validate_context_mapping_path
-from shared.utils.path_utils import split_endpoint
 
 
 class AtomDbBuilder:
@@ -72,36 +69,6 @@ class AtomDbBuilder:
         atomdb["uid"] = flat_atomdb.get("atomdb_uid") or "local"
         atomdb["composite_type_enabled"] = flat_atomdb.get("composite_type_enabled", True)
         return atomdb
-
-    def build_remote_peer_configs(self, nested_config: dict) -> dict[str, dict]:
-        configurations = {}
-        atomdb = nested_config.get("atomdb") or {}
-        for peer in atomdb.get("remote_peers") or []:
-            _require(peer, "uid", "type", label="atomdb.remote_peers")
-            if peer["type"] != "redismongodb":
-                raise ValueError("Remote provisioning currently supports RedisMongo peers only.")
-            redis_host, redis_port = split_endpoint(peer["redis"]["endpoint"], "", 40020)
-            mongo_host, mongo_port = split_endpoint(peer["mongodb"]["endpoint"], "", 40021)
-            if redis_host in LOCAL_HOSTS and mongo_host in LOCAL_HOSTS:
-                continue
-            if not redis_host or redis_host != mongo_host:
-                raise ValueError("Redis and MongoDB must use the same server for each peer.")
-            if redis_host in configurations:
-                raise ValueError("Each provisioned peer must use a different server.")
-            remote = deepcopy(nested_config)
-            remote["atomdb"] = self.build({
-                "atomdb_type": "redismongodb",
-                "atomdb_uid": peer["uid"],
-                "composite_type_enabled": atomdb.get("composite_type_enabled", True),
-                "redis_endpoint": "127.0.0.1",
-                "redis_port": redis_port,
-                "mongo_endpoint": "127.0.0.1",
-                "mongo_port": mongo_port,
-                "mongo_username": peer["mongodb"]["username"],
-                "mongo_password": peer["mongodb"]["password"],
-            })
-            configurations[redis_host] = remote
-        return configurations
 
     @staticmethod
     def _endpoint(host: str, port) -> str:
@@ -263,7 +230,7 @@ class AtomDbBuilder:
             raise ValueError("atomdb.remote_peers must be a list")
 
         peers = []
-        local_backend = None
+        has_local_peer = False
 
         for index, peer in enumerate(remote_peers):
             peer_where = f"atomdb.remote_peers[{index}]"
@@ -283,21 +250,15 @@ class AtomDbBuilder:
                 if redis_local != mongo_local:
                     raise ValueError("The local peer must use local endpoints for both databases.")
                 if redis_local:
-                    if local_backend is not None:
+                    if has_local_peer:
                         raise ValueError("RemoteDB supports only one local RedisMongo peer.")
-                    local_peer = {
-                        **peer,
-                        "redis_endpoint": "127.0.0.1",
-                        "mongo_endpoint": "127.0.0.1",
-                        "redis_cluster": False,
-                        "mongo_cluster": False,
-                    }
-                    local_backend = self._build_redis_mongo(local_peer)
+                    has_local_peer = True
                 peer_config["redis"] = {
                     "endpoint": self._endpoint(
                         "127.0.0.1" if redis_local else peer["redis_endpoint"], peer["redis_port"]
                     ),
                     "cluster": False,
+                    "nodes": [self._peer_node(peer["redis_endpoint"])],
                 }
                 peer_config["mongodb"] = {
                     "endpoint": self._endpoint(
@@ -305,6 +266,7 @@ class AtomDbBuilder:
                     ),
                     "username": peer["mongo_username"],
                     "password": peer["mongo_password"],
+                    "nodes": [self._peer_node(peer["mongo_endpoint"])],
                 }
 
             elif peer_type == "morkdb":
@@ -329,14 +291,16 @@ class AtomDbBuilder:
 
             peers.append(peer_config)
 
-        result = {
+        return {
             "type": "remotedb",
             "remote_peers": peers,
         }
-        if local_backend is not None:
-            result["redis"] = local_backend["redis"]
-            result["mongodb"] = local_backend["mongodb"]
-        return result
+
+    def _peer_node(self, host: str) -> dict:
+        if host in LOCAL_HOSTS:
+            return {"context": "default", "ip": "localhost", "username": self.profile_username}
+        # An empty context makes das-cli create an SSH Docker context for the peer server.
+        return {"context": "", "ip": host, "username": self.profile_username}
 
     def _build_local_persistence(self, flat: dict, *, where: str, uid: str) -> dict:
         _require(flat, "type", label=where)
