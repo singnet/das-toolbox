@@ -47,11 +47,20 @@ class DbCountAtoms(Command):
 
         super().__init__()
 
-    def _get_mongodb_container(self):
-        return self._mongodb_container_manager.get_container()
+    def _show_mongodb_stats(self, manager: MongodbContainerManager):
+        nodes = manager._options.get("mongodb_nodes") or []
+        context = nodes[0].get("context", "") if nodes else ""
 
-    def _show_mongodb_stats(self):
-        collection_stats = self._mongodb_container_manager.get_collection_stats()
+        try:
+            if context and context != "default":
+                manager.set_exec_context(context)
+            else:
+                manager.unset_exec_context()
+            collection_stats = manager.get_collection_stats()
+        finally:
+            manager.unset_exec_context()
+
+        container = manager.get_container()
 
         if len(collection_stats) < 1:
             self.log("MongoDB: No collections found (0)", severity=StdoutSeverity.WARNING)
@@ -62,7 +71,7 @@ class DbCountAtoms(Command):
                         action="count-atoms",
                         status=StdoutStatus.INFO,
                         message="No MongoDB collections found.",
-                        container=self._get_mongodb_container(),
+                        container=container,
                         stats=collection_stats,
                     )
                 ),
@@ -79,7 +88,7 @@ class DbCountAtoms(Command):
                     action="count-atoms",
                     status=StdoutStatus.SUCCESS,
                     message="Count of MongoDB atoms displayed successfully.",
-                    container=self._get_mongodb_container(),
+                    container=container,
                     stats=collection_stats,
                 )
             ),
@@ -93,8 +102,12 @@ class DbCountAtoms(Command):
     )
     def run(self) -> None:
         for provider in self._atomdb_backend.get_active_providers():
-            if isinstance(provider, (MongoDBRedisBackend, MorkMongoDBBackend)):
-                self._show_mongodb_stats()
+            if isinstance(provider, MongoDBRedisBackend):
+                if provider.peer_uid:
+                    self.log(f"Counting atoms on RemoteDB peer {provider.peer_uid}...")
+                self._show_mongodb_stats(provider.mongodb_container_manager)
+            elif isinstance(provider, MorkMongoDBBackend):
+                self._show_mongodb_stats(self._mongodb_container_manager)
 
 
 class DbStop(Command):
