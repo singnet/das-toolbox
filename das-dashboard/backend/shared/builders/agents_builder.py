@@ -56,10 +56,6 @@ class AgentsBuilder:
     )
 
     _LINK_CREATION_PARAMS = (
-        "unique_assignment_flag",
-        "positive_importance_flag",
-        "disregard_importance_flag",
-        "unique_value_flag",
         "max_successful_creation_per_round",
         "max_unproductive_visits_per_round",
         "max_visit_attempts_per_round",

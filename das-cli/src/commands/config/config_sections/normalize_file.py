@@ -8,42 +8,71 @@ from common.docker.remote_context_manager import Server
 from common.settings import Settings
 from common.utils import get_rand_token
 
+LOCAL_NODE_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
+
 
 def normalize_servers(
     nodes: List[Dict[str, Any]], current_user: str, context_manager: RemoteContextManager
 ) -> List[Dict[str, Any]]:
+    # Every das-cli context was removed by _clear_existing_contexts, so any node that is
+    # not on the default context needs a new one.
     updated_nodes = []
-    servers_to_create_context: List[Server] = []
 
     for node in nodes:
         username = node.get("username")
-        context = node.get("context")
-        ip = node.get("ip", "localhost")
 
-        if context == "default":
+        if node.get("context") == "default":
             if not username or username in ["root", "default"]:
                 node["username"] = current_user
 
             updated_nodes.append(node)
+            continue
 
-        elif context in [None, "", "None"]:
-            servers_to_create_context.append(
-                Server(
-                    {
-                        "ip": ip,
-                        "username": username or current_user,
-                    }
-                )
-            )
-
-        else:
-            updated_nodes.append(node)
-
-    if servers_to_create_context:
-        new_contexts = context_manager.create_servers_context(servers_to_create_context)
-        updated_nodes.extend(new_contexts)
+        server = Server(
+            {
+                "ip": node.get("ip", "localhost"),
+                "username": username or current_user,
+            }
+        )
+        new_context = context_manager.create_servers_context([server])[0]
+        updated_nodes.append({**node, **new_context})
 
     return updated_nodes
+
+
+def _endpoint_host(endpoint: Any) -> str:
+    if not isinstance(endpoint, str):
+        return ""
+    return endpoint.rsplit(":", 1)[0].strip()
+
+
+def _default_peer_nodes(section: Dict[str, Any], current_user: str) -> List[Dict[str, Any]]:
+    host = _endpoint_host(section.get("endpoint"))
+
+    if not host or host in LOCAL_NODE_HOSTS:
+        return [{"context": "default", "ip": "localhost", "username": current_user}]
+
+    return [{"context": "", "ip": host, "username": current_user}]
+
+
+def normalize_remote_peers(
+    content: Dict[str, Any], current_user: str, context_manager: RemoteContextManager
+) -> None:
+    atomdb = content.get("atomdb", {})
+    if atomdb.get("type") != "remotedb":
+        return
+
+    for peer in atomdb.get("remote_peers") or []:
+        if not isinstance(peer, dict) or peer.get("type") != "redismongodb":
+            continue
+
+        for database in ("redis", "mongodb"):
+            section = peer.get(database)
+            if not isinstance(section, dict):
+                continue
+
+            nodes = section.get("nodes") or _default_peer_nodes(section, current_user)
+            section["nodes"] = normalize_servers(nodes, current_user, context_manager)
 
 
 def _fill_missing_values(current: Any, defaults: Any) -> Any:
@@ -155,6 +184,8 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
 
         if redis_nodes:
             redis["nodes"] = normalize_servers(redis_nodes, current_user, context_manager)
+
+    normalize_remote_peers(content, current_user, context_manager)
 
     settings.set_content(content)
 

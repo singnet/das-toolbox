@@ -61,10 +61,9 @@ class ConfigServices:
         }
 
     async def _propagate_config_to_remotes(self, nested_config: dict) -> list[str]:
-        targets = self.web_config.map_remote_hosts()
         remote_hosts: list[str] = []
 
-        for target in targets:
+        for target in self.web_config.map_remote_hosts():
             ip = target["ip"]
             remote_path = await run_in_threadpool(
                 self._scp_config_sync,

@@ -57,9 +57,19 @@ class MongoDBRedisBackend(BackendProvider):
         self,
         mongodb_container_manager: MongodbContainerManager,
         redis_container_manager: RedisContainerManager,
+        peer_uid: Optional[str] = None,
     ) -> None:
         self._mongodb_container_manager = mongodb_container_manager
         self._redis_container_manager = redis_container_manager
+        self.peer_uid = peer_uid
+
+    @property
+    def mongodb_container_manager(self) -> MongodbContainerManager:
+        return self._mongodb_container_manager
+
+    @property
+    def redis_container_manager(self) -> RedisContainerManager:
+        return self._redis_container_manager
 
     def start(self) -> None:
         # TODO: Implement this method here to start the database from the backend instance
@@ -69,18 +79,35 @@ class MongoDBRedisBackend(BackendProvider):
         self._redis_container_manager.stop()
         self._mongodb_container_manager.stop()
 
+    def _call_on_node(self, manager, method_name: str):
+        nodes_key = (
+            "mongodb_nodes" if isinstance(manager, MongodbContainerManager) else "redis_nodes"
+        )
+        nodes = manager._options.get(nodes_key) or []
+        context = nodes[0].get("context", "") if nodes else ""
+
+        try:
+            if context and context != "default":
+                manager.set_exec_context(context)
+            else:
+                manager.unset_exec_context()
+            return getattr(manager, method_name)()
+        finally:
+            manager.unset_exec_context()
+
     def is_running(self) -> bool:
         return all(
-            [
-                self._mongodb_container_manager.is_running(),
-                self._redis_container_manager.is_running(),
-            ]
+            self._call_on_node(manager, "is_running")
+            for manager in (
+                self._mongodb_container_manager,
+                self._redis_container_manager,
+            )
         )
 
     def status(self) -> list[dict]:
         return [
-            self._mongodb_container_manager.status(),
-            self._redis_container_manager.status(),
+            self._call_on_node(self._mongodb_container_manager, "status"),
+            self._call_on_node(self._redis_container_manager, "status"),
         ]
 
 

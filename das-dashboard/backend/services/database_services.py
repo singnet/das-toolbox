@@ -5,7 +5,6 @@ from scp import SCPClient, SCPException
 from shared.internal.web_configuration import WebConfiguration
 from shared.internal.constants import (
     DEFAULT_METTA_FILES_PATH,
-    DEFAULT_SSHKEY_CLONE_PATH,
     LOCAL_HOSTS,
     REMOTE_METTA_FILES_PATH,
 )
@@ -16,6 +15,7 @@ from shared.exceptions.custom_exceptions import (
 from shared.utils.remote_scp import RemoteScpService
 from shared.utils.upload_utils import safe_upload_filename
 from shared.utils.das_cli_response import run_das_cli_json_command
+from shared.utils.das_cli_command import build_host_cli_command
 
 
 class DatabaseServices:
@@ -79,15 +79,9 @@ class DatabaseServices:
         return file_path
 
     def load_metta_file_into_db(self, host: str, metta_file_path: str):
-        cmd = ["das-cli", "metta", "load", metta_file_path]
-
-        if host not in LOCAL_HOSTS:
-            profile = self.web_config.user_profile
-            ssh_username = profile.get("profile_username", "root")
-            ssh_key = profile.get("profile_ssh_keypath") or DEFAULT_SSHKEY_CLONE_PATH
-            cmd.extend(["--remote", "-h", host, "-u", ssh_username, "-k", ssh_key])
-
-        cmd.extend(["-o", "json"])
+        cmd = build_host_cli_command(
+            self.web_config, host, ["metta", "load", metta_file_path, "-o", "json"]
+        )
 
         return run_das_cli_json_command(
             cmd,

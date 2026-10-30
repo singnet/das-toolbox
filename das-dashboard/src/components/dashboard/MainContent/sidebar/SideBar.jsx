@@ -18,7 +18,9 @@ import { useServerTabMetricsContext } from "../../../global_providers/ServerTabM
 import {
   fetchInfraStatusForAllHosts,
   pollInfraStatusForAllHosts,
+  getRemoteDbServicesByHost,
 } from "../../../../utils/infraStatus";
+import { getConfigDefaults } from "../../../../api/ConfigAPI";
 
 import { ArchitectureActionControl } from "./ArchitectureActionControl";
 import { AtomDBActionControl } from "./AtomDBActionControl";
@@ -32,7 +34,7 @@ const navigationItems = [
 export function SideBar() {
   const [selected, setSelected] = useState("servers");
   const [busyActions, setBusyActions] = useState({});
-  const [atomDbOnline, setAtomDbOnline] = useState(false);
+  const [statusByHost, setStatusByHost] = useState({});
   const [architectureOnline, setArchitectureOnline] = useState(false);
 
   const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
@@ -40,13 +42,13 @@ export function SideBar() {
 
   const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
     const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
+    const defaults = await getConfigDefaults();
+    const expectedByHost = getRemoteDbServicesByHost(defaults?.content?.atomdb);
     const statusByHost = poll
-      ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000 })
-      : await fetchInfraStatusForAllHosts(serverIps);
+      ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000, expectedByHost })
+      : await fetchInfraStatusForAllHosts(serverIps, expectedByHost);
 
-    setAtomDbOnline(
-      Object.values(statusByHost).some((status) => status.atomDbOnline)
-    );
+    setStatusByHost(statusByHost);
     setArchitectureOnline(
       Object.values(statusByHost).some((status) => status.architectureOnline)
     );
@@ -59,6 +61,7 @@ export function SideBar() {
   }, [loadInfraStatus]);
 
   const currentHost = currentMachine?.serverIp;
+  const atomDbOnline = Boolean(statusByHost[currentHost]?.atomDbOnline);
   const isSwitchingHost = currentContext === "servers" && hostStreamSwitching;
   const isServerOffline = !currentHost || isSwitchingHost;
   const isAnyActionLoading = Object.values(busyActions).some(Boolean);

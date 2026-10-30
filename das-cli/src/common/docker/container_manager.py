@@ -168,11 +168,7 @@ class ContainerManager(DockerManager):
             "detach": True,
             "labels": {"das-cli.managed": "true", **self.labels},
         }
-        if (
-            "network" not in kwargs
-            and "network_mode" not in kwargs
-            and not run_kwargs.get("ports")
-        ):
+        if "network" not in kwargs and "network_mode" not in kwargs and not run_kwargs.get("ports"):
             run_kwargs["network"] = SERVICES_NETWORK_NAME
 
         try:
