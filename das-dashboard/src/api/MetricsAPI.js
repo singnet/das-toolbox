@@ -1,4 +1,5 @@
 import api from "./AxiosBaseClient";
+import { resolveWsBaseUrl } from "./apiBase";
 
 export function extractMetricsContent(payload) {
   if (!payload || typeof payload !== "object") {
@@ -77,7 +78,7 @@ export async function deleteAllHistory() {
 
 export function fetchDashboardDataStream(onMessage, host, { onOpen, onClose, onError } = {}) {
   const socket = new WebSocket(
-    `ws://${host}:8000/metrics/live-ws?metric_scope=all&host=${host}`
+    `${resolveWsBaseUrl()}/metrics/live-ws?metric_scope=all&host=${encodeURIComponent(host)}`
   )
 
   socket.onopen = () => {
