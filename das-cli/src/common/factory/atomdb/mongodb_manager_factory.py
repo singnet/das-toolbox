@@ -20,11 +20,11 @@ class MongoDbContainerManagerFactory:
 
         return "atomdb.mongodb"
 
-    def build(self, section: dict | None = None):
-        if section is None:
+    def build(self, section: dict = {}):
+        if len(section.items()) == 0:
             section = self._settings.get(self._get_backend_path(), {}) or {}
 
-        mongodb_endpoint = section.get("endpoint")
+        mongodb_endpoint: str = section.get("endpoint", "")
         mongodb_port = extract_service_port(mongodb_endpoint)
 
         mongodb_username = section.get("username")

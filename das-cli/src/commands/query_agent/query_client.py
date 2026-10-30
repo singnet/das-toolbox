@@ -47,7 +47,9 @@ class CommandRouterQueryClient:
                 f"Failed to create query execution on {url}: {error}{details}"
             ) from error
         except ValueError as error:
-            raise RuntimeError(f"Command-router returned invalid JSON for execution creation: {error}") from error
+            raise RuntimeError(
+                f"Command-router returned invalid JSON for execution creation: {error}"
+            ) from error
 
     def _response_error_details(self, response: Any | None) -> str:
         if response is None:
@@ -102,7 +104,13 @@ class CommandRouterQueryClient:
                     "Command-router stream closed before a terminal execution status "
                     f"(completed/error/aborted) for execution '{execution_id}' at {endpoint}."
                 )
-            except (ws_exception, OSError, asyncio.TimeoutError, json.JSONDecodeError, RuntimeError) as error:
+            except (
+                ws_exception,
+                OSError,
+                asyncio.TimeoutError,
+                json.JSONDecodeError,
+                RuntimeError,
+            ) as error:
                 last_error = error
 
         message = str(last_error) if last_error else "unknown websocket error"

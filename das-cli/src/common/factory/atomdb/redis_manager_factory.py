@@ -20,11 +20,11 @@ class RedisContainerManagerFactory:
 
         return "atomdb.redis"
 
-    def build(self, section: dict | None = None):
-        if section is None:
+    def build(self, section: dict = {}):
+        if len(section.items()) == 0:
             section = self._settings.get(self._get_backend_path(), {}) or {}
 
-        redis_endpoint = section.get("endpoint")
+        redis_endpoint: str = section.get("endpoint", "")
         redis_port = extract_service_port(redis_endpoint)
 
         redis_nodes = section.get("nodes", []) or []

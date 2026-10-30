@@ -33,9 +33,13 @@ DEFAULT_CONFIGFILE_PATH = _resolve_default_config_path()
 
 
 def _resolve_current_config_path() -> str:
-    return EnvFileLoader(SECRETS_PATH).load().get(
-        "configpath",
-        str(DEFAULT_CONFIGFILE_PATH),
+    return (
+        EnvFileLoader(SECRETS_PATH)
+        .load()
+        .get(
+            "configpath",
+            str(DEFAULT_CONFIGFILE_PATH),
+        )
     )
 
 

@@ -8,7 +8,6 @@ from common.docker.remote_context_manager import Server
 from common.settings import Settings
 from common.utils import get_rand_token
 
-
 LOCAL_NODE_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
 
 

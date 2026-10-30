@@ -313,10 +313,7 @@ class Command:
         if "das-cli" not in combined and "das_cli" not in combined:
             return False
 
-        return (
-            "command not found" in combined
-            or "no such file or directory" in combined
-        )
+        return "command not found" in combined or "no such file or directory" in combined
 
     def _remote_run(self, kwargs, remote_kwargs):
         prefix = "das-cli"
