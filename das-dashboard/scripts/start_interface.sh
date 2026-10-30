@@ -28,7 +28,7 @@ docker run -d \
   -v /opt/web-das:/opt/web-das \
   --network=host \
   ui_backend:latest \
-  uvicorn main:dashboard_app --host 0.0.0.0 --port 8000
+  uvicorn main:dashboard_app --host 0.0.0.0 --port ${BACK_PORT}
 
 echo "Backend started successfully."
 
@@ -39,6 +39,7 @@ docker rm -f web-interface-frontend das-dashboard >/dev/null 2>&1 || true
 docker run -d \
   --name web-interface-frontend \
   --network host \
+  -e VITE_API_BASE_URL="http://localhost:${BACK_PORT}" \
   das-dashboard:latest \
   npm run dev -- --host 0.0.0.0 --port ${FRONT_PORT}
 

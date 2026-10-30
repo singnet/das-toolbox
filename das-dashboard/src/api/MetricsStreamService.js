@@ -1,3 +1,5 @@
+import { resolveWsBaseUrl } from "./apiBase";
+
 export function createMetricsStream({
   host,
   onData,
@@ -7,7 +9,7 @@ export function createMetricsStream({
 }) {
 
   const socket = new WebSocket(
-    `ws://localhost:8000/metrics/live-ws?metric_scope=all&host=${host}`
+    `${resolveWsBaseUrl()}/metrics/live-ws?metric_scope=all&host=${encodeURIComponent(host)}`
   );
 
   let dasCliErrorMessage = null;
