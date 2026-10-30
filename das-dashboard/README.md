@@ -1,78 +1,117 @@
-# DAS UI for Configuration & Setup
+# DAS Dashboard
 
-The DAS UI is a simple and intuitive web interface designed to simplify the configuration, deployment, and monitoring of DAS environments through a visual workflow.
+The Distributed Atomspace Dashboard is a web interface for configuring, operating, and monitoring a DAS environment. It is, basically, a wrapper around [das-cli](../das-cli/README.md): every start, stop, configuration, and query action runs `das-cli` underneath.
 
-## Requirements
+## Table of Contents
 
-* Node.js **22.0.0 or later**
+* [Screens](#screens)
+* [Prerequisites](#prerequisites)
+* [SSH access](#ssh-access)
+* [Starting the interface](#starting-the-interface)
+* [Using the dashboard](#using-the-dashboard)
+  * [1. Profile](#1-profile)
+  * [2. Configuration](#2-configuration)
+  * [3. Dashboard](#3-dashboard)
+  * [4. Query](#4-query)
+  * [5. Common errors & troubleshooting](#5-common-errors--troubleshooting)
 
-You can verify your installed Node.js version with:
+## Screens
 
-```bash
-node -v
-```
+The top bar has four pages.
 
-If your version is below 22, we recommend installing the latest LTS release:
-
-```bash
-nvm install node --lts
-```
-
-Make sure that NVM is installed on your system. If it is not, follow the installation instructions available in the NVM repository.
+| Page | Path | What it is for |
+|---|---|---|
+| Profile | `/profiles` | SSH username and private key used for every remote operation |
+| Configuration | `/configuration` | AtomDB, agents, brokers, and their parameters |
+| Dashboard | `/dashboard` | Machines discovered from the saved configuration, service status, and runtime metrics |
+| Query | `/query` | Compose and run a query, then inspect the answers |
 
 ## Prerequisites
 
-Before using the dashboard, ensure that:
+Install **das-cli** before starting the dashboard. The same version must be installed on the machine that runs the dashboard and on every machine that will take part in the architecture.
 
-* You are running the latest version of **das-cli**.
-* All machines that will participate in the DAS architecture are running the latest version of **das-cli**.
-* All machines in the architecture have a shared SSH key configured and properly authorized.
+The dashboard container uses the binary at `/usr/bin/das-cli`. Install with the APT repository or a local `.deb` package, as described in the [das-cli installation](../das-cli/README.md#installation). A `pip install` inside a virtualenv does not put the binary on that path.
 
-## Starting the Interface
+Docker must be installed on the dashboard machine and on every machine where `das-cli` will start a container. The SSH user configured below must be allowed to use Docker on each of those machines (typically by being in the `docker` group).
 
-Run the following script:
+## SSH access
+
+The Profile page stores one username and one private key. The dashboard uses that key for SCP, remote `das-cli` commands, and the Docker contexts that start databases on other machines. The matching **public** key has to be in `authorized_keys` for that user on every machine in the architecture.
+
+Create a key pair on the machine where you will open the dashboard:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/das-dashboard -N ""
+```
+
+`~/.ssh/das-dashboard` is the private key you will upload on the **Profile** page. `~/.ssh/das-dashboard.pub` is the public key.
+
+On each machine, as the user who will run `das-cli` (the same username you will type in Profile; `root` is not accepted, das-cli will block any operations on root user.):
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+cat >> ~/.ssh/authorized_keys
+# paste the contents of das-dashboard.pub, then press Ctrl-D
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Confirm the key works before using the dashboard:
+
+```bash
+ssh -i ~/.ssh/das-dashboard <username>@<host> das-cli --version
+```
+
+## Starting the interface
+
+From `das-dashboard/`:
 
 ```bash
 ./scripts/start_interface.sh
 ```
 
-## Recommended Usage Flow
+The script builds the frontend and backend images and starts both containers on the host network.
 
-### 1. Create an SSH Profile
+| Service | URL |
+|---|---|
+| Dashboard | http://localhost:5173 |
+| Backend | http://localhost:8000 |
+| Backend API docs | http://localhost:8000/docs |
 
-Navigate to the **Profile** page and configure an SSH profile.
+Override the ports with the following variables: `FRONT_PORT` and `BACK_PORT`.
+Example: ` FRONT_PORT=4000 BACK_PORT=5000 ./scripts/start_interface `
 
-A profile consists of:
+## Using the dashboard
 
-* **Username**
-* **SSH Private Key** (used for all remote operations performed by the dashboard)
+### 1. Profile
 
-### 2. Configure DAS Services
+Open **Profile** and set:
 
-Navigate to the **Configuration** page.
+* **Username.** The SSH account on the remote machines. It must be at least 3 characters and cannot be `root`.
+* **SSH Key File.** The private key created above (`~/.ssh/das-dashboard`), not the `.pub` file.
 
-This page allows you to define the settings, parameters, and deployment options for all Distributed AtomSpace components, including:
+Save the profile before configuring anything that has to reach another machine.
 
-* AtomDB
-* Agents (such as Query Agents and Link Creation Agents)
-* Brokers
-* Component-specific configuration parameters
+### 2. Configuration
 
-If you already have a DAS configuration file, you can import it by clicking **Load** and selecting a valid configuration JSON file.
+Open **Configuration**.
 
-### 3. Save Your Configuration
+This page edits the DAS configuration: AtomDB, agents (Query Agent, Link Creation Agent, and the others), brokers, and the parameters of each component. If you already have a `config.json`, use **Load** and select that file.
 
-After customizing the configuration according to your environment, click **Save** to persist the settings.
+**Save** writes the file on the dashboard machine and runs `das-cli config set --file` there. When the configuration names other machines, the same file is copied to each of them and `das-cli config set --file` runs on those machines as well. That step registers the Docker contexts the CLI uses to start containers remotely.
 
-### 4. Open the Dashboard
+### 3. Dashboard
 
-Navigate to the **Dashboard** page.
+Open **Dashboard**.
 
-The dashboard automatically loads the previously saved configuration and discovers the configured machines based on the architecture definition.
+The page reads the saved configuration and lists the machines it defines. From here you can start and stop the databases and the agents, and follow whether each service is up. The page also shows runtime metrics for those machines.
 
-Once loaded, the dashboard will:
+Start the databases before the agents, the same order used with `das-cli db start` and then `das-cli query start`.
 
-* Connect to each configured machine.
-* Collect and display runtime metrics.
-* Monitor the status of deployed services.
-* Provide visibility into resource utilization across the architecture.
+### 4. Query
+
+Open **Query** after the Query Agent and the Attention Broker are running.
+
+Type the query, turn on **Use MeTTa query** when the text is MeTTa, adjust the parameters in the side panel, and run it. The answers come back on the same page.
+
+### 5. Common errors & troubleshooting:
