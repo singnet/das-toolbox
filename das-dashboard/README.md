@@ -85,33 +85,39 @@ Example: ` FRONT_PORT=4000 BACK_PORT=5000 ./scripts/start_interface `
 
 ### 1. Profile
 
-Open **Profile** and set:
+Profile only sets the SSH user and the private key used to reach the machines in the architecture. Skip it when the whole DAS runs on this machine.
 
-* **Username.** The SSH account on the remote machines. It must be at least 3 characters and cannot be `root`.
-* **SSH Key File.** The private key created above (`~/.ssh/das-dashboard`), not the `.pub` file.
-
-Save the profile before configuring anything that has to reach another machine.
+Enter the username, select the private key, and save. If a later step fails with an authentication error, the public key is not authorized for that user on the target machine. See [SSH access](#ssh-access).
 
 ### 2. Configuration
 
-Open **Configuration**.
+Configuration is where you place each DAS agent: which machine, by IP, runs which agent.
 
-This page edits the DAS configuration: AtomDB, agents (Query Agent, Link Creation Agent, and the others), brokers, and the parameters of each component. If you already have a `config.json`, use **Load** and select that file.
+Saving generates a `config.json` and sets it as the current DAS configuration. If the file names any remote machine, the dashboard copies it there and runs `das-cli config set --file` on that machine. That copy fails with an authentication error when the SSH key from Profile is not set up on the target.
 
-**Save** writes the file on the dashboard machine and runs `das-cli config set --file` there. When the configuration names other machines, the same file is copied to each of them and `das-cli config set --file` runs on those machines as well. That step registers the Docker contexts the CLI uses to start containers remotely.
+An existing configuration file can be brought in with **Load**.
 
 ### 3. Dashboard
 
-Open **Dashboard**.
+Dashboard is where you operate the DAS and watch it. Opening the page loads the saved configuration and connects to every machine listed in it.
 
-The page reads the saved configuration and lists the machines it defines. From here you can start and stop the databases and the agents, and follow whether each service is up. The page also shows runtime metrics for those machines.
+Two views:
 
-Start the databases before the agents, the same order used with `das-cli db start` and then `das-cli query start`.
+* **Servers.** One server at a time, and the agents running on it. The table on this view can stop or restart an agent on that machine. **Metrics collection** records finer-grained performance data for those agents.
+* **Agents.** Everything in one list: the databases and the agents across all machines in this DAS.
+
+Three actions apply to the whole architecture:
+
+* **Start AtomDB.** Starts the AtomDB. When it is configured on another machine, the container is started there.
+* **Start Architecture.** Choose which parts of the architecture to start. Each one starts on the machine it was assigned to in Configuration.
+* **Load Metta Database.** Loads a MeTTa file into the AtomDB. When that database is on another machine, the file is copied there and then loaded.
 
 ### 4. Query
 
-Open **Query** after the Query Agent and the Attention Broker are running.
+Query runs a query from the browser and shows the result as it arrives. The query can be written in MeTTa or in the default syntax. The page updates live, including charts for answer importance and for how many answers arrive per second.
 
-Type the query, turn on **Use MeTTa query** when the text is MeTTa, adjust the parameters in the side panel, and run it. The answers come back on the same page.
+Query parameters are edited on the same page: answer limits and the other parameters of the query.
+
+**Pre-requisites:** The page needs a running architecture with at least an Attention Broker, a Query Agent, and a Command Router, and a database that already has data loaded.
 
 ### 5. Common errors & troubleshooting:
