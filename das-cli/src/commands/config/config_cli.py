@@ -1,6 +1,6 @@
+import json
 import os
 import shutil
-import json
 from pathlib import Path
 from typing import Optional
 
@@ -18,9 +18,9 @@ from common import (
     StdoutSeverity,
     StdoutStatus,
 )
-from common.utils import require_vault_endpoint
-from common.prompt_types import AbsolutePath
 from common.config.defaults import get_default_config_dict
+from common.prompt_types import AbsolutePath
+from common.utils import require_vault_endpoint
 from settings.config import (
     DAS_PATH,
     DEFAULT_CONFIGFILE_PATH,

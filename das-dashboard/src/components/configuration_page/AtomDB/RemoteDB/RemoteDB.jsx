@@ -23,15 +23,29 @@ import { ConfigForm } from "../../ConfigForm"
 
 export function RemoteDBOptions() {
 
-  const { updateField } = useConfig()
+  const { config, updateField, getAtomdbTemplate } = useConfig()
   const { showToast } = useToast()
 
-  const [peers, setPeers] = useState([])
-  const peersRefs = useRef({})
-  const nextPeerIdRef = useRef(1)
+  const [savedPeers] = useState(() => structuredClone(
+    (config.atomdb?.atomdb_type === "remotedb"
+      ? config.atomdb.remote_peers
+      : getAtomdbTemplate("remotedb")?.remote_peers) || []
+  ))
+  const [peers, setPeers] = useState(() => savedPeers.map((peer, index) => ({
+    id: index + 1,
+    uid: peer.uid,
+    type: peer.type,
+    localType: peer.local_persistence?.type || "inmemorydb",
+    initialValues: peer
+  })))
+  const peersRefs = useRef(Object.fromEntries(savedPeers.map((peer, index) => [index + 1, peer])))
+  const nextPeerIdRef = useRef(savedPeers.length + 1)
 
   const addPeer = () => {
-    const id = nextPeerIdRef.current++
+    let id = nextPeerIdRef.current++
+    while (Object.values(peersRefs.current).some(peer => peer.uid === `peer${id}`)) {
+      id = nextPeerIdRef.current++
+    }
     const uid = `peer${id}`
 
     peersRefs.current[id] = {
@@ -71,6 +85,7 @@ export function RemoteDBOptions() {
 
     if (category === "local") {
       peersRefs.current[id].local_persistence = {
+        ...base.local_persistence,
         type,
         context: `${base.context}local_`,
         ...connection
@@ -167,11 +182,13 @@ export function RemoteDBOptions() {
           {peer.type === "redismongodb" ? (
             <RedisMongoSubForm
               category="main"
+              initialValues={peer.initialValues}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
             />
           ) : (
             <MorkMongoSubForm
               category="main"
+              initialValues={peer.initialValues}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
             />
           )}
@@ -216,6 +233,7 @@ export function RemoteDBOptions() {
           {peer.localType === "redismongodb" && (
             <RedisMongoSubForm
               category="local"
+              initialValues={peer.initialValues?.local_persistence}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
             />
           )}
@@ -223,6 +241,7 @@ export function RemoteDBOptions() {
           {peer.localType === "morkdb" && (
             <MorkMongoSubForm
               category="local"
+              initialValues={peer.initialValues?.local_persistence}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
             />
           )}

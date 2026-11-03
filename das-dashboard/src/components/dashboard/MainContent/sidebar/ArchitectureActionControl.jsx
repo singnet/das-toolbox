@@ -17,6 +17,7 @@ import {
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startArchitecture, stopArchitecture } from "../../../../api/ServicesAPI";
+import { getConfigDefaults } from "../../../../api/ConfigAPI";
 import { extractApiError } from "../../../../api/APIUtils";
 
 const CORE_TOOLTIP =
@@ -57,26 +58,40 @@ export function ArchitectureActionControl({
   const [expanded, setExpanded] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
+  const [atomdbType, setAtomdbType] = useState(null);
 
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
   const hasInitializedSelection = useRef(false);
 
   useEffect(() => {
-    const availableIds = orchestrationServices.map((service) => service.id);
-    setSelectedServices((current) => {
-      if (!hasInitializedSelection.current) {
-        hasInitializedSelection.current = true;
-        return availableIds;
-      }
-      return current.filter((id) => availableIds.includes(id));
+    let active = true;
+    getConfigDefaults().then((defaults) => {
+      if (active) setAtomdbType(defaults?.content?.atomdb?.atomdb_type);
+    }).catch((error) => {
+      console.error("Failed to load AtomDB type for service selection:", error);
     });
-  }, [orchestrationServices]);
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!atomdbType) return;
+    const availableIds = orchestrationServices.map((service) => service.id);
+    if (!hasInitializedSelection.current) {
+      hasInitializedSelection.current = true;
+      setSelectedServices(atomdbType === "remotedb"
+        ? availableIds.filter((id) => ["attention-broker", "query-engine", "command-router"].includes(id))
+        : availableIds);
+      return;
+    }
+    setSelectedServices((current) => current.filter((id) => availableIds.includes(id)));
+  }, [orchestrationServices, atomdbType]);
 
   const isLoading = !!loadingAction;
 
   const isActionDisabled =
     disabled ||
+    !atomdbType ||
     isLoading ||
     isServerOffline ||
     (!atomDbOnline && !architectureOnline) ||

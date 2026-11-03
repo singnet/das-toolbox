@@ -28,6 +28,8 @@ from .query_agent_docs import (
 )
 
 CLI_SERVICE_NAME = "query_agent"
+
+
 class QueryAgentStop(Command):
     name = "stop"
 

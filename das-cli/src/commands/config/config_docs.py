@@ -244,7 +244,9 @@ EXAMPLES
 
 """
 
-SHORT_HELP_CONFIG_SET = "Activate default config or create ~/.das/<name>.json; set key=value on active custom config."
+SHORT_HELP_CONFIG_SET = (
+    "Activate default config or create ~/.das/<name>.json; set key=value on active custom config."
+)
 
 HELP_CONFIG_LIST = """Display all current configuration values used by the DAS CLI.
 

@@ -59,6 +59,10 @@ start - Starts all DBMS containers.
 Upon execution, the command will display the ports on which each database is running.
 Note that the port configuration can be modified using the 'das-cli config set' command.
 
+With a RemoteDB configuration, the Redis and MongoDB of every RedisMongo peer in
+atomdb.remote_peers are started on the peer's own server, through the same SSH Docker
+contexts used by clusters.
+
 .SH EXAMPLES
 
 Start all databases for use with the DAS.

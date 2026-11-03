@@ -20,14 +20,15 @@ class RedisContainerManagerFactory:
 
         return "atomdb.redis"
 
-    def build(self):
-        backend_path = self._get_backend_path()
+    def build(self, section: dict = {}):
+        if len(section.items()) == 0:
+            section = self._settings.get(self._get_backend_path(), {}) or {}
 
-        redis_endpoint = self._settings.get(f"{backend_path}.endpoint")
+        redis_endpoint: str = section.get("endpoint", "")
         redis_port = extract_service_port(redis_endpoint)
 
-        redis_nodes = self._settings.get(f"{backend_path}.nodes", [])
-        redis_cluster = self._settings.get(f"{backend_path}.cluster", False)
+        redis_nodes = section.get("nodes", []) or []
+        redis_cluster = section.get("cluster", False)
 
         container_name = f"das-cli-redis-{redis_port}"
 

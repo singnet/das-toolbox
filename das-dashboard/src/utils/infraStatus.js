@@ -63,7 +63,23 @@ function isArchitectureEntry(entry) {
   ].some((marker) => name.includes(marker));
 }
 
-export function getInfraStatusFromStaticMetrics(metrics) {
+export function getRemoteDbServicesByHost(atomdb = {}) {
+  if (atomdb.atomdb_type !== "remotedb") return {};
+  const result = {};
+  for (const peer of atomdb.remote_peers || []) {
+    if (peer.type !== "redismongodb") continue;
+    for (const [database, kind] of [["redis", "redis"], ["mongo", "mongodb"]]) {
+      const endpoint = peer[`${database}_endpoint`];
+      const port = peer[`${database}_port`];
+      if (!endpoint || !port) continue;
+      const host = ["localhost", "127.0.0.1", "0.0.0.0"].includes(endpoint) ? "localhost" : endpoint;
+      (result[host] ||= []).push({ kind, port: Number(port) });
+    }
+  }
+  return result;
+}
+
+export function getInfraStatusFromStaticMetrics(metrics, expectedDatabases = []) {
   const serviceInfo = metrics?.serviceInfo;
 
   if (!serviceInfo || typeof serviceInfo !== "object") {
@@ -87,10 +103,18 @@ export function getInfraStatusFromStaticMetrics(metrics) {
     }
   }
 
+  if (expectedDatabases.length) {
+    atomDbOnline = expectedDatabases.every(({ kind, port }) =>
+      Object.values(serviceInfo).some((entry) =>
+        isRunning(entry?.status) && Number(entry?.port) === port &&
+        String(entry?.container_name || "").toLowerCase().includes(kind)
+      )
+    );
+  }
   return { atomDbOnline, architectureOnline };
 }
 
-export async function fetchInfraStatusForAllHosts(hosts = []) {
+export async function fetchInfraStatusForAllHosts(hosts = [], expectedByHost = {}) {
   const uniqueHosts = [...new Set(hosts.filter(Boolean))];
 
   if (!uniqueHosts.length) {
@@ -101,7 +125,7 @@ export async function fetchInfraStatusForAllHosts(hosts = []) {
     uniqueHosts.map(async (host) => {
       try {
         const metrics = await fetchDashboardDataStatic("all", host);
-        return [host, getInfraStatusFromStaticMetrics(metrics)];
+        return [host, getInfraStatusFromStaticMetrics(metrics, expectedByHost[host])];
       } catch (error) {
         console.error(`Failed to fetch static metrics for ${host}:`, error);
         return [host, { ...DEFAULT_INFRA_STATUS }];
@@ -114,7 +138,7 @@ export async function fetchInfraStatusForAllHosts(hosts = []) {
 
 export async function pollInfraStatusForAllHosts(
   hosts = [],
-  { attempts = 5, delayMs = 2000 } = {}
+  { attempts = 5, delayMs = 2000, expectedByHost = {} } = {}
 ) {
   let latest = {};
 
@@ -122,7 +146,7 @@ export async function pollInfraStatusForAllHosts(
     if (attempt > 0) {
       await sleep(delayMs);
     }
-    latest = await fetchInfraStatusForAllHosts(hosts);
+    latest = await fetchInfraStatusForAllHosts(hosts, expectedByHost);
   }
 
   return latest;

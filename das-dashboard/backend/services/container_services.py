@@ -2,7 +2,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from shared.enums.action_types import ActionTypes
 from shared.internal.web_configuration import WebConfiguration
-from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
+from shared.internal.constants import LOCAL_HOSTS
+from shared.utils.das_cli_command import build_host_cli_command
+from shared.utils.docker_ssh_access import ensure_docker_ssh_access
 from shared.exceptions.custom_exceptions import (
     ConfigurationValueNotFoundError,
     DasCliCommandException,
@@ -12,6 +14,7 @@ from shared.utils.das_cli_response import (
     run_das_cli_json_command,
 )
 from shared.utils.service_inventory import ORCHESTRATION_ORDER
+from shared.utils.path_utils import split_endpoint
 
 
 class ContainerServices:
@@ -29,6 +32,10 @@ class ContainerServices:
         host: str | None = None,
     ):
         service_command = command or container_name
+        if service_command == "db":
+            config = self.web_config.load_raw_configuration()
+            if config.get("atomdb", {}).get("type") == "remotedb":
+                return self._manage_remote_atomdb(action, config)
         resolved_host = host or self._resolve_service_host(service_command)
         generated_command = self.build_das_cli_command(
             host=resolved_host,
@@ -36,6 +43,20 @@ class ContainerServices:
             action=action.value,
         )
         return self.run_das_cli_command(generated_command)
+
+    def _manage_remote_atomdb(self, action: ActionTypes, config: dict):
+        peer_hosts = set()
+        for peer in config.get("atomdb", {}).get("remote_peers", []):
+            if peer.get("type") != "redismongodb":
+                continue
+            for database in ("redis", "mongodb"):
+                host, _ = split_endpoint(peer.get(database, {}).get("endpoint"), "", 0)
+                if host and host not in LOCAL_HOSTS:
+                    peer_hosts.add(host)
+
+        ensure_docker_ssh_access(self.web_config, list(peer_hosts))
+        command = self.build_das_cli_command("localhost", "db", action.value)
+        return self.run_das_cli_command(command)
 
     def orchestrate_architecture(self, action: ActionTypes, services: list[str]):
         ordered_services = self._order_services(services, action)
@@ -159,20 +180,9 @@ class ContainerServices:
         service_command: str,
         action: str,
     ):
-        cmd = ["das-cli", service_command, action]
-
-        if self._is_remote(host):
-            profile = self.web_config.user_profile
-            ssh_key = profile.get("profile_ssh_keypath") or DEFAULT_SSHKEY_CLONE_PATH
-            cmd.extend([
-                "--remote",
-                "--host", host,
-                "-u", profile.get("profile_username", "root"),
-                "-k", ssh_key,
-            ])
-
-        cmd.extend(["-o", "json"])
-        return cmd
+        return build_host_cli_command(
+            self.web_config, host, [service_command, action, "-o", "json"]
+        )
 
     def run_das_cli_command(self, command: list):
         try:
