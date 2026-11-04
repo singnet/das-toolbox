@@ -10,9 +10,10 @@ The Distributed Atomspace Dashboard is a web interface for configuring, operatin
 * [Starting the interface](#starting-the-interface)
 * [Using the dashboard](#using-the-dashboard)
   * [1. Profile](#1-profile)
+    * [Setting up a profile](#setting-up-a-profile)
   * [2. Configuration](#2-configuration)
     * [Keeping the defaults](#keeping-the-defaults)
-    * [Changing a few values](#changing-a-few-values)
+    * [Changing a few parameters and values](#changing-a-few-parameters-and-values)
     * [Running the DAS on more than one machine](#running-the-das-on-more-than-one-machine)
     * [Running Redis or MongoDB as a cluster](#running-redis-or-mongodb-as-a-cluster)
     * [Using another AtomDB](#using-another-atomdb)
@@ -27,6 +28,9 @@ The Distributed Atomspace Dashboard is a web interface for configuring, operatin
     * [Seeing the whole architecture](#seeing-the-whole-architecture)
     * [Stopping the DAS](#stopping-the-das)
   * [4. Query](#4-query)
+    * [Running a query](#running-a-query)
+    * [Changing the parameters for one query](#changing-the-parameters-for-one-query)
+    * [Querying a protected AtomDB](#querying-a-protected-atomdb)
   * [5. Common errors & troubleshooting](#5-common-errors--troubleshooting)
 * [Reference](#reference)
   * [Profile page](#profile-page)
@@ -40,6 +44,13 @@ The Distributed Atomspace Dashboard is a web interface for configuring, operatin
     * [Actions](#actions)
     * [Servers view](#servers-view)
     * [Agents view](#agents-view)
+  * [Query page](#query-page)
+    * [Query box](#query-box)
+    * [Parameters](#parameters)
+    * [Status bar](#status-bar)
+    * [Results](#results)
+    * [Charts](#charts)
+    * [Messages](#messages)
 
 ## Screens
 
@@ -119,6 +130,8 @@ If the whole DAS runs on this machine with the default values, skip Profile. Ope
 
 Do this first when the DAS will use more than one machine. The dashboard reaches every other machine with this user and key.
 
+#### Setting up a profile.
+
 1. Create the key pair and authorize it on every machine, as described in [SSH access](#ssh-access).
 2. Open **Profile** and type the SSH user. It cannot be `root`.
 3. Click **Select SSH Key File** and pick the private key, the file without `.pub`.
@@ -165,6 +178,23 @@ So type addresses with that in mind. The default `0.0.0.0` only works when every
 5. Click **Save**. The dashboard copies the file to every machine named in it and makes it the active configuration there. The confirmation lists the machines it reached.
 
 Then open the Dashboard page to start each part on its machine.
+
+**Example: two machines.**
+
+| Machine | IP | Runs |
+|---|---|---|
+| A | `144.56.128.58` | AtomDB, Attention Broker, Query Agent |
+| B | `151.124.20.2` | Link Creation Agent, Evolution Agent |
+
+On the Configuration page:
+
+* **AtomDB**: Redis Endpoint and MongoDB Endpoint set to `144.56.128.58`.
+* **Attention Broker** and **Query Agent**: IP Address set to `144.56.128.58`.
+* **Link Creation Agent** and **Evolution Agent**: IP Address set to `151.124.20.2`.
+
+In this example, suppose that the dashboard runs on Machine A. The agents not listed keep their default address, so they run on A as well.
+
+After **Save**, both machines have the same file. **Start Architecture** starts the Attention Broker and the Query Agent on A, and the Link Creation Agent and the Evolution Agent on B. When the agents on B start, they read the file, find the Query Agent at `144.56.128.58`, and connect to it there. Machine B must be able to reach Machine A on the Query Agent and Attention Broker ports.
 
 #### Running Redis or MongoDB as a cluster
 
@@ -242,18 +272,16 @@ If the page says **No servers configured**, save a configuration first. See [Kee
 
 The AtomDB comes first: the agents need it to run.
 
-1. In **Servers**, select the tab of the machine that hosts the AtomDB. When everything runs on this machine, that is `localhost`.
-2. Click **Start AtomDB** and confirm. Anything of the AtomDB already running there is restarted, and its data is lost.
-3. Wait until the button reads **Stop AtomDB**. **Start Architecture** stays disabled until then.
-4. To start only some services, click the arrow next to **Start Architecture** and uncheck the ones you don't need. Leave **Core** checked: the Attention Broker and the Query Agent are what the other agents connect to.
-5. Click **Start Architecture** and confirm the list. Each service starts on the machine set for it in Configuration.
-6. Check the table on each server tab. A started service shows **Running**.
+1. Click **Start AtomDB** and confirm. It starts on the machine set for it in Configuration. Anything of the AtomDB already running there is restarted, and its data is lost.
+2. Wait until the button reads **Stop AtomDB**. **Start Architecture** stays disabled until then.
+3. To start only some services, click the arrow next to **Start Architecture** and uncheck the ones you don't need. Leave **Core** checked: the Attention Broker and the Query Agent are what the other agents connect to.
+4. Click **Start Architecture** and confirm the list. Each service starts on the machine set for it in Configuration.
+5. Check the table on each server tab. A started service shows **Running**.
 
 #### Loading a MeTTa file into the AtomDB
 
-1. In **Servers**, select the tab of the machine that hosts the AtomDB.
-2. Click **Load MeTTa Database** and pick the file. Only `.metta` files are accepted.
-3. Wait for the confirmation. The file is copied to that machine, or kept on the dashboard for `localhost`, and loaded into the AtomDB.
+1. Click **Load MeTTa Database** and pick the file. Only `.metta` files are accepted.
+2. Wait for the confirmation. The file is copied to the machine that hosts the AtomDB, or kept on the dashboard when the AtomDB is on this machine, and loaded into the AtomDB.
 
 If a file with that name was already sent, the page asks what to do. **OK** replaces it with the new one. **Cancel** loads the file already there.
 
@@ -281,15 +309,57 @@ Click **Agents** in the sidebar. Every service on every machine appears as a car
 
 1. Click the arrow next to **Stop Architecture** if you want to keep some services running, and uncheck them.
 2. Click **Stop Architecture** and confirm.
-3. Select the AtomDB machine's tab, click **Stop AtomDB**, and confirm. The data in the AtomDB is lost.
+3. Click **Stop AtomDB** and confirm. The data in the AtomDB is lost.
 
 ### 4. Query
 
-Query runs a query from the browser and shows the result as it arrives. The query can be written in MeTTa or in the default syntax. The page updates live, including charts for answer importance and for how many answers arrive per second.
+![Query page](docs/static/query_page.png)
 
-Query parameters are edited on the same page: answer limits and the other parameters of the query.
+This page sends queries to the Query Agent and shows the answers while they arrive. The query parameters are on the left. The query box, the results, and two charts are on the right.
 
-**Pre-requisites:** The page needs a running architecture with at least an Attention Broker, a Query Agent, and a Command Router, and a database that already has data loaded.
+Before the first query:
+
+* The Query Agent and the Command Router must be running. The page reaches the Query Agent through the Command Router. **Start Architecture** with the default selection starts both, together with the Attention Broker the Query Agent uses. See [Starting the DAS](#starting-the-das).
+* The AtomDB must have data. See [Loading a MeTTa file into the AtomDB](#loading-a-metta-file-into-the-atomdb).
+
+#### Running a query
+
+1. Open **Query**.
+2. Turn on **Use MeTTa query** to write the query in MeTTa. Leave it off to write it as DAS query tokens.
+3. Type the query.
+4. Click **Run**.
+
+Answers appear under **Results** as they arrive, and the counters and charts update with them. **Stop** ends the query before it finishes.
+
+The same query in both forms:
+
+```
+(Similarity "human" $S)
+```
+
+```
+LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S
+```
+
+Results shows the last 10 answers. Click **Show all results** to page through all of them.
+
+#### Changing the parameters for one query
+
+The parameters open with the values saved in the configuration, under Base Query and Query Agent. If the configuration has none, they open with the DAS defaults.
+
+1. Change the parameters on the left.
+2. Type the query and click **Run**.
+
+The query runs with the values on the screen. They are not saved: reloading the page brings back the configured values. To change them for good, edit Base Query or Query Agent on the Configuration page. See [Changing a few parameters and values](#changing-a-few-parameters-and-values).
+
+To get only the number of answers, turn on **Count only**. Results then shows a single line with the total.
+
+#### Querying a protected AtomDB
+
+1. Click **Choose public key** and pick your `.pub` file.
+2. Type the query and click **Run**.
+
+The key is sent with the query, for the AtomDB or, with Remote DB, for every peer. Each protected database must grant access to that key. The × next to the file name removes it.
 
 ### 5. Common errors & troubleshooting
 
@@ -524,12 +594,12 @@ The server tabs list every machine named in the saved configuration. `localhost`
 
 | Action | What it does |
 |---|---|
-| Start AtomDB | Runs `das-cli db start` on the server selected in the tabs, over SSH for a remote server. The confirmation names the AtomDB type and the server. Any AtomDB component already running there is restarted, and its data is lost. |
-| Stop AtomDB | Shown in place of Start AtomDB while the AtomDB is online. Runs `das-cli db stop` on the selected server. All its components stop, and their data is lost. |
+| Start AtomDB | Runs `das-cli db start` on the machine that hosts the AtomDB in the configuration, over SSH when it is another machine. The confirmation names the AtomDB type and the machine. Any AtomDB component already running there is restarted, and its data is lost. |
+| Stop AtomDB | Shown in place of Start AtomDB while the AtomDB is online. Runs `das-cli db stop` on the machine that hosts the AtomDB. All its components stop, and their data is lost. |
 | Start Architecture | Starts the services checked in the selector, each on the machine set for it in the configuration. Disabled until the AtomDB is online. The confirmation lists the services. |
 | Stop Architecture | Shown in place of Start Architecture while the architecture is online. Stops the services checked in the selector, in reverse order. |
 | Arrow next to Start/Stop Architecture | Opens the service selector. |
-| Load MeTTa Database | Opens a file picker for `.metta` files. Sends the file to the selected server and runs `das-cli metta load` there. For `localhost`, the file is kept on the dashboard. |
+| Load MeTTa Database | Opens a file picker for `.metta` files. Sends the file to the machine that hosts the AtomDB and runs `das-cli metta load` there. When the AtomDB is on this machine, the file is kept on the dashboard. |
 
 All actions are disabled while another action is running, or while the selected server is offline or still connecting. After a start or stop, the page checks every server again to update the buttons.
 
@@ -613,3 +683,74 @@ Two tabs, **Agents** and **AtomDB**, split the services by type. Each card is on
 | Health | Healthy, Unhealthy, Running when there is no health check, or No status when offline. |
 
 Clicking a card opens **CPU Usage In-Time** and **Memory Usage In-Time** for that service, below the cards. These charts are live only. Switching tabs closes them.
+
+### Query page
+
+Path: `/query`.
+
+Queries go to the Command Router's HTTP API, which passes them to the Query Agent and streams the answers back.
+
+#### Query box
+
+| Control | What it does |
+|---|---|
+| Use MeTTa query | On: the query is one MeTTa expression. Off: the query is DAS query tokens. Sent as `use_metta_as_query_tokens`. |
+| Query box | The query text. **Run** stays disabled while it is empty. |
+| Run | Starts the query with the parameters on the screen. Disabled while a query is running. |
+| Stop | Cancels the running query. |
+| Choose public key | Picks a key file (`.pub`, `.key`, or text). Optional. Disabled while a query runs. |
+| × next to the key | Removes the selected key. |
+
+**Public key.** The file must hold one token or one SSH public key on a single line. The key is paired with the AtomDB `uid`, or with every Remote DB peer `uid`, and sent as `public_key_tokens` (`uid key uid key …`).
+
+#### Parameters
+
+Opened with `agents.base_query.params` merged with `agents.query.params` from the saved configuration. Changes apply to the next **Run** only, and are lost on reload.
+
+| Control | Key | Default | What it does |
+|---|---|---|---|
+| Attention update | `attention_update` | None | Whether the query stimulates the Attention Broker with the matched elements: **None**, **Handles**, **Variables**, or **Handles and variables**. |
+| Attention correlation | `attention_correlation` | None | Whether the query correlates the matched elements in the Attention Broker, without spreading activation. Same four options. |
+| Attention focus strictness | `attention_focus_strictness` | `0.0` | From 0 to 1, in steps of 0.1. Higher values narrow the attention focus, so fewer answers are fetched. Use it to limit memory and processing time. |
+| Max bundle size | `max_bundle_size` | `1000` | How many answers are buffered before they are sent to the client. |
+| Limit the number of answers | `max_answers` | Off | Off sends `0`, no limit. On sends the **Answer limit**. |
+| Answer limit | `max_answers` | `1` | Integer, 1 or more. Enabled only with the limit on. |
+| Unique assignment | `unique_assignment_flag` | Off | And, Or, and other operators don't return two answers with the same variable assignment. |
+| Populate MeTTa mapping | `populate_metta_mapping` | Off | Answers carry the MeTTa expression of each handle. Results then shows MeTTa. |
+| Allow incomplete chain path | `allow_incomplete_chain_path` | Off | The CHAIN operator also returns paths that don't reach both ends. |
+| Only answers with non-zero STI | `positive_importance_flag` | Off | Returns only answers whose importance is above 0. |
+| Disregard STI | `disregard_importance_flag` | Off | Importance is not fetched from the Attention Broker, so the answers are not ordered by it. |
+| Unique value | `unique_value_flag` | Off | No two variables in the same answer are assigned the same handle. |
+| Count only | `count_flag` | Off | Returns only the number of answers. |
+
+Base Query's **Use Link Template Cache** is not on this page. The value from the configuration is not sent.
+
+#### Status bar
+
+| Field | What it shows |
+|---|---|
+| Answers | Answers received so far. **Count** with Count only on. |
+| Elapsed | Time since Run, in minutes and seconds. |
+| Retrieved | Answers retrieved. **Total** with Count only on. |
+| Query ID | First 8 characters of the execution ID. Shown once the query starts. |
+
+#### Results
+
+Shows the last 10 answers, newest last, and **Last *n* of *total***. **Show all results** opens **All answers**, 10 per page, read from the answers stored by the dashboard for that execution. With Count only on, Results shows **Returned *n* answers**.
+
+#### Charts
+
+| Chart | What it shows |
+|---|---|
+| Answer frequency | Answers received in the last minute, in 30 bars of 2 seconds each. |
+| Answer importance (STI) | Short-term importance of the last 30 answers, and how many are non-zero. |
+
+#### Messages
+
+| Message | Cause |
+|---|---|
+| Lost connection to the query stream. | The stream from the Command Router dropped. Check that the Command Router is still running. |
+| Failed to start query execution. | The Command Router could not be reached, or refused the query. |
+| Public key file must contain a single non-empty token or one valid SSH public key. | The key file is empty, has more than one line, or is not a valid SSH public key. |
+| atomdb.uid must be a single non-empty token to use a public key. | A key was chosen, but the configuration has no AtomDB `uid`. |
+| atomdb.remote_peers must contain peers to use a public key. | Remote DB with no peers, and a key was chosen. |
