@@ -20,6 +20,7 @@ from shared.utils.command_router_payload import build_query_execution_payload
 from shared.utils.parse_query_answer import transform_stream_event
 
 ROUTE_PREFIX = "/command-router"
+COMMAND_ROUTER_PING_TIMEOUT_SECONDS = 120
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class QueryServices:
                 websocket_url,
                 open_timeout=10,
                 ping_interval=20,
-                ping_timeout=None,
+                ping_timeout=COMMAND_ROUTER_PING_TIMEOUT_SECONDS,
                 close_timeout=5,
             ) as upstream:
                 async for message in upstream:

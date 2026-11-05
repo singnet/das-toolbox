@@ -1,12 +1,31 @@
+import ipaddress
 import os
+import re
 
 import paramiko
 
+from shared.exceptions.custom_exceptions import CustomValueError
 from shared.internal.web_configuration import WebConfiguration
 from shared.utils.remote_scp import RemoteScpService
 
 SSH_CONFIG_BLOCK_START = "# BEGIN das-dashboard docker contexts"
 SSH_CONFIG_BLOCK_END = "# END das-dashboard docker contexts"
+_HOSTNAME_PATTERN = re.compile(
+    r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)"
+    r"(?:\.(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?))*"
+)
+
+
+def _is_valid_host(host: str) -> bool:
+    if _HOSTNAME_PATTERN.fullmatch(host):
+        return True
+
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+
+    return True
 
 
 def ensure_docker_ssh_access(web_config: WebConfiguration, hosts: list[str]) -> None:
@@ -16,6 +35,11 @@ def ensure_docker_ssh_access(web_config: WebConfiguration, hosts: list[str]) -> 
     ~/.ssh/known_hosts, so both files must cover every host.
     """
     hosts = sorted(set(hosts))
+    invalid = [host for host in hosts if not _is_valid_host(host)]
+    if invalid:
+        raise CustomValueError(
+            "Invalid peer host(s) for SSH access: " + ", ".join(map(repr, invalid))
+        )
     if not hosts:
         return
 

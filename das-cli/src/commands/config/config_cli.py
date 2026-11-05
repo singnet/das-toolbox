@@ -238,6 +238,12 @@ class ConfigSet(Command):
         config_key_value: Optional[tuple] = None,
     ):
 
+        if config_key_value is not None and file is not None:
+            raise ValueError(
+                "Cannot use --file together with key=value. "
+                "Activate the configuration file first, then set the key."
+            )
+
         if config_key_value is not None:
             return self.non_interactive_mode(config_key_value)
         if file is not None:

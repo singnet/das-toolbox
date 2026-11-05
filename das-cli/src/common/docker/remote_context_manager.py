@@ -78,7 +78,7 @@ class RemoteContextManager:
                 if status_code != 0:
                     raise Exception(f"Context {context_name} could not be removed from docker")
 
-    def _clear_existing_contexts(self) -> None:
+    def _clear_existing_contexts(self) -> List[str]:
         contexts: bytes = subprocess.check_output(
             ["docker", "context", "ls", "--format", "{{.Name}}\t{{.Description}}"]
         )
@@ -93,6 +93,8 @@ class RemoteContextManager:
 
         if contexts_list:
             subprocess.call(["docker", "context", "rm", "-f", *contexts_list])
+
+        return contexts_list
 
     def remove_servers_context(self, server_contexts: List[str]):
         self._events.append(

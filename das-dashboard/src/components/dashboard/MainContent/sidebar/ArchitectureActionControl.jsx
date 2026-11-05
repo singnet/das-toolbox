@@ -70,6 +70,7 @@ export function ArchitectureActionControl({
       if (active) setAtomdbType(defaults?.content?.atomdb?.atomdb_type);
     }).catch((error) => {
       console.error("Failed to load AtomDB type for service selection:", error);
+      if (active) setAtomdbType("unknown");
     });
     return () => { active = false; };
   }, []);

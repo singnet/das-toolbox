@@ -326,6 +326,10 @@ class Command:
         if stream_val:
             kwargs["stream"] = stream_val
 
+        # logs (and container logs) use --follow, not --stream. Without this,
+        # a remote follow command runs forever with hide=True and shows nothing.
+        should_stream = bool(stream_val or kwargs.get("follow"))
+
         extra_args = self._dict_to_command_line_args(kwargs)
         execution_context = self._get_remote_execution_context()
         context_encoded = execution_context.to_str(include_ssh=False)
@@ -337,8 +341,8 @@ class Command:
             if "config" not in command_path:
                 self._check_remote_config(remote_kwargs)
 
-            result = Connection(**remote_kwargs).run(command, hide=not bool(stream_val), warn=True)
-            if not stream_val:
+            result = Connection(**remote_kwargs).run(command, hide=not should_stream, warn=True)
+            if not should_stream:
                 self._echo_remote_streams(result)
 
             if result.failed:

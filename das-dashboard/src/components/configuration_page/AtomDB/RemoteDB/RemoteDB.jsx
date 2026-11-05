@@ -84,11 +84,12 @@ export function RemoteDBOptions() {
     }
 
     if (category === "local") {
+      const savedContext = base.local_persistence?.context
       peersRefs.current[id].local_persistence = {
         ...base.local_persistence,
+        ...connection,
         type,
-        context: `${base.context}local_`,
-        ...connection
+        context: savedContext || `${base.context || ""}local_`,
       }
     }
   }
@@ -124,10 +125,18 @@ export function RemoteDBOptions() {
       })
       .map(peer => structuredClone(peer))
 
-    updateField("atomdb", {
+    const nextAtomdb = {
       atomdb_type: "remotedb",
-      remote_peers: cleanedPeers
-    })
+      remote_peers: cleanedPeers,
+    }
+    if (config.atomdb && "atomdb_uid" in config.atomdb) {
+      nextAtomdb.atomdb_uid = config.atomdb.atomdb_uid
+    }
+    if (config.atomdb && "composite_type_enabled" in config.atomdb) {
+      nextAtomdb.composite_type_enabled = config.atomdb.composite_type_enabled
+    }
+
+    updateField("atomdb", nextAtomdb)
 
     showToast({ message: "AtomDB settings applied", severity: "success" })
   }
@@ -159,14 +168,20 @@ export function RemoteDBOptions() {
               sx={{ width: "250px" }}
               onChange={e => {
                 const val = e.target.value
-                peersRefs.current[peer.id].type = val
+                const current = peersRefs.current[peer.id]
+                current.type = val
                 setPeers(prev =>
-                  prev.map(p => p.id === peer.id ? { ...p, type: val } : p)
+                  prev.map(p => p.id === peer.id ? {
+                    ...p,
+                    type: val,
+                    initialValues: { ...current },
+                  } : p)
                 )
               }}
             >
               <MenuItem value="redismongodb">Redis + Mongo</MenuItem>
               <MenuItem value="morkdb">Mork + Mongo</MenuItem>
+              <MenuItem value="inmemorydb">In Memory</MenuItem>
             </TextField>
 
             <IconButton
@@ -179,14 +194,18 @@ export function RemoteDBOptions() {
             </IconButton>
           </PeerHeaderContainer>
 
-          {peer.type === "redismongodb" ? (
+          {peer.type === "redismongodb" && (
             <RedisMongoSubForm
+              key={`${peer.id}-main-redis`}
               category="main"
               initialValues={peer.initialValues}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
             />
-          ) : (
+          )}
+
+          {peer.type === "morkdb" && (
             <MorkMongoSubForm
+              key={`${peer.id}-main-mork`}
               category="main"
               initialValues={peer.initialValues}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
@@ -211,17 +230,23 @@ export function RemoteDBOptions() {
               value={peer.localType}
               onChange={e => {
                 const val = e.target.value
-                setPeers(prev =>
-                  prev.map(p => p.id === peer.id ? { ...p, localType: val } : p)
-                )
-                if (val === "inmemorydb") {
-                  peersRefs.current[peer.id].local_persistence = { type: "inmemorydb" }
-                } else {
-                  peersRefs.current[peer.id].local_persistence = {
-                    type: val,
-                    context: `${peersRefs.current[peer.id].context}local_`
-                  }
+                const current = peersRefs.current[peer.id]
+                const previous = current.local_persistence || {}
+                const next = { ...previous, type: val }
+                if (val !== "inmemorydb" && !next.context) {
+                  next.context = `${current.context || ""}local_`
                 }
+                current.local_persistence = next
+                setPeers(prev =>
+                  prev.map(p => p.id === peer.id ? {
+                    ...p,
+                    localType: val,
+                    initialValues: {
+                      ...(p.initialValues || {}),
+                      local_persistence: { ...next },
+                    },
+                  } : p)
+                )
               }}
             >
               <MenuItem value="inmemorydb">In Memory</MenuItem>
@@ -232,6 +257,7 @@ export function RemoteDBOptions() {
 
           {peer.localType === "redismongodb" && (
             <RedisMongoSubForm
+              key={`${peer.id}-local-redis`}
               category="local"
               initialValues={peer.initialValues?.local_persistence}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}
@@ -240,6 +266,7 @@ export function RemoteDBOptions() {
 
           {peer.localType === "morkdb" && (
             <MorkMongoSubForm
+              key={`${peer.id}-local-mork`}
               category="local"
               initialValues={peer.initialValues?.local_persistence}
               onChange={(data, cat) => updatePeer(peer.id, data, cat)}

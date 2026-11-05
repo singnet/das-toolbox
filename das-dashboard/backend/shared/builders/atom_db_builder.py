@@ -280,6 +280,10 @@ class AtomDbBuilder:
                     "password": peer["mongo_password"],
                 }
 
+            elif peer_type == "inmemorydb":
+                # uid and context are already stored. This peer has no database section.
+                pass
+
             else:
                 raise ValueError(f"Unsupported remote peer type at {peer_where}: {peer_type}")
 

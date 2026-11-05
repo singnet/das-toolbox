@@ -318,6 +318,80 @@ EOF
     [[ "$output" == *"FOO=bar"* ]]
 }
 
+@test "config set rejects --file together with key=value" {
+    use_config "simple"
+    ensure_env
+
+    local config_file
+    config_file="$(mktemp)"
+    cp "${test_fixtures_dir}/config/simple.json" "$config_file"
+
+    run das-cli config set --file "$config_file" vault.endpoint=localhost:40111
+    assert_failure
+    assert_output --partial "Cannot use --file together with key=value"
+
+    run cat "$das_env_file"
+    assert_success
+    assert_output "configpath=${das_config_file}"
+
+    run get_config ".vault.endpoint"
+    assert_output "localhost:40010"
+
+    rm -f "$config_file"
+}
+
+@test "config set --file rejects null nodes without removing docker contexts" {
+    use_config "simple"
+    ensure_env
+
+    local config_file
+    local original_file
+    local docker_config
+    config_file="$(mktemp)"
+    original_file="$(mktemp)"
+    docker_config="$(mktemp -d)"
+
+    run env DOCKER_CONFIG="$docker_config" \
+        docker context create das-cli-keep \
+        --description "managed by das-cli" \
+        --docker "host=unix:///var/run/docker.sock"
+    assert_success
+
+    jq '.atomdb.redis.nodes = [null]' \
+        "${test_fixtures_dir}/config/simple.json" > "$config_file"
+    cp "$config_file" "$original_file"
+
+    run env DOCKER_CONFIG="$docker_config" das-cli config set --file "$config_file"
+    assert_failure
+    assert_output --partial "Invalid configuration entry 'atomdb.redis.nodes[0]'"
+    assert_output --partial "Expected a node object"
+
+    run cmp "$config_file" "$original_file"
+    assert_success
+
+    jq '.atomdb = {"type":"remotedb","remote_peers":[{"type":"redismongodb","redis":{"nodes":[null]}}]}' \
+        "${test_fixtures_dir}/config/simple.json" > "$config_file"
+    cp "$config_file" "$original_file"
+
+    run env DOCKER_CONFIG="$docker_config" das-cli config set --file "$config_file"
+    assert_failure
+    assert_output --partial "atomdb.remote_peers[0].redis.nodes[0]"
+
+    run cmp "$config_file" "$original_file"
+    assert_success
+
+    run env DOCKER_CONFIG="$docker_config" docker context ls --format '{{.Name}}'
+    assert_success
+    assert_output --partial "das-cli-keep"
+
+    run cat "$das_env_file"
+    assert_success
+    assert_output "configpath=${das_config_file}"
+
+    rm -f "$config_file" "$original_file"
+    rm -rf "$docker_config"
+}
+
 @test "config set key=value is blocked when active config is default path" {
     use_config "simple"
 

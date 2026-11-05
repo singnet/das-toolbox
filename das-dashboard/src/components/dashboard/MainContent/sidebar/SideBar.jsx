@@ -42,8 +42,13 @@ export function SideBar() {
 
   const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
     const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
-    const defaults = await getConfigDefaults();
-    const expectedByHost = getRemoteDbServicesByHost(defaults?.content?.atomdb);
+    let expectedByHost = {};
+    try {
+      const defaults = await getConfigDefaults();
+      expectedByHost = getRemoteDbServicesByHost(defaults?.content?.atomdb);
+    } catch (error) {
+      console.error("Failed to load AtomDB configuration for infra status:", error);
+    }
     const statusByHost = poll
       ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000, expectedByHost })
       : await fetchInfraStatusForAllHosts(serverIps, expectedByHost);
