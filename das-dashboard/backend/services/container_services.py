@@ -2,8 +2,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from shared.enums.action_types import ActionTypes
 from shared.internal.web_configuration import WebConfiguration
-from shared.internal.constants import LOCAL_HOSTS
+from shared.internal.constants import CONFIG_PATH, LOCAL_HOSTS
 from shared.utils.das_cli_command import build_host_cli_command
+from shared.utils.das_cli_config import set_das_cli_config
 from shared.utils.docker_ssh_access import ensure_docker_ssh_access
 from shared.exceptions.custom_exceptions import (
     ConfigurationValueNotFoundError,
@@ -20,6 +21,8 @@ from shared.utils.path_utils import split_endpoint
 class ContainerServices:
 
     _SKIP_ERROR_MARKERS = ("No such command",)
+    _DB_COMMAND_TIMEOUT_SECONDS = 600.0
+    _REMOTE_DATABASES = ("redis", "mongodb", "morkdb")
 
     def __init__(self, web_config: WebConfiguration):
         self.web_config = web_config
@@ -35,7 +38,7 @@ class ContainerServices:
         if service_command == "db":
             config = self.web_config.load_raw_configuration()
             if config.get("atomdb", {}).get("type") == "remotedb":
-                return self._manage_remote_atomdb(action, config)
+                return self._manage_remote_atomdb(action, config, host)
         resolved_host = host or self._resolve_service_host(service_command)
         generated_command = self.build_das_cli_command(
             host=resolved_host,
@@ -44,19 +47,73 @@ class ContainerServices:
         )
         return self.run_das_cli_command(generated_command)
 
-    def _manage_remote_atomdb(self, action: ActionTypes, config: dict):
-        peer_hosts = set()
-        for peer in config.get("atomdb", {}).get("remote_peers", []):
-            if peer.get("type") != "redismongodb":
-                continue
-            for database in ("redis", "mongodb"):
-                host, _ = split_endpoint(peer.get(database, {}).get("endpoint"), "", 0)
-                if host and host not in LOCAL_HOSTS:
-                    peer_hosts.add(host)
-
+    def _manage_remote_atomdb(
+        self,
+        action: ActionTypes,
+        config: dict,
+        host: str | None,
+    ):
+        peer_hosts = self._remote_peer_hosts(config)
+        if host and self._is_remote(host):
+            peer_hosts.add(host)
         ensure_docker_ssh_access(self.web_config, list(peer_hosts))
+
+        # A selected remote machine runs das-cli on that machine. The local
+        # machine runs one das-cli db command, which starts every peer through
+        # its Docker context, the same command that works from the CLI.
+        if host and self._is_remote(host):
+            command = self.build_das_cli_command(host, "db", action.value)
+            return self.run_das_cli_command(
+                command,
+                timeout=self._DB_COMMAND_TIMEOUT_SECONDS,
+            )
+
+        if self._remote_nodes_missing_context(config):
+            set_das_cli_config(CONFIG_PATH, web_config=self.web_config)
+
         command = self.build_das_cli_command("localhost", "db", action.value)
-        return self.run_das_cli_command(command)
+        return self.run_das_cli_command(
+            command,
+            timeout=self._DB_COMMAND_TIMEOUT_SECONDS,
+        )
+
+    def _remote_peer_hosts(self, config: dict) -> set[str]:
+        hosts: set[str] = set()
+        for peer in config.get("atomdb", {}).get("remote_peers") or []:
+            if not isinstance(peer, dict):
+                continue
+            for database in self._REMOTE_DATABASES:
+                section = peer.get(database)
+                if not isinstance(section, dict):
+                    continue
+                endpoint = section.get("endpoint")
+                if isinstance(endpoint, str) and endpoint:
+                    endpoint_host, _ = split_endpoint(endpoint, "", 0)
+                    if endpoint_host and endpoint_host not in LOCAL_HOSTS:
+                        hosts.add(endpoint_host)
+                for node in section.get("nodes") or []:
+                    if not isinstance(node, dict):
+                        continue
+                    node_ip = node.get("ip") or ""
+                    if node_ip and node_ip not in LOCAL_HOSTS:
+                        hosts.add(node_ip)
+        return hosts
+
+    def _remote_nodes_missing_context(self, config: dict) -> bool:
+        for peer in config.get("atomdb", {}).get("remote_peers") or []:
+            if not isinstance(peer, dict):
+                continue
+            for database in self._REMOTE_DATABASES:
+                section = peer.get(database)
+                if not isinstance(section, dict):
+                    continue
+                for node in section.get("nodes") or []:
+                    if not isinstance(node, dict):
+                        continue
+                    node_ip = node.get("ip") or ""
+                    if node_ip and node_ip not in LOCAL_HOSTS and not node.get("context"):
+                        return True
+        return False
 
     def orchestrate_architecture(self, action: ActionTypes, services: list[str]):
         ordered_services = self._order_services(services, action)
@@ -184,11 +241,12 @@ class ContainerServices:
             self.web_config, host, [service_command, action, "-o", "json"]
         )
 
-    def run_das_cli_command(self, command: list):
+    def run_das_cli_command(self, command: list, timeout: float | None = None):
         try:
             stdout_json = run_das_cli_json_command(
                 command,
                 default_message=DEFAULT_CLI_ERROR_MESSAGE,
+                timeout=timeout,
             )
 
             return {
