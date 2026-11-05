@@ -46,9 +46,13 @@ def setup_agents_base_params(settings: Settings):
     )
 
     if confirmParameterConfig:
-        return {"params": setup_base_query_params(settings)}
+        params = setup_base_query_params(settings)
+    else:
+        params = get_default_value(settings, "agents.base_query.params")
+        if params is None:
+            params = {}
 
-    return {"params": get_default_value(settings, "agents.base_query.params")}
+    return {"params": params}
 
 
 def setup_attention_broker(settings: Settings):

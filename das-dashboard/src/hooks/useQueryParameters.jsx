@@ -6,7 +6,6 @@ const QueryParametersContext = createContext(null);
 
 const SWITCH_KEYS = [
   "unique_assignment_flag",
-  "use_link_template_cache",
   "populate_metta_mapping",
   "use_metta_as_query_tokens",
   "allow_incomplete_chain_path",

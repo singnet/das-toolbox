@@ -4,6 +4,9 @@ set -e
 
 FRONT_PORT=${FRONT_PORT:-5173}
 BACK_PORT=${BACK_PORT:-8000}
+DOCKER_CONFIG_DIR=${DOCKER_CONFIG_DIR:-${HOME}/.docker}
+
+mkdir -p "$DOCKER_CONFIG_DIR"
 
 echo "Building frontend image..."
 
@@ -26,6 +29,7 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /usr/bin/das-cli:/usr/bin/das-cli:ro \
   -v /opt/web-das:/opt/web-das \
+  -v "${DOCKER_CONFIG_DIR}:/opt/web-das/.docker" \
   --network=host \
   ui_backend:latest \
   uvicorn main:dashboard_app --host 0.0.0.0 --port 8000

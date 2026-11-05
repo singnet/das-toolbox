@@ -4,7 +4,7 @@ from pathlib import Path
 
 from common.config.loader import EnvFileLoader
 
-VERSION = '1.2.0'
+VERSION = '1.2.1'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "host"
@@ -33,9 +33,13 @@ DEFAULT_CONFIGFILE_PATH = _resolve_default_config_path()
 
 
 def _resolve_current_config_path() -> str:
-    return EnvFileLoader(SECRETS_PATH).load().get(
-        "configpath",
-        str(DEFAULT_CONFIGFILE_PATH),
+    return (
+        EnvFileLoader(SECRETS_PATH)
+        .load()
+        .get(
+            "configpath",
+            str(DEFAULT_CONFIGFILE_PATH),
+        )
     )
 
 
@@ -76,5 +80,5 @@ DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-1.1.0"
 DAS_MORK_LOADER_IMAGE_NAME = "trueagi/das"
 DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-1.1.0"
 
-DAS_IMAGE_VERSION = "1.2.1"
+DAS_IMAGE_VERSION = "1.2.2-rc.1"
 DAS_IMAGE_NAME = "trueagi/das"

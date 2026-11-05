@@ -8,7 +8,6 @@ BASE_QUERY_DEFAULTS = {
     "attention_focus_strictness": 0.0,
     "max_bundle_size": 1000,
     "max_answers": 0,
-    "use_link_template_cache": False,
     "populate_metta_mapping": False,
     "use_metta_as_query_tokens": False,
     "allow_incomplete_chain_path": False,
@@ -22,15 +21,15 @@ QUERY_DEFAULTS = {
 }
 
 LINK_CREATION_DEFAULTS = {
-    "max_answers": 10,
-    "repeat_count": 1,
-    "context": "context",
-    "attention_update": 0,
-    "attention_correlation": 0,
-    "positive_importance_flag": True,
-    "query_interval": 0,
-    "query_timeout": 0,
-    "use_metta_as_query_tokens": False,
+    "unique_assignment_flag": False,
+    "positive_importance_flag": False,
+    "disregard_importance_flag": False,
+    "unique_value_flag": False,
+    "max_successful_creation_per_round": 10,
+    "max_unproductive_visits_per_round": 500,
+    "max_visit_attempts_per_round": 20,
+    "max_rounds": 5,
+    "link_creation_strength_threshold": 0.1,
 }
 
 EVOLUTION_DEFAULTS = {
@@ -91,10 +90,6 @@ def setup_base_query_params(settings: Settings):
             default=BASE_QUERY_DEFAULTS["max_answers"],
             type=int,
         ),
-        "use_link_template_cache": Command.confirm(
-            "Use link template cache?",
-            default=BASE_QUERY_DEFAULTS["use_link_template_cache"],
-        ),
         "populate_metta_mapping": Command.confirm(
             "Populate MeTTa mapping?",
             default=BASE_QUERY_DEFAULTS["populate_metta_mapping"],
@@ -139,47 +134,46 @@ def setup_link_creation_params(settings: Settings):
         return LINK_CREATION_DEFAULTS.copy()
 
     return {
-        "max_answers": Command.prompt(
-            "Max answers",
-            default=LINK_CREATION_DEFAULTS["max_answers"],
-            type=int,
-        ),
-        "repeat_count": Command.prompt(
-            "Repeat count",
-            default=LINK_CREATION_DEFAULTS["repeat_count"],
-            type=int,
-        ),
-        "context": Command.prompt(
-            "Context",
-            default=LINK_CREATION_DEFAULTS["context"],
-        ),
-        "attention_update": Command.prompt(
-            "Attention update",
-            default=LINK_CREATION_DEFAULTS["attention_update"],
-            type=int,
-        ),
-        "attention_correlation": Command.prompt(
-            "Attention correlation",
-            default=LINK_CREATION_DEFAULTS["attention_correlation"],
-            type=int,
+        "unique_assignment_flag": Command.confirm(
+            "Enable unique assignment flag?",
+            default=LINK_CREATION_DEFAULTS["unique_assignment_flag"],
         ),
         "positive_importance_flag": Command.confirm(
             "Enable positive importance flag?",
             default=LINK_CREATION_DEFAULTS["positive_importance_flag"],
         ),
-        "query_interval": Command.prompt(
-            "Query interval",
-            default=LINK_CREATION_DEFAULTS["query_interval"],
+        "disregard_importance_flag": Command.confirm(
+            "Enable disregard importance flag?",
+            default=LINK_CREATION_DEFAULTS["disregard_importance_flag"],
+        ),
+        "unique_value_flag": Command.confirm(
+            "Enable unique value flag?",
+            default=LINK_CREATION_DEFAULTS["unique_value_flag"],
+        ),
+        "max_successful_creation_per_round": Command.prompt(
+            "Max successful creation per round",
+            default=LINK_CREATION_DEFAULTS["max_successful_creation_per_round"],
             type=int,
         ),
-        "query_timeout": Command.prompt(
-            "Query timeout",
-            default=LINK_CREATION_DEFAULTS["query_timeout"],
+        "max_unproductive_visits_per_round": Command.prompt(
+            "Max unproductive visits per round",
+            default=LINK_CREATION_DEFAULTS["max_unproductive_visits_per_round"],
             type=int,
         ),
-        "use_metta_as_query_tokens": Command.confirm(
-            "Use MeTTa as query tokens?",
-            default=LINK_CREATION_DEFAULTS["use_metta_as_query_tokens"],
+        "max_visit_attempts_per_round": Command.prompt(
+            "Max visit attempts per round",
+            default=LINK_CREATION_DEFAULTS["max_visit_attempts_per_round"],
+            type=int,
+        ),
+        "max_rounds": Command.prompt(
+            "Max rounds",
+            default=LINK_CREATION_DEFAULTS["max_rounds"],
+            type=int,
+        ),
+        "link_creation_strength_threshold": Command.prompt(
+            "Link creation strength threshold",
+            default=LINK_CREATION_DEFAULTS["link_creation_strength_threshold"],
+            type=float,
         ),
     }
 

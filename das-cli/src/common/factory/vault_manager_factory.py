@@ -7,7 +7,7 @@ from common.container_manager.vault_container_manager import (
     VAULT_CONTAINER_NAME,
     VaultContainerManager,
 )
-from common.utils import extract_service_port
+from common.utils import require_vault_endpoint
 from settings.config import SECRETS_PATH
 
 
@@ -20,7 +20,7 @@ class VaultManagerFactory:
         if not endpoint:
             endpoint = get_default_config_dict().get("vault", {}).get("endpoint", "localhost:40010")
 
-        vault_port = extract_service_port(endpoint)
+        _, vault_port = require_vault_endpoint(endpoint)
 
         return VaultContainerManager(
             VAULT_CONTAINER_NAME,

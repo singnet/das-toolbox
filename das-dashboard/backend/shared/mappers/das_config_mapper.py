@@ -11,6 +11,7 @@ class ConfigMapper:
         return {
             "atomdb": AtomDbBuilder(profile_username=profile_username).build(flat["atomdb"]),
             "loaders": LoadersBuilder().build(),
+            "vault": flat["vault"],
             "agents": AgentsBuilder().build(flat),
             "environment": EnvironmentBuilder().build(flat["environment"]),
         }

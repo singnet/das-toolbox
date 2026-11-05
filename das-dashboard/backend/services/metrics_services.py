@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 from shared.enums.metric_scope import MetricScope
 from shared.enums.metrics_period import MetricsPeriod
 from shared.internal.web_configuration import WebConfiguration
-from shared.internal.constants import DEFAULT_SSHKEY_CLONE_PATH, LOCAL_HOSTS
 from shared.internal.background_services_control import BackgroundServicesControl
+from shared.utils.das_cli_command import build_host_cli_command
 from shared.exceptions.custom_exceptions import DasCliNotInstalledException, CustomValueError
 from shared.db.metrics_db import (
     save_service_metrics_data,
@@ -53,22 +53,13 @@ class MetricsServices:
     ## Main services (run fetching real time data)
 
     async def _start_cli(self, host: str, *, stream: bool = False):
-        cmd = ["das-cli", "system", "status"]
-
-        if host not in LOCAL_HOSTS:
-            profile = self.web_config.user_profile
-            ssh_key = profile.get("profile_ssh_keypath") or DEFAULT_SSHKEY_CLONE_PATH
-            cmd.extend([
-                "--remote",
-                "--host", host,
-                "-u", profile.get("profile_username", "root"),
-                "-k", ssh_key,
-            ])
+        arguments = ["system", "status"]
 
         if stream:
-            cmd.append("--stream")
+            arguments.append("--stream")
 
-        cmd.extend(["-o", "json"])
+        arguments.extend(["-o", "json"])
+        cmd = build_host_cli_command(self.web_config, host, arguments)
 
         try:
             return await asyncio.create_subprocess_exec(

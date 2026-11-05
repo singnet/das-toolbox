@@ -113,15 +113,6 @@ export default function BaseQueryParams({ formRef }) {
         <FormControlLabel
           control={
             <Switch 
-              defaultChecked={formRef.current.use_link_template_cache} 
-              onChange={(e) => { formRef.current.use_link_template_cache = e.target.checked }} 
-            />
-          }
-          label="Use Link Template Cache"
-        />
-        <FormControlLabel
-          control={
-            <Switch 
               defaultChecked={formRef.current.populate_metta_mapping} 
               onChange={(e) => { formRef.current.populate_metta_mapping = e.target.checked }} 
             />

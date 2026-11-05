@@ -165,7 +165,7 @@ export function useQueryExecution(parameters) {
   );
 
   const startQuery = useCallback(
-    async (queryText) => {
+    async (queryText, publicKeyFile = null) => {
       const trimmedQuery = queryText.trim();
       if (!trimmedQuery) {
         return;
@@ -179,9 +179,11 @@ export function useQueryExecution(parameters) {
 
       try {
         const runParameters = parameters.collectParameters();
+        const publicKey = publicKeyFile ? await publicKeyFile.text() : "";
         const { execution_id: nextExecutionId } = await startQueryExecution(
           trimmedQuery,
-          runParameters
+          runParameters,
+          publicKey
         );
         if (!nextExecutionId) {
           throw new Error("Query execution did not return an execution id.");

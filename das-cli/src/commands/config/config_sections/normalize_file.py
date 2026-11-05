@@ -1,6 +1,6 @@
 import getpass
 from copy import deepcopy
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from common.config.defaults import get_default_config_dict
 from common.docker import RemoteContextManager
@@ -8,42 +8,144 @@ from common.docker.remote_context_manager import Server
 from common.settings import Settings
 from common.utils import get_rand_token
 
+LOCAL_NODE_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
+
+
+def _invalid_entry(path: str, expected: str) -> ValueError:
+    return ValueError(
+        f"Invalid configuration entry '{path}'. Expected {expected}. "
+        "The file was left unchanged."
+    )
+
+
+def _validate_node_list(nodes: Any, path: str) -> None:
+    if not isinstance(nodes, list):
+        raise _invalid_entry(path, "a list of node objects")
+
+    for index, node in enumerate(nodes):
+        if not isinstance(node, dict):
+            raise _invalid_entry(f"{path}[{index}]", "a node object")
+
+
+def _validate_database_nodes(section: Any, path: str) -> None:
+    if section is None:
+        return
+
+    if not isinstance(section, dict):
+        raise _invalid_entry(path, "an object")
+
+    if "nodes" in section and section["nodes"] is not None:
+        _validate_node_list(section["nodes"], f"{path}.nodes")
+
+
+def _validate_nodes_for_context_setup(content: Dict[str, Any]) -> None:
+    """Reject malformed nodes before das-cli Docker contexts are removed."""
+    atomdb = content.get("atomdb")
+    if not isinstance(atomdb, dict):
+        return
+
+    for database in ("redis", "mongodb"):
+        if database in atomdb:
+            _validate_database_nodes(atomdb.get(database), f"atomdb.{database}")
+
+    if atomdb.get("type") != "remotedb":
+        return
+
+    peers = atomdb.get("remote_peers")
+    if peers is None:
+        return
+
+    if not isinstance(peers, list):
+        raise _invalid_entry("atomdb.remote_peers", "a list of peer objects")
+
+    for index, peer in enumerate(peers):
+        peer_path = f"atomdb.remote_peers[{index}]"
+        if not isinstance(peer, dict):
+            raise _invalid_entry(peer_path, "a peer object")
+
+        for database in ("redis", "mongodb"):
+            if database in peer:
+                _validate_database_nodes(peer.get(database), f"{peer_path}.{database}")
+
 
 def normalize_servers(
-    nodes: List[Dict[str, Any]], current_user: str, context_manager: RemoteContextManager
+    nodes: List[Dict[str, Any]],
+    current_user: str,
+    context_manager: RemoteContextManager,
+    removed_contexts: Set[str],
 ) -> List[Dict[str, Any]]:
+    # Recreate contexts that cleanup removed, and nodes that have none.
+    # A supplied context that was not removed keeps its connection settings.
     updated_nodes = []
-    servers_to_create_context: List[Server] = []
 
     for node in nodes:
+        if not isinstance(node, dict):
+            raise _invalid_entry("nodes", "a node object")
+
         username = node.get("username")
         context = node.get("context")
-        ip = node.get("ip", "localhost")
 
         if context == "default":
             if not username or username in ["root", "default"]:
                 node["username"] = current_user
 
             updated_nodes.append(node)
+            continue
 
-        elif context in [None, "", "None"]:
-            servers_to_create_context.append(
-                Server(
-                    {
-                        "ip": ip,
-                        "username": username or current_user,
-                    }
-                )
-            )
-
-        else:
+        if context and context not in removed_contexts:
             updated_nodes.append(node)
+            continue
 
-    if servers_to_create_context:
-        new_contexts = context_manager.create_servers_context(servers_to_create_context)
-        updated_nodes.extend(new_contexts)
+        server = Server(
+            {
+                "ip": node.get("ip", "localhost"),
+                "username": username or current_user,
+            }
+        )
+        new_context = context_manager.create_servers_context([server])[0]
+        updated_nodes.append({**node, **new_context})
 
     return updated_nodes
+
+
+def _endpoint_host(endpoint: Any) -> str:
+    if not isinstance(endpoint, str):
+        return ""
+    return endpoint.rsplit(":", 1)[0].strip()
+
+
+def _default_peer_nodes(section: Dict[str, Any], current_user: str) -> List[Dict[str, Any]]:
+    host = _endpoint_host(section.get("endpoint"))
+
+    if not host or host in LOCAL_NODE_HOSTS:
+        return [{"context": "default", "ip": "localhost", "username": current_user}]
+
+    return [{"context": "", "ip": host, "username": current_user}]
+
+
+def normalize_remote_peers(
+    content: Dict[str, Any],
+    current_user: str,
+    context_manager: RemoteContextManager,
+    removed_contexts: Set[str],
+) -> None:
+    atomdb = content.get("atomdb", {})
+    if atomdb.get("type") != "remotedb":
+        return
+
+    for peer in atomdb.get("remote_peers") or []:
+        if not isinstance(peer, dict) or peer.get("type") != "redismongodb":
+            continue
+
+        for database in ("redis", "mongodb"):
+            section = peer.get(database)
+            if not isinstance(section, dict):
+                continue
+
+            nodes = section.get("nodes") or _default_peer_nodes(section, current_user)
+            section["nodes"] = normalize_servers(
+                nodes, current_user, context_manager, removed_contexts
+            )
 
 
 def _fill_missing_values(current: Any, defaults: Any) -> Any:
@@ -60,9 +162,23 @@ def _fill_missing_values(current: Any, defaults: Any) -> Any:
     return result
 
 
+def _validate_supplied_sections(current: Any, defaults: Dict[str, Any], path: str = "") -> None:
+    if not isinstance(current, dict):
+        raise ValueError(
+            f"Invalid configuration entry '{path or 'root'}'. Expected an object. "
+            "The file was left unchanged."
+        )
+
+    for key, default_value in defaults.items():
+        if key in current and isinstance(default_value, dict):
+            current_path = f"{path}.{key}" if path else key
+            _validate_supplied_sections(current[key], default_value, current_path)
+
+
 def _defaults_for_config(content: Dict[str, Any]) -> Dict[str, Any]:
     """Return canonical defaults trimmed to the active atomdb type (same rules as validation)."""
     expected = deepcopy(get_default_config_dict())
+    _validate_supplied_sections(content, expected)
     if not expected:
         return {}
 
@@ -115,10 +231,12 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
             base_query_params["attention_focus_strictness"]
         )
 
+    _validate_nodes_for_context_setup(content)
+
     current_user = getpass.getuser()
 
     context_manager = RemoteContextManager()
-    context_manager._clear_existing_contexts()
+    removed_contexts = set(context_manager._clear_existing_contexts())
 
     mongodb = content.get("atomdb", {}).get("mongodb", {})
 
@@ -126,7 +244,9 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
         mongodb_nodes = mongodb.get("nodes", [])
 
         if mongodb_nodes:
-            mongodb["nodes"] = normalize_servers(mongodb_nodes, current_user, context_manager)
+            mongodb["nodes"] = normalize_servers(
+                mongodb_nodes, current_user, context_manager, removed_contexts
+            )
 
         if mongodb.get("cluster"):
             secret = mongodb.get("cluster_secret_key")
@@ -140,7 +260,11 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
         redis_nodes = redis.get("nodes", [])
 
         if redis_nodes:
-            redis["nodes"] = normalize_servers(redis_nodes, current_user, context_manager)
+            redis["nodes"] = normalize_servers(
+                redis_nodes, current_user, context_manager, removed_contexts
+            )
+
+    normalize_remote_peers(content, current_user, context_manager, removed_contexts)
 
     settings.set_content(content)
 

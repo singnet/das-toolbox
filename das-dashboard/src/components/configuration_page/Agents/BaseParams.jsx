@@ -25,7 +25,6 @@ export default function BaseParametersPanel() {
     attention_correlation: getAgentParam(getDefaults(), "base_query", "attention_correlation", 0),
     attention_focus_strictness: getAgentParam(getDefaults(), "base_query", "attention_focus_strictness", 0.0),
     unique_assignment_flag: getAgentParam(getDefaults(), "base_query", "unique_assignment_flag", false),
-    use_link_template_cache: getAgentParam(getDefaults(), "base_query", "use_link_template_cache", false),
     populate_metta_mapping: getAgentParam(getDefaults(), "base_query", "populate_metta_mapping", false),
     use_metta_as_query_tokens: getAgentParam(getDefaults(), "base_query", "use_metta_as_query_tokens", false),
     allow_incomplete_chain_path: getAgentParam(getDefaults(), "base_query", "allow_incomplete_chain_path", false)

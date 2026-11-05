@@ -10,6 +10,7 @@ This is a small proxy server with the purpose of executing low-level tasks for t
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /usr/bin/das-cli:/usr/bin/das-cli:ro \
   -v /opt/web-das:/opt/web-das \
+  -v "${HOME}/.docker:/opt/web-das/.docker" \
   --network=host \
   ui_backend:latest \
   uvicorn main:dashboard_app --host 0.0.0.0 --port 8000

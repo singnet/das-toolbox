@@ -14,15 +14,23 @@ docker-build:
 
 
 build: docker-build
-	@docker run --rm \
-		--user=$(id -u):$(id -g) \
-		-e USER=$(id -un) \
+	@mkdir -p "$(CURDIR)/dist"
+	@status=0; \
+	docker run --rm \
+		-e USER=$$(id -un) \
 		-v /etc/passwd:/etc/passwd:ro \
 		-v "$(CURDIR)/dist:/app/das/dist" \
 		-v $(TEMP_DIR):$(TEMP_DIR) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-e PACKAGE_VERSION=$(PACKAGE_VERSION) \
-		das-toolbox-package:latest
+		das-toolbox-package:latest || status=$$?; \
+	chown_status=0; \
+	docker run --rm --entrypoint chown \
+		-v "$(CURDIR)/dist:/app/das/dist" \
+		das-toolbox-package:latest \
+		-R "$$(id -u):$$(id -g)" /app/das/dist || chown_status=$$?; \
+	if [ "$$status" -ne 0 ]; then exit "$$status"; fi; \
+	exit "$$chown_status"
 
 
 build-local: debian-changelog

@@ -1,4 +1,5 @@
 import base64
+import binascii
 import getpass
 import os
 import secrets
@@ -8,6 +9,10 @@ import time
 from pathlib import Path
 from textwrap import shorten
 from typing import Any, Callable, Dict, List, Optional
+from urllib.parse import urlsplit
+
+from cryptography.exceptions import UnsupportedAlgorithm
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, load_ssh_public_key
 
 from common.logger import logger
 
@@ -29,6 +34,25 @@ def env_to_dict(path_to_env: Path):
                 content[key.strip()] = value.strip()
 
     return content
+
+
+def normalize_public_key(public_key: str) -> str:
+    public_key = public_key.strip()
+    message = "Public key file must contain a single non-empty token or one valid SSH public key."
+    if not public_key:
+        raise ValueError(message)
+    if not any(character.isspace() for character in public_key):
+        return public_key
+
+    parts = public_key.split(maxsplit=2)
+    if len(parts) < 2 or "\n" in public_key or "\r" in public_key:
+        raise ValueError(message)
+    try:
+        base64.b64decode(parts[1], validate=True)
+        key = load_ssh_public_key(f"{parts[0]} {parts[1]}".encode("ascii"))
+    except (ValueError, binascii.Error, UnsupportedAlgorithm) as error:
+        raise ValueError(message) from error
+    return key.public_bytes(Encoding.OpenSSH, PublicFormat.OpenSSH).decode("ascii").split()[1]
 
 
 def is_executable_bin():
@@ -246,6 +270,31 @@ def require_endpoint_port(
 
 
 def require_vault_endpoint(endpoint: str | None) -> tuple[str, int]:
+    if isinstance(endpoint, str) and "://" in endpoint:
+        try:
+            parsed = urlsplit(endpoint)
+            port = parsed.port
+        except ValueError as error:
+            raise ValueError(
+                f"Invalid vault.endpoint '{endpoint}'. Expected host:port or a local http(s) URL."
+            ) from error
+
+        if (
+            parsed.scheme.lower() not in {"http", "https"}
+            or not parsed.hostname
+            or port is None
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError(
+                f"Invalid vault.endpoint '{endpoint}'. Expected host:port or a local http(s) URL."
+            )
+
+        endpoint = f"{parsed.hostname}:{port}"
+
     return require_endpoint_port(
         endpoint,
         key="vault.endpoint",
