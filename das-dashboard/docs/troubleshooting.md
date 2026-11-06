@@ -4,6 +4,7 @@ Common errors, what causes them, and how to fix them. Errors are grouped by wher
 
 ## Contents
 
+* [Check these first](#check-these-first)
 * [Reading an error](#reading-an-error)
 * [Setup and interface](#setup-and-interface)
 * [SSH and remote machines](#ssh-and-remote-machines)
@@ -11,14 +12,37 @@ Common errors, what causes them, and how to fix them. Errors are grouped by wher
 * [Dashboard](#dashboard)
 * [Query](#query)
 
+## Check these first
+
+For any error on this page, check these three before anything else. Most failures that look unrelated come from one of them.
+
+1. **The das-cli version.** The same version has to be installed on the dashboard machine and on every machine in the architecture. Run `das-cli --version` on each one.
+2. **The configuration file.** Every machine has to be using the file the dashboard last saved. A machine with an older file, or one edited by hand, does not match what the page shows. Save again from Configuration so each named machine receives the same file.
+3. **IPs and ports.** The address of each part has to be reachable, and its port open, from the machines that talk to it. A blocked port looks like a service that never answers.
+
 ## Reading an error
 
-Errors appear as a message at the bottom of the screen. When the message has a **DETAILS** button, click it: it shows what das-cli or the remote machine returned. When das-cli did not answer in the expected format, the details also show the exact command that was run. Run that command in a terminal to see the full output.
+Errors appear as a message at the bottom of the screen. Click **DETAILS** when the message has that button. The dashboard puts there the cause it managed to capture, and the message on its own is often only the operation that failed.
 
-To look further:
+![SSH connection failed. DETAILS shows the key problem](static/configuration_page_error_example.png)
 
-* **A DAS service:** on the machine that runs it, `das-cli logs <service>`, for example `das-cli logs query-agent`. `das-cli logs --help` lists the services.
-* **The dashboard backend:** on the dashboard machine, `docker logs web-interface-backend`.
+Here the message only says the SSH connection to `144.202.105.78` failed. **DETAILS** shows the real problem: the key file is an RSA key, and an OpenSSH key was expected. Save the profile again with the OpenSSH private key.
+
+When das-cli did not answer in the expected format, the details also show the exact command that was run. Run that command in a terminal to see the full output.
+
+A **Network Error** is the case where the page never reached the dashboard at all. **DETAILS** then asks you to check that the server is still running.
+
+![Network Error. The dashboard backend did not answer](static/network_error_server_crashed.png)
+
+Check that the backend container is still up, as described in [Setup and interface](#setup-and-interface).
+
+The dashboard is built to capture an error and show it in **DETAILS** whenever it can. When a message has no details, or the details do not explain it, read the backend container on the dashboard machine:
+
+```bash
+docker logs web-interface-backend
+```
+
+For a DAS service, read its log on the machine that runs it: `das-cli logs <service>`, for example `das-cli logs query-agent`. `das-cli logs --help` lists the services.
 
 ## Setup and interface
 
@@ -26,9 +50,11 @@ To look further:
 
 The backend container could not find das-cli at `/usr/bin/das-cli`. This happens when das-cli was installed with `pip`. Install it with the APT repository or a `.deb` package, then run `./scripts/start_interface.sh` again. See [Install das-cli and Docker](setup.md#1-install-das-cli-and-docker).
 
-**The page opens, but every action fails.**
+**The page opens, but every action fails with `Network Error`.**
 
-The backend is not running. Check it with `docker ps --filter name=web-interface-backend`. If it is not listed, look at `docker logs web-interface-backend`. A common cause is port `8000` already in use on that machine: start the interface with another port, for example `BACK_PORT=8001 ./scripts/start_interface.sh`.
+The page could not reach the backend. **DETAILS** says the server might be offline or the container crashed. See the screenshot in [Reading an error](#reading-an-error).
+
+Check the container with `docker ps --filter name=web-interface-backend`. If it is not listed, look at `docker logs web-interface-backend`. A common cause is port `8000` already in use on that machine: start the interface with another port, for example `BACK_PORT=8001 ./scripts/start_interface.sh`.
 
 **`das-cli exited with status … without a formatted JSON response.`**
 
@@ -54,7 +80,7 @@ Nothing answered on that address. The IP is wrong, the machine is off, or port 2
 
 **`SSH connection failed for <host>.`**
 
-Any other SSH failure, such as a timeout. The details show the reason.
+The connection was attempted and failed for another reason, such as a timeout or a key the machine cannot read. Click **DETAILS**. The screenshot in [Reading an error](#reading-an-error) is this message: the host is in the red bar, and the key problem is in the details.
 
 **`Failed to transfer file to <host>.`, or `Configuration file was not found on <host> after transfer.`**
 
