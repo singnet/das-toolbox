@@ -55,7 +55,7 @@ REDIS_IMAGE_NAME = "redis"
 REDIS_IMAGE_VERSION = "7.2.3-alpine"
 
 MONGODB_IMAGE_NAME = "mongodb/mongodb-community-server"
-MONGODB_IMAGE_VERSION = "8.0.4-ubuntu2204"
+MONGODB_IMAGE_VERSION = "9.0-ubuntu2204"
 
 METTA_PARSER_IMAGE_NAME = "trueagi/das"
 METTA_PARSER_IMAGE_VERSION = "1.0.0-metta-parser"
@@ -80,5 +80,5 @@ DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-1.1.0"
 DAS_MORK_LOADER_IMAGE_NAME = "trueagi/das"
 DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-1.1.0"
 
-DAS_IMAGE_VERSION = "1.2.2-rc.1"
+DAS_IMAGE_VERSION = "1.2.4-rc"
 DAS_IMAGE_NAME = "trueagi/das"
