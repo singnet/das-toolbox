@@ -223,9 +223,11 @@ Click **Agents** in the sidebar. Every service on every machine appears as a car
 2. Click **Stop Architecture** and confirm.
 3. Select a server tab and click **Stop AtomDB**. Confirm.
 
-   With Redis + MongoDB or Mork + MongoDB, select the machine that hosts the AtomDB. The databases on that machine stop. Redis keeps nothing on disk, so its data is gone when it stops.
+   With Redis + MongoDB or Mork + MongoDB on one machine, select that machine. The databases there stop. Redis keeps nothing on disk, so its data is gone when it stops.
 
-   With a Remote DB, the behavior tab is different. **Stop AtomDB** there stops Redis and MongoDB for every Redis + Mongo peer, on each peer's own machine. A Mork peer is left running. To stop only one machine, select that machine's tab instead of `localhost`.
+   With Redis Cluster or Mongo Cluster, select `localhost`. **Stop AtomDB** there walks every cluster node and stops it through its Docker context. It does not stop only the selected machine.
+
+   With a Remote DB, **Stop AtomDB** stops Redis and MongoDB for every Redis + Mongo peer, on each peer's own machine, whichever server tab is selected. Save copies the configuration with an empty Docker context, and `config set` on each machine creates those contexts there. The stop command then walks every Redis + Mongo peer. A Mork peer is left running. No tab stops only one peer.
 
 ## 4. Query
 
