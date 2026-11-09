@@ -91,7 +91,7 @@ Path: `/configuration`.
 | Redis + MongoDB | `redismongodb` | Redis and MongoDB |
 | Mork + MongoDB | `morkdb` | MorkDB and MongoDB |
 | In Memory | `inmemorydb` | Nothing |
-| Remote DB (Multi-Peer) | `remotedb` | Starts the DB peers in each configured machine. |
+| Remote DB (Multi-Peer) | `remotedb` | `das-cli db start` starts Redis and MongoDB for each peer whose main connection is Redis + Mongo. A Mork peer is not started. |
 | AdapterDB | `adapterdb` | The databases of the AtomDB Backend chosen. The mapping runs with `das-cli database-adapter run`. |
 
 **Redis + MongoDB**
@@ -129,7 +129,7 @@ No fields.
 
 | Field | Default | Notes |
 |---|---|---|
-| + Add Peer | | Adds a peer. The list starts empty. |
+| + Add Peer | | Adds a peer. The form opens with the template peers `peer1` and `peer2`. Remove any peer you do not need before applying. |
 | Peer UID | `peer1`, `peer2`, … | Assigned by the form. Read only. |
 | Main Connection | Redis + Mongo | Or Mork + Mongo. Opens the endpoint, port, Mongo User, and Mongo Pass fields. No cluster option. |
 | Local Persistence Type | In Memory | Or Redis + MongoDB, or MorkDB + MongoDB, which open the same connection fields. |
@@ -189,7 +189,6 @@ Parameters are stored under `agents.<agent>.params` in the file.
 | Attention Correlation | `attention_correlation` | `0` |
 | Attention Focus Strictness | `attention_focus_strictness` | `0.0`. Slider from 0 to 1, in steps of 0.1. |
 | Unique Assignment | `unique_assignment_flag` | Off |
-| Use Link Template Cache | `use_link_template_cache` | Off |
 | Metta Mapping | `populate_metta_mapping` | Off |
 | Use Metta Tokens | `use_metta_as_query_tokens` | Off |
 | Allow Incomplete Chain Path | `allow_incomplete_chain_path` | Off |
@@ -207,15 +206,15 @@ Parameters are stored under `agents.<agent>.params` in the file.
 
 | Field | Key | Default |
 |---|---|---|
-| Max Answers | `max_answers` | `10` |
-| Repeat Count | `repeat_count` | `1` |
-| Context | `context` | `context` |
-| Attention Update | `attention_update` | `0` |
-| Attention Correlation | `attention_correlation` | `0` |
-| Query Interval | `query_interval` | `0` |
-| Query Timeout | `query_timeout` | `0` |
-| Positive Importance | `positive_importance_flag` | On |
-| Use MeTTa as Query Tokens | `use_metta_as_query_tokens` | Off |
+| Unique Assignment | `unique_assignment_flag` | Off |
+| Positive Importance | `positive_importance_flag` | Off |
+| Disregard Importance | `disregard_importance_flag` | Off |
+| Unique Value | `unique_value_flag` | Off |
+| Max Successful Creation per Round | `max_successful_creation_per_round` | `10` |
+| Max Unproductive Visits per Round | `max_unproductive_visits_per_round` | `500` |
+| Max Visit Attempts per Round | `max_visit_attempts_per_round` | `20` |
+| Max Rounds | `max_rounds` | `5` |
+| Link Creation Strength Threshold | `link_creation_strength_threshold` | `0.1` |
 
 **Evolution Agent**
 
@@ -264,16 +263,16 @@ The server tabs list every machine named in the saved configuration. `localhost`
 
 | Action | What it does |
 |---|---|
-| Start AtomDB | Runs `das-cli db start` on the machine that hosts the AtomDB in the configuration, over SSH when it is another machine. The confirmation names the AtomDB type and the machine. Any AtomDB component already running there is restarted, and its data is lost. |
-| Stop AtomDB | Shown in place of Start AtomDB while the AtomDB is online. Runs `das-cli db stop` on the machine that hosts the AtomDB. All its components stop, and their data is lost. |
+| Start AtomDB | Runs `das-cli db start` on the server selected in the tabs. Select that server first. The confirmation names the AtomDB type and the server. Redis, MongoDB, and MorkDB containers already running there are kept. |
+| Stop AtomDB | Shown in place of Start AtomDB while the AtomDB is online. Runs `das-cli db stop` on the server selected in the tabs. All its components stop, and their data is lost. |
 | Start Architecture | Starts the services checked in the selector, each on the machine set for it in the configuration. Disabled until the AtomDB is online. The confirmation lists the services. |
-| Stop Architecture | Shown in place of Start Architecture while the architecture is online. Stops the services checked in the selector, in reverse order. |
+| Stop Architecture | Shown in place of Start Architecture while the architecture is online. Stops the services checked in the selector. |
 | Arrow next to Start/Stop Architecture | Opens the service selector. |
-| Load MeTTa Database | Opens a file picker for `.metta` files. Sends the file to the machine that hosts the AtomDB and runs `das-cli metta load` there. When the AtomDB is on this machine, the file is kept on the dashboard. |
+| Load MeTTa Database | Opens a file picker for `.metta` files. Sends the file to the server selected in the tabs and runs `das-cli metta load` there. Select the machine that hosts the AtomDB first. When that server is `localhost`, the file is kept on the dashboard. |
 
 All actions are disabled while another action is running, or while the selected server is offline or still connecting. After a start or stop, the page checks every server again to update the buttons.
 
-**Service selector.** Every service is checked when the page opens.
+**Service selector.** Every service is checked when the page opens, except with a Remote DB: then only the Attention Broker, the Query Agent, and the Command Router start checked.
 
 | Group | Service | Start order |
 |---|---|---|
@@ -284,6 +283,8 @@ All actions are disabled while another action is running, or while the selected 
 | Agents | Context Broker | 5 |
 | Agents | Link Creation Agent | 6 |
 | Agents | Evolution Agent | 7 |
+
+When at least one selected service runs on this machine, start follows this order and stop follows it in reverse. When every selected service is on another machine, the commands run at the same time, so this order is not guaranteed.
 
 Core services are the ones the other agents connect to. Unchecking them can leave the architecture unusable. A checked service with no host in the configuration is skipped.
 
@@ -392,8 +393,6 @@ Opened with `agents.base_query.params` merged with `agents.query.params` from th
 | Disregard STI | `disregard_importance_flag` | Off | Importance is not fetched from the Attention Broker, so the answers are not ordered by it. |
 | Unique value | `unique_value_flag` | Off | No two variables in the same answer are assigned the same handle. |
 | Count only | `count_flag` | Off | Returns only the number of answers. |
-
-Base Query's **Use Link Template Cache** is not on this page. The value from the configuration is not sent.
 
 ### Status bar
 

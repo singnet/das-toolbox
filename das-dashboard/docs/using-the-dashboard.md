@@ -127,14 +127,16 @@ A DAS uses one AtomDB type. Redis + MongoDB is the default. To use another one, 
 
 **In Memory.** Nothing to fill in and no database to start. Choose it, apply, and save. The atoms live only in memory, so they are gone when the process stops.
 
-**Remote DB.** A set of peers, each with its own database. The dashboard will start the databases at the specified IP addresses if necessary.
+**Remote DB.** A set of peers, each with its own database. The form opens with two peers, `peer1` and `peer2`. Remove any peer you do not need.
 
 ![Remote DB with two peers](static/configuration_db_remotedb.png)
 
-1. Click **+ Add Peer** once for each peer.
+1. Click **+ Add Peer** for each extra peer.
 2. For each peer, choose the **Main Connection** and fill its addresses and ports.
 3. Choose the **Local Persistence Type** for each peer. In Memory needs nothing else.
 4. Click **Apply AtomDB settings**. A peer with an empty port is left out.
+
+**Start AtomDB** starts Redis and MongoDB only for peers whose main connection is Redis + Mongo. A Mork + Mongo peer is not started by that button. Start that database on its own machine.
 
 **AdapterDB.** Maps an external PostgreSQL database into atoms. In here you have to set-up both the DB that will be used to load the atoms, and the AtomDB that will persist the atoms.
 
@@ -180,16 +182,18 @@ If the page says **No servers configured**, save a configuration first. See [Kee
 
 The AtomDB comes first: the agents need it to run.
 
-1. Click **Start AtomDB** and confirm. It starts on the machine set for it in Configuration. Anything of the AtomDB already running there is restarted, and its data is lost.
-2. Wait until the button reads **Stop AtomDB**. **Start Architecture** stays disabled until then.
-3. To start only some services, click the arrow next to **Start Architecture** and uncheck the ones you don't need. Leave **Core** checked: the Attention Broker and the Query Agent are what the other agents connect to.
-4. Click **Start Architecture** and confirm the list. Each service starts on the machine set for it in Configuration.
-5. Check the table on each server tab. A started service shows **Running**.
+1. In **Servers**, select the tab of the machine that hosts the AtomDB. **Start AtomDB** runs on the selected server.
+2. Click **Start AtomDB** and confirm. Redis, MongoDB, and MorkDB containers already running there are kept.
+3. Wait until the button reads **Stop AtomDB**. **Start Architecture** stays disabled until then.
+4. To start only some services, click the arrow next to **Start Architecture** and uncheck the ones you don't need. Leave **Core** checked: the Attention Broker and the Query Agent are what the other agents connect to. With a Remote DB, only those two and the Command Router start checked.
+5. Click **Start Architecture** and confirm the list. Each service starts on the machine set for it in Configuration.
+6. Check the table on each server tab. A started service shows **Running**.
 
 ### Loading a MeTTa file into the AtomDB
 
-1. Click **Load MeTTa Database** and pick the file. Only `.metta` files are accepted.
-2. Wait for the confirmation. The file is copied to the machine that hosts the AtomDB, or kept on the dashboard when the AtomDB is on this machine, and loaded into the AtomDB.
+1. In **Servers**, select the tab of the machine that hosts the AtomDB. The file is sent to the selected server.
+2. Click **Load MeTTa Database** and pick the file. Only `.metta` files are accepted.
+3. Wait for the confirmation. The file is copied to that server, or kept on the dashboard when the selected server is `localhost`, and loaded into the AtomDB.
 
 If a file with that name was already sent, the page asks what to do. **OK** replaces it with the new one. **Cancel** loads the file already there.
 
@@ -217,7 +221,7 @@ Click **Agents** in the sidebar. Every service on every machine appears as a car
 
 1. Click the arrow next to **Stop Architecture** if you want to keep some services running, and uncheck them.
 2. Click **Stop Architecture** and confirm.
-3. Click **Stop AtomDB** and confirm. The data in the AtomDB is lost.
+3. Select the tab of the machine that hosts the AtomDB, click **Stop AtomDB**, and confirm. The data in the AtomDB is lost.
 
 ## 4. Query
 
