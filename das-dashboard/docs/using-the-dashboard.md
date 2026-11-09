@@ -221,7 +221,11 @@ Click **Agents** in the sidebar. Every service on every machine appears as a car
 
 1. Click the arrow next to **Stop Architecture** if you want to keep some services running, and uncheck them.
 2. Click **Stop Architecture** and confirm.
-3. Select the tab of the machine that hosts the AtomDB, click **Stop AtomDB**, and confirm. The data in the AtomDB is lost.
+3. Select a server tab and click **Stop AtomDB**. Confirm.
+
+   With Redis + MongoDB or Mork + MongoDB, select the machine that hosts the AtomDB. The databases on that machine stop. Redis keeps nothing on disk, so its data is gone when it stops.
+
+   With a Remote DB, the behavior tab is different. **Stop AtomDB** there stops Redis and MongoDB for every Redis + Mongo peer, on each peer's own machine. A Mork peer is left running. To stop only one machine, select that machine's tab instead of `localhost`.
 
 ## 4. Query
 
