@@ -91,7 +91,7 @@ Path: `/configuration`.
 | Redis + MongoDB | `redismongodb` | Redis and MongoDB |
 | Mork + MongoDB | `morkdb` | MorkDB and MongoDB |
 | In Memory | `inmemorydb` | Nothing |
-| Remote DB (Multi-Peer) | `remotedb` | Nothing. The peers' databases must already be running. |
+| Remote DB (Multi-Peer) | `remotedb` | Starts the DB peers in each configured machine. |
 | AdapterDB | `adapterdb` | The databases of the AtomDB Backend chosen. The mapping runs with `das-cli database-adapter run`. |
 
 **Redis + MongoDB**
