@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { List, ListItemIcon, ListItemText } from "@mui/material";
 import { Dashboard as DashboardIcon, SettingsEthernet, Polyline } from "@mui/icons-material";
 
@@ -36,21 +36,26 @@ export function SideBar() {
   const [busyActions, setBusyActions] = useState({});
   const [statusByHost, setStatusByHost] = useState({});
   const [architectureOnline, setArchitectureOnline] = useState(false);
+  const latestInfraRequestId = useRef(0);
 
   const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
   const { hostStreamSwitching } = useServerTabMetricsContext();
   const { atomdb, atomdbType } = useSidebarAtomdbConfig();
 
   const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
+    const requestId = latestInfraRequestId.current + 1;
+    latestInfraRequestId.current = requestId;
     const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
     const expectedByHost = getRemoteDbServicesByHost(atomdb ?? {});
-    const statusByHost = poll
+    const nextStatus = poll
       ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000, expectedByHost })
       : await fetchInfraStatusForAllHosts(serverIps, expectedByHost);
 
-    setStatusByHost(statusByHost);
+    if (requestId !== latestInfraRequestId.current) return;
+
+    setStatusByHost(nextStatus);
     setArchitectureOnline(
-      Object.values(statusByHost).some((status) => status.architectureOnline)
+      Object.values(nextStatus).some((status) => status.architectureOnline)
     );
   }, [machines, atomdb]);
 
