@@ -9,6 +9,7 @@ from shared.internal.constants import (
     REMOTE_METTA_FILES_PATH,
 )
 from shared.exceptions.custom_exceptions import (
+    CustomValueError,
     FileAlreadyExistsException,
     RemoteSshTransferError,
 )
@@ -55,9 +56,29 @@ class DatabaseServices:
         finally:
             ssh.close()
 
+    def _host_cli_configuration(self, host: str) -> dict:
+        cmd = build_host_cli_command(
+            self.web_config,
+            host,
+            ["config", "list", "-o", "json"],
+        )
+        payload = run_das_cli_json_command(
+            cmd,
+            default_message="Failed to read the das-cli configuration on the selected server.",
+        )
+        details = payload.get("details") if isinstance(payload, dict) else None
+        content = details.get("content") if isinstance(details, dict) else None
+        if not isinstance(content, dict):
+            raise CustomValueError(
+                "The selected server did not return a das-cli configuration."
+            )
+        return content
+
+    def _validate_host_metta_load(self, host: str) -> None:
+        validate_atomdb_for_metta_load(self._host_cli_configuration(host))
+
     async def save_metta_file(self, host: str, knowledge_file: UploadFile, force_overwrite: bool) -> str:
-        config = self.web_config.load_raw_configuration()
-        validate_atomdb_for_metta_load(config)
+        self._validate_host_metta_load(host)
 
         file_name = safe_upload_filename(knowledge_file.filename)
 
@@ -82,8 +103,7 @@ class DatabaseServices:
         return file_path
 
     def load_metta_file_into_db(self, host: str, metta_file_path: str):
-        config = self.web_config.load_raw_configuration()
-        validate_atomdb_for_metta_load(config)
+        self._validate_host_metta_load(host)
 
         cmd = build_host_cli_command(
             self.web_config, host, ["metta", "load", metta_file_path, "-o", "json"]
