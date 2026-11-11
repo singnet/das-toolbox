@@ -20,7 +20,7 @@ import {
   pollInfraStatusForAllHosts,
   getRemoteDbServicesByHost,
 } from "../../../../utils/infraStatus";
-import { getConfigDefaults } from "../../../../api/ConfigAPI";
+import { useSidebarAtomdbConfig } from "../../../../hooks/useSidebarAtomdbConfig";
 
 import { ArchitectureActionControl } from "./ArchitectureActionControl";
 import { AtomDBActionControl } from "./AtomDBActionControl";
@@ -39,16 +39,11 @@ export function SideBar() {
 
   const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
   const { hostStreamSwitching } = useServerTabMetricsContext();
+  const { atomdb, atomdbType } = useSidebarAtomdbConfig();
 
   const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
     const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
-    let expectedByHost = {};
-    try {
-      const defaults = await getConfigDefaults();
-      expectedByHost = getRemoteDbServicesByHost(defaults?.content?.atomdb);
-    } catch (error) {
-      console.error("Failed to load AtomDB configuration for infra status:", error);
-    }
+    const expectedByHost = getRemoteDbServicesByHost(atomdb ?? {});
     const statusByHost = poll
       ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000, expectedByHost })
       : await fetchInfraStatusForAllHosts(serverIps, expectedByHost);
@@ -57,7 +52,7 @@ export function SideBar() {
     setArchitectureOnline(
       Object.values(statusByHost).some((status) => status.architectureOnline)
     );
-  }, [machines]);
+  }, [machines, atomdb]);
 
   useEffect(() => {
     loadInfraStatus().catch((error) => {
@@ -117,6 +112,7 @@ export function SideBar() {
           <List disablePadding>
 
             <AtomDBActionControl
+              atomdbType={atomdbType}
               atomDbOnline={atomDbOnline}
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.atomdb}
@@ -125,6 +121,7 @@ export function SideBar() {
             />
 
             <ArchitectureActionControl
+              atomdbType={atomdbType}
               atomDbOnline={atomDbOnline}
               architectureOnline={architectureOnline}
               isServerOffline={isServerOffline}
@@ -134,9 +131,12 @@ export function SideBar() {
             />
 
             <MettaLoadActionControl
+              atomdbType={atomdbType}
+              atomDbOnline={atomDbOnline}
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.metta}
               onBusyChange={(busy) => setActionBusy("metta", busy)}
+              onActionComplete={() => loadInfraStatus({ poll: true })}
             />
             
           </List>

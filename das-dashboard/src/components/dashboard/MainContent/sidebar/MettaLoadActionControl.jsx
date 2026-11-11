@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { CircularProgress, ListItemIcon, ListItemText } from "@mui/material";
+import { CircularProgress, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
 import { Storage } from "@mui/icons-material";
 
 import { StyledItem } from "./sidebar.styled";
@@ -8,13 +8,17 @@ import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
 import { extractApiError } from "../../../../api/APIUtils";
+import { getMettaLoadAvailability } from "../../../../utils/mettaLoadPolicy";
 
 const LOADING_KEYS = ["load-metta", "overwrite-metta", "load-existing-metta", "upload-metta"];
 
 export function MettaLoadActionControl({
+  atomdbType,
+  atomDbOnline,
   isServerOffline,
   disabled = false,
   onBusyChange,
+  onActionComplete,
 }) {
   const [loadingAction, setLoadingAction] = useState(null);
   const mettaInputRef = useRef(null);
@@ -25,16 +29,34 @@ export function MettaLoadActionControl({
 
   const currentHost = currentMachine?.serverIp;
   const isLoading = LOADING_KEYS.includes(loadingAction);
+  const actionLocked = disabled && !isLoading;
+
+  const { canLoad, tooltip } = getMettaLoadAvailability(atomdbType, {
+    atomDbOnline,
+    isServerOffline,
+    actionLocked,
+  });
+
+  const isDisabled = !canLoad || isLoading || isServerOffline || actionLocked;
 
   const setBusy = (actionKey) => {
     setLoadingAction(actionKey);
     onBusyChange?.(!!actionKey);
   };
 
+  const refreshAfterLoad = async () => {
+    try {
+      await onActionComplete?.();
+    } catch (refreshError) {
+      console.error("Failed to refresh sidebar status after MeTTa load:", refreshError);
+    }
+  };
+
   const executeAsyncAction = async (actionKey, action, successMessage, errorMessage) => {
     try {
       setBusy(actionKey);
       await action();
+      await refreshAfterLoad();
       showToast({ message: successMessage, severity: "success" });
     } catch (err) {
       console.error(errorMessage, err);
@@ -50,13 +72,16 @@ export function MettaLoadActionControl({
     if (!file) return;
 
     const hostSnapshot = currentHost;
+    let reachedLoadStep = false;
 
     try {
       setBusy("upload-metta");
       const uploadResponse = await uploadMettaFile(hostSnapshot, false, file);
 
       setBusy("load-metta");
+      reachedLoadStep = true;
       await loadMettaFile(hostSnapshot, uploadResponse.saved_path);
+      await refreshAfterLoad();
       showToast({ message: "MeTTa database loaded successfully.", severity: "success" });
     } catch (err) {
       const responseData = err?.response?.data;
@@ -75,7 +100,7 @@ export function MettaLoadActionControl({
                 await loadMettaFile(hostSnapshot, res.saved_path);
               },
               "MeTTa file overwritten and loaded successfully.",
-              "Failed to overwrite MeTTa file."
+              "Failed to overwrite or load MeTTa file."
             );
           },
           onCancel: () => {
@@ -87,10 +112,13 @@ export function MettaLoadActionControl({
               "Existing MeTTa file loaded successfully.",
               "Failed to load existing MeTTa file."
             );
-          }
+          },
         });
       } else {
-        const { message, details, severity } = extractApiError(err, "Failed to upload MeTTa database.");
+        const fallback = reachedLoadStep
+          ? "Failed to load MeTTa file into the database."
+          : "Failed to upload MeTTa file to the server.";
+        const { message, details, severity } = extractApiError(err, fallback);
         showToast({ message, severity, details });
       }
     } finally {
@@ -98,6 +126,28 @@ export function MettaLoadActionControl({
       if (event.target) event.target.value = "";
     }
   };
+
+  const openFilePicker = () => {
+    if (!canLoad || isLoading) return;
+
+    const targetHost = currentHost || "the selected server";
+    showConfirm({
+      title: "Load MeTTa Database",
+      message:
+        `Load on ${targetHost} using the dashboard's saved AtomDB configuration.\n\n` +
+        "The file is uploaded to that server, then das-cli metta load runs there.",
+      onConfirm: () => mettaInputRef.current?.click(),
+    });
+  };
+
+  const listItem = (
+    <StyledItem disabled={isDisabled} onClick={openFilePicker}>
+      <ListItemIcon>
+        {isLoading ? <CircularProgress size={16} /> : <Storage />}
+      </ListItemIcon>
+      <ListItemText primary="Load MeTTa Database" />
+    </StyledItem>
+  );
 
   return (
     <>
@@ -109,15 +159,9 @@ export function MettaLoadActionControl({
         onChange={handleMettaUpload}
       />
 
-      <StyledItem
-        disabled={disabled || isLoading || isServerOffline}
-        onClick={() => !disabled && !isLoading && !isServerOffline && mettaInputRef.current?.click()}
-      >
-        <ListItemIcon>
-          {isLoading ? <CircularProgress size={16} /> : <Storage />}
-        </ListItemIcon>
-        <ListItemText primary="Load MeTTa Database" />
-      </StyledItem>
+      <Tooltip title={tooltip} placement="right" arrow describeChild>
+        <span style={{ display: "block" }}>{listItem}</span>
+      </Tooltip>
     </>
   );
 }

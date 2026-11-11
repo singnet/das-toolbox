@@ -7,7 +7,6 @@ import { useDashboardContext } from "../../../global_providers/DashboardContextP
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
-import { getConfigDefaults } from "../../../../api/ConfigAPI";
 import { extractApiError } from "../../../../api/APIUtils";
 
 const LOADING_KEYS = ["start-database", "stop-database"];
@@ -21,6 +20,7 @@ const ATOMDB_TYPE_LABELS = {
 };
 
 export function AtomDBActionControl({
+  atomdbType,
   atomDbOnline,
   isServerOffline,
   disabled = false,
@@ -73,14 +73,6 @@ export function AtomDBActionControl({
         )
       });
       return;
-    }
-
-    let atomdbType;
-    try {
-      const defaults = await getConfigDefaults();
-      atomdbType = defaults?.content?.atomdb?.atomdb_type;
-    } catch (error) {
-      console.error("Failed to load AtomDB type for confirmation:", error);
     }
 
     const localHost = !currentHost || ["localhost", "127.0.0.1", "0.0.0.0"].includes(currentHost);

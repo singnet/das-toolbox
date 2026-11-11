@@ -17,7 +17,6 @@ import {
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startArchitecture, stopArchitecture } from "../../../../api/ServicesAPI";
-import { getConfigDefaults } from "../../../../api/ConfigAPI";
 import { extractApiError } from "../../../../api/APIUtils";
 
 const CORE_TOOLTIP =
@@ -36,6 +35,7 @@ const ORCHESTRATION_SERVICES = [
 ];
 
 export function ArchitectureActionControl({
+  atomdbType,
   atomDbOnline,
   architectureOnline,
   isServerOffline,
@@ -58,22 +58,9 @@ export function ArchitectureActionControl({
   const [expanded, setExpanded] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
-  const [atomdbType, setAtomdbType] = useState(null);
-
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
   const hasInitializedSelection = useRef(false);
-
-  useEffect(() => {
-    let active = true;
-    getConfigDefaults().then((defaults) => {
-      if (active) setAtomdbType(defaults?.content?.atomdb?.atomdb_type);
-    }).catch((error) => {
-      console.error("Failed to load AtomDB type for service selection:", error);
-      if (active) setAtomdbType("unknown");
-    });
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (!atomdbType) return;
