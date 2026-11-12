@@ -1,10 +1,15 @@
 # Using the dashboard
 
-A first run goes in this order: save your SSH profile, save a configuration, start the DAS on the Dashboard page, and run queries on the Query page.
+This guide assumes the dashboard is already running. If it is not, see [Setting up the environment](setup.md). For every field, button, and default value, see the [Reference](reference.md).
 
-If the whole DAS runs on this machine with the default values, skip Profile. Open Configuration and click **Save**.
+A first run has four steps, in this order:
 
-This guide assumes the dashboard is already running. See [Setting up the environment](setup.md). For every field, button, and default value, see the [Reference](reference.md).
+1. **Profile**: save your SSH profile.
+2. **Configuration**: save a configuration.
+3. **Dashboard**: start the DAS (Distributed Atomspace).
+4. **Query**: run queries.
+
+Shortcut: if the whole DAS runs on this machine with the default values, skip Profile. Open Configuration and click **Save**.
 
 ## Contents
 
@@ -38,18 +43,18 @@ This guide assumes the dashboard is already running. See [Setting up the environ
 
 ## 1. Setting up the environment
 
-See [Setting up the environment](setup.md)
+The Dashboard must be installed and running before you use this guide. If it is not, follow [Setting up the environment](setup.md), then return here.
 
 ## 2. Profile
 
 ![SSH Profile page](static/profile.png)
 
-Do this first when the DAS will use more than one machine. The dashboard reaches every other machine with this user and key.
+Use this page only for a multi-machine setup. The Dashboard uses this username and private key to connect to every remote machine. The username must match the account where you installed the public key in [Setting up the environment](#1-setting-up-the-environment).
 
 ### Setting up a profile.
 
 1. Open **Profile** and type the SSH user. It cannot be `root`.
-2. Click **Select SSH Key File** and pick the private key, the file without `.pub`.
+2. Click **Select SSH Key File** and select `~/.ssh/das-dashboard`, the private key generated in [Step 1](#1-setting-up-the-environment). Do not select the `.pub` file.
 3. Click **Save Profile**.
 
 When you come back to change something, select the key again: the page keeps the username but not the key. If a later step fails with an authentication error, the public key is not authorized for that user on that machine.
@@ -58,43 +63,57 @@ When you come back to change something, select the key again: the page keeps the
 
 This page sets up the DAS environment and its agents. Changing anything here is optional: with the default values, one **Save** is enough.
 
-The sidebar splits the configuration into **AtomDB**, **Agents**, and **Environment**. Every change follows the same steps: change the fields, click **Apply … settings** at the bottom of that section, then click **Save**. Apply alone stores nothing, and Save only stores what was applied.
+The sidebar splits the configuration into **AtomDB**, **Agents**, and **Environment**. Every change follows the same steps:
 
+1. Change the fields.
+2. Click the **Apply** button at the bottom of that section. Its label includes the section name, for example **Apply AtomDB settings**. In this guide it is called **Apply**.
+3. Click **Save**.
+
+Apply alone stores nothing, and Save only stores what was applied.
+   
 ### Keeping the defaults
 
-If the default values are enough, click **Save**. The defaults put the whole DAS on this machine. The dashboard stores the configuration and sets it as the current DAS configuration. If the file names another machine, Save also copies it there and runs `das-cli config set` on that machine. That copy needs the SSH user and key from [Profile](#1-profile).
+If the default values are enough, click **Save**. The defaults put the whole DAS on this machine.
+
+The dashboard stores the configuration and sets it as the current DAS configuration. If the file names another machine, Save also copies it there and runs `das-cli config set` on that machine. That copy needs the SSH user and key from [Profile](#2-profile).
 
 After a successful save, the page asks **Save a local copy?**. Downloading that copy is optional. **Not now** leaves the file on the server at `/opt/web-das/.das/config.json`.
 
 ### Changing a few parameters and values
 
-To change a port, an ip address or a parameter in general:
+To change a port, an IP address, or any other parameter:
 
 1. Open the section in the sidebar. For an agent, open **Agents** and pick it from the list.
-2. Change the fields specified on the sub-section.
+2. Change the fields you want.
 3. Click **Apply … settings**. The page confirms that the settings were applied.
 4. Repeat for any other section you want to change.
 5. Click **Save**.
 
-If you move to another section without clicking Apply, the edits you made there are not in the file.
+If you move to another section without clicking Apply, the edits you made there are not included when you click Save.
 
 ### Running the DAS on more than one machine
 
-The addresses on this page are not only where the dashboard starts each part. The DAS reads them back, and that is how its parts find each other. The Link Creation Agent, the Evolution Agent, and the Context Broker look for the Query Agent at its address. The agents look for the Attention Broker at its address. The members of a database cluster reach each other at theirs.
+The addresses on this page are not only where the dashboard starts each part. The DAS reads them back, and that is how its parts find each other:
 
-So type addresses with that in mind. The default `0.0.0.0` only works when everything is on one machine. For anything that runs on another machine, type the IP the other machines use to reach it.
+- The Link Creation Agent, the Evolution Agent, and the Context Broker look for the Query Agent at its address.
+- The agents look for the Attention Broker at its address.
+- The members of a database cluster reach each other at theirs.
+
+So type addresses with that in mind. The default `0.0.0.0` only works when everything is on one machine. For anything that runs on another machine, type the IP address the other machines use to reach it.
 
 ![Query Agent placed on another machine](static/configuration_agents_query_agent.png)
 
-1. Save your [Profile](#1-profile), and authorize the key on every machine.
-2. Decide which machine runs each part, and note the IP each machine is reached at.
-3. Open **AtomDB** and type the IP of the database machine in the endpoint fields. Click **Apply AtomDB settings**.
-4. Open **Agents**. For each agent on another machine, type that machine's IP and click **Apply**. Do the Query Agent and the Attention Broker first: the other agents look for them.
+1. Save your [Profile](#2-profile), and make sure the public key is authorized for that user on every machine.
+2. Decide which machine runs each part, and note the IP address the other machines use to reach each machine.
+3. Open **AtomDB** and type the IP address of the database machine in the endpoint fields. Click **Apply AtomDB settings**.
+4. Open **Agents**. For each agent on another machine, type that machine's IP address and click **Apply**. Set the Query Agent and the Attention Broker first: the other agents look for them.
 5. Click **Save**. The dashboard copies the file to every machine named in it and makes it the active configuration there. The confirmation lists the machines it reached.
 
 Then open the Dashboard page to start each part on its machine.
 
 **Example: two machines.**
+
+In this example, the dashboard runs on Machine A.
 
 | Machine | IP | Runs |
 |---|---|---|
@@ -103,13 +122,15 @@ Then open the Dashboard page to start each part on its machine.
 
 On the Configuration page:
 
-* **AtomDB**: Redis Endpoint and MongoDB Endpoint set to `144.56.128.58`.
-* **Attention Broker** and **Query Agent**: IP Address set to `144.56.128.58`.
-* **Link Creation Agent** and **Evolution Agent**: IP Address set to `151.124.20.2`.
+- **AtomDB**: set Redis Endpoint and MongoDB Endpoint to `144.56.128.58`.
+- **Attention Broker** and **Query Agent**: set IP Address to `144.56.128.58`.
+- **Link Creation Agent** and **Evolution Agent**: set IP Address to `151.124.20.2`.
 
-In this example, suppose that the dashboard runs on Machine A. The agents not listed keep their default address, so they run on A as well.
+The agents not listed keep their default address, so they run on A as well.
 
-After **Save**, both machines have the same file. **Start Architecture** starts the Attention Broker and the Query Agent on A, and the Link Creation Agent and the Evolution Agent on B. When the agents on B start, they read the file, find the Query Agent at `144.56.128.58`, and connect to it there. Machine B must be able to reach Machine A on the Query Agent and Attention Broker ports.
+After **Save**, both machines have the same file. **Start Architecture** starts the Attention Broker and the Query Agent on A, and the Link Creation Agent and the Evolution Agent on B. When the agents on B start, they read the file, find the Query Agent at `144.56.128.58`, and connect to it there.
+
+Machine B must be able to reach Machine A on the Query Agent and Attention Broker ports.
 
 ### Running Redis or MongoDB as a cluster
 
@@ -117,7 +138,7 @@ Cluster mode is optional. Use it when Redis or MongoDB should run on several mac
 
 ![Redis + MongoDB with both clusters enabled](static/configuration_db_redis_mongo_clusters.png)
 
-1. Save your [Profile](#1-profile). Every member of the cluster is started over SSH with it.
+1. Save your [Profile](#2-profile). Every member of the cluster is started over SSH with it.
 2. Open **AtomDB** and choose **Redis + MongoDB**. Mork + MongoDB works too, but only MongoDB can be a cluster there.
 3. Check **Redis Cluster**, **Mongo Cluster**, or both.
 4. In the list that opens, fill one row per machine: the IP of the machine that will run that member, and the username saved in Profile. Click **+ Add Another Server** for each extra machine. das-cli expects at least three members.
@@ -128,7 +149,12 @@ When the AtomDB is started, das-cli connects to each row over SSH, starts the da
 
 ### Using another AtomDB
 
-A DAS uses one AtomDB type. Redis + MongoDB is the default. To use another one, choose it in **Database Type**, fill it in, and click **Apply AtomDB settings**. The new type replaces the old one. Then click **Save**.
+A DAS uses one AtomDB type. Redis + MongoDB is the default. To use another one:
+
+1. Choose it in **Database Type**.
+2. Fill it in, as described for that type below.
+3. Click **Apply AtomDB settings**. The new type replaces the old one.
+4. Click **Save**.
 
 **Mork + MongoDB.** Same steps as Redis + MongoDB, with MorkDB in place of Redis.
 
@@ -145,14 +171,14 @@ A DAS uses one AtomDB type. Redis + MongoDB is the default. To use another one, 
 
 **Start AtomDB** starts Redis and MongoDB only for peers whose main connection is Redis + Mongo. A Mork + Mongo peer is not started by that button. Start that database on its own machine.
 
-**AdapterDB.** Maps an external PostgreSQL database into atoms. In here you have to set-up both the DB that will be used to load the atoms, and the AtomDB that will persist the atoms.
+**AdapterDB.** Maps an external PostgreSQL database into atoms. Here you set up two things: the PostgreSQL database the atoms are loaded from, and the AtomDB where the atoms are stored.
 
 ![AdapterDB connection, credentials, and context mapping](static/configuration_db_adapterdb1.png)
 
 1. Under **Adapter Connection**, set where the adapter will listen.
 2. Under **Database Credentials**, type the PostgreSQL database to map.
-3. Under **Context Mapping**, keep **Paste content**. Paste the mapping, or click **Load from file** and pick the `.sql` file. Click the **Save** next to Context Mapping.
-4. Scroll down to **AtomDB Backend** and choose where the mapped atoms will be stored. Fill it in the same way as that AtomDB type.
+3. Under **Context Mapping**, keep **Paste content**. Paste the mapping, or click **Load from file** and pick the `.sql` file. Then click the **Save** button next to Context Mapping. This is not the main **Save** of the page.
+4. Scroll down to **AtomDB Backend** and choose where the mapped atoms will be stored. Fill it in as described for that AtomDB type above.
 5. Click **Apply AtomDB settings**, then **Save**.
 
 ![AdapterDB mapping options and backend](static/configuration_db_adapterdb2.png)
@@ -181,18 +207,23 @@ This is where you start the DAS and watch it run. The page reads the saved confi
 
 ![Dashboard page, Servers view](static/dashboard_page_servers.png)
 
-It has two views, picked in the sidebar. **Servers** shows one machine at a time, and the tabs at the top switch between machines. `localhost` is this machine. **Agents** shows every service on every machine at once. The actions under the views start and load the DAS.
+It has two views, picked in the sidebar:
+
+- **Servers** shows one machine at a time. The tabs at the top switch between machines. `localhost` is the machine where the dashboard runs.
+- **Agents** shows every service on every machine at once.
+
+The actions under the views start and load the DAS.
 
 If the page says **No servers configured**, save a configuration first. See [Keeping the defaults](#keeping-the-defaults).
 
 ### Starting the DAS
 
-The AtomDB comes first: the agents need it to run.
+Start the AtomDB first: the agents need it to run.
 
 1. In **Servers**, select the tab of the machine that hosts the AtomDB. **Start AtomDB** runs on the selected server.
 2. Click **Start AtomDB** and confirm. Redis, MongoDB, and MorkDB containers already running there are kept.
 3. Wait until the button reads **Stop AtomDB**. **Start Architecture** stays disabled until then.
-4. To start only some services, click the arrow next to **Start Architecture** and uncheck the ones you don't need. Leave **Core** checked: the Attention Broker and the Query Agent are what the other agents connect to. With a Remote DB, only those two and the Command Router start checked.
+4. *(Optional)* To start only some services, click the arrow next to **Start Architecture** and uncheck the ones you don't need. Leave **Core** checked: the Attention Broker and the Query Agent are what the other agents connect to. With a Remote DB, only those two and the Command Router start checked.
 5. Click **Start Architecture** and confirm the list. Each service starts on the machine set for it in Configuration.
 6. Check the table on each server tab. A started service shows **Running**.
 
@@ -202,7 +233,10 @@ The AtomDB comes first: the agents need it to run.
 2. Click **Load MeTTa Database** and pick the file. Only `.metta` files are accepted.
 3. Wait for the confirmation. The file is copied to that server, or kept on the dashboard when the selected server is `localhost`, and loaded into the AtomDB.
 
-If a file with that name was already sent, the page asks what to do. **OK** replaces it with the new one. **Cancel** loads the file already there.
+If a file with that name was already sent, the page asks what to do:
+
+- **OK** replaces it with the new one.
+- **Cancel** loads the file already there.
 
 ### Watching one service
 
@@ -226,15 +260,15 @@ Click **Agents** in the sidebar. Every service on every machine appears as a car
 
 ### Stopping the DAS
 
-1. Click the arrow next to **Stop Architecture** if you want to keep some services running, and uncheck them.
+1. *(Optional)* To keep some services running, click the arrow next to **Stop Architecture** and uncheck them.
 2. Click **Stop Architecture** and confirm.
 3. Select a server tab and click **Stop AtomDB**. Confirm.
 
-   With Redis + MongoDB or Mork + MongoDB on one machine, select that machine. The databases there stop. Redis keeps nothing on disk, so its data is gone when it stops.
+Which databases **Stop AtomDB** stops depends on your AtomDB type:
 
-   With Redis Cluster or Mongo Cluster, select `localhost`. **Stop AtomDB** there walks every cluster node and stops it through its Docker context. It does not stop only the selected machine.
-
-   With a Remote DB, **Stop AtomDB** stops Redis and MongoDB for every Redis + Mongo peer, on each peer's own machine, whichever server tab is selected. Save copies the configuration with an empty Docker context, and `config set` on each machine creates those contexts there. The stop command then walks every Redis + Mongo peer. A Mork peer is left running. No tab stops only one peer.
+- **Redis + MongoDB or Mork + MongoDB, on one machine:** select that machine. The databases there stop. Redis keeps nothing on disk, so its data is gone when it stops.
+- **Redis Cluster or Mongo Cluster:** select `localhost`. **Stop AtomDB** there walks every cluster node and stops it through its Docker context. It does not stop only the selected machine.
+- **Remote DB:** **Stop AtomDB** stops Redis and MongoDB for every Redis + Mongo peer, on each peer's own machine, whichever server tab is selected. A Mork peer is left running. No tab stops only one peer. This works because Save copies the configuration with an empty Docker context, and `config set` on each machine creates those contexts there. The stop command then walks every Redis + Mongo peer.
 
 ## 5. Query
 
@@ -244,24 +278,28 @@ This page sends queries to the Query Agent and shows the answers while they arri
 
 Before the first query:
 
-* The Query Agent and the Command Router must be running. The page reaches the Query Agent through the Command Router. **Start Architecture** with the default selection starts both, together with the Attention Broker the Query Agent uses. See [Starting the DAS](#starting-the-das).
-* The AtomDB must have data. See [Loading a MeTTa file into the AtomDB](#loading-a-metta-file-into-the-atomdb).
+- The Query Agent and the Command Router must be running. The page reaches the Query Agent through the Command Router. **Start Architecture** with the default selection starts both, together with the Attention Broker the Query Agent uses. See [Starting the DAS](#starting-the-das).
+- The AtomDB must have data. See [Loading a MeTTa file into the AtomDB](#loading-a-metta-file-into-the-atomdb).
 
 ### Running a query
 
 1. Open **Query**.
-2. Turn on **Use MeTTa query** to write the query in MeTTa. Leave it off to write it as DAS query tokens.
+2. Choose the query format:
+   - Turn on **Use MeTTa query** to write the query in MeTTa.
+   - Leave it off to write the query as DAS query tokens.
 3. Type the query.
 4. Click **Run**.
 
 Answers appear under **Results** as they arrive, and the counters and charts update with them. **Stop** ends the query before it finishes.
 
-The same query in both forms:
+The same query in both formats:
 
+MeTTa (**Use MeTTa query** on):
 ```
 (Similarity "human" $S)
 ```
 
+DAS query tokens (**Use MeTTa query** off):
 ```
 LINK_TEMPLATE Expression 3 NODE Symbol Similarity NODE Symbol "human" VARIABLE S
 ```

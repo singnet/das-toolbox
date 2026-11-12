@@ -1,6 +1,9 @@
 # Setting up the environment
 
-Do this once, before opening the dashboard. When the whole DAS runs on one machine, steps 1 and 3 are enough. When it uses more than one machine, do step 2 as well.
+Do this once, before opening the dashboard.
+
+- If the whole DAS (Distributed Atomspace) runs on one machine, do steps 1 and 3.
+- If it uses more than one machine, do steps 1, 2, and 3.
 
 ## Contents
 
@@ -25,8 +28,7 @@ Docker must be installed on the dashboard machine and on every machine where `da
 
 Skip this step if all DAS components run on the same machine as the Dashboard.
 
-The Dashboard uses SSH to access remote machines. It stores one username and one private key, which must be authorized on every remote machine through that user's authorized_keys file.
-
+The Dashboard uses SSH to access remote machines. It stores one username and one private key. The matching public key must be authorized on every remote machine, in that user's `authorized_keys` file.
 
 ### Generate a key pair
 
@@ -43,21 +45,26 @@ This creates two files:
 
 ### Authorize the public key on remote machines
 
-First, on the **Dashboard machine**, display and copy the public key:
+1. On the **Dashboard machine**, display the public key:
 
-```bash
-cat ~/.ssh/das-dashboard.pub
-```
+   ```bash
+   cat ~/.ssh/das-dashboard.pub
+   ```
 
-Then, on each **Remote machine**, log in as the same username you will configure on the Dashboard's Profile page. The account must not be root. See [Profile](using-the-dashboard.md#1-profile).
+   Copy the whole output. It is one line that starts with `ssh-ed25519`.
 
-```bash
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-cat >> ~/.ssh/authorized_keys
-# paste the contents of das-dashboard.pub, then press Ctrl-D
-chmod 600 ~/.ssh/authorized_keys
-```
+2. On each **Remote machine**, log in as the same username you will type on the **Profile** page of the dashboard. The account must not be `root`. See [Profile](using-the-dashboard.md#2-profile).
+
+3. On that same **Remote machine**, run the commands below. Replace `<paste the public key here>` with the line you copied, and keep the quotes:
+
+   ```bash
+   mkdir -p ~/.ssh
+   chmod 700 ~/.ssh
+   echo "<paste the public key here>" >> ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/authorized_keys
+   ```
+
+4. Repeat steps 2 and 3 on every other remote machine.
 
 ### Test the connection
 
