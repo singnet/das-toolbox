@@ -1,12 +1,20 @@
 # Setting up the environment
 
-Do this once, before opening the dashboard. When the whole DAS runs on one machine, steps 1 and 3 are enough. When it uses more than one machine, do step 2 as well.
+Do this once, before opening the dashboard.
+
+- If the whole DAS (Distributed Atomspace) runs on one machine, do steps 1 and 3.
+- If it uses more than one machine, do steps 1, 2, and 3.
 
 ## Contents
 
-* [1. Install das-cli and Docker](#1-install-das-cli-and-docker)
-* [2. Set up SSH access](#2-set-up-ssh-access)
-* [3. Start the interface](#3-start-the-interface)
+- [Setting up the environment](#setting-up-the-environment)
+  - [Contents](#contents)
+  - [1. Install das-cli and Docker](#1-install-das-cli-and-docker)
+  - [2. Set up SSH access](#2-set-up-ssh-access)
+    - [Generate a key pair](#generate-a-key-pair)
+    - [Authorize the public key on remote machines](#authorize-the-public-key-on-remote-machines)
+    - [Test the connection](#test-the-connection)
+  - [3. Start the interface](#3-start-the-interface)
 
 ## 1. Install das-cli and Docker
 
@@ -18,29 +26,49 @@ Docker must be installed on the dashboard machine and on every machine where `da
 
 ## 2. Set up SSH access
 
-Skip this step when the whole DAS runs on this machine.
+Skip this step if all DAS components run on the same machine as the Dashboard.
 
-The Profile page stores one username and one private key. The dashboard uses that key for SCP, remote `das-cli` commands, and the Docker contexts that start databases on other machines. The matching **public** key has to be in `authorized_keys` for that user on every machine in the architecture.
+The Dashboard uses SSH to access remote machines. It stores one username and one private key. The matching public key must be authorized on every remote machine, in that user's `authorized_keys` file.
 
-Create a key pair on the machine where you will open the dashboard:
+### Generate a key pair
+
+On the **Dashboard machine**, run:
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/das-dashboard -N ""
 ```
 
-`~/.ssh/das-dashboard` is the private key you will upload on the **Profile** page. `~/.ssh/das-dashboard.pub` is the public key.
+This creates two files:
 
-On each machine, log in as the same username you will type on the Profile page. That account must not be `root`. See [Profile](using-the-dashboard.md#1-profile).
+- ~/.ssh/das-dashboard: **Private key**, to upload on the Dashboard's **Profile** page.
+- ~/.ssh/das-dashboard.pub: **Public key**, to install on remote machines.
 
-```bash
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-cat >> ~/.ssh/authorized_keys
-# paste the contents of das-dashboard.pub, then press Ctrl-D
-chmod 600 ~/.ssh/authorized_keys
-```
+### Authorize the public key on remote machines
 
-Confirm the key works before using the dashboard:
+1. On the **Dashboard machine**, display the public key:
+
+   ```bash
+   cat ~/.ssh/das-dashboard.pub
+   ```
+
+   Copy the whole output. It is one line that starts with `ssh-ed25519`.
+
+2. On each **Remote machine**, log in as the same username you will type on the **Profile** page of the dashboard. The account must not be `root`. See [Profile](using-the-dashboard.md#2-profile).
+
+3. On that same **Remote machine**, run the commands below. Replace `<paste the public key here>` with the line you copied, and keep the quotes:
+
+   ```bash
+   mkdir -p ~/.ssh
+   chmod 700 ~/.ssh
+   echo "<paste the public key here>" >> ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/authorized_keys
+   ```
+
+4. Repeat steps 2 and 3 on every other remote machine.
+
+### Test the connection
+
+On the **Dashboard machine**, run:
 
 ```bash
 ssh -i ~/.ssh/das-dashboard <username>@<host> das-cli --version
@@ -48,7 +76,7 @@ ssh -i ~/.ssh/das-dashboard <username>@<host> das-cli --version
 
 ## 3. Start the interface
 
-From `das-dashboard/`:
+On the **Dashboard machine**, run the following command in the `das-dashboard/` directory:
 
 ```bash
 ./scripts/start_interface.sh
