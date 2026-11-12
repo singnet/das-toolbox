@@ -40,7 +40,8 @@ export function SideBar() {
 
   const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
   const { hostStreamSwitching } = useServerTabMetricsContext();
-  const { atomdb, atomdbType } = useSidebarAtomdbConfig();
+  const atomdb = useSidebarAtomdbConfig();
+  const atomdbType = atomdb?.atomdb_type ?? null;
 
   const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
     const requestId = latestInfraRequestId.current + 1;

@@ -55,9 +55,11 @@ class DatabaseServices:
         finally:
             ssh.close()
 
+    def _ensure_metta_load_allowed(self) -> None:
+        validate_atomdb_for_metta_load(self.web_config.load_raw_configuration())
+
     async def save_metta_file(self, host: str, knowledge_file: UploadFile, force_overwrite: bool) -> str:
-        config = self.web_config.load_raw_configuration()
-        validate_atomdb_for_metta_load(config)
+        self._ensure_metta_load_allowed()
 
         file_name = safe_upload_filename(knowledge_file.filename)
 
@@ -82,8 +84,7 @@ class DatabaseServices:
         return file_path
 
     def load_metta_file_into_db(self, host: str, metta_file_path: str):
-        config = self.web_config.load_raw_configuration()
-        validate_atomdb_for_metta_load(config)
+        self._ensure_metta_load_allowed()
 
         cmd = build_host_cli_command(
             self.web_config, host, ["metta", "load", metta_file_path, "-o", "json"]
