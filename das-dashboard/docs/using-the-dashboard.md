@@ -8,31 +8,39 @@ This guide assumes the dashboard is already running. See [Setting up the environ
 
 ## Contents
 
-* [1. Profile](#1-profile)
-  * [Setting up a profile](#setting-up-a-profile)
-* [2. Configuration](#2-configuration)
-  * [Keeping the defaults](#keeping-the-defaults)
-  * [Changing a few parameters and values](#changing-a-few-parameters-and-values)
-  * [Running the DAS on more than one machine](#running-the-das-on-more-than-one-machine)
-  * [Running Redis or MongoDB as a cluster](#running-redis-or-mongodb-as-a-cluster)
-  * [Using another AtomDB](#using-another-atomdb)
-  * [Loading a configuration you already have](#loading-a-configuration-you-already-have)
-  * [Checking before you save](#checking-before-you-save)
-  * [Starting over](#starting-over)
-* [3. Dashboard](#3-dashboard)
-  * [Starting the DAS](#starting-the-das)
-  * [Loading a MeTTa file into the AtomDB](#loading-a-metta-file-into-the-atomdb)
-  * [Watching one service](#watching-one-service)
-  * [Keeping a metrics history](#keeping-a-metrics-history)
-  * [Seeing the whole architecture](#seeing-the-whole-architecture)
-  * [Stopping the DAS](#stopping-the-das)
-* [4. Query](#4-query)
-  * [Running a query](#running-a-query)
-  * [Changing the parameters for one query](#changing-the-parameters-for-one-query)
-  * [Querying a protected AtomDB](#querying-a-protected-atomdb)
-* [Errors and troubleshooting](troubleshooting.md)
+- [Using the dashboard](#using-the-dashboard)
+  - [Contents](#contents)
+  - [1. Setting up the environment](#1-setting-up-the-environment)
+  - [2. Profile](#2-profile)
+    - [Setting up a profile.](#setting-up-a-profile)
+  - [3. Configuration](#3-configuration)
+    - [Keeping the defaults](#keeping-the-defaults)
+    - [Changing a few parameters and values](#changing-a-few-parameters-and-values)
+    - [Running the DAS on more than one machine](#running-the-das-on-more-than-one-machine)
+    - [Running Redis or MongoDB as a cluster](#running-redis-or-mongodb-as-a-cluster)
+    - [Using another AtomDB](#using-another-atomdb)
+    - [Loading a configuration you already have](#loading-a-configuration-you-already-have)
+    - [Checking before you save](#checking-before-you-save)
+    - [Starting over](#starting-over)
+  - [4. Dashboard](#4-dashboard)
+    - [Starting the DAS](#starting-the-das)
+    - [Loading a MeTTa file into the AtomDB](#loading-a-metta-file-into-the-atomdb)
+    - [Watching one service](#watching-one-service)
+    - [Keeping a metrics history](#keeping-a-metrics-history)
+    - [Seeing the whole architecture](#seeing-the-whole-architecture)
+    - [Stopping the DAS](#stopping-the-das)
+  - [5. Query](#5-query)
+    - [Running a query](#running-a-query)
+    - [Changing the parameters for one query](#changing-the-parameters-for-one-query)
+    - [Querying a protected AtomDB](#querying-a-protected-atomdb)
+  - [When something fails](#when-something-fails)
 
-## 1. Profile
+
+## 1. Setting up the environment
+
+See [Setting up the environment](setup.md)
+
+## 2. Profile
 
 ![SSH Profile page](static/profile.png)
 
@@ -40,14 +48,13 @@ Do this first when the DAS will use more than one machine. The dashboard reaches
 
 ### Setting up a profile.
 
-1. Create the key pair and authorize it on every machine, as described in [SSH access](setup.md#2-set-up-ssh-access).
-2. Open **Profile** and type the SSH user. It cannot be `root`.
-3. Click **Select SSH Key File** and pick the private key, the file without `.pub`.
-4. Click **Save Profile**.
+1. Open **Profile** and type the SSH user. It cannot be `root`.
+2. Click **Select SSH Key File** and pick the private key, the file without `.pub`.
+3. Click **Save Profile**.
 
 When you come back to change something, select the key again: the page keeps the username but not the key. If a later step fails with an authentication error, the public key is not authorized for that user on that machine.
 
-## 2. Configuration
+## 3. Configuration
 
 This page sets up the DAS environment and its agents. Changing anything here is optional: with the default values, one **Save** is enough.
 
@@ -168,7 +175,7 @@ Click **Preview** to see what Save will store. If a change you made is missing, 
 
 Click **Reset** and confirm. Every section goes back to the DAS defaults, and what you typed is lost. The file already saved stays as it is until you click **Save** again.
 
-## 3. Dashboard
+## 4. Dashboard
 
 This is where you start the DAS and watch it run. The page reads the saved configuration and connects to every machine named in it.
 
@@ -229,7 +236,7 @@ Click **Agents** in the sidebar. Every service on every machine appears as a car
 
    With a Remote DB, **Stop AtomDB** stops Redis and MongoDB for every Redis + Mongo peer, on each peer's own machine, whichever server tab is selected. Save copies the configuration with an empty Docker context, and `config set` on each machine creates those contexts there. The stop command then walks every Redis + Mongo peer. A Mork peer is left running. No tab stops only one peer.
 
-## 4. Query
+## 5. Query
 
 ![Query page](static/query_page.png)
 
