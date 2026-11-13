@@ -1,102 +1,82 @@
-import { useRef, useState } from "react";
-import { CircularProgress, ListItemIcon, ListItemText } from "@mui/material";
+import { useRef } from "react";
+import { CircularProgress, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
 import { Storage } from "@mui/icons-material";
 
 import { StyledItem } from "./sidebar.styled";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { uploadMettaFile, loadMettaFile } from "../../../../api/AtomDBAPI";
-import { extractApiError } from "../../../../api/APIUtils";
-
-const LOADING_KEYS = ["load-metta", "overwrite-metta", "load-existing-metta", "upload-metta"];
+import { getMettaLoadAvailability } from "../../../../utils/mettaLoadPolicy";
+import { useSidebarAction } from "./useSidebarAction";
 
 export function MettaLoadActionControl({
+  atomdbType,
+  atomDbOnline,
   isServerOffline,
   disabled = false,
   onBusyChange,
+  onActionComplete,
 }) {
-  const [loadingAction, setLoadingAction] = useState(null);
   const mettaInputRef = useRef(null);
-
   const { currentMachine } = useDashboardContext();
-  const { showToast } = useToast();
   const { showConfirm } = useDialog();
+  const { busy, run } = useSidebarAction({ onBusyChange, onActionComplete });
 
   const currentHost = currentMachine?.serverIp;
-  const isLoading = LOADING_KEYS.includes(loadingAction);
+  const { canLoad, tooltip } = getMettaLoadAvailability(atomdbType, {
+    atomDbOnline,
+    isServerOffline,
+    actionLocked: disabled && !busy,
+  });
+  const isDisabled = !canLoad || busy;
 
-  const setBusy = (actionKey) => {
-    setLoadingAction(actionKey);
-    onBusyChange?.(!!actionKey);
-  };
-
-  const executeAsyncAction = async (actionKey, action, successMessage, errorMessage) => {
-    try {
-      setBusy(actionKey);
-      await action();
-      showToast({ message: successMessage, severity: "success" });
-    } catch (err) {
-      console.error(errorMessage, err);
-      const { message, details, severity } = extractApiError(err, errorMessage);
-      showToast({ message, severity, details });
-    } finally {
-      setBusy(null);
-    }
+  const uploadAndLoad = (host, file, forceOverwrite) => async () => {
+    const response = await uploadMettaFile(host, forceOverwrite, file);
+    await loadMettaFile(host, response.saved_path);
   };
 
   const handleMettaUpload = async (event) => {
     const file = event.target.files?.[0];
+    if (event.target) event.target.value = "";
     if (!file) return;
 
     const hostSnapshot = currentHost;
-
-    try {
-      setBusy("upload-metta");
-      const uploadResponse = await uploadMettaFile(hostSnapshot, false, file);
-
-      setBusy("load-metta");
-      await loadMettaFile(hostSnapshot, uploadResponse.saved_path);
-      showToast({ message: "MeTTa database loaded successfully.", severity: "success" });
-    } catch (err) {
-      const responseData = err?.response?.data;
-
-      if (err?.response?.status === 409 && responseData?.file_path) {
-        const existingFilePath = responseData.file_path;
+    await run(async () => {
+      try {
+        await uploadAndLoad(hostSnapshot, file, false)();
+      } catch (error) {
+        const existingFilePath = error?.response?.status === 409
+          ? error.response.data?.file_path
+          : null;
+        if (!existingFilePath) throw error;
 
         showConfirm({
           title: "File already exists",
           message: `The file "${file.name}" already exists on the server.\n\nDo you want to OVERWRITE it? (Click CANCEL to safely load the existing server file instead).`,
-          onConfirm: () => {
-            executeAsyncAction(
-              "overwrite-metta",
-              async () => {
-                const res = await uploadMettaFile(hostSnapshot, true, file);
-                await loadMettaFile(hostSnapshot, res.saved_path);
-              },
-              "MeTTa file overwritten and loaded successfully.",
-              "Failed to overwrite MeTTa file."
-            );
-          },
-          onCancel: () => {
-            executeAsyncAction(
-              "load-existing-metta",
-              async () => {
-                await loadMettaFile(hostSnapshot, existingFilePath);
-              },
-              "Existing MeTTa file loaded successfully.",
-              "Failed to load existing MeTTa file."
-            );
-          }
+          onConfirm: () => run(
+            uploadAndLoad(hostSnapshot, file, true),
+            "MeTTa file overwritten and loaded successfully.",
+            "Failed to overwrite or load MeTTa file."
+          ),
+          onCancel: () => run(
+            () => loadMettaFile(hostSnapshot, existingFilePath),
+            "Existing MeTTa file loaded successfully.",
+            "Failed to load existing MeTTa file."
+          ),
         });
-      } else {
-        const { message, details, severity } = extractApiError(err, "Failed to upload MeTTa database.");
-        showToast({ message, severity, details });
+        return false;
       }
-    } finally {
-      setBusy(null);
-      if (event.target) event.target.value = "";
-    }
+    }, "MeTTa database loaded successfully.", "Failed to load the MeTTa database.");
+  };
+
+  const openFilePicker = () => {
+    if (isDisabled) return;
+    const targetHost = currentHost || "the selected server";
+    showConfirm({
+      title: "Load MeTTa Database",
+      message: `Load on ${targetHost} using the saved AtomDB configuration.\n\nThe file is uploaded to that server, then das-cli metta load runs there.`,
+      onConfirm: () => mettaInputRef.current?.click(),
+    });
   };
 
   return (
@@ -108,16 +88,16 @@ export function MettaLoadActionControl({
         hidden
         onChange={handleMettaUpload}
       />
-
-      <StyledItem
-        disabled={disabled || isLoading || isServerOffline}
-        onClick={() => !disabled && !isLoading && !isServerOffline && mettaInputRef.current?.click()}
-      >
-        <ListItemIcon>
-          {isLoading ? <CircularProgress size={16} /> : <Storage />}
-        </ListItemIcon>
-        <ListItemText primary="Load MeTTa Database" />
-      </StyledItem>
+      <Tooltip title={tooltip} placement="right" arrow describeChild>
+        <span style={{ display: "block" }}>
+          <StyledItem disabled={isDisabled} onClick={openFilePicker}>
+            <ListItemIcon>
+              {busy ? <CircularProgress size={16} /> : <Storage />}
+            </ListItemIcon>
+            <ListItemText primary="Load MeTTa Database" />
+          </StyledItem>
+        </span>
+      </Tooltip>
     </>
   );
 }

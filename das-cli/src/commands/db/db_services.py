@@ -8,10 +8,81 @@ from common.docker.exceptions import (
     DockerError,
 )
 from common.exceptions import PortBindingError
+from common.factory.atomdb.remote_start_targets import remote_local_persistences
 from common.service_response import ServiceResponse, StdoutStatus
 
 CLI_SERVICE_NAME = "database"
 LOCAL_NODE_HOSTS = {"", "localhost", "127.0.0.1", "0.0.0.0"}
+
+
+def run_configured_backends(command, action: str, *, prune: bool = False) -> None:
+    """Start or stop the databases selected by atomdb.type."""
+    settings = command._settings
+    atomdb_type = settings.get("atomdb.type")
+
+    if atomdb_type == "adapterdb":
+        atomdb_type = settings.get("atomdb.adapterdb.atomdb_backend.type")
+
+    if atomdb_type == "inmemorydb":
+        command.log(
+            f"InMemoryDB is not supported on the 'db {action}' command",
+            severity=StdoutSeverity.WARNING,
+        )
+        return
+
+    if atomdb_type == "redismongodb":
+        provider = command._atomdb_backend.get_active_providers()[0]
+        _redis_mongo(command, action, provider, prune=prune)
+        return
+
+    if atomdb_type == "morkdb":
+        provider = command._atomdb_backend.get_active_providers()[0]
+        _mork_mongo(command, action, provider, prune=prune)
+        return
+
+    if atomdb_type == "remotedb":
+        providers = {
+            provider.peer_uid: provider
+            for provider in command._atomdb_backend.get_active_providers()
+            if getattr(provider, "peer_uid", None)
+        }
+        started = False
+        for persistence in remote_local_persistences(settings.get_content()):
+            provider = providers.get(persistence["codename"])
+            if provider is None:
+                continue
+            verb = "Stopping" if action == "stop" else "Starting"
+            command.log(f"{verb} RemoteDB local persistence {persistence['codename']}...")
+            if persistence["type"] == "redismongodb":
+                _redis_mongo(command, action, provider, prune=prune)
+                started = True
+            elif persistence["type"] == "morkdb":
+                _mork_mongo(command, action, provider, prune=prune)
+                started = True
+
+        if not started:
+            command.log(
+                "RemoteDB has no Redis or Mork local persistence to start.",
+                severity=StdoutSeverity.WARNING,
+            )
+
+
+def _redis_mongo(command, action: str, provider, *, prune: bool) -> None:
+    if action == "stop":
+        command._db.stop_redis(provider.redis_container_manager, prune=prune)
+        command._db.stop_mongodb(provider.mongodb_container_manager, prune=prune)
+        return
+    command._db.start_redis(provider.redis_container_manager)
+    command._db.start_mongodb(provider.mongodb_container_manager)
+
+
+def _mork_mongo(command, action: str, provider, *, prune: bool) -> None:
+    if action == "stop":
+        command._db.stop_mongodb(provider.mongodb_container_manager, prune=prune)
+        command._db.stop_morkdb(provider.morkdb_container_manager, prune=prune)
+        return
+    command._db.start_mongodb(provider.mongodb_container_manager)
+    command._db.start_morkdb(provider.morkdb_container_manager)
 
 
 class DbOperations:
@@ -202,18 +273,38 @@ class DbOperations:
 
     def start_morkdb(self, manager: MorkdbContainerManager) -> None:
         port = manager._options["morkdb_port"]
+        nodes = manager._options.get("morkdb_nodes") or [
+            {"context": "default", "ip": "localhost", "username": ""}
+        ]
         self.log("Starting MorkDB service...", severity=StdoutSeverity.INFO)
 
-        try:
-            manager.start_container()
-            self.log(
-                f"MorkDB service has started successfully at port {port}",
-                severity=StdoutSeverity.SUCCESS,
-            )
-        except DockerContainerDuplicateError:
-            self.log(f"MorkDB is already running at port {port}", severity=StdoutSeverity.WARNING)
-        except (DockerError, PortBindingError) as error:
-            self._record_error(f"Failed to start MorkDB at port {port}: {error}")
+        for node in nodes:
+            if self._missing_remote_context("MorkDB", node):
+                continue
+
+            context = node.get("context", "")
+            node_username = node.get("username", "")
+            public_ip = self._resolve_public_ip(node.get("ip", ""))
+            try:
+                self._set_node_context(manager, context)
+                try:
+                    manager.start_container()
+                    self.log(
+                        f"MorkDB service has started successfully at port {port} at {public_ip}, "
+                        f"operating under the server user {node_username}.",
+                        severity=StdoutSeverity.SUCCESS,
+                    )
+                except DockerContainerDuplicateError:
+                    self.log(
+                        f"MorkDB is already running at port {port} at {public_ip}",
+                        severity=StdoutSeverity.WARNING,
+                    )
+                except (DockerError, PortBindingError) as error:
+                    self._record_error(
+                        f"Failed to start MorkDB at {public_ip} under {node_username}: {error}"
+                    )
+            finally:
+                manager.unset_exec_context()
 
     def stop_redis(self, manager: RedisContainerManager, *, prune: bool = False) -> None:
         self.log("Stopping Redis service...", severity=StdoutSeverity.INFO)
@@ -294,12 +385,35 @@ class DbOperations:
                 manager.unset_exec_context()
 
     def stop_morkdb(self, manager: MorkdbContainerManager, *, prune: bool = False) -> None:
+        nodes = manager._options.get("morkdb_nodes") or [
+            {"context": "default", "ip": "localhost", "username": ""}
+        ]
         self.log("Stopping MorkDB service...", severity=StdoutSeverity.INFO)
 
-        try:
-            manager.stop(remove_volume=prune)
-            self.log("The service MorkDB has been stopped.", severity=StdoutSeverity.SUCCESS)
-        except DockerContainerNotFoundError:
-            self.log("The service MorkDB is already stopped.", severity=StdoutSeverity.WARNING)
-        except (DockerError, PortBindingError) as error:
-            self._record_error(f"Failed to stop MorkDB: {error}")
+        for node in nodes:
+            if self._missing_remote_context("MorkDB", node):
+                continue
+
+            context = node.get("context", "")
+            node_username = node.get("username", "")
+            public_ip = self._resolve_public_ip(node.get("ip", ""))
+            try:
+                self._set_node_context(manager, context)
+                try:
+                    manager.stop(remove_volume=prune)
+                    self.log(
+                        f"The service MorkDB at {public_ip} has been stopped "
+                        f"by the server user {node_username}.",
+                        severity=StdoutSeverity.SUCCESS,
+                    )
+                except DockerContainerNotFoundError:
+                    self.log(
+                        f"The service MorkDB at {public_ip} is already stopped.",
+                        severity=StdoutSeverity.WARNING,
+                    )
+                except (DockerError, PortBindingError) as error:
+                    self._record_error(
+                        f"Failed to stop MorkDB at {public_ip} under {node_username}: {error}"
+                    )
+            finally:
+                manager.unset_exec_context()

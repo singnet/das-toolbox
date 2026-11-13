@@ -8,6 +8,7 @@ if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
 from commands.config.config_sections.normalize_file import (  # noqa: E402
+    assemble_db_start_targets,
     normalize_servers,
     verify_populate_missing_values,
 )
@@ -99,3 +100,55 @@ def test_invalid_nodes_do_not_remove_docker_contexts(monkeypatch):
         verify_populate_missing_values(_Settings(), "/tmp/das-config.json")
 
     assert cleared == []
+
+
+def test_config_set_keeps_dashboard_ssh_user_over_local_account():
+    content = {
+        "atomdb": {
+            "type": "remotedb",
+            "remote_peers": [
+                {
+                    "uid": "peer1",
+                    "type": "redismongodb",
+                    "redis": {"endpoint": "10.0.0.8:40020", "nodes": [{"context": "old"}]},
+                    "local_persistence": {
+                        "type": "morkdb",
+                        "context": "remotedb_peer1_local_",
+                        "morkdb": {"endpoint": "10.0.0.8:40022"},
+                        "mongodb": {"endpoint": "10.0.0.8:40023"},
+                    },
+                },
+                {
+                    "uid": "peer2",
+                    "type": "morkdb",
+                    "local_persistence": {"type": "inmemorydb", "context": "remotedb_peer2_local_"},
+                },
+            ],
+        },
+        "db_start_targets": [
+            {
+                "codename": "remotedb_peer1_local_",
+                "type": "morkdb",
+                "nodes": [{
+                    "context": "",
+                    "ip": "10.0.0.8",
+                    "username": "levi",
+                }],
+            }
+        ],
+    }
+
+    assemble_db_start_targets(content, "rafaellevi")
+
+    assert "nodes" not in content["atomdb"]["remote_peers"][0]["redis"]
+    assert content["db_start_targets"] == [
+        {
+            "codename": "remotedb_peer1_local_",
+            "type": "morkdb",
+            "nodes": [{
+                "context": "",
+                "ip": "10.0.0.8",
+                "username": "levi",
+            }],
+        }
+    ]

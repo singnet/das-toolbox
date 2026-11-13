@@ -15,7 +15,6 @@ from shared.utils.das_cli_response import (
     run_das_cli_json_command,
 )
 from shared.utils.service_inventory import ORCHESTRATION_ORDER
-from shared.utils.path_utils import split_endpoint
 
 
 class ContainerServices:
@@ -53,7 +52,8 @@ class ContainerServices:
         config: dict,
         host: str | None,
     ):
-        peer_hosts = self._remote_peer_hosts(config)
+        self.web_config.load_config_dictionary(config)
+        peer_hosts = {entry["ip"] for entry in self.web_config.map_remote_hosts()}
         if host and self._is_remote(host):
             peer_hosts.add(host)
         ensure_docker_ssh_access(self.web_config, list(peer_hosts))
@@ -77,29 +77,22 @@ class ContainerServices:
             timeout=self._DB_COMMAND_TIMEOUT_SECONDS,
         )
 
-    def _remote_peer_hosts(self, config: dict) -> set[str]:
-        hosts: set[str] = set()
-        for peer in config.get("atomdb", {}).get("remote_peers") or []:
-            if not isinstance(peer, dict):
-                continue
-            for database in self._REMOTE_DATABASES:
-                section = peer.get(database)
-                if not isinstance(section, dict):
-                    continue
-                endpoint = section.get("endpoint")
-                if isinstance(endpoint, str) and endpoint:
-                    endpoint_host, _ = split_endpoint(endpoint, "", 0)
-                    if endpoint_host and endpoint_host not in LOCAL_HOSTS:
-                        hosts.add(endpoint_host)
-                for node in section.get("nodes") or []:
-                    if not isinstance(node, dict):
-                        continue
-                    node_ip = node.get("ip") or ""
-                    if node_ip and node_ip not in LOCAL_HOSTS:
-                        hosts.add(node_ip)
-        return hosts
-
     def _remote_nodes_missing_context(self, config: dict) -> bool:
+        atomdb = config.get("atomdb") or {}
+        if atomdb.get("type") == "remotedb" and not isinstance(config.get("db_start_targets"), list):
+            return True
+        for target in config.get("db_start_targets") or []:
+            if not isinstance(target, dict):
+                continue
+            nodes = target.get("nodes")
+            if not isinstance(nodes, list):
+                nodes = [target]
+            for node in nodes:
+                if not isinstance(node, dict):
+                    continue
+                node_ip = node.get("ip") or ""
+                if node_ip and node_ip not in LOCAL_HOSTS and not node.get("context"):
+                    return True
         for peer in config.get("atomdb", {}).get("remote_peers") or []:
             if not isinstance(peer, dict):
                 continue

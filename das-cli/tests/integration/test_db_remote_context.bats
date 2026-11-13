@@ -16,14 +16,22 @@ configure_remote_peer_without_context() {
         | .atomdb.remote_peers = [{
             uid: "peer1",
             type: "redismongodb",
-            context: "remotedb_peer1_",
-            redis: {endpoint: "10.1.0.8:40020", cluster: false},
-            mongodb: {
-                endpoint: "10.1.0.8:40021",
-                username: "admin",
-                password: "admin",
-                cluster: false
+            local_persistence: {
+                type: "redismongodb",
+                context: "remotedb_peer1_local_",
+                redis: {endpoint: "10.1.0.8:40020", cluster: false},
+                mongodb: {
+                    endpoint: "10.1.0.8:40021",
+                    username: "admin",
+                    password: "admin",
+                    cluster: false
+                }
             }
+        }]
+        | .db_start_targets = [{
+            codename: "remotedb_peer1_local_",
+            type: "redismongodb",
+            nodes: [{context: "", ip: "10.1.0.8", username: "levi"}]
         }]
     ' "$das_config_file" > "$updated"
     mv "$updated" "$das_config_file"

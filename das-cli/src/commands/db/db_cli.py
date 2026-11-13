@@ -2,14 +2,8 @@ from injector import inject
 
 from common import Command, CommandGroup, CommandOption, Settings, StdoutSeverity
 from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
-from common.container_manager.atomdb.morkdb_container_manager import MorkdbContainerManager
-from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
 from common.decorators import ensure_container_running
-from common.factory.atomdb.atomdb_backend import (
-    AtomdbBackend,
-    MongoDBRedisBackend,
-    MorkMongoDBBackend,
-)
+from common.factory.atomdb.atomdb_backend import AtomdbBackend
 from common.service_response import ServiceResponse, StdoutStatus
 
 from .db_docs import (
@@ -24,7 +18,7 @@ from .db_docs import (
     SHORT_HELP_DB_START,
     SHORT_HELP_DB_STOP,
 )
-from .db_services import CLI_SERVICE_NAME, DbOperations
+from .db_services import CLI_SERVICE_NAME, DbOperations, run_configured_backends
 
 
 class DbCountAtoms(Command):
@@ -38,12 +32,8 @@ class DbCountAtoms(Command):
     def __init__(
         self,
         atomdb_backend: AtomdbBackend,
-        mongodb_container_manager: MongodbContainerManager,
-        redis_container_manager: RedisContainerManager,
     ) -> None:
         self._atomdb_backend = atomdb_backend
-        self._mongodb_container_manager = mongodb_container_manager
-        self._redis_container_manager = redis_container_manager
 
         super().__init__()
 
@@ -102,12 +92,13 @@ class DbCountAtoms(Command):
     )
     def run(self) -> None:
         for provider in self._atomdb_backend.get_active_providers():
-            if isinstance(provider, MongoDBRedisBackend):
-                if provider.peer_uid:
-                    self.log(f"Counting atoms on RemoteDB peer {provider.peer_uid}...")
-                self._show_mongodb_stats(provider.mongodb_container_manager)
-            elif isinstance(provider, MorkMongoDBBackend):
-                self._show_mongodb_stats(self._mongodb_container_manager)
+            manager = getattr(provider, "mongodb_container_manager", None)
+            if manager is None:
+                continue
+            peer_uid = getattr(provider, "peer_uid", None)
+            if peer_uid:
+                self.log(f"Counting atoms on RemoteDB local persistence {peer_uid}...")
+            self._show_mongodb_stats(manager)
 
 
 class DbStop(Command):
@@ -131,39 +122,16 @@ class DbStop(Command):
         self,
         settings: Settings,
         atomdb_backend: AtomdbBackend,
-        redis_container_manager: RedisContainerManager,
-        mongodb_container_manager: MongodbContainerManager,
-        morkdb_container_manager: MorkdbContainerManager,
     ) -> None:
         self._settings = settings
         self._atomdb_backend = atomdb_backend
-        self._redis_container_manager = redis_container_manager
-        self._mongodb_container_manager = mongodb_container_manager
-        self._morkdb_container_manager = morkdb_container_manager
         self._db = DbOperations(self)
         super().__init__()
 
     def run(self, prune: bool = False) -> None:
         self._settings.validate_configuration_file()
         self._db.reset()
-
-        for provider in self._atomdb_backend.get_active_providers():
-            if isinstance(provider, MongoDBRedisBackend):
-                if provider.peer_uid:
-                    self.log(f"Stopping RemoteDB peer {provider.peer_uid}...")
-                self._db.stop_redis(provider.redis_container_manager, prune=prune)
-                self._db.stop_mongodb(provider.mongodb_container_manager, prune=prune)
-
-            elif isinstance(provider, MorkMongoDBBackend):
-                self._db.stop_mongodb(self._mongodb_container_manager, prune=prune)
-                self._db.stop_morkdb(self._morkdb_container_manager, prune=prune)
-
-            else:
-                self.log(
-                    "InMemoryDB and RemoteDB are not supported on the 'db stop' command",
-                    severity=StdoutSeverity.WARNING,
-                )
-
+        run_configured_backends(self, "stop", prune=prune)
         self._db.finish("stop", "Database services stopped successfully.", prune=prune)
 
 
@@ -177,39 +145,16 @@ class DbStart(Command):
         self,
         settings: Settings,
         atomdb_backend: AtomdbBackend,
-        redis_container_manager: RedisContainerManager,
-        mongodb_container_manager: MongodbContainerManager,
-        morkdb_container_manager: MorkdbContainerManager,
     ) -> None:
         self._settings = settings
         self._atomdb_backend = atomdb_backend
-        self._redis_container_manager = redis_container_manager
-        self._mongodb_container_manager = mongodb_container_manager
-        self._morkdb_container_manager = morkdb_container_manager
         self._db = DbOperations(self)
         super().__init__()
 
     def run(self):
         self._settings.validate_configuration_file()
         self._db.reset()
-
-        for provider in self._atomdb_backend.get_active_providers():
-            if isinstance(provider, MongoDBRedisBackend):
-                if provider.peer_uid:
-                    self.log(f"Starting RemoteDB peer {provider.peer_uid}...")
-                self._db.start_redis(provider.redis_container_manager)
-                self._db.start_mongodb(provider.mongodb_container_manager)
-
-            elif isinstance(provider, MorkMongoDBBackend):
-                self._db.start_mongodb(self._mongodb_container_manager)
-                self._db.start_morkdb(self._morkdb_container_manager)
-
-            else:
-                self.log(
-                    "InMemoryDB and RemoteDB are not supported on the 'db start' command",
-                    severity=StdoutSeverity.WARNING,
-                )
-
+        run_configured_backends(self, "start")
         self._db.finish("start", "Database services started successfully.")
 
 

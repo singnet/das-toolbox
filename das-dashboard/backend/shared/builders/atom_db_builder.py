@@ -258,7 +258,6 @@ class AtomDbBuilder:
                         "127.0.0.1" if redis_local else peer["redis_endpoint"], peer["redis_port"]
                     ),
                     "cluster": False,
-                    "nodes": [self._peer_node(peer["redis_endpoint"])],
                 }
                 peer_config["mongodb"] = {
                     "endpoint": self._endpoint(
@@ -266,7 +265,6 @@ class AtomDbBuilder:
                     ),
                     "username": peer["mongo_username"],
                     "password": peer["mongo_password"],
-                    "nodes": [self._peer_node(peer["mongo_endpoint"])],
                 }
 
             elif peer_type == "morkdb":
@@ -299,12 +297,6 @@ class AtomDbBuilder:
             "type": "remotedb",
             "remote_peers": peers,
         }
-
-    def _peer_node(self, host: str) -> dict:
-        if host in LOCAL_HOSTS:
-            return {"context": "default", "ip": "localhost", "username": self.profile_username}
-        # An empty context makes das-cli create an SSH Docker context for the peer server.
-        return {"context": "", "ip": host, "username": self.profile_username}
 
     def _build_local_persistence(self, flat: dict, *, where: str, uid: str) -> dict:
         _require(flat, "type", label=where)

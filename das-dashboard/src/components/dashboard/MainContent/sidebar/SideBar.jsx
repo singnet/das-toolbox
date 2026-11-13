@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { List, ListItemIcon, ListItemText } from "@mui/material";
 import { Dashboard as DashboardIcon, SettingsEthernet, Polyline } from "@mui/icons-material";
 
@@ -20,7 +20,7 @@ import {
   pollInfraStatusForAllHosts,
   getRemoteDbServicesByHost,
 } from "../../../../utils/infraStatus";
-import { getConfigDefaults } from "../../../../api/ConfigAPI";
+import { useSidebarAtomdbConfig } from "../../../../hooks/useSidebarAtomdbConfig";
 
 import { ArchitectureActionControl } from "./ArchitectureActionControl";
 import { AtomDBActionControl } from "./AtomDBActionControl";
@@ -36,28 +36,29 @@ export function SideBar() {
   const [busyActions, setBusyActions] = useState({});
   const [statusByHost, setStatusByHost] = useState({});
   const [architectureOnline, setArchitectureOnline] = useState(false);
+  const latestInfraRequestId = useRef(0);
 
   const { setCurrentContext, currentMachine, currentContext, machines } = useDashboardContext();
   const { hostStreamSwitching } = useServerTabMetricsContext();
+  const atomdb = useSidebarAtomdbConfig();
+  const atomdbType = atomdb?.atomdb_type ?? null;
 
   const loadInfraStatus = useCallback(async ({ poll = false } = {}) => {
+    const requestId = latestInfraRequestId.current + 1;
+    latestInfraRequestId.current = requestId;
     const serverIps = machines.map((machine) => machine.serverIp).filter(Boolean);
-    let expectedByHost = {};
-    try {
-      const defaults = await getConfigDefaults();
-      expectedByHost = getRemoteDbServicesByHost(defaults?.content?.atomdb);
-    } catch (error) {
-      console.error("Failed to load AtomDB configuration for infra status:", error);
-    }
-    const statusByHost = poll
+    const expectedByHost = getRemoteDbServicesByHost(atomdb ?? {});
+    const nextStatus = poll
       ? await pollInfraStatusForAllHosts(serverIps, { attempts: 5, delayMs: 2000, expectedByHost })
       : await fetchInfraStatusForAllHosts(serverIps, expectedByHost);
 
-    setStatusByHost(statusByHost);
+    if (requestId !== latestInfraRequestId.current) return;
+
+    setStatusByHost(nextStatus);
     setArchitectureOnline(
-      Object.values(statusByHost).some((status) => status.architectureOnline)
+      Object.values(nextStatus).some((status) => status.architectureOnline)
     );
-  }, [machines]);
+  }, [machines, atomdb]);
 
   useEffect(() => {
     loadInfraStatus().catch((error) => {
@@ -117,6 +118,7 @@ export function SideBar() {
           <List disablePadding>
 
             <AtomDBActionControl
+              atomdbType={atomdbType}
               atomDbOnline={atomDbOnline}
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.atomdb}
@@ -125,6 +127,7 @@ export function SideBar() {
             />
 
             <ArchitectureActionControl
+              atomdbType={atomdbType}
               atomDbOnline={atomDbOnline}
               architectureOnline={architectureOnline}
               isServerOffline={isServerOffline}
@@ -134,9 +137,12 @@ export function SideBar() {
             />
 
             <MettaLoadActionControl
+              atomdbType={atomdbType}
+              atomDbOnline={atomDbOnline}
               isServerOffline={isServerOffline}
               disabled={isAnyActionLoading && !busyActions.metta}
               onBusyChange={(busy) => setActionBusy("metta", busy)}
+              onActionComplete={() => loadInfraStatus({ poll: true })}
             />
             
           </List>

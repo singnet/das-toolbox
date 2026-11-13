@@ -1,16 +1,11 @@
-import { useState } from "react";
 import { CircularProgress, ListItemIcon, ListItemText } from "@mui/material";
 import { PlayArrow, Stop } from "@mui/icons-material";
 
 import { StyledItem } from "./sidebar.styled";
 import { useDashboardContext } from "../../../global_providers/DashboardContextProvider";
-import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startDatabases, stopDatabases } from "../../../../api/ServicesAPI";
-import { getConfigDefaults } from "../../../../api/ConfigAPI";
-import { extractApiError } from "../../../../api/APIUtils";
-
-const LOADING_KEYS = ["start-database", "stop-database"];
+import { useSidebarAction } from "./useSidebarAction";
 
 const ATOMDB_TYPE_LABELS = {
   redismongodb: "Redis + MongoDB",
@@ -21,66 +16,31 @@ const ATOMDB_TYPE_LABELS = {
 };
 
 export function AtomDBActionControl({
+  atomdbType,
   atomDbOnline,
   isServerOffline,
   disabled = false,
   onBusyChange,
   onActionComplete,
 }) {
-  const [loadingAction, setLoadingAction] = useState(null);
-
   const { currentMachine } = useDashboardContext();
-  const { showToast } = useToast();
   const { showConfirm } = useDialog();
+  const { busy, run } = useSidebarAction({ onBusyChange, onActionComplete });
 
   const currentHost = currentMachine?.serverIp;
-  const isLoading = LOADING_KEYS.includes(loadingAction);
-
-  const setBusy = (actionKey) => {
-    setLoadingAction(actionKey);
-    onBusyChange?.(!!actionKey);
-  };
-
-  const executeAsyncAction = async (actionKey, action, successMessage, errorMessage) => {
-    try {
-      setBusy(actionKey);
-      await action();
-      try {
-        await onActionComplete?.();
-      } catch (refreshError) {
-        console.error("Failed to refresh sidebar status after action:", refreshError);
-      }
-      showToast({ message: successMessage, severity: "success" });
-    } catch (err) {
-      console.error(errorMessage, err);
-      const { message, details, severity } = extractApiError(err, errorMessage);
-      showToast({ message, severity, details });
-    } finally {
-      setBusy(null);
-    }
-  };
 
   const handleDatabaseAction = async () => {
     if (atomDbOnline) {
       showConfirm({
         title: "Stop AtomDB",
         message: "Are you sure you want to stop the AtomDB?\n\nAll components will be stopped, so any data they may be carrying will be lost.",
-        onConfirm: () => executeAsyncAction(
-          "stop-database",
+        onConfirm: () => run(
           () => stopDatabases(currentHost),
           "AtomDB stopped successfully.",
           "Failed to stop AtomDB."
         )
       });
       return;
-    }
-
-    let atomdbType;
-    try {
-      const defaults = await getConfigDefaults();
-      atomdbType = defaults?.content?.atomdb?.atomdb_type;
-    } catch (error) {
-      console.error("Failed to load AtomDB type for confirmation:", error);
     }
 
     const localHost = !currentHost || ["localhost", "127.0.0.1", "0.0.0.0"].includes(currentHost);
@@ -94,8 +54,7 @@ export function AtomDBActionControl({
       message: remoteTopology
         ? "Start Redis + MongoDB on each configured local or remote peer? Components already running will be kept."
         : `Start ${typeLabel} on ${targetHost}? Components already running will be kept.`,
-      onConfirm: () => executeAsyncAction(
-        "start-database",
+      onConfirm: () => run(
         () => startDatabases(currentHost),
         "AtomDB started successfully.",
         "Failed to start AtomDB."
@@ -105,11 +64,11 @@ export function AtomDBActionControl({
 
   return (
     <StyledItem
-      disabled={disabled || isLoading || isServerOffline}
-      onClick={() => !disabled && !isLoading && !isServerOffline && handleDatabaseAction()}
+      disabled={disabled || busy || isServerOffline}
+      onClick={() => !disabled && !busy && !isServerOffline && handleDatabaseAction()}
     >
       <ListItemIcon>
-        {isLoading ? (
+        {busy ? (
           <CircularProgress size={16} />
         ) : atomDbOnline ? (
           <Stop />

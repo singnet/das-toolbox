@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CircularProgress, Collapse, Tooltip } from "@mui/material";
 import { ExpandMore, PlayArrow, Stop } from "@mui/icons-material";
 
@@ -17,8 +17,7 @@ import {
 import { useToast } from "../../../global_providers/ToastProvider";
 import { useDialog } from "../../../global_providers/DialogProvider";
 import { startArchitecture, stopArchitecture } from "../../../../api/ServicesAPI";
-import { getConfigDefaults } from "../../../../api/ConfigAPI";
-import { extractApiError } from "../../../../api/APIUtils";
+import { useSidebarAction } from "./useSidebarAction";
 
 const CORE_TOOLTIP =
   "'Core' refers to necessary services to start/connect to other agents; disabling them can cause the architecture to be unusable or prone to failure.";
@@ -35,7 +34,11 @@ const ORCHESTRATION_SERVICES = [
   { id: "evolution-agent", label: "Evolution Agent", group: "agent" },
 ];
 
+const CORE_SERVICES = ORCHESTRATION_SERVICES.filter((service) => service.group === "core");
+const AGENT_SERVICES = ORCHESTRATION_SERVICES.filter((service) => service.group === "agent");
+
 export function ArchitectureActionControl({
+  atomdbType,
   atomDbOnline,
   architectureOnline,
   isServerOffline,
@@ -43,41 +46,16 @@ export function ArchitectureActionControl({
   onBusyChange,
   onActionComplete,
 }) {
-  const orchestrationServices = ORCHESTRATION_SERVICES;
-
-  const coreServices = useMemo(
-    () => orchestrationServices.filter((service) => service.group === "core"),
-    [orchestrationServices]
-  );
-
-  const agentServices = useMemo(
-    () => orchestrationServices.filter((service) => service.group === "agent"),
-    [orchestrationServices]
-  );
-
   const [expanded, setExpanded] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
-  const [loadingAction, setLoadingAction] = useState(null);
-  const [atomdbType, setAtomdbType] = useState(null);
-
   const { showToast } = useToast();
   const { showConfirm } = useDialog();
+  const { busy, run } = useSidebarAction({ onBusyChange, onActionComplete });
   const hasInitializedSelection = useRef(false);
 
   useEffect(() => {
-    let active = true;
-    getConfigDefaults().then((defaults) => {
-      if (active) setAtomdbType(defaults?.content?.atomdb?.atomdb_type);
-    }).catch((error) => {
-      console.error("Failed to load AtomDB type for service selection:", error);
-      if (active) setAtomdbType("unknown");
-    });
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
     if (!atomdbType) return;
-    const availableIds = orchestrationServices.map((service) => service.id);
+    const availableIds = ORCHESTRATION_SERVICES.map((service) => service.id);
     if (!hasInitializedSelection.current) {
       hasInitializedSelection.current = true;
       setSelectedServices(atomdbType === "remotedb"
@@ -86,41 +64,15 @@ export function ArchitectureActionControl({
       return;
     }
     setSelectedServices((current) => current.filter((id) => availableIds.includes(id)));
-  }, [orchestrationServices, atomdbType]);
-
-  const isLoading = !!loadingAction;
+  }, [atomdbType]);
 
   const isActionDisabled =
     disabled ||
     !atomdbType ||
-    isLoading ||
+    busy ||
     isServerOffline ||
     (!atomDbOnline && !architectureOnline) ||
-    orchestrationServices.length === 0;
-
-  const setBusy = (actionKey) => {
-    setLoadingAction(actionKey);
-    onBusyChange?.(!!actionKey);
-  };
-
-  const executeAsyncAction = async (actionKey, action, successMessage, errorMessage) => {
-    try {
-      setBusy(actionKey);
-      await action();
-      try {
-        await onActionComplete?.();
-      } catch (refreshError) {
-        console.error("Failed to refresh sidebar status after action:", refreshError);
-      }
-      showToast({ message: successMessage, severity: "success" });
-    } catch (err) {
-      console.error(errorMessage, err);
-      const { message, details, severity } = extractApiError(err, errorMessage);
-      showToast({ message, severity, details });
-    } finally {
-      setBusy(null);
-    }
-  };
+    ORCHESTRATION_SERVICES.length === 0;
 
   const handleArchitectureAction = () => {
     if (architectureOnline) {
@@ -133,8 +85,7 @@ export function ArchitectureActionControl({
         title: "Stop DAS Services",
         message: `Stop ${selectedServices.length} selected service(s)?`,
         onConfirm: () =>
-          executeAsyncAction(
-            "stop-architecture",
+          run(
             () => stopArchitecture(selectedServices),
             "Architecture stopped successfully.",
             "Failed to stop architecture."
@@ -154,15 +105,14 @@ export function ArchitectureActionControl({
     }
 
     const serviceLabels = selectedServices
-      .map((id) => orchestrationServices.find((service) => service.id === id)?.label)
+      .map((id) => ORCHESTRATION_SERVICES.find((service) => service.id === id)?.label)
       .filter(Boolean);
 
     showConfirm({
       title: "Start Architecture",
       message: `The following services will be started:\n\n${serviceLabels.map((label) => `• ${label}`).join("\n")}`,
       onConfirm: () =>
-        executeAsyncAction(
-          "start-architecture",
+        run(
           () => startArchitecture(selectedServices),
           "Architecture started successfully.",
           "Failed to start architecture."
@@ -188,7 +138,7 @@ export function ArchitectureActionControl({
           onClick={handleArchitectureAction}
         >
           <ActionIcon>
-            {isLoading ? (
+            {busy ? (
               <CircularProgress size={16} />
             ) : architectureOnline ? (
               <Stop />
@@ -223,7 +173,7 @@ export function ArchitectureActionControl({
               Core
             </GroupLabel>
           </Tooltip>
-          {coreServices.map((service) => (
+          {CORE_SERVICES.map((service) => (
             <AgentOption key={service.id}>
               <AgentCheckbox
                 size="small"
@@ -240,7 +190,7 @@ export function ArchitectureActionControl({
               Agents
             </GroupLabel>
           </Tooltip>
-          {agentServices.map((service) => (
+          {AGENT_SERVICES.map((service) => (
             <AgentOption key={service.id}>
               <AgentCheckbox
                 size="small"

@@ -114,38 +114,122 @@ def _endpoint_host(endpoint: Any) -> str:
     return endpoint.rsplit(":", 1)[0].strip()
 
 
-def _default_peer_nodes(section: Dict[str, Any], current_user: str) -> List[Dict[str, Any]]:
-    host = _endpoint_host(section.get("endpoint"))
+def assemble_db_start_targets(content: Dict[str, Any], current_user: str) -> None:
+    """Builds db_start_targets from each RemoteDB peer's local persistence.
+    This is necessary for das-cli and the dashboard to operate.
 
-    if not host or host in LOCAL_NODE_HOSTS:
-        return [{"context": "default", "ip": "localhost", "username": current_user}]
+    In-memory persistence is skipped.
+    """
+    atomdb = content.get("atomdb") or {}
+    if not isinstance(atomdb, dict) or atomdb.get("type") != "remotedb":
+        content.pop("db_start_targets", None)
+        return
 
-    return [{"context": "", "ip": host, "username": current_user}]
+    previous = {
+        item.get("codename"): item
+        for item in content.get("db_start_targets") or []
+        if isinstance(item, dict) and item.get("codename")
+    }
+    targets = []
+    for peer in atomdb.get("remote_peers") or []:
+        if not isinstance(peer, dict):
+            continue
+        _strip_database_nodes(peer)
+        local_persistence = peer.get("local_persistence") or {}
+        if not isinstance(local_persistence, dict):
+            continue
+        _strip_database_nodes(local_persistence)
+
+        persistence_type = local_persistence.get("type")
+        if persistence_type not in {"redismongodb", "morkdb"}:
+            continue
+
+        host = _persistence_host(local_persistence, persistence_type)
+        local = not host or host in LOCAL_NODE_HOSTS
+        derived_ip = "localhost" if local else host
+        codename = local_persistence.get("context") or f"{peer.get('uid') or 'peer'}-local"
+        saved = previous.get(codename) or {}
+        nodes = _saved_nodes(saved, derived_ip, current_user, local)
+        targets.append(
+            {
+                "codename": codename,
+                "type": persistence_type,
+                "nodes": nodes,
+            }
+        )
+
+    content["db_start_targets"] = targets
 
 
-def normalize_remote_peers(
+def _saved_nodes(saved: Dict[str, Any], derived_ip: str, current_user: str, local: bool) -> list:
+    nodes = saved.get("nodes")
+    if isinstance(nodes, list) and nodes:
+        return [dict(node) for node in nodes if isinstance(node, dict)]
+
+    if saved.get("ip") or saved.get("username") or saved.get("context"):
+        return [
+            {
+                "context": saved.get("context") or ("default" if local else ""),
+                "ip": saved.get("ip") or derived_ip,
+                "username": saved.get("username") or current_user,
+            }
+        ]
+
+    return [
+        {
+            "context": "default" if local else "",
+            "ip": derived_ip,
+            "username": current_user,
+        }
+    ]
+
+
+def _strip_database_nodes(section: Dict[str, Any]) -> None:
+    for database in ("redis", "mongodb", "morkdb"):
+        database_section = section.get(database)
+        if isinstance(database_section, dict):
+            database_section.pop("nodes", None)
+
+
+def _persistence_host(local_persistence: Dict[str, Any], persistence_type: str) -> str:
+    if persistence_type == "redismongodb":
+        endpoint = (local_persistence.get("redis") or {}).get("endpoint")
+        if not endpoint:
+            endpoint = (local_persistence.get("mongodb") or {}).get("endpoint")
+    else:
+        endpoint = (local_persistence.get("morkdb") or {}).get("endpoint")
+        if not endpoint:
+            endpoint = (local_persistence.get("mongodb") or {}).get("endpoint")
+    return _endpoint_host(endpoint)
+
+
+def normalize_db_start_targets(
     content: Dict[str, Any],
     current_user: str,
     context_manager: RemoteContextManager,
     removed_contexts: Set[str],
 ) -> None:
-    atomdb = content.get("atomdb", {})
-    if atomdb.get("type") != "remotedb":
+    targets = content.get("db_start_targets")
+    if not isinstance(targets, list):
         return
 
-    for peer in atomdb.get("remote_peers") or []:
-        if not isinstance(peer, dict) or peer.get("type") != "redismongodb":
+    for target in targets:
+        if not isinstance(target, dict) or target.get("type") not in {"redismongodb", "morkdb"}:
             continue
 
-        for database in ("redis", "mongodb"):
-            section = peer.get(database)
-            if not isinstance(section, dict):
-                continue
-
-            nodes = section.get("nodes") or _default_peer_nodes(section, current_user)
-            section["nodes"] = normalize_servers(
-                nodes, current_user, context_manager, removed_contexts
-            )
+        nodes = target.get("nodes")
+        if not isinstance(nodes, list) or not nodes:
+            nodes = [
+                {
+                    "context": target.get("context") or "",
+                    "ip": target.get("ip") or "localhost",
+                    "username": target.get("username") or current_user,
+                }
+            ]
+        target["nodes"] = normalize_servers(nodes, current_user, context_manager, removed_contexts)
+        target.pop("context", None)
+        target.pop("ip", None)
+        target.pop("username", None)
 
 
 def _fill_missing_values(current: Any, defaults: Any) -> Any:
@@ -236,6 +320,7 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
     current_user = getpass.getuser()
 
     context_manager = RemoteContextManager()
+    assemble_db_start_targets(content, current_user)
     removed_contexts = set(context_manager._clear_existing_contexts())
 
     mongodb = content.get("atomdb", {}).get("mongodb", {})
@@ -264,7 +349,7 @@ def verify_populate_missing_values(settings: Settings, path: str) -> None:
                 redis_nodes, current_user, context_manager, removed_contexts
             )
 
-    normalize_remote_peers(content, current_user, context_manager, removed_contexts)
+    normalize_db_start_targets(content, current_user, context_manager, removed_contexts)
 
     settings.set_content(content)
 
