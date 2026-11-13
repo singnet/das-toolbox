@@ -4,7 +4,7 @@ from pathlib import Path
 
 from common.config.loader import EnvFileLoader
 
-VERSION = '1.2.1'
+VERSION = '1.5.0'
 RELEASE_NOTES_URL = "https://raw.githubusercontent.com/singnet/das/master/docs/release-notes.md"
 
 SERVICES_NETWORK_NAME = "host"

@@ -1,1 +1,8 @@
+Highlights
+* DAS-Dashboard complete and extensive Documentation (#326)
 
+Bug Fixes
+* Fixed GUI's db loader logic and validation (#329)
+
+Minor Changes
+* No minor changes made.
