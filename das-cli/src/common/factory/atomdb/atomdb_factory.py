@@ -1,4 +1,3 @@
-import getpass
 import os
 from typing import List
 
@@ -18,6 +17,7 @@ from .atomdb_backend import (
 from .mongodb_manager_factory import MongoDbContainerManagerFactory
 from .morkdb_manager_factory import MorkDbContainerManagerFactory
 from .redis_manager_factory import RedisContainerManagerFactory
+from .remote_start_targets import remote_local_persistences
 
 
 class AtomDbContainerManagerFactory:
@@ -58,34 +58,26 @@ class AtomDbContainerManagerFactory:
             case _:
                 raise ValueError(f"Unsupported AtomDB backend type: {backend_type}")
 
-    @staticmethod
-    def _peer_section(peer: dict, database: str) -> dict:
-        section = dict(peer.get(database) or {})
-        if section.get("nodes"):
-            return section
-
-        endpoint = section.get("endpoint")
-        host = endpoint.rsplit(":", 1)[0].strip() if isinstance(endpoint, str) else ""
-        if not host or host in {"localhost", "127.0.0.1", "0.0.0.0"}:
-            section["nodes"] = [
-                {"context": "default", "ip": "localhost", "username": getpass.getuser()}
-            ]
-        else:
-            section["nodes"] = [{"context": "", "ip": host, "username": ""}]
-        return section
-
     def _remote_db_providers(self) -> List[BackendProvider]:
         providers: List[BackendProvider] = []
-        for peer in self._settings.get("atomdb.remote_peers", []) or []:
-            if not isinstance(peer, dict) or peer.get("type") != "redismongodb":
-                continue
-            providers.append(
-                MongoDBRedisBackend(
-                    MongoDbContainerManagerFactory().build(self._peer_section(peer, "mongodb")),
-                    RedisContainerManagerFactory().build(self._peer_section(peer, "redis")),
-                    peer_uid=peer.get("uid"),
+        for persistence in remote_local_persistences(self._settings.get_content()):
+            codename = persistence["codename"]
+            if persistence["type"] == "redismongodb":
+                providers.append(
+                    MongoDBRedisBackend(
+                        MongoDbContainerManagerFactory().build(persistence["mongodb"]),
+                        RedisContainerManagerFactory().build(persistence["redis"]),
+                        peer_uid=codename,
+                    )
                 )
-            )
+            elif persistence["type"] == "morkdb":
+                providers.append(
+                    MorkMongoDBBackend(
+                        MongoDbContainerManagerFactory().build(persistence["mongodb"]),
+                        MorkDbContainerManagerFactory().build(persistence["morkdb"]),
+                        peer_uid=codename,
+                    )
+                )
         return providers or [RemoteDBBackend()]
 
     def _redis_mongodb_backend(self) -> MongoDBRedisBackend:

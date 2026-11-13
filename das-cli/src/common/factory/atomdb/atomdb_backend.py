@@ -118,9 +118,19 @@ class MorkMongoDBBackend(BackendProvider):
         self,
         mongodb_container_manager: MongodbContainerManager,
         morkdb_container_manager: MorkdbContainerManager,
+        peer_uid: str | None = None,
     ) -> None:
         self._mongodb_container_manager = mongodb_container_manager
         self._mork_db_container_manager = morkdb_container_manager
+        self.peer_uid = peer_uid
+
+    @property
+    def mongodb_container_manager(self) -> MongodbContainerManager:
+        return self._mongodb_container_manager
+
+    @property
+    def morkdb_container_manager(self) -> MorkdbContainerManager:
+        return self._mork_db_container_manager
 
     def start(self) -> None:
         # TODO: Implement this method here to start the database from the backend instance

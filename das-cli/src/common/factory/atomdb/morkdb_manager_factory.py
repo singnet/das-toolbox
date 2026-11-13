@@ -18,10 +18,15 @@ class MorkDbContainerManagerFactory:
 
         return "atomdb.morkdb"
 
-    def build(self):
-        backend_path = self._get_backend_path()
+    def build(self, section: dict | None = None):
+        if section:
+            morkdb_endpoint = section.get("endpoint", "")
+            morkdb_nodes = section.get("nodes") or []
+        else:
+            backend_path = self._get_backend_path()
+            morkdb_endpoint = self._settings.get(f"{backend_path}.endpoint")
+            morkdb_nodes = []
 
-        morkdb_endpoint = self._settings.get(f"{backend_path}.endpoint")
         morkdb_port = extract_service_port(morkdb_endpoint)
         morkdb_hostname = extract_service_hostname(morkdb_endpoint)
 
@@ -35,5 +40,6 @@ class MorkDbContainerManagerFactory:
                 "morkdb_endpoint": morkdb_endpoint,
                 "morkdb_port": morkdb_port,
                 "morkdb_hostname": "0.0.0.0" if morkdb_hostname == "localhost" else morkdb_hostname,
+                "morkdb_nodes": morkdb_nodes,
             },
         )
