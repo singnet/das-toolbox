@@ -80,5 +80,5 @@ DAS_MORK_SERVER_IMAGE_VERSION = "mork-server-1.1.0"
 DAS_MORK_LOADER_IMAGE_NAME = "trueagi/das"
 DAS_MORK_LOADER_IMAGE_VERSION = "mork-loader-1.1.0"
 
-DAS_IMAGE_VERSION = "1.2.4-rc"
+DAS_IMAGE_VERSION = "1.5.0-rc"
 DAS_IMAGE_NAME = "trueagi/das"
