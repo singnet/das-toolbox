@@ -157,10 +157,6 @@ class MettaLoad(Command):
 
         self._check_file_and_permissions(file_path)
 
-        self.log("Validating syntax...", severity=StdoutSeverity.INFO)
-        self._validate_metta_syntax(file_path)
-        self.log("Syntax validation passed.", severity=StdoutSeverity.SUCCESS)
-
         self._database_loader_container_manager.start_container(file_path)
         self.log(f"Done loading {file_path}.", severity=StdoutSeverity.SUCCESS)
 
@@ -208,16 +204,15 @@ class MettaCheck(Command):
         self._settings = settings
 
     def run(self, path: str):
-        self._settings.validate_configuration_file()
-
-        if os.path.isdir(path):
-            checked_files, errors = self._validate_directory(path)
-        else:
-            checked_files, errors = self._validate_file(path)
-
-        self._finish_check(path, checked_files, errors)
+        self.stdout(ServiceResponse(
+            service=CLI_SERVICE_NAME,
+            message="The 'metta check' command is currently disabled until an update is released. If you need to load a MeTTa database, you can still use 'metta load'.",
+            action="check",
+            status=StdoutStatus.INFO,
+        ), StdoutSeverity.INFO)
 
     def _finish_check(self, path: str, checked_files: list[str], errors: list[str]) -> None:
+
         if errors:
             error_lines = "\n".join(f"- {error}" for error in errors)
             self.stdout(
