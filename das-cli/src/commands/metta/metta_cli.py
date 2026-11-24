@@ -208,8 +208,8 @@ class MettaCheck(Command):
             service=CLI_SERVICE_NAME,
             message="The 'metta check' command is currently disabled until an update is released. If you need to load a MeTTa database, you can still use 'metta load'.",
             action="check",
-            status=StdoutStatus.INFO,
-        ), StdoutSeverity.INFO)
+            status=StdoutStatus.ERROR,
+        ), StdoutSeverity.ERROR)
 
     def _finish_check(self, path: str, checked_files: list[str], errors: list[str]) -> None:
 

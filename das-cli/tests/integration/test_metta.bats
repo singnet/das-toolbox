@@ -12,6 +12,16 @@ setup() {
      chmod +r "$test_fixtures_dir/metta/animals.metta"
 }
 
+@test "Checking if MeTTa Check command is disabled" {
+    use_missing_config_path
+
+    run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
+
+    assert_failure
+    assert_output --partial "The 'metta check' command is currently disabled until an update is released. If you need to load a MeTTa database, you can still use 'metta load'."
+
+}
+
 @test "Checking MeTTa file syntax with unset configuration file" {
     skip "Metta check is currently disabled until updated."
     use_missing_config_path
