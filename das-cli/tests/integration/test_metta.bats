@@ -12,7 +12,18 @@ setup() {
      chmod +r "$test_fixtures_dir/metta/animals.metta"
 }
 
+@test "Checking if MeTTa Check command is disabled" {
+    use_missing_config_path
+
+    run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
+
+    assert_failure
+    assert_output --partial "The 'metta check' command is currently disabled until an update is released. If you need to load a MeTTa database, you can still use 'metta load'."
+
+}
+
 @test "Checking MeTTa file syntax with unset configuration file" {
+    skip "Metta check is currently disabled until updated."
     use_missing_config_path
 
     run das-cli metta check "$test_fixtures_dir/metta/animals.metta"
@@ -21,6 +32,7 @@ setup() {
 }
 
 @test "Checking syntax of a valid MeTTa file" {
+    skip "Metta check is currently disabled until updated."
     local metta_file_path="$test_fixtures_dir/metta/animals.metta"
 
     run das-cli metta check "$metta_file_path"
@@ -31,6 +43,8 @@ setup() {
 }
 
 @test "Checking syntax of an invalid MeTTa file" {
+    skip "Metta check is currently disabled until updated."
+
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
 
     run das-cli metta check "$metta_file_path"
@@ -41,6 +55,8 @@ setup() {
 }
 
 @test "Checking syntax of multiple MeTTa files" {
+    skip "Metta check is currently disabled until updated."
+
     local metta_file_path="$test_fixtures_dir/metta/"
     local animals_file_path="${metta_file_path}animals.metta"
     local invalid_file_path="${metta_file_path}invalid.metta"
@@ -55,11 +71,15 @@ setup() {
 }
 
 @test "Checking MeTTa file with invalid path" {
+    skip "Metta check is currently disabled until updated."
+
     run das-cli metta check "/invalid/path"
     assert_failure
 }
 
 @test "Checking MeTTa file command without path" {
+    skip "Metta check is currently disabled until updated."
+
     run das-cli metta check
     assert_failure
 }
@@ -82,6 +102,8 @@ setup() {
 }
 
 @test "Loading an invalid MeTTa file" {
+    skip "Metta check is currently disabled and db_loader's default behavior is to ignore invalid metta syntax"
+
     local metta_file_path="$test_fixtures_dir/metta/invalid.metta"
 
     run das-cli metta load "$metta_file_path"
@@ -112,12 +134,10 @@ setup() {
 
     run das-cli metta load "$metta_file_path"
 
-    assert_failure 1
+    assert_success 
     assert_line --partial "Loading metta file"
     assert_line --partial "animals.metta"
     assert_line --partial "invalid.metta"
-    assert_output --partial "MeTTa load failed"
-    assert_output --partial "contains invalid MeTTa syntax."
 }
 
 @test "Trying to load a MeTTa file with an invalid path" {

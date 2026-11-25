@@ -5,7 +5,6 @@ import docker.errors
 
 from common import Container, ContainerImageMetadata, ContainerManager, ContainerMetadata
 from common.docker.exceptions import DockerContainerNotFoundError, DockerError
-from settings.config import METTA_PARSER_IMAGE_NAME, METTA_PARSER_IMAGE_VERSION
 
 
 class MettaSyntaxContainerManager(ContainerManager):
@@ -17,8 +16,8 @@ class MettaSyntaxContainerManager(ContainerManager):
                 {
                     "image": ContainerImageMetadata(
                         {
-                            "name": METTA_PARSER_IMAGE_NAME,
-                            "version": METTA_PARSER_IMAGE_VERSION,
+                            "name": "",
+                            "version": "",
                         }
                     ),
                 }
