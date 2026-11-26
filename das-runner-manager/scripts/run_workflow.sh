@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 GITHUB_REPO_NAME="${1:-singnet/das}"
 WORKFLOW_NAME="${2:-check-repos.yml}"
