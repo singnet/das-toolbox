@@ -532,6 +532,9 @@ class CommandGroup(Command):
         self.group.invoke_without_command = True
         self.group.callback = self.safe_run
         self.group.no_args_is_help = False
+        for param in self.remote_params + self.default_params:
+            if param not in self.group.params:
+                self.group.params.append(param)
 
     def add_groups(self, groups: list["CommandGroup"]):
         for group_instance in groups:

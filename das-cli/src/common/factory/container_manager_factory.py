@@ -13,6 +13,9 @@ class ContainerManagerFactory:
         self._settings = Settings(store=JsonConfigStore(os.path.expanduser(SECRETS_PATH)))
 
     def _gen_container_name(self, type: ContainerTypes, port: int | None):
+        if type in [ContainerTypes.MONGODB, ContainerTypes.MORK, ContainerTypes.REDIS]:
+            return f"das-cli-{type.name.lower().replace('_', '-')}-{port}"
+
         return f"das-{type.name.lower().replace('_', '-')}-{port}"
 
     def build(self, type: ContainerTypes):

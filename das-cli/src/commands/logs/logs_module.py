@@ -2,20 +2,19 @@ import os
 
 from common import Module
 from common.config.store import JsonConfigStore
-from common.container_manager.agents.attention_broker_container_manager import (
-    AttentionBrokerManager,
-)
+
 from common.container_manager.agents.generic_agent_containers import (
+    AtomDbBrokerContainerManager,
+    AttentionBrokerContainerManager,
     ContextBrokerContainerManager,
     EvolutionAgentContainerManager,
     LCAContainerManager,
     QueryAgentContainerManager,
+    MongoDbContainerManager,
+    RedisContainerManager,
+    MorkDbContainerManager,
 )
-from common.container_manager.atomdb.mongodb_container_manager import MongodbContainerManager
-from common.container_manager.atomdb.redis_container_manager import RedisContainerManager
-from common.factory.atomdb.mongodb_manager_factory import MongoDbContainerManagerFactory
-from common.factory.atomdb.redis_manager_factory import RedisContainerManagerFactory
-from common.factory.attention_broker_manager_factory import AttentionBrokerManagerFactory
+
 from common.factory.container_manager_factory import ContainerManagerFactory, ContainerTypes
 from settings.config import SECRETS_PATH
 
@@ -43,15 +42,23 @@ class LogsModule(Module):
             ),
             (
                 RedisContainerManager,
-                RedisContainerManagerFactory().build(),
+                container_factory.build(type=ContainerTypes.REDIS),
             ),
             (
-                MongodbContainerManager,
-                MongoDbContainerManagerFactory().build(),
+                MongoDbContainerManager,
+                container_factory.build(type=ContainerTypes.MONGODB),
             ),
             (
-                AttentionBrokerManager,
-                AttentionBrokerManagerFactory().build(),
+                MorkDbContainerManager,
+                container_factory.build(type=ContainerTypes.MORK),
+            ),
+            (
+                AttentionBrokerContainerManager,
+                container_factory.build(type=ContainerTypes.ATTENTION_BROKER),
+            ),
+            (
+                AtomDbBrokerContainerManager,
+                container_factory.build(type=ContainerTypes.ATOMDB_BROKER),
             ),
             (
                 QueryAgentContainerManager,

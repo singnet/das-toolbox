@@ -154,19 +154,19 @@ AGENTS (agents)
 
 BROKERS (brokers)
 
-    brokers.attention.endpoint
+    agents.attention.endpoint
         Endpoint for the Attention Broker.
 
-    brokers.context.endpoint
+    brokagentsers.context.endpoint
         Endpoint for the Context Broker.
 
-    brokers.context.ports_range
+    agents.context.ports_range
         Port range for Context Broker workers.
 
-    brokers.atomdb.endpoint
+    agents.atomdb.endpoint
         Endpoint for the AtomDB Broker.
 
-    brokers.atomdb.ports_range
+    agents.atomdb.ports_range
         Port range for AtomDB Broker workers.
 
 

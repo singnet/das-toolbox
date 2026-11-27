@@ -1,7 +1,7 @@
 import socket
 import time
 from pathlib import Path
-from typing import Any, List, Optional, TypedDict, Union, cast
+from typing import Any, Iterator, List, Optional, TypedDict, Union, cast
 
 import docker
 import docker.errors
@@ -235,7 +235,7 @@ class ContainerManager(DockerManager):
             "port": self._container.port,
         }
 
-    def logs(self, follow: bool = False) -> None:
+    def logs(self, follow: bool = False, tail: Union[int, str] = "all") -> Iterator[str]:
         container_name = self.get_container().name
 
         try:
@@ -243,13 +243,21 @@ class ContainerManager(DockerManager):
         except docker.errors.NotFound:
             raise DockerError(f"Service {container_name} is not running")
 
-        logs = container.logs(stdout=True, stderr=True, stream=True, follow=follow)
-
-        for chunk in logs:
-            if isinstance(chunk, (bytes, bytearray)):
-                print(chunk.decode("utf-8", errors="ignore"), end="")
-            else:
-                print(chr(chunk), end="")
+        stream = container.logs(
+            stdout=True,
+            stderr=True,
+            stream=True,
+            follow=follow,
+            tail=tail,
+        )
+        try:
+            for chunk in stream:
+                if isinstance(chunk, (bytes, bytearray)):
+                    yield chunk.decode("utf-8", errors="ignore")
+                else:
+                    yield str(chunk)
+        finally:
+            stream.close()
 
     def tail(self, file_path: str, clear_terminal: bool = False) -> None:
         console = Console()
