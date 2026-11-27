@@ -56,7 +56,8 @@ class MettaSyntaxContainerManager(ContainerManager):
                 tty=True,
             )
 
-            self.logs()
+            for chunk in self.logs():
+                print(chunk, end="")
 
             exit_code = self.get_container_exit_status(container)
 

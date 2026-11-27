@@ -55,7 +55,8 @@ class DatabaseLoaderContainerManager(ContainerManager):
                 auto_remove=False,
             )
 
-            self.logs()
+            for chunk in self.logs():
+                print(chunk, end="")
 
             exit_code = self.get_container_exit_status(container)
             container.remove(v=True, force=True)
